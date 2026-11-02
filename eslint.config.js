@@ -37,6 +37,15 @@ export default [
       'react-hooks/exhaustive-deps': 'warn',
       'react/prop-types': 0,
       'react/display-name': 0,
+      'react/jsx-one-expression-per-line': ['error', { allow: 'literal' }],
+      'react/jsx-indent': ['error', 2],
+      'react/jsx-indent-props': ['error', 2],
+      'react/jsx-max-props-per-line': ['error', { maximum: 1, when: 'always' }],
+      'react/jsx-first-prop-new-line': ['error', 'multiline-multiprop'],
+      'react/jsx-closing-bracket-location': ['error', 'line-aligned'],
+      'react/jsx-wrap-multilines': ['error', { declaration: 'parens-new-line', assignment: 'parens-new-line', return: 'parens-new-line', arrow: 'parens-new-line', condition: 'parens-new-line', logical: 'parens-new-line', prop: 'parens-new-line' }],
+      'curly': ['error', 'all'],
+      'brace-style': ['error', '1tbs', { allowSingleLine: false }],
 
       // Common Rules
       'no-console': 1,
