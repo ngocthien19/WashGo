@@ -60,6 +60,8 @@
 }
 
 @theme inline {
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -117,7 +119,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-sm text-foreground;
   }
   html {
     @apply font-sans;

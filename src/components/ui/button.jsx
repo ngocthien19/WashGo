@@ -2,6 +2,7 @@ import { Button as ButtonPrimitive } from '@base-ui/react/button'
 import { cva } from 'class-variance-authority'
 import { cn } from 'cn'
 import { UI_TRANSITIONS } from '~/utils/constants'
+import { WithTooltip } from './tooltip'
 
 const buttonVariants = cva(
   cn(
@@ -14,6 +15,8 @@ const buttonVariants = cva(
         default: 'bg-primary text-primary-foreground hover:bg-primary/80',
         outline:
           'border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50',
+        'outline-primary':
+          'border-primary bg-transparent text-primary hover:border-primary hover:bg-primary hover:text-white focus-visible:bg-primary focus-visible:text-white',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground',
         ghost:
@@ -47,15 +50,28 @@ function Button({
   className,
   variant = 'default',
   size = 'default',
+  tooltip,
   ...props
 }) {
-  return (
+  const button = (
     <ButtonPrimitive
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
   )
+  const tooltipContent = tooltip || (size.startsWith('icon') ? props['aria-label'] : null)
+  if (tooltipContent) {
+    return (
+      <WithTooltip
+        content={tooltipContent}
+        disabled={props.disabled}
+      >
+        {button}
+      </WithTooltip>
+    )
+  }
+  return button
 }
 
 export { Button, buttonVariants }
