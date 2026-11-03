@@ -8,6 +8,7 @@ import { persistor, store } from '~/redux/store'
 import 'react-toastify/dist/ReactToastify.css'
 import ThemeProvider from '~/components/ThemeProvider/ThemeProvider'
 import LoadingScreen from '~/components/LoadingScreen/LoadingScreen'
+import { TooltipProvider } from '~/components/ui/tooltip'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -17,7 +18,9 @@ createRoot(document.getElementById('root')).render(
         persistor={persistor}
       >
         <ThemeProvider>
-          <App />
+          <TooltipProvider>
+            <App />
+          </TooltipProvider>
         </ThemeProvider>
       </PersistGate>
     </Provider>

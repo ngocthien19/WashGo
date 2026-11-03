@@ -22,6 +22,84 @@ export const ROLE_HOME_ROUTES = {
   [USER_ROLES.SHIPPER]: '/shipper'
 }
 
+export const CUSTOMER_ROUTES = {
+  HOME: ROLE_HOME_ROUTES[USER_ROLES.CUSTOMER],
+  SERVICES: '/customer/services',
+  LOCKERS: '/customer/lockers'
+}
+
+export const CUSTOMER_NAVIGATION = [
+  { label: 'Trang chủ', href: CUSTOMER_ROUTES.HOME },
+  { label: 'Tạo đơn hàng', pending: true },
+  { label: 'Đơn hàng của tôi', pending: true },
+  { label: 'Dịch vụ', href: CUSTOMER_ROUTES.SERVICES },
+  { label: 'Locker', href: CUSTOMER_ROUTES.LOCKERS }
+]
+
+export const CUSTOMER_API_ENDPOINTS = {
+  SERVICES: '/customer/services',
+  LOCKERS: '/customer/lockers'
+}
+
+export const LOCKER_MAP = {
+  TILE_URL: 'https://tile.openstreetmap.de/{z}/{x}/{y}.png',
+  ATTRIBUTION: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  ZOOM: 15,
+  MAX_ZOOM: 18,
+  ACTIVE_COLOR: '#ff7a45',
+  USER_COLOR: '#2563eb',
+  TILE_TIMEOUT_MS: 12000,
+  LOCATION_TIMEOUT_MS: 10000,
+  LOCATION_MAX_AGE_MS: 60000
+}
+
+export const EARTH_RADIUS_KM = 6371
+
+export const LOCKER_SLOT_SIZES = { 1: 'Nhỏ', 2: 'Tiêu chuẩn', 3: 'Lớn' }
+
+export const SERVICE_TYPES = [
+  { value: '', label: 'Tất cả' },
+  { value: '1', label: 'Giặt thường' },
+  { value: '2', label: 'Giặt khô' },
+  { value: '3', label: 'Ủi đồ' },
+  { value: '4', label: 'Giặt chăn' },
+  { value: '5', label: 'Vệ sinh giày' }
+]
+
+export const CUSTOMER_CATALOG = {
+  PAGE_SIZE: 6,
+  FEATURED_LIMIT: 3,
+  INITIAL_PAGE: 1
+}
+
+export const LOCKER_AREA_PAGE_SIZE = 100
+
+export const UI_MOTION = {
+  DURATION: 0.35,
+  STAGGER: 0.06,
+  EASE: [0.22, 1, 0.36, 1],
+  TOOLTIP_DELAY_MS: 0
+}
+
+export const HERO_MOTION = {
+  OFFSET: 48,
+  DURATION: 0.6
+}
+
+// Display placeholders from the reference; replace when official content is available.
+export const CUSTOMER_FOOTER = {
+  SERVICES: [
+    { label: 'Giặt sấy thông dụng', serviceType: '1' },
+    { label: 'Giặt hấp cao cấp', serviceType: '2' },
+    { label: 'Ủi phẳng chuyên sâu', serviceType: '3' },
+    { label: 'Combo doanh nghiệp', serviceType: '' }
+  ],
+  SUPPORT: ['Chính sách bảo mật', 'Điều khoản dịch vụ', 'Câu hỏi thường gặp'],
+  PHONE: '1900 123 456',
+  EMAIL: 'support@washgo.vn',
+  ADDRESS: '123 Đường Số 7, Phường Tân Kiểng, Quận 7, TP. HCM'
+}
+
 export const OTP_PURPOSE = {
   REGISTER: 1,
   FORGOT_PASSWORD: 2
@@ -52,6 +130,8 @@ export const UI_TRANSITIONS = {
   OPACITY: 'transition-opacity delay-0 duration-200 ease-in-out motion-reduce:transition-none',
   ICON: 'transition-transform delay-0 duration-150 ease-out motion-reduce:transition-none'
 }
+
+export const TEXT_LINK_STYLES = `underline decoration-transparent underline-offset-4 hover:decoration-current focus-visible:decoration-current ${UI_TRANSITIONS.LINK}`
 
 export const AUTH_API_ENDPOINTS = {
   LOGIN: '/auth/login',
