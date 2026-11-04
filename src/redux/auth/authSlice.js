@@ -7,8 +7,15 @@ const authSlice = createSlice({
     setUser: (state, { payload }) => {
       state.user = payload
     },
+    updateCustomerIdentity: (state, { payload }) => {
+      if (state.user && payload.id && state.user.id === payload.id) {
+        state.user.fullName = payload.fullName
+        state.user.phone = payload.phone
+        state.user.avatar = payload.avatarUrl
+      }
+    },
     clearSession: () => initialState
   }
 })
-export const { setSession, setUser, clearSession } = authSlice.actions
+export const { setSession, setUser, updateCustomerIdentity, clearSession } = authSlice.actions
 export default authSlice.reducer

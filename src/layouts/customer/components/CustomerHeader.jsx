@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useLocation } from 'react-router-dom'
-import { Bell, ChevronDown, LogOut, Menu, UserRound } from 'lucide-react'
+import { Bell, ChevronDown, ClipboardList, LogOut, Menu, MessageSquareWarning, UserRound } from 'lucide-react'
 import { notify } from '~/utils/notifications'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Button } from '~/components/ui/button'
@@ -12,10 +12,10 @@ import LanguageSwitcher from '~/components/LanguageSwitcher/LanguageSwitcher'
 import { authApi } from '~/apis/auth/authApi'
 import { clearSession } from '~/redux/auth/authSlice'
 import { CUSTOMER_NAVIGATION, CUSTOMER_ROUTES, UI_TRANSITIONS, UI_MOTION } from '~/utils/constants'
-import { getInitials } from '~/utils/formats'
 import { getApiError } from '~/utils/apiError'
 import { cn } from '~/lib/utils'
 import Brand from '~/components/Brand/Brand'
+import CustomerAvatar from '~/components/customer/CustomerAvatar/CustomerAvatar'
 
 export default function CustomerHeader() {
   const { t } = useTranslation()
@@ -25,7 +25,6 @@ export default function CustomerHeader() {
   const reduceMotion = useReducedMotion()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [pending, setPending] = useState(false)
-  const [avatarFailed, setAvatarFailed] = useState(false)
 
   const logout = async () => {
     if (pending) {
@@ -125,19 +124,10 @@ export default function CustomerHeader() {
                 />
               )}
             >
-              {user?.avatar && !avatarFailed ? (
-                <img
-                  src={user.avatar}
-                  alt=""
-                  className="size-8 rounded-full object-cover"
-                  onError={() => setAvatarFailed(true)}
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary">
-                  {getInitials(user?.fullName)}
-                </span>
-              )}
+              <CustomerAvatar
+                avatar={user?.avatar}
+                fullName={user?.fullName}
+              />
               <span className="hidden max-w-24 truncate text-sm xl:block xl:max-w-36">
                 {user?.fullName || t('common.account')}
               </span>
@@ -152,9 +142,24 @@ export default function CustomerHeader() {
                   {user?.email}
                 </p>
               </div>
-              <DropdownMenuItem disabled>
+              <DropdownMenuItem
+                render={<Link to={CUSTOMER_ROUTES.PROFILE} />}
+                aria-current={pathname === CUSTOMER_ROUTES.PROFILE ? 'true' : undefined}
+              >
                 <UserRound size={16} />
-                {t('customer.profileComingSoon')}
+                {t('customer.profile.title')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => notify.info('customer.thisContentIsBeingUpdated')}>
+                <ClipboardList size={16} />
+                {t('common.myOrders')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => notify.info('customer.thisContentIsBeingUpdated')}>
+                <MessageSquareWarning size={16} />
+                {t('customer.profile.manageComplaints')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => notify.info('customer.thisContentIsBeingUpdated')}>
+                <Bell size={16} />
+                {t('customer.profile.allNotifications')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={pending}

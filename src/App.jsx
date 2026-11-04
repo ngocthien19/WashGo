@@ -18,6 +18,7 @@ const AccountPage = lazy(() => import('~/pages/auth/Account/AccountPage'))
 const CustomerHomePage = lazy(() => import('~/pages/customer/Home/HomePage'))
 const CustomerServicesPage = lazy(() => import('~/pages/customer/Services/ServicesPage'))
 const CustomerLockersPage = lazy(() => import('~/pages/customer/Lockers/LockersPage'))
+const CustomerProfilePage = lazy(() => import('~/pages/customer/Profile/ProfilePage'))
 const CustomerLayout = lazy(() => import('~/layouts/customer/CustomerLayout'))
 const AdminHomePage = lazy(() => import('~/pages/admin/Home/HomePage'))
 const MerchantHomePage = lazy(() => import('~/pages/merchant/Home/HomePage'))
@@ -32,6 +33,10 @@ export default function App() {
         <Routes>
           <Route element={<ProtectedRoleRoute role={USER_ROLES.CUSTOMER} />}>
             <Route element={<CustomerLayout />}>
+              <Route
+                path={CUSTOMER_ROUTES.PROFILE}
+                element={<CustomerProfilePage />}
+              />
               <Route
                 path={ROLE_HOME_ROUTES[USER_ROLES.CUSTOMER]}
                 element={<CustomerHomePage />}
