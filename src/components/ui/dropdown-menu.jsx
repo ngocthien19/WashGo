@@ -1,6 +1,6 @@
 import { Menu } from '@base-ui/react/menu'
 import { cn } from '~/lib/utils'
-import { UI_TRANSITIONS } from '~/utils/constants'
+import { CHOICE_ITEM_STYLES, UI_TRANSITIONS } from '~/utils/constants'
 
 export const DropdownMenu = Menu.Root
 export const DropdownMenuTrigger = Menu.Trigger
@@ -27,7 +27,7 @@ export function DropdownMenuContent({ children, className, ...props }) {
 export function DropdownMenuItem({ className, ...props }) {
   return (
     <Menu.Item
-      className={cn('flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm outline-none data-highlighted:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50', UI_TRANSITIONS.BUTTON, className)}
+      className={cn('flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm outline-none data-highlighted:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-50', CHOICE_ITEM_STYLES, UI_TRANSITIONS.BUTTON, className)}
       {...props}
     />
   )

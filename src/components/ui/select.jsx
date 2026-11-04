@@ -1,7 +1,7 @@
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '~/lib/utils'
-import { UI_TRANSITIONS } from '~/utils/constants'
+import { CHOICE_ITEM_STYLES, UI_TRANSITIONS } from '~/utils/constants'
 
 export function SelectField({ id, label, value, onValueChange, options, disabled, className }) {
   return (
@@ -14,11 +14,11 @@ export function SelectField({ id, label, value, onValueChange, options, disabled
       <SelectPrimitive.Trigger
         id={id}
         aria-label={label}
-        className={cn('flex h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-xl border border-input bg-background px-3 text-left text-sm shadow-xs outline-none hover:border-primary/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50', UI_TRANSITIONS.INPUT, className)}
+        className={cn('group flex h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-xl border border-input bg-background px-3 text-left text-sm shadow-xs outline-none hover:border-primary/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50', UI_TRANSITIONS.INPUT, className)}
       >
         <SelectPrimitive.Value className="truncate" />
         <SelectPrimitive.Icon>
-          <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+          <ChevronDown className={cn('size-4 shrink-0 text-muted-foreground group-data-[popup-open]:rotate-180', UI_TRANSITIONS.ICON)} />
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
       <SelectPrimitive.Portal>
@@ -33,7 +33,7 @@ export function SelectField({ id, label, value, onValueChange, options, disabled
                 <SelectPrimitive.Item
                   key={option.value}
                   value={option.value}
-                  className={cn('relative flex cursor-pointer items-center gap-2 rounded-lg py-2.5 pl-3 pr-9 text-sm outline-none data-highlighted:bg-muted data-selected:bg-primary/8 data-selected:font-semibold data-selected:text-primary', UI_TRANSITIONS.BUTTON)}
+                  className={cn('relative flex cursor-pointer items-center gap-2 rounded-lg py-2.5 pl-3 pr-9 text-sm outline-none data-highlighted:bg-muted', CHOICE_ITEM_STYLES, UI_TRANSITIONS.BUTTON)}
                 >
                   <SelectPrimitive.ItemText className="break-words">
                     {option.label}
