@@ -1,5 +1,16 @@
 # React + Vite
 
+## Frontend tests
+
+- `npm test`: unit and integration tests using Vitest, jsdom and React Testing Library.
+- `npm run test:watch`: rerun affected unit/integration tests while editing.
+- `npm run test:e2e`: Playwright browser flows with mocked backend responses; starts Vite on port 5180.
+- `npm run lint` and `npm run build`: static checks and production compilation.
+
+E2E uses installed Microsoft Edge on Windows and Playwright Chromium elsewhere. On non-Windows machines/CI, run `npx playwright install chromium` first. Set `PLAYWRIGHT_BROWSER_CHANNEL` to use another installed Chromium channel. No real accounts or backend writes are used. Test reports/traces are ignored by Git; temporary QA screenshots should be deleted after review.
+
+Unit tests cover translation keys/interpolation and error localization. Integration tests cover language selection with Redux and service details loading/error/retry. E2E covers form preservation, saved language, dark mode, responsive service dialogs and keyboard/focus behavior. Add coverage for subsequent features according to risk; these tests do not cover every existing feature.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
