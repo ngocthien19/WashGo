@@ -1,7 +1,26 @@
 import { EARTH_RADIUS_KM, LANGUAGE_OPTIONS } from './constants'
 import i18n from '~/i18n'
+import { API_URL } from '~/utils/authorizedAxios'
 
 const getLocale = () => LANGUAGE_OPTIONS.find((option) => option.value === i18n.resolvedLanguage)?.locale || LANGUAGE_OPTIONS[0].locale
+
+export const formatNumber = (value) => Number.isFinite(value)
+  ? new Intl.NumberFormat(getLocale()).format(value) : '—'
+
+export const getImageUrl = (value) => {
+  if (!value?.startsWith('/uploads/')) {
+    return value || ''
+  }
+  // Local uploads are served by the backend, not the frontend asset server.
+  return /^https?:\/\//i.test(API_URL)
+    ? new URL(value, API_URL).href
+    : `${API_URL.replace(/\/$/, '')}${value}`
+}
+
+export const hasControlCharacters = (value) => [...value].some((character) => {
+  const code = character.charCodeAt(0)
+  return code < 32 || (code >= 127 && code <= 159)
+})
 
 export const formatCountdown = (seconds) => {
   const remaining = Math.max(0, Math.ceil(seconds))
@@ -14,6 +33,47 @@ export const normalizePhone = (value = '') => value.replace(/\D/g, '')
 
 export const hasCoordinates = (value) => Number.isFinite(value?.latitude)
   && Number.isFinite(value?.longitude) && Math.abs(value.latitude) <= 90 && Math.abs(value.longitude) <= 180
+
+export const containsMapPoint = (geometry, position) => {
+  if (!hasCoordinates(position)) {
+    return false
+  }
+  const x = position.longitude
+  const y = position.latitude
+  const inRing = (ring) => {
+    let inside = false
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i]
+      const [xj, yj] = ring[j]
+      const cross = (x - xi) * (yj - yi) - (y - yi) * (xj - xi)
+      if (Math.abs(cross) < 1e-12 && x >= Math.min(xi, xj) && x <= Math.max(xi, xj)
+        && y >= Math.min(yi, yj) && y <= Math.max(yi, yj)) {
+        return true
+      }
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) {
+        inside = !inside
+      }
+    }
+    return inside
+  }
+  const polygons = geometry?.type === 'Polygon' ? [geometry.coordinates]
+    : geometry?.type === 'MultiPolygon' ? geometry.coordinates : []
+  return polygons.some((rings) => rings.length > 0 && inRing(rings[0])
+    && !rings.slice(1).some(inRing))
+}
+
+export const formatMapAddress = (properties = {}) => {
+  const clean = (value) => typeof value === 'string' ? value.trim() : ''
+  const city = clean(properties.state) || clean(properties.city)
+  const ward = clean(properties.district)
+  const street = [clean(properties.housenumber), clean(properties.street)].filter(Boolean).join(' ')
+  const isAdministrative = ['city', 'county', 'state', 'country', 'district'].includes(properties.type)
+  const place = street || (!isAdministrative ? clean(properties.name) : '')
+  // Use the current two-level address; Photon district is a ward, not a legacy county.
+  const address = [...new Set([place, ward !== city ? ward : '']
+    .filter(Boolean))].join(', ')
+  return { address, district: '', city }
+}
 
 export const getDistanceKm = (from, to) => {
   if (!hasCoordinates(from) || !hasCoordinates(to)) {

@@ -25,7 +25,8 @@ export const ROLE_HOME_ROUTES = {
 export const CUSTOMER_ROUTES = {
   HOME: ROLE_HOME_ROUTES[USER_ROLES.CUSTOMER],
   SERVICES: '/customer/services',
-  LOCKERS: '/customer/lockers'
+  LOCKERS: '/customer/lockers',
+  PROFILE: '/customer/profile'
 }
 
 export const CUSTOMER_NAVIGATION = [
@@ -37,8 +38,29 @@ export const CUSTOMER_NAVIGATION = [
 ]
 
 export const CUSTOMER_API_ENDPOINTS = {
+  PROFILE: '/customer/me',
   SERVICES: '/customer/services',
   LOCKERS: '/customer/lockers'
+}
+
+export const IMAGE_UPLOAD = {
+  ENDPOINT: '/files/images',
+  MAX_BYTES: 5 * 1024 * 1024,
+  MIME_TYPES: ['image/jpeg', 'image/png', 'image/webp']
+}
+
+export const PROFILE_LIMITS = { ADDRESS_MAX: 500, AREA_MAX: 100, PHONE_DISPLAY_MAX: 30 }
+
+export const ADDRESS_MAP = {
+  REVERSE_URL: import.meta.env.VITE_REVERSE_GEOCODING_URL || 'https://photon.komoot.io/reverse',
+  DEFAULT_CENTER: { latitude: 10.7769, longitude: 106.7009 },
+  INITIAL_ZOOM: 13,
+  REVERSE_RADIUS_KM: 0.1,
+  DEBOUNCE_MS: 450,
+  REQUEST_INTERVAL_MS: 1000,
+  REQUEST_TIMEOUT_MS: 10000,
+  CACHE_LIMIT: 80,
+  COORDINATE_PRECISION: 5
 }
 
 export const LOCKER_MAP = {

@@ -1,7 +1,8 @@
+import Breadcrumb from '~/components/Breadcrumb/Breadcrumb'
 import { useTranslation } from 'react-i18next'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useOutletContext, useSearchParams } from 'react-router-dom'
-import { ArrowDownAZ, Check, ChevronDown, ChevronRight, LocateFixed, MapPinned } from 'lucide-react'
+import { useOutletContext, useSearchParams } from 'react-router-dom'
+import { ArrowDownAZ, Check, ChevronDown, LocateFixed, MapPinned } from 'lucide-react'
 import SectionHeading from '~/components/customer/SectionHeading/SectionHeading'
 import LockerResultSummary from './components/LockerResultSummary'
 import { Button } from '~/components/ui/button'
@@ -14,7 +15,7 @@ import LocationButton from '~/components/customer/lockers/LocationButton'
 import Pagination from '~/components/Pagination/Pagination'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import useCatalogResource from '~/hooks/customer/useCatalogResource'
-import { CUSTOMER_CATALOG, CUSTOMER_ROUTES, TEXT_LINK_STYLES, UI_TRANSITIONS } from '~/utils/constants'
+import { CUSTOMER_CATALOG, CUSTOMER_ROUTES, UI_TRANSITIONS } from '~/utils/constants'
 
 export default function LockersPage() {
   const { t } = useTranslation()
@@ -77,24 +78,9 @@ export default function LockersPage() {
   return (
     <div className="min-h-[70dvh] bg-muted/35">
       <div className="mx-auto max-w-7xl space-y-7 px-4 pb-20 pt-8 sm:px-6 lg:px-8">
-        <nav
-          aria-label={t('customer.breadcrumb')}
-          className="flex items-center gap-2 text-sm text-muted-foreground"
-        >
-          <Link
-            to={CUSTOMER_ROUTES.HOME}
-            className={`hover:text-primary ${TEXT_LINK_STYLES}`}
-          >
-            {t('common.home')}
-          </Link>
-          <ChevronRight size={14} />
-          <span
-            aria-current="page"
-            className="font-semibold text-foreground"
-          >
-            {t('customer.allLockers')}
-          </span>
-        </nav>
+        <Breadcrumb
+          items={[{ label: t('common.home'), to: CUSTOMER_ROUTES.HOME }, { label: t('customer.allLockers') }]}
+        />
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <SectionHeading
             as="h1"

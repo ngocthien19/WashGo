@@ -1,8 +1,9 @@
+import MapZoomControls from '~/components/customer/maps/MapZoomControls'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon, latLngBounds } from 'leaflet'
 import { CircleMarker, MapContainer, Marker, Popup, TileLayer, Tooltip as MapTooltip, useMap } from 'react-leaflet'
-import { MapPin, ExternalLink, Plus, Minus, RefreshCw, LocateFixed } from 'lucide-react'
+import { MapPin, ExternalLink, RefreshCw } from 'lucide-react'
 import washgoMarkerUrl from '~/assets/logo-washgo.svg'
 import { Button } from '~/components/ui/button'
 import markerUrl from 'leaflet/dist/images/marker-icon.png'
@@ -139,42 +140,6 @@ function MapViewport({ lockers, selectedId, selectionVersion, position }) {
     return () => observer.disconnect()
   }, [map, lockers, selectedId, selectionVersion, position])
   return null
-}
-
-function MapZoomControls({ position }) {
-  const { t } = useTranslation()
-  const map = useMap()
-  return (
-    <div className="absolute left-3 top-3 z-[500] flex flex-col gap-1 rounded-xl border border-border bg-card p-1 shadow-md">
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label={t('customer.zoomIn')}
-        onClick={() => map.zoomIn(undefined, { animate: false })}
-      >
-        <Plus size={18} />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label={t('customer.zoomOut')}
-        onClick={() => map.zoomOut(undefined, { animate: false })}
-      >
-        <Minus size={18} />
-      </Button>
-      {position && (
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={t('customer.backToMyLocation')}
-          className="border-t border-border text-blue-600 dark:text-blue-400"
-          onClick={() => map.setView([position.latitude, position.longitude], LOCKER_MAP.ZOOM, { animate: false })}
-        >
-          <LocateFixed size={18} />
-        </Button>
-      )}
-    </div>
-  )
 }
 
 export default function LockerMap({ lockers, selectedId, selectionVersion = 0, onSelect, position }) {
