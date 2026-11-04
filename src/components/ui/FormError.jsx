@@ -1,4 +1,5 @@
 import { AlertCircle } from 'lucide-react'
+import LocalizedMessage from '~/components/LocalizedMessage/LocalizedMessage'
 
 export default function FormError({ children }) {
   if (!children) {
@@ -15,7 +16,7 @@ export default function FormError({ children }) {
         className="mt-1 shrink-0"
       />
       <span>
-        {children}
+        {typeof children === 'string' ? <LocalizedMessage message={children} /> : children}
       </span>
     </div>
   )

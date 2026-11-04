@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next'
 import { useRef } from 'react'
 import { Input } from '~/components/ui/input'
 import { OTP_CONFIG } from '~/utils/constants'
 
 export default function OtpInput({ value = '', onChange, onBlur, inputRef, error }) {
+  const { t } = useTranslation()
   const inputs = useRef([])
   const slots = value.padEnd(OTP_CONFIG.CODE_LENGTH, ' ').split('')
 
@@ -40,7 +42,7 @@ export default function OtpInput({ value = '', onChange, onBlur, inputRef, error
       <div
         className="grid grid-cols-6 gap-2"
         role="group"
-        aria-label="Mã OTP"
+        aria-label={t('common.otpCode')}
       >
         {slots.map((digit, index) => (
           <Input
@@ -56,7 +58,7 @@ export default function OtpInput({ value = '', onChange, onBlur, inputRef, error
             inputMode="numeric"
             autoComplete={index === 0 ? 'one-time-code' : 'off'}
             maxLength={OTP_CONFIG.CODE_LENGTH}
-            aria-label={`Chữ số OTP ${index + 1}`}
+            aria-label={t('common.otpDigit', { value1: index + 1 })}
             aria-invalid={!!error}
             aria-describedby={error ? 'otp-error' : undefined}
             className="h-12 rounded-lg bg-background px-0 text-center text-xl font-medium sm:h-14"
@@ -76,7 +78,7 @@ export default function OtpInput({ value = '', onChange, onBlur, inputRef, error
           className="mt-2 text-center text-xs text-destructive"
           id="otp-error"
         >
-          {error.message}
+          {t(error.message)}
         </p>
       )}
     </div>

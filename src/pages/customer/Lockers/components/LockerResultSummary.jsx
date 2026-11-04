@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next'
 import { ArrowDownAZ, Layers3, MapPinned, Navigation, Search } from 'lucide-react'
 
 export default function LockerResultSummary({ data, loading, error, keyword, sort }) {
+  const { t } = useTranslation()
   const SortIcon = sort === 'nearest' ? Navigation : ArrowDownAZ
   const first = data?.list?.length ? (data.currentPage - 1) * data.pageSize + 1 : 0
   const last = first ? first + data.list.length - 1 : 0
@@ -20,18 +22,18 @@ export default function LockerResultSummary({ data, loading, error, keyword, sor
           </span>
           <div>
             <p className="font-medium text-muted-foreground">
-              {loading ? 'Đang tìm locker...' : error ? 'Danh sách locker' : (
+              {loading ? t('customer.findingLockers') : error ? t('customer.lockerList') : (
                 <>
                   <strong className="mr-1.5 text-2xl font-bold tabular-nums tracking-tight text-foreground">
                     {data?.total || 0}
                   </strong>
-                  locker khả dụng
+                  {t('customer.lockersAvailable', { count: data?.total || 0 })}
                 </>
               )}
             </p>
             {!loading && !error && first > 0 && (
               <p className="mt-1 text-xs text-muted-foreground">
-                {`Hiển thị ${first}–${last} trên ${data.total} locker`}
+                {t('customer.showingOfLockers', { first: first, last: last, total: data.total })}
               </p>
             )}
           </div>
@@ -43,7 +45,7 @@ export default function LockerResultSummary({ data, loading, error, keyword, sor
                 size={14}
                 aria-hidden="true"
               />
-              {sort === 'nearest' ? 'Gần nhất' : 'Tên A–Z'}
+              {sort === 'nearest' ? t('customer.nearest') : t('customer.nameAZ')}
             </span>
             {data?.totalPages > 0 && (
               <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/30 px-3 py-2 tabular-nums">
@@ -51,7 +53,7 @@ export default function LockerResultSummary({ data, loading, error, keyword, sor
                   size={14}
                   aria-hidden="true"
                 />
-                {`Trang ${data.currentPage} / ${data.totalPages}`}
+                {t('customer.page', { currentPage: data.currentPage, totalPages: data.totalPages })}
               </span>
             )}
           </div>
@@ -64,11 +66,11 @@ export default function LockerResultSummary({ data, loading, error, keyword, sor
             aria-hidden="true"
           />
           <span className="break-words [overflow-wrap:anywhere]">
-            Kết quả cho “
+            {t('customer.resultsFor')}
             <strong className="font-semibold text-primary">
               {keyword}
             </strong>
-            ”
+            {t('customer.closingQuote')}
           </span>
         </p>
       )}

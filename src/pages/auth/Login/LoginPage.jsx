@@ -1,8 +1,9 @@
+import { useTranslation } from 'react-i18next'
 import { AUTH_ROUTES, UI_TRANSITIONS } from '~/utils/constants'
 import { cn } from '~/lib/utils'
 import { Link, Navigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { toast } from 'react-toastify'
+import { notify } from '~/utils/notifications'
 import { authApi } from '~/apis/auth/authApi'
 import { setSession } from '~/redux/auth/authSlice'
 import AuthForm from '../components/AuthForm'
@@ -17,29 +18,30 @@ import { getRoleHome } from '~/utils/roles'
 const fields = [
   {
     name: 'email',
-    label: 'Email',
+    label: 'common.email',
     type: 'email',
     placeholder: 'ban@example.com',
     autoComplete: 'username'
   },
   {
     name: 'password',
-    label: 'Mật khẩu',
+    label: 'auth.password',
     type: 'password',
-    placeholder: 'Nhập mật khẩu của bạn',
+    placeholder: 'auth.enterYourPassword',
     autoComplete: 'current-password'
   }
 ]
 
 export default function LoginPage() {
+  const { t } = useTranslation()
   const dispatch = useDispatch()
   const auth = useSelector((state) => state.auth)
   const completeLogin = useCallback((data) => {
     if (!getRoleHome(data.user?.role)) {
-      throw new Error('Tài khoản chưa được cấp vai trò hỗ trợ. Vui lòng liên hệ quản trị viên.')
+      throw new Error('auth.yourAccountDoesNotHaveASupportedRolePlease')
     }
     dispatch(setSession(data))
-    toast.success('Đăng nhập thành công!')
+    notify.success('auth.signedInSuccessfully')
   }, [dispatch])
 
   if (auth.accessToken) {
@@ -62,33 +64,33 @@ export default function LoginPage() {
         <AuthBrand />
       </div>
       <AuthHeading
-        title="Đăng nhập"
+        title={t('auth.signIn')}
         className="text-center"
       />
       <AuthForm
         schema={loginSchema}
         onSubmit={login}
-        submitLabel="Đăng nhập"
+        submitLabel={t('auth.signIn')}
         fields={fields}
       >
         <div className="mb-6 flex justify-end text-xs">
           <Link
             to={AUTH_ROUTES.FORGOT_PASSWORD}
             className={cn(
-              'cursor-pointer font-semibold text-orange-700 underline decoration-transparent underline-offset-4 hover:text-orange-800 hover:decoration-current dark:text-orange-300 dark:hover:text-orange-200',
+              'cursor-pointer font-semibold text-blue-700 underline decoration-transparent underline-offset-4 hover:text-blue-800 hover:decoration-current dark:text-blue-300 dark:hover:text-blue-200',
               UI_TRANSITIONS.LINK
             )}
           >
-            Quên mật khẩu?
+            {t('auth.forgotPasswordTitle')}
           </Link>
         </div>
       </AuthForm>
       <GoogleSignInButton onSuccess={completeLogin} />
       <AuthSwitchLink
         to={AUTH_ROUTES.REGISTER}
-        prompt="Chưa có tài khoản?"
+        prompt={t('auth.donTHaveAnAccount')}
       >
-        Đăng ký ngay
+        {t('auth.registerNow')}
       </AuthSwitchLink>
     </>
   )

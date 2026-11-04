@@ -1,4 +1,7 @@
-import { EARTH_RADIUS_KM } from './constants'
+import { EARTH_RADIUS_KM, LANGUAGE_OPTIONS } from './constants'
+import i18n from '~/i18n'
+
+const getLocale = () => LANGUAGE_OPTIONS.find((option) => option.value === i18n.resolvedLanguage)?.locale || LANGUAGE_OPTIONS[0].locale
 
 export const formatCountdown = (seconds) => {
   const remaining = Math.max(0, Math.ceil(seconds))
@@ -29,18 +32,16 @@ export const formatLockerAddress = (locker) => [...new Set([
 ].filter(Boolean))].join(', ')
 
 export const formatDistance = (value) => Number.isFinite(value) && value >= 0
-  ? `${new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 }).format(value)} km`
+  ? `${new Intl.NumberFormat(getLocale(), { maximumFractionDigits: 2 }).format(value)} km`
   : ''
 
 export const getLockerMapLink = (locker) => hasCoordinates(locker)
   ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${locker.latitude},${locker.longitude}`)}`
   : null
 
-const currencyFormatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
-
 export const formatCurrency = (value) => Number.isFinite(Number(value)) && value != null
-  ? currencyFormatter.format(Number(value))
-  : 'Chưa có giá'
+  ? new Intl.NumberFormat(getLocale(), { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(Number(value))
+  : i18n.t('common.priceUnavailable')
 
 export const getInitials = (name = '') => name.trim().split(/\s+/).filter(Boolean).slice(-2)
   .map((part) => part[0]).join('').toUpperCase() || 'WG'

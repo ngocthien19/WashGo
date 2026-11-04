@@ -3,7 +3,7 @@ import { CUSTOMER_API_ENDPOINTS, CUSTOMER_CATALOG, LOCKER_AREA_PAGE_SIZE } from 
 
 const ensureSuccess = ({ data }) => {
   if (!data.succeeded) {
-    throw new Error(data.message || 'Không thể tải dữ liệu. Vui lòng thử lại.')
+    throw new Error(data.message || 'customer.unableToLoadDataPleaseTryAgain')
   }
   return data
 }

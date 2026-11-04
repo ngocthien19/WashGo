@@ -1,3 +1,5 @@
+import { resolveMessage } from '~/i18n/messages'
+import { useTranslation } from 'react-i18next'
 import { PackageSearch, RefreshCw } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 
@@ -5,9 +7,10 @@ export default function CatalogFeedback({
   loading,
   error,
   retry,
-  empty = 'Chưa có dịch vụ đang bán.',
-  loadingText = 'Đang tải dịch vụ...'
+  empty = 'customer.noServicesAreAvailableYet',
+  loadingText = 'customer.loadingServices'
 }) {
+  const { t } = useTranslation()
   if (loading) {
     return (
       <div
@@ -16,7 +19,7 @@ export default function CatalogFeedback({
       >
         <div className="flex items-center gap-2">
           <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
-          {loadingText}
+          {t(loadingText)}
         </div>
       </div>
     )
@@ -28,7 +31,7 @@ export default function CatalogFeedback({
         role={error ? 'alert' : 'status'}
         className="break-words text-sm text-muted-foreground"
       >
-        {error || empty}
+        {error ? resolveMessage(error) : t(empty)}
       </p>
       {error && (
         <Button
@@ -37,7 +40,7 @@ export default function CatalogFeedback({
           onClick={retry}
         >
           <RefreshCw size={15} />
-          Thử lại
+          {t('common.tryAgain')}
         </Button>
       )}
     </div>

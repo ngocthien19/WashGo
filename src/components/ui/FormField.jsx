@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '~/components/ui/button'
@@ -5,6 +6,7 @@ import { Input } from '~/components/ui/input'
 import { cn } from '~/lib/utils'
 
 export default function FormField({ label, name, register, error, type = 'text', hint, className, ...props }) {
+  const { t } = useTranslation()
   const [visible, setVisible] = useState(false)
   const isPassword = type === 'password'
 
@@ -14,7 +16,7 @@ export default function FormField({ label, name, register, error, type = 'text',
         htmlFor={name}
         className="mb-2 block text-sm font-medium"
       >
-        {label}
+        {t(label)}
       </label>
       <div className="relative">
         <Input
@@ -22,6 +24,7 @@ export default function FormField({ label, name, register, error, type = 'text',
           type={isPassword && visible ? 'text' : type}
           {...register(name)}
           {...props}
+          placeholder={props.placeholder ? t(props.placeholder) : undefined}
           className={cn('h-12 rounded-lg bg-card px-3.5 text-sm', isPassword && 'pr-12', className)}
           aria-invalid={!!error}
           aria-describedby={error ? `${name}-error` : hint ? `${name}-hint` : undefined}
@@ -32,7 +35,7 @@ export default function FormField({ label, name, register, error, type = 'text',
             variant="ghost"
             size="icon"
             className="absolute right-1.5 top-1.5 size-9 text-muted-foreground"
-            aria-label={visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+            aria-label={visible ? t('common.hidePassword') : t('common.showPassword')}
             aria-pressed={visible}
             onClick={() => setVisible(!visible)}
           >
@@ -45,14 +48,14 @@ export default function FormField({ label, name, register, error, type = 'text',
           className="mt-1.5 text-xs leading-relaxed text-destructive"
           id={`${name}-error`}
         >
-          {error.message}
+          {t(error.message)}
         </p>
       ) : hint && (
         <p
           className="mt-1.5 text-xs leading-relaxed text-muted-foreground"
           id={`${name}-hint`}
         >
-          {hint}
+          {t(hint)}
         </p>
       )}
     </div>

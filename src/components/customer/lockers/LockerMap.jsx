@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon, latLngBounds } from 'leaflet'
 import { CircleMarker, MapContainer, Marker, Popup, TileLayer, Tooltip as MapTooltip, useMap } from 'react-leaflet'
@@ -30,17 +31,18 @@ const activeMarkerIcon = new Icon({
 })
 
 function LockerMarker({ locker, active, selectionVersion, onSelect }) {
+  const { t } = useTranslation()
   const marker = useRef(null)
   useEffect(() => {
     // Leaflet creates the image outside React, so update its accessible name explicitly.
     const element = marker.current?.getElement()
-    element?.setAttribute('alt', `${active ? 'Đang chọn: ' : 'Vị trí '}${locker.name}`)
+    element?.setAttribute('alt', `${active ? t('customer.selected') : t('customer.location')}${locker.name}`)
     if (active) {
       marker.current?.openPopup()
     } else {
       marker.current?.closePopup()
     }
-  }, [active, selectionVersion, locker.name])
+  }, [active, selectionVersion, locker.name, t])
   return (
     <>
       {active && (
@@ -55,7 +57,7 @@ function LockerMarker({ locker, active, selectionVersion, onSelect }) {
         ref={marker}
         position={[locker.latitude, locker.longitude]}
         icon={active ? activeMarkerIcon : markerIcon}
-        alt={`${active ? 'Đang chọn: ' : 'Vị trí '}${locker.name}`}
+        alt={`${active ? t('customer.selected') : t('customer.location')}${locker.name}`}
         zIndexOffset={active ? 1000 : 0}
         eventHandlers={{ click: () => onSelect?.(locker.id) }}
       >
@@ -68,7 +70,7 @@ function LockerMarker({ locker, active, selectionVersion, onSelect }) {
               {formatLockerAddress(locker)}
             </p>
             <span className="block font-medium text-emerald-700">
-              {`Còn ${locker.availableSlotCount} ô trống`}
+              {t('customer.compartmentsAvailable', { availableSlotCount: locker.availableSlotCount })}
             </span>
             <a
               href={getLockerMapLink(locker)}
@@ -76,7 +78,7 @@ function LockerMarker({ locker, active, selectionVersion, onSelect }) {
               rel="noopener noreferrer"
               className={`inline-flex items-center gap-1 ${TEXT_LINK_STYLES}`}
             >
-              Mở Google Maps
+              {t('customer.openGoogleMaps')}
               <ExternalLink size={13} />
             </a>
           </div>
@@ -87,6 +89,7 @@ function LockerMarker({ locker, active, selectionVersion, onSelect }) {
 }
 
 function UserPosition({ position }) {
+  const { t } = useTranslation()
   return (
     <>
       <CircleMarker
@@ -107,7 +110,7 @@ function UserPosition({ position }) {
           offset={[0, -12]}
         >
           <span className="text-xs font-semibold text-blue-700">
-            Vị trí của bạn
+            {t('customer.yourLocation')}
           </span>
         </MapTooltip>
       </CircleMarker>
@@ -139,13 +142,14 @@ function MapViewport({ lockers, selectedId, selectionVersion, position }) {
 }
 
 function MapZoomControls({ position }) {
+  const { t } = useTranslation()
   const map = useMap()
   return (
     <div className="absolute left-3 top-3 z-[500] flex flex-col gap-1 rounded-xl border border-border bg-card p-1 shadow-md">
       <Button
         variant="ghost"
         size="icon"
-        aria-label="Phóng to bản đồ"
+        aria-label={t('customer.zoomIn')}
         onClick={() => map.zoomIn(undefined, { animate: false })}
       >
         <Plus size={18} />
@@ -153,7 +157,7 @@ function MapZoomControls({ position }) {
       <Button
         variant="ghost"
         size="icon"
-        aria-label="Thu nhỏ bản đồ"
+        aria-label={t('customer.zoomOut')}
         onClick={() => map.zoomOut(undefined, { animate: false })}
       >
         <Minus size={18} />
@@ -162,7 +166,7 @@ function MapZoomControls({ position }) {
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Về vị trí của tôi"
+          aria-label={t('customer.backToMyLocation')}
           className="border-t border-border text-blue-600 dark:text-blue-400"
           onClick={() => map.setView([position.latitude, position.longitude], LOCKER_MAP.ZOOM, { animate: false })}
         >
@@ -174,6 +178,7 @@ function MapZoomControls({ position }) {
 }
 
 export default function LockerMap({ lockers, selectedId, selectionVersion = 0, onSelect, position }) {
+  const { t } = useTranslation()
   const [tileError, setTileError] = useState(false)
   const [tileAttempt, setTileAttempt] = useState(0)
   const loaded = useRef(false)
@@ -194,7 +199,7 @@ export default function LockerMap({ lockers, selectedId, selectionVersion = 0, o
       <div className="grid h-96 place-items-center rounded-2xl border border-dashed border-border bg-card p-8 text-center text-muted-foreground">
         <div>
           <MapPin className="mx-auto mb-3 size-8 text-primary" />
-          Chưa có tọa độ locker để hiển thị bản đồ.
+          {t('customer.lockerCoordinatesAreNotAvailableYet')}
         </div>
       </div>
     )
@@ -202,7 +207,7 @@ export default function LockerMap({ lockers, selectedId, selectionVersion = 0, o
   return (
     <div
       role="region"
-      aria-label="Bản đồ vị trí locker"
+      aria-label={t('customer.lockerLocationMap')}
       className="relative isolate overflow-hidden rounded-2xl border border-border bg-muted"
     >
       <MapContainer
@@ -263,7 +268,7 @@ export default function LockerMap({ lockers, selectedId, selectionVersion = 0, o
         >
           <MapPin className="mt-0.5 size-4 shrink-0 text-primary" />
           <p className="break-words">
-            Đang chọn:
+            {t('customer.selectedLabel')}
             {' '}
             <strong className="font-semibold text-primary">
               {selected.name}
@@ -277,7 +282,7 @@ export default function LockerMap({ lockers, selectedId, selectionVersion = 0, o
           className="flex flex-wrap items-center gap-3 border-t border-border bg-card px-4 py-3 text-xs text-muted-foreground"
         >
           <p className="flex-1 basis-48">
-            Chưa tải được nền bản đồ. Thử lại hoặc mở vị trí bằng Google Maps.
+            {t('customer.theMapBackgroundCouldNotLoadTryAgainOr')}
           </p>
           <Button
             variant="outline"
@@ -288,7 +293,7 @@ export default function LockerMap({ lockers, selectedId, selectionVersion = 0, o
             }}
           >
             <RefreshCw size={14} />
-            Thử tải lại
+            {t('customer.reloadMap')}
           </Button>
         </div>
       )}

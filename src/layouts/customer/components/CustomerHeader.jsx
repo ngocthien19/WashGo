@@ -1,12 +1,14 @@
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useLocation } from 'react-router-dom'
 import { Bell, ChevronDown, LogOut, Menu, UserRound } from 'lucide-react'
-import { toast } from 'react-toastify'
+import { notify } from '~/utils/notifications'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
 import ThemeToggle from '~/components/ThemeToggle/ThemeToggle'
+import LanguageSwitcher from '~/components/LanguageSwitcher/LanguageSwitcher'
 import { authApi } from '~/apis/auth/authApi'
 import { clearSession } from '~/redux/auth/authSlice'
 import { CUSTOMER_NAVIGATION, CUSTOMER_ROUTES, UI_TRANSITIONS, UI_MOTION } from '~/utils/constants'
@@ -16,6 +18,7 @@ import { cn } from '~/lib/utils'
 import Brand from '~/components/Brand/Brand'
 
 export default function CustomerHeader() {
+  const { t } = useTranslation()
   const { user, refreshToken } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
   const { pathname } = useLocation()
@@ -34,7 +37,7 @@ export default function CustomerHeader() {
       window.google?.accounts?.id?.disableAutoSelect?.()
       dispatch(clearSession())
     } catch (error) {
-      toast.error(getApiError(error))
+      notify.error(getApiError(error))
     } finally {
       setPending(false)
     }
@@ -42,21 +45,21 @@ export default function CustomerHeader() {
 
   const navigation = (mobile = false) => (
     <nav
-      aria-label={mobile ? 'Điều hướng trên điện thoại' : 'Điều hướng chính'}
-      className={cn('gap-1', mobile ? 'flex flex-col border-t border-border px-4 py-3' : 'hidden items-center lg:flex')}
+      aria-label={mobile ? t('customer.mobileNavigation') : t('customer.mainNavigation')}
+      className={cn('gap-1', mobile ? 'flex flex-col border-t border-border px-4 py-3' : 'hidden items-center xl:flex')}
     >
       {CUSTOMER_NAVIGATION.map((item) => item.pending ? (
         <span
-          key={item.label}
-          title="Sẽ triển khai trong tính năng tiếp theo"
+          key={t(item.label)}
+          title={t('customer.comingInAFutureUpdate')}
           className="cursor-not-allowed rounded-lg px-3 py-2.5 text-sm text-muted-foreground/60"
           aria-disabled="true"
         >
-          {item.label}
+          {t(item.label)}
         </span>
       ) : (
         <Link
-          key={item.label}
+          key={t(item.label)}
           to={item.href}
           onClick={() => {
             setMobileOpen(false)
@@ -78,7 +81,7 @@ export default function CustomerHeader() {
             </motion.span>
           )}
           <span className="relative">
-            {item.label}
+            {t(item.label)}
           </span>
         </Link>
       ))}
@@ -90,8 +93,8 @@ export default function CustomerHeader() {
       <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <Brand
           to={CUSTOMER_ROUTES.HOME}
-          label="WashGo - Trang chủ"
-          wordmarkClassName="hidden min-[360px]:inline"
+          label={t('customer.washgoHome')}
+          wordmarkClassName="hidden min-[400px]:inline"
           onClick={() => {
             setMobileOpen(false)
             window.scrollTo({ top: 0, behavior: 'instant' })
@@ -104,11 +107,12 @@ export default function CustomerHeader() {
             size="icon"
             className="size-10 rounded-full"
             disabled
-            aria-label="Thông báo (chưa triển khai)"
-            tooltip="Thông báo — sẽ có trong tính năng tiếp theo"
+            aria-label={t('customer.notificationsComingSoon')}
+            tooltip={t('customer.notificationsWillBeAvailableInAFutureUpdate')}
           >
             <Bell size={19} />
           </Button>
+          <LanguageSwitcher />
           <ThemeToggle inline />
           <DropdownMenu>
             <DropdownMenuTrigger
@@ -116,8 +120,8 @@ export default function CustomerHeader() {
                 <Button
                   variant="ghost"
                   className="h-11 max-w-52 gap-2 rounded-full px-1.5 sm:pl-2"
-                  aria-label="Mở menu tài khoản"
-                  tooltip="Menu tài khoản"
+                  aria-label={t('customer.openAccountMenu')}
+                  tooltip={t('customer.accountMenu')}
                 />
               )}
             >
@@ -134,15 +138,15 @@ export default function CustomerHeader() {
                   {getInitials(user?.fullName)}
                 </span>
               )}
-              <span className="hidden max-w-24 truncate text-sm lg:block xl:max-w-36">
-                {user?.fullName || 'Tài khoản'}
+              <span className="hidden max-w-24 truncate text-sm xl:block xl:max-w-36">
+                {user?.fullName || t('common.account')}
               </span>
               <ChevronDown size={14} />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <div className="border-b border-border px-3 py-3">
                 <p className="truncate text-sm font-semibold">
-                  {user?.fullName || 'Khách hàng'}
+                  {user?.fullName || t('customer.customer')}
                 </p>
                 <p className="mt-1 break-all text-xs text-muted-foreground">
                   {user?.email}
@@ -150,7 +154,7 @@ export default function CustomerHeader() {
               </div>
               <DropdownMenuItem disabled>
                 <UserRound size={16} />
-                Hồ sơ cá nhân (sắp có)
+                {t('customer.profileComingSoon')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={pending}
@@ -158,15 +162,15 @@ export default function CustomerHeader() {
                 className="text-destructive"
               >
                 <LogOut size={16} />
-                {pending ? 'Đang đăng xuất...' : 'Đăng xuất'}
+                {pending ? t('common.signingOut') : t('common.signOut')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button
             variant="ghost"
             size="icon"
-            className="size-9 lg:hidden"
-            aria-label="Mở menu điều hướng"
+            className="size-9 xl:hidden"
+            aria-label={t('customer.openNavigationMenu')}
             aria-expanded={mobileOpen}
             aria-controls="customer-mobile-navigation"
             onClick={() => setMobileOpen((value) => !value)}

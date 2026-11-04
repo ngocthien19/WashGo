@@ -1,15 +1,17 @@
+import { useTranslation } from 'react-i18next'
 import { ClipboardList, PackageCheck, ScanLine, WashingMachine } from 'lucide-react'
 import Reveal from '~/components/motion/Reveal'
 import { UI_MOTION } from '~/utils/constants'
 
 const steps = [
-  { icon: ClipboardList, title: 'Tạo đơn', description: 'Chọn dịch vụ và locker phù hợp với bạn.' },
-  { icon: ScanLine, title: 'Gửi đồ', description: 'Đến locker, mở ô tủ và gửi đồ gọn gàng.' },
-  { icon: WashingMachine, title: 'Chờ giặt', description: 'Theo dõi từng bước xử lý ngay trên đơn hàng.' },
-  { icon: PackageCheck, title: 'Nhận đồ', description: 'Thanh toán và nhận lại những món đồ sạch thơm.' }
+  { icon: ClipboardList, title: 'customer.createAnOrder', description: 'customer.chooseTheServiceAndLockerThatWorkForYou' },
+  { icon: ScanLine, title: 'customer.dropOff', description: 'customer.goToYourLockerOpenACompartmentAndDrop' },
+  { icon: WashingMachine, title: 'customer.weDoTheLaundry', description: 'customer.trackEveryStepOfYourOrder' },
+  { icon: PackageCheck, title: 'customer.pickUp', description: 'customer.payAndCollectYourFreshCleanItems' }
 ]
 
 export default function HowItWorks() {
+  const { t } = useTranslation()
   return (
     <section
       id="how-it-works"
@@ -23,12 +25,14 @@ export default function HowItWorks() {
             id="how-it-works-heading"
             className="text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Giặt ủi gọn trong
+            {t('customer.laundryMadeEasyIn')}
             {' '}
-            <span className="text-primary">4 bước</span>
+            <span className="text-primary">
+              {t('customer.fourSteps')}
+            </span>
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-7 text-muted-foreground">
-            Bớt một việc phải lo, thêm thời gian cho chính mình.
+            {t('customer.oneLessThingToWorryAboutMoreTimeFor')}
           </p>
         </Reveal>
         <div className="relative mt-14">
@@ -40,7 +44,7 @@ export default function HowItWorks() {
             {steps.map(({ icon: Icon, title, description }, index) => (
               <Reveal
                 as="li"
-                key={title}
+                key={t(title)}
                 delay={index * UI_MOTION.STAGGER}
                 lift
                 className="group rounded-3xl border border-border/70 bg-card/90 px-6 pb-8 pt-7 text-center shadow-sm transition-[border-color,box-shadow] delay-0 duration-200 ease-in-out hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 motion-reduce:transition-none"
@@ -56,10 +60,10 @@ export default function HowItWorks() {
                   </span>
                 </div>
                 <h3 className="mt-6 text-lg font-bold">
-                  {title}
+                  {t(title)}
                 </h3>
                 <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                  {description}
+                  {t(description)}
                 </p>
               </Reveal>
             ))}

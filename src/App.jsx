@@ -5,7 +5,8 @@ import { lazy, Suspense } from 'react'
 import { useTheme } from '~/hooks/useTheme'
 import LoadingScreen from '~/components/LoadingScreen/LoadingScreen'
 import ProtectedRoleRoute from '~/routes/ProtectedRoleRoute'
-import ThemeToggle from '~/components/ThemeToggle/ThemeToggle'
+import DisplayControls from '~/components/DisplayControls/DisplayControls'
+import ToastCloseButton from '~/components/LocalizedMessage/ToastCloseButton'
 
 const AuthLayout = lazy(() => import('~/layouts/auth/AuthLayout'))
 const LoginPage = lazy(() => import('~/pages/auth/Login/LoginPage'))
@@ -112,6 +113,7 @@ export default function App() {
         </Routes>
       </Suspense>
       <ToastContainer
+        closeButton={ToastCloseButton}
         position="top-right"
         autoClose={4000}
         theme={theme}
@@ -123,7 +125,7 @@ export default function App() {
 function StandaloneThemeLayout() {
   return (
     <>
-      <ThemeToggle />
+      <DisplayControls />
       <Outlet />
     </>
   )

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useRef, useState } from 'react'
 import { MapPin, ArrowUpRight, Navigation } from 'lucide-react'
 import { Button } from '~/components/ui/button'
@@ -9,6 +10,7 @@ import LockerMap from './LockerMap'
 import LockerDetails from './LockerDetails'
 
 export default function LockerResults({ lockers, position }) {
+  const { t } = useTranslation()
   const [selectedId, setSelectedId] = useState(null)
   const [detailId, setDetailId] = useState(null)
   const [selectionVersion, setSelectionVersion] = useState(0)
@@ -57,7 +59,7 @@ export default function LockerResults({ lockers, position }) {
                         {distance && (
                           <span
                             className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/8 px-2 py-1 text-xs font-semibold tabular-nums text-primary"
-                            aria-label={`Cách bạn khoảng ${distance}, theo đường chim bay`}
+                            aria-label={t('customer.aboutAwayInAStraightLine', { distance: distance })}
                           >
                             <Navigation
                               size={12}
@@ -72,7 +74,7 @@ export default function LockerResults({ lockers, position }) {
                       </p>
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                         <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 font-semibold text-emerald-700 dark:text-emerald-400">
-                          {`Còn ${locker.availableSlotCount} ô trống`}
+                          {t('customer.compartmentsAvailable', { availableSlotCount: locker.availableSlotCount })}
                         </span>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
@@ -85,7 +87,7 @@ export default function LockerResults({ lockers, position }) {
                           onClick={() => selectLocker(locker.id, true)}
                         >
                           <MapPin size={14} />
-                          Xem trên bản đồ
+                          {t('customer.showOnMap')}
                         </Button>
                         <Button
                           variant="ghost"
@@ -93,7 +95,7 @@ export default function LockerResults({ lockers, position }) {
                           className="rounded-lg"
                           onClick={() => setDetailId(locker.id)}
                         >
-                          Chi tiết
+                          {t('customer.details')}
                           <ArrowUpRight size={14} />
                         </Button>
                       </div>

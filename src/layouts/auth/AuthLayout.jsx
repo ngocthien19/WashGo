@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -7,24 +8,25 @@ import { cn } from '~/lib/utils'
 import AuthBrand from '~/pages/auth/components/AuthBrand'
 
 const pageTitles = {
-  [AUTH_ROUTES.LOGIN]: 'Đăng nhập',
-  [AUTH_ROUTES.REGISTER]: 'Đăng ký',
-  [AUTH_ROUTES.FORGOT_PASSWORD]: 'Quên mật khẩu',
-  [AUTH_ROUTES.VERIFY_OTP]: 'Mã xác thực',
-  [AUTH_ROUTES.RESET_PASSWORD]: 'Đặt lại mật khẩu',
-  [AUTH_ROUTES.ACCOUNT]: 'Tài khoản'
+  [AUTH_ROUTES.LOGIN]: 'auth.signIn',
+  [AUTH_ROUTES.REGISTER]: 'auth.register',
+  [AUTH_ROUTES.FORGOT_PASSWORD]: 'auth.forgotPassword',
+  [AUTH_ROUTES.VERIFY_OTP]: 'auth.verificationCode',
+  [AUTH_ROUTES.RESET_PASSWORD]: 'auth.resetPassword',
+  [AUTH_ROUTES.ACCOUNT]: 'common.account'
 }
 
 export default function AuthLayout() {
+  const { t } = useTranslation()
   const [flow, setFlow] = useState(null)
   const { pathname } = useLocation()
   const reduceMotion = useReducedMotion()
   const isSplitLayout = [AUTH_ROUTES.LOGIN, AUTH_ROUTES.REGISTER].includes(pathname)
 
   useEffect(() => {
-    document.title = `${pageTitles[pathname] || 'Xác thực'} | WashGo`
+    document.title = `${t(pageTitles[pathname] || 'auth.authentication')} | WashGo`
     window.scrollTo(0, 0)
-  }, [pathname])
+  }, [pathname, t])
 
   return (
     <div className={cn(
@@ -58,7 +60,7 @@ export default function AuthLayout() {
               'w-full',
               isSplitLayout ? 'my-auto max-w-[420px] shrink-0' : 'rounded-2xl border border-border/50 bg-card px-6 py-9 shadow-sm sm:px-9'
             )}
-            aria-label="Xác thực tài khoản"
+            aria-label={t('auth.accountVerification')}
             initial={reduceMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22, ease: 'easeOut' }}

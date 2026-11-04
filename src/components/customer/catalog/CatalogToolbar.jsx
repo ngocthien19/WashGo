@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next'
 import { useId } from 'react'
 import { ArrowDownAZ, Search } from 'lucide-react'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 
 export default function CatalogToolbar({ keyword, onSearch, label, placeholder, children }) {
+  const { t } = useTranslation()
   const id = useId()
   return (
     <div className="flex min-w-0 flex-col gap-4 rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-5 md:flex-row md:items-center md:justify-between">
@@ -42,16 +44,16 @@ export default function CatalogToolbar({ keyword, onSearch, label, placeholder, 
       </form>
       <div className="flex shrink-0 flex-wrap items-center gap-3 text-sm">
         <span className="text-muted-foreground">
-          Sắp xếp theo:
+          {t('customer.sortBy')}
         </span>
         {children || (
           <Button
             variant="outline"
             disabled
-            tooltip="API hiện sắp xếp tên A–Z; chưa hỗ trợ đổi thứ tự theo tên hoặc giá."
+            tooltip={t('customer.servicesAreCurrentlySortedAZOtherNameAnd')}
           >
             <ArrowDownAZ size={16} />
-            Tên A–Z
+            {t('customer.nameAZ')}
           </Button>
         )}
       </div>

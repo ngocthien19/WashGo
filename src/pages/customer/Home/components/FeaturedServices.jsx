@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Shirt } from 'lucide-react'
 import SectionHeading from '~/components/customer/SectionHeading/SectionHeading'
@@ -8,6 +9,7 @@ import ServiceGrid from '~/components/customer/services/ServiceGrid'
 import { CUSTOMER_ROUTES } from '~/utils/constants'
 
 export default function FeaturedServices({ data, loading, error, retry }) {
+  const { t } = useTranslation()
   const services = data?.list || []
 
   return (
@@ -19,8 +21,8 @@ export default function FeaturedServices({ data, loading, error, retry }) {
       <Reveal className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
         <SectionHeading
           id="featured-services-heading"
-          title="Dịch vụ dành cho bạn"
-          description="Chọn cách chăm sóc phù hợp cho từng món đồ. Giá thống nhất trên toàn hệ thống."
+          title={t('customer.servicesForYou')}
+          description={t('customer.chooseTheRightCareForEveryItemConsistentPrices')}
           icon={Shirt}
         />
         <Button
@@ -29,7 +31,7 @@ export default function FeaturedServices({ data, loading, error, retry }) {
           variant="outline-primary"
           className="h-11 w-fit shrink-0 gap-2 rounded-full px-5"
         >
-          Xem tất cả
+          {t('customer.viewAll')}
           <ArrowRight className="transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />
         </Button>
       </Reveal>

@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { MapPinned, RefreshCw, RotateCcw } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
 export default function LockerAreaFilters({ city, district, hasFilters, onApply, onReset, resource }) {
+  const { t } = useTranslation()
   const [selectedCity, setSelectedCity] = useState(city)
   const [selectedDistrict, setSelectedDistrict] = useState(district)
   const { data, loading, error, retry } = resource
@@ -13,7 +15,7 @@ export default function LockerAreaFilters({ city, district, hasFilters, onApply,
   return (
     <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
       <form
-        aria-label="Lọc khu vực locker"
+        aria-label={t('customer.filterLockersByArea')}
         className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto_auto]"
         onSubmit={(event) => {
           event.preventDefault()
@@ -25,14 +27,14 @@ export default function LockerAreaFilters({ city, district, hasFilters, onApply,
             htmlFor="locker-city"
             className="mb-2 block text-sm font-medium"
           >
-            Tỉnh / Thành phố
+            {t('customer.provinceCity')}
           </label>
           <SelectField
             id="locker-city"
-            label="Tỉnh / Thành phố"
+            label={t('customer.provinceCity')}
             value={selectedCity}
             disabled={loading || !!error}
-            options={[{ value: '', label: loading ? 'Đang tải khu vực...' : 'Tất cả tỉnh / thành phố' }, ...cities.map((value) => ({ value, label: value }))]}
+            options={[{ value: '', label: loading ? t('customer.loadingAreas') : t('customer.allProvincesCities') }, ...cities.map((value) => ({ value, label: value }))]}
             onValueChange={(value) => {
               setSelectedCity(value)
               setSelectedDistrict('')
@@ -44,14 +46,14 @@ export default function LockerAreaFilters({ city, district, hasFilters, onApply,
             htmlFor="locker-district"
             className="mb-2 block text-sm font-medium"
           >
-            Quận / Huyện
+            {t('customer.district')}
           </label>
           <SelectField
             id="locker-district"
-            label="Quận / Huyện"
+            label={t('customer.district')}
             value={selectedDistrict}
             disabled={loading || !!error || !selectedCity}
-            options={[{ value: '', label: selectedCity ? 'Tất cả quận / huyện' : 'Chọn tỉnh / thành phố trước' }, ...districts.map((value) => ({ value, label: value }))]}
+            options={[{ value: '', label: selectedCity ? t('customer.allDistricts') : t('customer.chooseAProvinceCityFirst') }, ...districts.map((value) => ({ value, label: value }))]}
             onValueChange={setSelectedDistrict}
           />
         </div>
@@ -61,7 +63,7 @@ export default function LockerAreaFilters({ city, district, hasFilters, onApply,
           disabled={loading || !!error}
         >
           <MapPinned size={16} />
-          Áp dụng
+          {t('customer.apply')}
         </Button>
         <Button
           variant="secondary"
@@ -74,7 +76,7 @@ export default function LockerAreaFilters({ city, district, hasFilters, onApply,
           }}
         >
           <RotateCcw size={15} />
-          Xóa bộ lọc
+          {t('customer.clearFilters')}
         </Button>
       </form>
       {error && (
@@ -83,14 +85,14 @@ export default function LockerAreaFilters({ city, district, hasFilters, onApply,
           role="alert"
         >
           <p>
-            Không tải được danh sách khu vực. Bạn vẫn có thể tìm locker theo địa chỉ.
+            {t('customer.unableToLoadAreasYouCanStillSearchFor')}
           </p>
           <Button
             variant="outline"
             onClick={retry}
           >
             <RefreshCw size={15} />
-            Thử lại
+            {t('common.tryAgain')}
           </Button>
         </div>
       )}

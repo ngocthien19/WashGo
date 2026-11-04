@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useCallback } from 'react'
 import { ArrowUpRight, Check, DoorOpen, Hash, Info, MapPin, PanelsTopLeft } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/components/ui/dialog'
@@ -9,6 +10,7 @@ import { formatLockerAddress, getLockerMapLink } from '~/utils/formats'
 import { LOCKER_SLOT_SIZES } from '~/utils/constants'
 
 export default function LockerDetails({ id, onClose }) {
+  const { t } = useTranslation()
   const load = useCallback((signal) => customerCatalogApi.getLocker(id, signal), [id])
   const { data: locker, loading, error, retry } = useCatalogResource(load)
   const mapLink = locker && getLockerMapLink(locker)
@@ -22,7 +24,7 @@ export default function LockerDetails({ id, onClose }) {
       }}
     >
       <DialogContent
-        closeLabel="Đóng chi tiết locker"
+        closeLabel={t('customer.closeLockerDetails')}
         className="flex max-w-2xl flex-col overflow-hidden rounded-3xl p-0 sm:p-0"
       >
         <div className="flex shrink-0 items-center gap-4 border-b border-primary/15 bg-gradient-to-br from-primary/15 via-primary/5 to-card p-6 pr-14 sm:px-7">
@@ -34,10 +36,10 @@ export default function LockerDetails({ id, onClose }) {
           </span>
           <div>
             <DialogTitle className="text-xl font-bold tracking-tight">
-              Chi tiết locker
+              {t('customer.lockerDetails')}
             </DialogTitle>
             <DialogDescription className="mt-1 text-xs">
-              Vị trí và các ô trống hiện tại
+              {t('customer.locationAndAvailableCompartments')}
             </DialogDescription>
           </div>
         </div>
@@ -45,10 +47,10 @@ export default function LockerDetails({ id, onClose }) {
           {loading || error || !locker ? (
             <CatalogFeedback
               loading={loading}
-              loadingText="Đang tải locker..."
+              loadingText={t('customer.loadingLockers')}
               error={error}
               retry={retry}
-              empty="Không tìm thấy locker khả dụng."
+              empty={t('customer.noAvailableLockerFound')}
             />
           ) : (
             <div className="space-y-6">
@@ -76,7 +78,7 @@ export default function LockerDetails({ id, onClose }) {
                     {locker.availableSlotCount}
                   </strong>
                   <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                    ô đang trống
+                    {t('customer.availableCompartments')}
                   </span>
                 </div>
               </div>
@@ -94,7 +96,7 @@ export default function LockerDetails({ id, onClose }) {
                     size={18}
                     className="text-primary"
                   />
-                  {`Ô trống (${locker.availableSlotCount})`}
+                  {t('customer.availableCompartmentsTitle', { availableSlotCount: locker.availableSlotCount })}
                 </h4>
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {locker.availableSlots?.map((slot) => (
@@ -112,16 +114,16 @@ export default function LockerDetails({ id, onClose }) {
                         </span>
                       </div>
                       <p className="text-base font-bold">
-                        {`Ô ${slot.slotNumber}`}
+                        {t('customer.compartment', { slotNumber: slot.slotNumber })}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {LOCKER_SLOT_SIZES[slot.size] || 'Chưa rõ kích thước'}
+                        {t(LOCKER_SLOT_SIZES[slot.size] || 'customer.sizeNotSpecified')}
                       </p>
                     </div>
                   ))}
                 </div>
                 <p className="mt-4 text-xs leading-6 text-muted-foreground">
-                  Số ô trống được cập nhật khi mở chi tiết và có thể thay đổi.
+                  {t('customer.availabilityIsRefreshedWhenYouOpenTheseDetailsAnd')}
                 </p>
               </section>
             </div>
@@ -141,7 +143,7 @@ export default function LockerDetails({ id, onClose }) {
               className="h-10 rounded-xl px-4"
             >
               <MapPin size={16} />
-              Mở Google Maps
+              {t('customer.openGoogleMaps')}
               <ArrowUpRight size={16} />
             </Button>
           )}
@@ -150,7 +152,7 @@ export default function LockerDetails({ id, onClose }) {
             className="h-10 rounded-xl px-5"
             onClick={onClose}
           >
-            Đóng
+            {t('customer.close')}
           </Button>
         </div>
       </DialogContent>

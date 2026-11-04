@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useCallback, useMemo, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
@@ -12,6 +13,7 @@ import CatalogToolbar from '~/components/customer/catalog/CatalogToolbar'
 const initialQuery = { keyword: '', serviceType: '', page: CUSTOMER_CATALOG.INITIAL_PAGE }
 
 export default function ServiceCatalog() {
+  const { t } = useTranslation()
   const resultsRef = useRef(null)
   const [searchParams, setSearchParams] = useSearchParams()
   const query = useMemo(() => {
@@ -59,7 +61,7 @@ export default function ServiceCatalog() {
         id="services-heading"
         className="sr-only"
       >
-        Tất cả dịch vụ
+        {t('customer.allServices')}
       </h1>
       <div className="grid items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)] xl:gap-8">
         <ServiceFilters
@@ -71,8 +73,8 @@ export default function ServiceCatalog() {
         <div className="min-w-0 space-y-6">
           <CatalogToolbar
             keyword={query.keyword}
-            label="Tìm dịch vụ"
-            placeholder="Tìm dịch vụ theo tên hoặc mã..."
+            label={t('customer.searchServices')}
+            placeholder={t('customer.searchServicesByNameOrCode')}
             onSearch={(keyword) => setQuery({ ...query, keyword, page: CUSTOMER_CATALOG.INITIAL_PAGE })}
           />
           <div
@@ -85,27 +87,27 @@ export default function ServiceCatalog() {
                 role="status"
                 className="text-sm text-muted-foreground sm:text-base"
               >
-                {loading ? 'Đang tải dịch vụ...' : error ? 'Danh sách dịch vụ' : (
+                {loading ? t('customer.loadingServices') : error ? t('customer.serviceList') : (
                   <>
                     <strong className="mr-2 text-xl font-bold text-foreground">
                       {data?.total || 0}
                     </strong>
-                    dịch vụ tìm thấy
+                    {t('customer.servicesFound', { count: data?.total || 0 })}
                   </>
                 )}
               </p>
               {!loading && !error && services.length > 0 && (
                 <p className="text-xs text-muted-foreground sm:text-sm">
-                  {`Hiển thị ${firstResult}–${lastResult} / ${data.total}`}
+                  {t('customer.showing', { firstResult: firstResult, lastResult: lastResult, total: data.total })}
                 </p>
               )}
               {query.keyword && (
                 <p className="w-full break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
-                  Kết quả cho “
+                  {t('customer.resultsFor')}
                   <strong className="font-semibold text-primary">
                     {query.keyword}
                   </strong>
-                  ”
+                  {t('customer.closingQuote')}
                 </p>
               )}
             </div>
@@ -114,7 +116,7 @@ export default function ServiceCatalog() {
                 loading={loading}
                 error={error}
                 retry={retry}
-                empty={hasFilters ? 'Không có dịch vụ phù hợp. Hãy thử từ khóa hoặc loại dịch vụ khác.' : undefined}
+                empty={hasFilters ? t('customer.noMatchingServicesTryAnotherKeywordOrServiceType') : undefined}
               />
             ) : (
               <ServiceGrid

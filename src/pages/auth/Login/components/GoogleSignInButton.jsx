@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { FcGoogle } from 'react-icons/fc'
 import { LoaderCircle } from 'lucide-react'
@@ -10,6 +11,7 @@ import { getApiError } from '~/utils/apiError'
 import { useTheme } from '~/hooks/useTheme'
 
 export default function GoogleSignInButton({ onSuccess }) {
+  const { t, i18n } = useTranslation()
   const containerRef = useRef(null)
   const pendingRef = useRef(false)
   const [pending, setPending] = useState(false)
@@ -18,14 +20,14 @@ export default function GoogleSignInButton({ onSuccess }) {
   const [renderedTheme, setRenderedTheme] = useState(null)
   const { theme } = useTheme()
   const configured = !!GOOGLE_SIGN_IN.CLIENT_ID
-  const ready = renderedTheme === theme
+  const ready = renderedTheme === `${theme}:${i18n.resolvedLanguage}`
 
   const handleCredential = useCallback(async ({ credential }) => {
     if (pendingRef.current) {
       return
     }
     if (!credential) {
-      setError('Không nhận được thông tin từ Google. Vui lòng thử lại.')
+      setError('auth.noCredentialWasReceivedFromGooglePleaseTryAgain')
       return
     }
     pendingRef.current = true
@@ -70,10 +72,10 @@ export default function GoogleSignInButton({ onSuccess }) {
           size: 'large',
           text: 'signin_with',
           shape: 'rectangular',
-          locale: 'vi',
+          locale: i18n.resolvedLanguage,
           width
         })
-        setRenderedTheme(theme)
+        setRenderedTheme(`${theme}:${i18n.resolvedLanguage}`)
       }
       render()
       observer = new ResizeObserver(render)
@@ -90,13 +92,13 @@ export default function GoogleSignInButton({ onSuccess }) {
       observer?.disconnect()
       container.replaceChildren()
     }
-  }, [configured, theme, handleCredential, retry])
+  }, [configured, theme, handleCredential, retry, i18n.resolvedLanguage])
 
   return (
     <div className="mt-6">
       <div className="mb-5 flex items-center gap-4 text-xs text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
-        Hoặc
+        {t('auth.or')}
         <span className="h-px flex-1 bg-border" />
       </div>
       {(!configured || (!ready && !error)) && (
@@ -108,11 +110,11 @@ export default function GoogleSignInButton({ onSuccess }) {
             disabled
           >
             <FcGoogle size={20} />
-            {configured ? 'Đang tải Google...' : 'Đăng nhập bằng Google'}
+            {configured ? t('auth.loadingGoogle') : t('auth.signInWithGoogle')}
           </Button>
           {!configured && (
             <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">
-              Đăng nhập Google hiện chưa sẵn sàng. Bạn có thể đăng nhập bằng email.
+              {t('auth.googleSignInIsNotAvailableRightNowYou')}
             </p>
           )}
         </>
@@ -133,7 +135,7 @@ export default function GoogleSignInButton({ onSuccess }) {
             size={16}
             className="animate-spin motion-reduce:animate-none"
           />
-          Đang đăng nhập...
+          {t('auth.signingIn')}
         </p>
       )}
       <FormError>
@@ -149,7 +151,7 @@ export default function GoogleSignInButton({ onSuccess }) {
             setRetry((value) => value + 1)
           }}
         >
-          Thử lại Google
+          {t('auth.retryGoogleSignIn')}
         </Button>
       )}
     </div>
