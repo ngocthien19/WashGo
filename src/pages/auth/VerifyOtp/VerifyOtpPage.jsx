@@ -1,10 +1,11 @@
+import { useTranslation } from 'react-i18next'
 import { AUTH_ROUTES, OTP_PURPOSE, OTP_CONFIG } from '~/utils/constants'
 import { formatCountdown } from '~/utils/formats'
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useOutletContext } from 'react-router-dom'
 import { ShieldHalf, RotateCw } from 'lucide-react'
 import { Controller } from 'react-hook-form'
-import { toast } from 'react-toastify'
+import { notify } from '~/utils/notifications'
 import { authApi } from '~/apis/auth/authApi'
 import { getApiError } from '~/utils/apiError'
 import { Button } from '~/components/ui/button'
@@ -16,6 +17,7 @@ import { otpSchema } from '../authSchemas'
 import OtpInput from '~/components/ui/OtpInput'
 
 export default function VerifyOtpPage() {
+  const { t } = useTranslation()
   const { flow, setFlow } = useOutletContext()
   const navigate = useNavigate()
   const [now, setNow] = useState(Date.now)
@@ -50,17 +52,24 @@ export default function VerifyOtpPage() {
   const remaining = Math.max(0, Math.ceil((flow.sentAt + OTP_CONFIG.VALIDITY_MS - now) / 1000))
   const cooldown = Math.max(0, Math.ceil((flow.sentAt + OTP_CONFIG.RESEND_DELAY_MS - now) / 1000))
   const remainingTime = formatCountdown(remaining)
-  const resendLabel = resending ? 'Đang gửi...' : cooldown ? `Gửi lại sau ${cooldown}s` : 'Gửi lại mã'
+  const resendLabel = resending ? t('auth.sending') : cooldown ? t('auth.resendInS', { cooldown: cooldown }) : t('auth.resendCode')
 
   const verify = async ({ code }) => {
     setVerifying(true)
     try {
       if (!remaining) {
-        throw new Error('Mã OTP đã hết hạn. Vui lòng gửi lại mã mới.')
+        throw new Error('auth.theOtpHasExpiredPleaseRequestANewCode')
       }
       if (!isRegister) {
-        // reset-password verifies and consumes the code; verifying here would consume it twice.
-        setFlow({ ...flow, code })
+        const result = await authApi.verifyOtp({ email: flow.email, code, purpose: flow.purpose })
+        if (result?.verified !== true) {
+          throw new Error('auth.theOtpIsIncorrectOrHasExpiredPleaseTry')
+        }
+        if (!result.verificationToken) {
+          throw new Error('auth.theSystemDidNotReturnAPasswordResetVerification')
+        }
+
+        setFlow({ ...flow, verificationToken: result.verificationToken })
         navigate(AUTH_ROUTES.RESET_PASSWORD)
         return
       }
@@ -70,13 +79,13 @@ export default function VerifyOtpPage() {
         : await authApi.verifyOtp({ email: flow.email, code, purpose: flow.purpose })
 
       if (!verified.verified || !verified.verificationToken) {
-        throw new Error('Chưa thể xác minh email. Vui lòng thử lại.')
+        throw new Error('auth.unableToVerifyYourEmailYetPleaseTryAgain')
       }
 
       setFlow({ ...flow, verificationToken: verified.verificationToken })
       await authApi.register({ ...flow.registration, verificationToken: verified.verificationToken })
       setFlow({ completed: true })
-      toast.success('Đăng ký thành công! Vui lòng đăng nhập.')
+      notify.success('auth.registrationSuccessfulPleaseSignIn')
       navigate(AUTH_ROUTES.LOGIN, { replace: true })
     } finally {
       setVerifying(false)
@@ -88,10 +97,10 @@ export default function VerifyOtpPage() {
     setResendError('')
     try {
       await authApi.sendOtp({ ...flow.registration, email: flow.email, purpose: flow.purpose })
-      setFlow({ ...flow, sentAt: Date.now(), verificationToken: null, code: null })
+      setFlow({ ...flow, sentAt: Date.now(), verificationToken: null })
       setNow(Date.now())
       setFormVersion((version) => version + 1)
-      toast.success('Đã gửi lại mã OTP. Vui lòng kiểm tra email.')
+      notify.success('auth.aNewOtpHasBeenSentPleaseCheckYour')
     } catch (error) {
       setResendError(getApiError(error))
     } finally {
@@ -103,10 +112,10 @@ export default function VerifyOtpPage() {
     <>
       <AuthHeading
         icon={ShieldHalf}
-        title="Xác nhận mã OTP"
+        title={t('auth.verifyOtp')}
         centered
       >
-        {`Nhập mã ${OTP_CONFIG.CODE_LENGTH} chữ số được gửi đến`}
+        {t('auth.enterTheDigitCodeSentTo', { CODE_LENGTH: OTP_CONFIG.CODE_LENGTH })}
         <br />
         <strong className="break-words font-semibold text-foreground">
           {flow.email}
@@ -117,7 +126,7 @@ export default function VerifyOtpPage() {
         schema={otpSchema}
         onSubmit={verify}
         disabled={resending || !remaining}
-        submitLabel={isRegister ? 'Xác nhận' : 'Tiếp tục'}
+        submitLabel={isRegister ? t('auth.confirm') : t('auth.continue')}
         defaultValues={{ code: '' }}
         renderFields={({ control, errors }) => (
           <Controller
@@ -141,20 +150,20 @@ export default function VerifyOtpPage() {
         >
           {remaining ? (
             <>
-              Mã hết hạn sau
+              {t('auth.codeExpiresIn')}
               {' '}
               <strong className="text-foreground">
                 {remainingTime}
               </strong>
             </>
-          ) : 'Mã đã hết hạn. Vui lòng gửi lại mã mới.'}
+          ) : t('auth.theCodeHasExpiredPleaseRequestANewOne')}
         </p>
         <div className="mb-6 mt-1 flex justify-center">
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="text-orange-700 dark:text-orange-300"
+            className="text-blue-700 dark:text-blue-300"
             disabled={cooldown > 0 || resending || verifying}
             onClick={resend}
             data-testid="resend-otp"
@@ -171,18 +180,13 @@ export default function VerifyOtpPage() {
         {resendError}
       </FormError>
       <AuthBackLink to={isRegister ? AUTH_ROUTES.REGISTER : AUTH_ROUTES.FORGOT_PASSWORD}>
-        Thay đổi địa chỉ email
+        {t('auth.changeEmailAddress')}
       </AuthBackLink>
       <AuthBackLink to={AUTH_ROUTES.LOGIN}>
-        Quay lại đăng nhập
+        {t('auth.backToSignIn')}
       </AuthBackLink>
-      {!isRegister && (
-        <p className="mt-4 text-center text-xs leading-6 text-muted-foreground">
-          Mã OTP sẽ được xác thực khi bạn lưu mật khẩu mới ở bước tiếp theo.
-        </p>
-      )}
       <p className="mt-4 text-center text-xs leading-6 text-muted-foreground">
-        Kiểm tra cả thư mục Spam nếu bạn chưa thấy email từ WashGo.
+        {t('auth.checkYourSpamFolderIfYouCannotFindThe')}
       </p>
     </>
   )
