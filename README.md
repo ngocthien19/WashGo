@@ -11,6 +11,8 @@ E2E uses installed Microsoft Edge on Windows and Playwright Chromium elsewhere. 
 
 Unit tests cover translation keys/interpolation and error localization. Integration tests cover language selection with Redux and service details loading/error/retry. E2E covers form preservation, saved language, dark mode, responsive service dialogs and keyboard/focus behavior. Add coverage for subsequent features according to risk; these tests do not cover every existing feature.
 
+Customer profile coverage includes validation/image limits, safe identity synchronization, update failure/retry, avatar upload/removal, persistence, shared breadcrumb navigation and guest access. Run only profile browser flows with `npm run test:e2e -- customer-profile.spec.js`.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
