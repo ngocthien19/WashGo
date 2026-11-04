@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { ArrowRight, Clock3 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
@@ -9,6 +10,7 @@ import ServiceDetails from './ServiceDetails'
 import { cn } from '~/lib/utils'
 
 export default function ServiceGrid({ services, className }) {
+  const { t } = useTranslation()
   const [selectedId, setSelectedId] = useState(null)
 
   return (
@@ -28,18 +30,18 @@ export default function ServiceGrid({ services, className }) {
                 <ServiceIcon type={service.serviceType} />
               </span>
               <span className="rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                {SERVICE_TYPES.find((type) => type.value === String(service.serviceType))?.label || 'Giặt ủi'}
+                {t(SERVICE_TYPES.find((type) => type.value === String(service.serviceType))?.label || 'customer.laundry')}
               </span>
             </div>
             <h3 className="line-clamp-2 break-words text-lg font-bold leading-7 [overflow-wrap:anywhere]">
               {service.name}
             </h3>
             <p className="mt-2 line-clamp-2 min-h-12 break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">
-              {service.description || 'Xem chi tiết để tìm hiểu dịch vụ.'}
+              {service.description || t('customer.viewDetailsToLearnMoreAboutThisService')}
             </p>
             <p className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock3 size={14} />
-              {service.estimatedDurationHours > 0 ? `Dự kiến ${service.estimatedDurationHours} giờ` : 'Thời gian chưa cập nhật'}
+              {service.estimatedDurationHours > 0 ? t('customer.estimatedHours', { estimatedDurationHours: service.estimatedDurationHours }) : t('customer.durationNotAvailableYet')}
             </p>
             <div className="mt-6 flex flex-1 items-end justify-between gap-3 border-t border-border/70 pt-5">
               <p className="min-w-0 break-words text-lg font-bold text-primary">
@@ -52,7 +54,7 @@ export default function ServiceGrid({ services, className }) {
                 variant="outline-primary"
                 size="icon"
                 className="size-11 rounded-full"
-                aria-label={`Xem chi tiết ${service.name}`}
+                aria-label={t('customer.viewDetailsFor', { name: service.name })}
                 onClick={() => setSelectedId(service.id)}
               >
                 <ArrowRight className="transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />

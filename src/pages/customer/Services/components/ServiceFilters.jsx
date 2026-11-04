@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { ChevronDown, SlidersHorizontal, RotateCcw } from 'lucide-react'
 import { Button } from '~/components/ui/button'
@@ -6,11 +7,12 @@ import { SERVICE_TYPES, UI_TRANSITIONS } from '~/utils/constants'
 import { cn } from '~/lib/utils'
 
 export default function ServiceFilters({ value, onChange, onReset, hasFilters }) {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(true)
 
   return (
     <aside
-      aria-label="Bộ lọc dịch vụ"
+      aria-label={t('customer.serviceFilters')}
       className="self-start rounded-3xl border border-border/80 bg-card p-5 shadow-sm lg:sticky lg:top-[var(--customer-header-offset)] xl:p-6"
     >
       <Button
@@ -26,7 +28,7 @@ export default function ServiceFilters({ value, onChange, onReset, hasFilters })
             className="text-primary"
             aria-hidden="true"
           />
-          Bộ lọc
+          {t('customer.filters')}
         </span>
         <ChevronDown className={cn(UI_TRANSITIONS.ICON, expanded && 'rotate-180')} />
       </Button>
@@ -38,7 +40,7 @@ export default function ServiceFilters({ value, onChange, onReset, hasFilters })
           id="service-type-heading"
           className="mb-3 mt-7 text-sm font-semibold"
         >
-          Loại dịch vụ
+          {t('customer.serviceType')}
         </h2>
         <RadioGroup
           name="service-type"
@@ -53,10 +55,10 @@ export default function ServiceFilters({ value, onChange, onReset, hasFilters })
             >
               <RadioGroupItem
                 value={type.value}
-                aria-label={type.label}
+                aria-label={t(type.label)}
               />
               <span>
-                {type.label}
+                {t(type.label)}
               </span>
             </label>
           ))}
@@ -69,7 +71,7 @@ export default function ServiceFilters({ value, onChange, onReset, hasFilters })
             onClick={onReset}
           >
             <RotateCcw size={15} />
-            Xóa bộ lọc
+            {t('customer.clearFilters')}
           </Button>
         </div>
       </div>

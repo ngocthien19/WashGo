@@ -1,32 +1,33 @@
-import { AUTH_ROUTES, OTP_PURPOSE, OTP_CONFIG, PASSWORD_REQUIREMENTS_HINT } from '~/utils/constants'
+import { useTranslation } from 'react-i18next'
+import { AUTH_ROUTES, OTP_PURPOSE, PASSWORD_REQUIREMENTS_HINT } from '~/utils/constants'
 import { Navigate, useNavigate, useOutletContext } from 'react-router-dom'
 import { LockKeyhole } from 'lucide-react'
-import { toast } from 'react-toastify'
+import { notify } from '~/utils/notifications'
 import { authApi } from '~/apis/auth/authApi'
 import AuthForm from '../components/AuthForm'
 import AuthHeading from '../components/AuthHeading'
-import AuthBackLink from '../components/AuthBackLink'
 import { resetPasswordSchema } from '../authSchemas'
 
 const fields = [
   {
     name: 'newPassword',
-    label: 'Mật khẩu mới',
+    label: 'auth.newPassword',
     type: 'password',
-    placeholder: 'Nhập mật khẩu mới',
+    placeholder: 'auth.enterYourNewPassword',
     autoComplete: 'new-password',
     hint: PASSWORD_REQUIREMENTS_HINT
   },
   {
     name: 'confirmNewPassword',
-    label: 'Xác nhận mật khẩu mới',
+    label: 'auth.confirmNewPassword',
     type: 'password',
-    placeholder: 'Nhập lại mật khẩu mới',
+    placeholder: 'auth.enterYourNewPasswordAgain',
     autoComplete: 'new-password'
   }
 ]
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation()
   const { flow, setFlow } = useOutletContext()
   const navigate = useNavigate()
 
@@ -38,7 +39,7 @@ export default function ResetPasswordPage() {
       />
     )
   }
-  if (!flow?.code || flow.purpose !== OTP_PURPOSE.FORGOT_PASSWORD) {
+  if (!flow?.verificationToken || flow.purpose !== OTP_PURPOSE.FORGOT_PASSWORD) {
     return (
       <Navigate
         to={AUTH_ROUTES.FORGOT_PASSWORD}
@@ -48,9 +49,9 @@ export default function ResetPasswordPage() {
   }
 
   const reset = async (values) => {
-    await authApi.resetPassword({ email: flow.email, code: flow.code, ...values })
+    await authApi.resetPassword({ email: flow.email, verificationToken: flow.verificationToken, ...values })
     setFlow({ completed: true })
-    toast.success('Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.')
+    notify.success('auth.passwordResetSuccessfullyPleaseSignInWithYourNew')
     navigate(AUTH_ROUTES.LOGIN, { replace: true })
   }
 
@@ -58,10 +59,10 @@ export default function ResetPasswordPage() {
     <>
       <AuthHeading
         icon={LockKeyhole}
-        title="Đặt lại mật khẩu"
+        title={t('auth.resetPassword')}
         centered
       >
-        Tạo mật khẩu mới để bảo vệ tài khoản
+        {t('auth.createANewPasswordToProtectYourAccount')}
         <br />
         <strong className="break-words font-semibold text-foreground">
           {flow.email}
@@ -70,15 +71,9 @@ export default function ResetPasswordPage() {
       <AuthForm
         schema={resetPasswordSchema}
         onSubmit={reset}
-        submitLabel="Xác thực OTP & lưu mật khẩu"
+        submitLabel={t('auth.saveNewPassword')}
         fields={fields}
       />
-      <p className="mt-4 text-center text-xs leading-6 text-muted-foreground">
-        {`Mã OTP có hiệu lực ${OTP_CONFIG.VALIDITY_MS / 60000} phút kể từ lúc gửi. Nếu mã hết hạn, hãy quay lại để nhận mã mới.`}
-      </p>
-      <AuthBackLink to={AUTH_ROUTES.VERIFY_OTP}>
-        Nhập lại mã OTP
-      </AuthBackLink>
     </>
   )
 }

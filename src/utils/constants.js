@@ -29,11 +29,11 @@ export const CUSTOMER_ROUTES = {
 }
 
 export const CUSTOMER_NAVIGATION = [
-  { label: 'Trang chủ', href: CUSTOMER_ROUTES.HOME },
-  { label: 'Tạo đơn hàng', pending: true },
-  { label: 'Đơn hàng của tôi', pending: true },
-  { label: 'Dịch vụ', href: CUSTOMER_ROUTES.SERVICES },
-  { label: 'Locker', href: CUSTOMER_ROUTES.LOCKERS }
+  { label: 'common.home', href: CUSTOMER_ROUTES.HOME },
+  { label: 'common.createAnOrder', pending: true },
+  { label: 'common.myOrders', pending: true },
+  { label: 'common.services', href: CUSTOMER_ROUTES.SERVICES },
+  { label: 'common.lockers', href: CUSTOMER_ROUTES.LOCKERS }
 ]
 
 export const CUSTOMER_API_ENDPOINTS = {
@@ -46,8 +46,8 @@ export const LOCKER_MAP = {
   ATTRIBUTION: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   ZOOM: 15,
   MAX_ZOOM: 18,
-  ACTIVE_COLOR: '#ff7a45',
-  USER_COLOR: '#2563eb',
+  ACTIVE_COLOR: '#2563eb',
+  USER_COLOR: '#0891b2',
   TILE_TIMEOUT_MS: 12000,
   LOCATION_TIMEOUT_MS: 10000,
   LOCATION_MAX_AGE_MS: 60000
@@ -55,15 +55,15 @@ export const LOCKER_MAP = {
 
 export const EARTH_RADIUS_KM = 6371
 
-export const LOCKER_SLOT_SIZES = { 1: 'Nhỏ', 2: 'Tiêu chuẩn', 3: 'Lớn' }
+export const LOCKER_SLOT_SIZES = { 1: 'common.small', 2: 'common.standard', 3: 'common.large' }
 
 export const SERVICE_TYPES = [
-  { value: '', label: 'Tất cả' },
-  { value: '1', label: 'Giặt thường' },
-  { value: '2', label: 'Giặt khô' },
-  { value: '3', label: 'Ủi đồ' },
-  { value: '4', label: 'Giặt chăn' },
-  { value: '5', label: 'Vệ sinh giày' }
+  { value: '', label: 'common.all' },
+  { value: '1', label: 'common.standardWash' },
+  { value: '2', label: 'common.dryCleaning' },
+  { value: '3', label: 'common.ironing' },
+  { value: '4', label: 'common.blanketWash' },
+  { value: '5', label: 'common.shoeCleaning' }
 ]
 
 export const CUSTOMER_CATALOG = {
@@ -89,15 +89,15 @@ export const HERO_MOTION = {
 // Display placeholders from the reference; replace when official content is available.
 export const CUSTOMER_FOOTER = {
   SERVICES: [
-    { label: 'Giặt sấy thông dụng', serviceType: '1' },
-    { label: 'Giặt hấp cao cấp', serviceType: '2' },
-    { label: 'Ủi phẳng chuyên sâu', serviceType: '3' },
-    { label: 'Combo doanh nghiệp', serviceType: '' }
+    { label: 'common.everydayWashDry', serviceType: '1' },
+    { label: 'common.premiumDryCleaning', serviceType: '2' },
+    { label: 'common.professionalIroning', serviceType: '3' },
+    { label: 'common.businessPackages', serviceType: '' }
   ],
-  SUPPORT: ['Chính sách bảo mật', 'Điều khoản dịch vụ', 'Câu hỏi thường gặp'],
+  SUPPORT: ['common.privacyPolicy', 'common.termsOfService', 'common.frequentlyAskedQuestions'],
   PHONE: '1900 123 456',
   EMAIL: 'support@washgo.vn',
-  ADDRESS: '123 Đường Số 7, Phường Tân Kiểng, Quận 7, TP. HCM'
+  ADDRESS: 'common.contactAddress'
 }
 
 export const OTP_PURPOSE = {
@@ -133,6 +133,8 @@ export const UI_TRANSITIONS = {
 
 export const TEXT_LINK_STYLES = `underline decoration-transparent underline-offset-4 hover:decoration-current focus-visible:decoration-current ${UI_TRANSITIONS.LINK}`
 
+export const CHOICE_ITEM_STYLES = 'data-[selected]:bg-primary/10 data-[selected]:font-normal data-[selected]:text-primary data-[selected]:data-highlighted:bg-primary/15 aria-[current=true]:bg-primary/10 aria-[current=true]:font-normal aria-[current=true]:text-primary aria-[current=true]:data-highlighted:bg-primary/15'
+
 export const AUTH_API_ENDPOINTS = {
   LOGIN: '/auth/login',
   GOOGLE_LOGIN: '/auth/google',
@@ -146,6 +148,9 @@ export const AUTH_API_ENDPOINTS = {
   LOGOUT: '/auth/logout'
 }
 
+// Backend response used to select the Google back-office endpoint.
+export const GOOGLE_ADMIN_PORTAL_MESSAGE = 'Vui lòng dùng cổng quản trị.'
+
 export const THEME_MODES = {
   LIGHT: 'light',
   DARK: 'dark',
@@ -154,7 +159,13 @@ export const THEME_MODES = {
 
 export const DARK_MODE_MEDIA_QUERY = '(prefers-color-scheme: dark)'
 
-export const PASSWORD_REQUIREMENTS_HINT = `${AUTH_LIMITS.PASSWORD_MIN}–${AUTH_LIMITS.PASSWORD_MAX} ký tự, gồm chữ hoa, chữ thường và số.`
+export const DEFAULT_LANGUAGE = 'vi'
+export const LANGUAGE_OPTIONS = [
+  { value: 'vi', label: 'Tiếng Việt', locale: 'vi-VN' },
+  { value: 'en', label: 'English', locale: 'en-US' }
+]
+
+export const PASSWORD_REQUIREMENTS_HINT = 'common.charactersWithUppercaseAndLowercaseLettersAndNumbers'
 
 export const GOOGLE_SIGN_IN = {
   CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',

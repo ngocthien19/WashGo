@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import { Button } from './button'
@@ -7,7 +8,8 @@ export const Dialog = DialogPrimitive.Root
 export const DialogTitle = DialogPrimitive.Title
 export const DialogDescription = DialogPrimitive.Description
 
-export function DialogContent({ children, className, closeLabel = 'Đóng chi tiết dịch vụ' }) {
+export function DialogContent({ children, className, closeLabel = 'common.closeServiceDetails' }) {
+  const { t } = useTranslation()
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/45" />
@@ -18,7 +20,7 @@ export function DialogContent({ children, className, closeLabel = 'Đóng chi ti
               variant="ghost"
               size="icon"
               className="absolute right-3 top-3"
-              aria-label={closeLabel}
+              aria-label={t(closeLabel)}
             />
           )}
         >

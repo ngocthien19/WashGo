@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Moon, Sun } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { useTheme } from '~/hooks/useTheme'
@@ -5,8 +6,9 @@ import { THEME_MODES } from '~/utils/constants'
 import { cn } from '~/lib/utils'
 
 export default function ThemeToggle({ inline = false }) {
+  const { t } = useTranslation()
   const { theme, toggleTheme } = useTheme()
-  const label = theme === THEME_MODES.DARK ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'
+  const label = theme === THEME_MODES.DARK ? t('common.switchToLightMode') : t('common.switchToDarkMode')
 
   return (
     <Button

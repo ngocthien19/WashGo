@@ -1,7 +1,8 @@
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Mail, MapPin, Phone } from 'lucide-react'
 import { FaFacebookF, FaInstagram, FaTiktok } from 'react-icons/fa'
-import { toast } from 'react-toastify'
+import { notify } from '~/utils/notifications'
 import { CUSTOMER_FOOTER, CUSTOMER_ROUTES, TEXT_LINK_STYLES } from '~/utils/constants'
 import { Button } from '~/components/ui/button'
 import Reveal from '~/components/motion/Reveal'
@@ -9,12 +10,12 @@ import Brand from '~/components/Brand/Brand'
 import { cn } from '~/lib/utils'
 
 const socialLinks = [
-  { label: 'Facebook', icon: FaFacebookF },
-  { label: 'Instagram', icon: FaInstagram },
-  { label: 'TikTok', icon: FaTiktok }
+  { label: 'customer.facebook', icon: FaFacebookF },
+  { label: 'customer.instagram', icon: FaInstagram },
+  { label: 'customer.tiktok', icon: FaTiktok }
 ]
 
-const showPendingContent = () => toast.info('Nội dung này đang được cập nhật.')
+const showPendingContent = () => notify.info('customer.thisContentIsBeingUpdated')
 
 function FooterPendingLink({ children, className }) {
   return (
@@ -29,27 +30,28 @@ function FooterPendingLink({ children, className }) {
 }
 
 export default function CustomerFooter() {
+  const { t } = useTranslation()
   return (
-    <footer className="bg-[#202b3b] text-slate-200 dark:border-t dark:border-border">
+    <footer className="bg-[#202b3b] text-slate-200 dark:border-t dark:border-border dark:bg-card">
       <Reveal className="mx-auto grid max-w-7xl gap-10 px-6 pb-16 pt-16 sm:grid-cols-2 lg:grid-cols-4 lg:gap-14 lg:px-8 lg:pb-24 lg:pt-20">
         <div>
           <Brand
             to={CUSTOMER_ROUTES.HOME}
-            label="WashGo - Trang chủ"
+            label={t('customer.washgoHome')}
             className="text-white"
           />
           <p className="mt-5 text-sm leading-6 text-slate-400">
-            Nền tảng giặt ủi thông minh kết hợp hệ thống locker tự động, mang lại sự tiện lợi tối đa cho người dùng bận rộn.
+            {t('customer.aSmartLaundryPlatformWithAutomatedLockersMakingEveryday')}
           </p>
           <div className="mt-6 flex gap-3">
             {socialLinks.map(({ label, icon: Icon }) => (
               <Button
-                key={label}
+                key={t(label)}
                 size="icon"
                 variant="ghost"
                 className="size-9 rounded-full text-white hover:bg-white/10 hover:text-primary"
-                aria-label={label}
-                tooltip={label}
+                aria-label={t(label)}
+                tooltip={t(label)}
                 onClick={showPendingContent}
               >
                 <Icon className="size-4" />
@@ -58,40 +60,46 @@ export default function CustomerFooter() {
           </div>
         </div>
         <div>
-          <h2 className="font-semibold text-white">Dịch vụ</h2>
+          <h2 className="font-semibold text-white">
+            {t('common.services')}
+          </h2>
           <ul className="mt-5 space-y-4 text-sm leading-6 text-slate-400">
             {CUSTOMER_FOOTER.SERVICES.map(({ label, serviceType }) => (
-              <li key={label}>
+              <li key={t(label)}>
                 <Link
                   to={serviceType ? `${CUSTOMER_ROUTES.SERVICES}?serviceType=${serviceType}` : CUSTOMER_ROUTES.SERVICES}
                   className={`hover:text-primary ${TEXT_LINK_STYLES}`}
                 >
-                  {label}
+                  {t(label)}
                 </Link>
               </li>
             ))}
           </ul>
         </div>
         <div>
-          <h2 className="font-semibold text-white">Hỗ trợ</h2>
+          <h2 className="font-semibold text-white">
+            {t('customer.support')}
+          </h2>
           <Link
             to={`${CUSTOMER_ROUTES.HOME}#how-it-works`}
             className={`mt-5 inline-block text-sm leading-6 text-slate-400 hover:text-primary ${TEXT_LINK_STYLES}`}
           >
-            Hướng dẫn sử dụng
+            {t('customer.howItWorks')}
           </Link>
           <ul className="mt-4 space-y-4 text-sm leading-6 text-slate-400">
             {CUSTOMER_FOOTER.SUPPORT.map((label) => (
-              <li key={label}>
+              <li key={t(label)}>
                 <FooterPendingLink>
-                  {label}
+                  {t(label)}
                 </FooterPendingLink>
               </li>
             ))}
           </ul>
         </div>
         <div>
-          <h2 className="font-semibold text-white">Liên hệ</h2>
+          <h2 className="font-semibold text-white">
+            {t('customer.contact')}
+          </h2>
           <ul className="mt-5 space-y-4 text-sm leading-6 text-slate-400">
             <li className="flex items-start gap-3">
               <Phone className="mt-1 size-4 shrink-0 text-primary" />
@@ -108,7 +116,7 @@ export default function CustomerFooter() {
             <li className="flex items-start gap-3">
               <MapPin className="mt-1 size-4 shrink-0 text-primary" />
               <FooterPendingLink>
-                {CUSTOMER_FOOTER.ADDRESS}
+                {t(CUSTOMER_FOOTER.ADDRESS)}
               </FooterPendingLink>
             </li>
           </ul>
@@ -116,11 +124,15 @@ export default function CustomerFooter() {
       </Reveal>
       <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 border-t border-white/5 px-6 py-7 text-xs text-slate-400 sm:flex-row lg:px-8">
         <p>
-          {`© ${new Date().getFullYear()} WashGo. All rights reserved.`}
+          {t('common.copyright', { year: new Date().getFullYear() })}
         </p>
         <div className="flex gap-6">
-          <FooterPendingLink className="text-xs">Quyền riêng tư</FooterPendingLink>
-          <FooterPendingLink className="text-xs">Điều khoản</FooterPendingLink>
+          <FooterPendingLink className="text-xs">
+            {t('customer.privacy')}
+          </FooterPendingLink>
+          <FooterPendingLink className="text-xs">
+            {t('customer.terms')}
+          </FooterPendingLink>
         </div>
       </div>
     </footer>

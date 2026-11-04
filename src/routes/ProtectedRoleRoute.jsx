@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, Outlet } from 'react-router-dom'
@@ -11,6 +12,7 @@ import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 
 export default function ProtectedRoleRoute({ role }) {
+  const { t } = useTranslation()
   const dispatch = useDispatch()
   const auth = useSelector((state) => state.auth)
   const hasSession = !!auth.accessToken
@@ -51,7 +53,7 @@ export default function ProtectedRoleRoute({ role }) {
       <main className="grid min-h-dvh place-items-center bg-background p-6">
         <div className="w-full max-w-md space-y-3">
           <FormError>
-            {error || 'Vai trò tài khoản chưa được hỗ trợ. Vui lòng liên hệ quản trị viên.'}
+            {error || t('common.yourAccountRoleIsNotSupportedPleaseContactAn')}
           </FormError>
           <Button
             className="w-full"
@@ -60,14 +62,14 @@ export default function ProtectedRoleRoute({ role }) {
               setAttempt((value) => value + 1)
             }}
           >
-            Thử lại
+            {t('common.tryAgain')}
           </Button>
           <Button
             variant="outline"
             className="w-full"
             onClick={() => dispatch(clearSession())}
           >
-            Trở về đăng nhập
+            {t('common.backToSignIn')}
           </Button>
         </div>
       </main>

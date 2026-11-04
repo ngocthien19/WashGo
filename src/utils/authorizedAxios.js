@@ -36,10 +36,10 @@ authorizedAxios.interceptors.response.use((response) => response, async (error) 
       refreshToken: auth.refreshToken
     }, { timeout: API_TIMEOUT_MS }).then(({ data }) => {
       if (!data.succeeded || !data.data?.accessToken) {
-        throw new Error(data.message || 'Phiên đăng nhập không hợp lệ.')
+        throw new Error(data.message || 'auth.yourSessionIsInvalid')
       }
       if (session.getAuth()?.refreshToken !== auth.refreshToken) {
-        throw new axios.CanceledError('Phiên đăng nhập đã thay đổi.')
+        throw new axios.CanceledError('auth.yourSessionHasChanged')
       }
       session.setSession(data.data)
       return data.data

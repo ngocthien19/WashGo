@@ -1,4 +1,6 @@
 import { StrictMode } from 'react'
+import '~/i18n'
+import LanguageProvider from '~/components/LanguageProvider/LanguageProvider'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
@@ -17,11 +19,13 @@ createRoot(document.getElementById('root')).render(
         loading={<LoadingScreen />}
         persistor={persistor}
       >
-        <ThemeProvider>
-          <TooltipProvider>
-            <App />
-          </TooltipProvider>
-        </ThemeProvider>
+        <LanguageProvider>
+          <ThemeProvider>
+            <TooltipProvider>
+              <App />
+            </TooltipProvider>
+          </ThemeProvider>
+        </LanguageProvider>
       </PersistGate>
     </Provider>
   </StrictMode>

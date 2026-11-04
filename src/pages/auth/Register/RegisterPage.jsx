@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { AUTH_ROUTES, AUTH_LIMITS, OTP_PURPOSE, PASSWORD_REQUIREMENTS_HINT } from '~/utils/constants'
 import { normalizePhone } from '~/utils/formats'
 import { useNavigate, useOutletContext } from 'react-router-dom'
@@ -11,43 +12,44 @@ import AuthBrand from '../components/AuthBrand'
 const fields = [
   {
     name: 'fullName',
-    label: 'Họ và tên',
-    placeholder: 'Nguyễn Văn An',
+    label: 'auth.fullName',
+    placeholder: 'auth.alexNguyen',
     autoComplete: 'name',
     maxLength: AUTH_LIMITS.NAME_MAX
   },
   {
     name: 'email',
-    label: 'Email',
+    label: 'common.email',
     type: 'email',
     placeholder: 'ban@example.com',
     autoComplete: 'email'
   },
   {
     name: 'phone',
-    label: 'Số điện thoại',
+    label: 'auth.phoneNumber',
     type: 'tel',
     placeholder: '0901 234 567',
     autoComplete: 'tel'
   },
   {
     name: 'password',
-    label: 'Mật khẩu',
+    label: 'auth.password',
     type: 'password',
-    placeholder: 'Tạo mật khẩu của bạn',
+    placeholder: 'auth.createYourPassword',
     autoComplete: 'new-password',
     hint: PASSWORD_REQUIREMENTS_HINT
   },
   {
     name: 'confirmPassword',
-    label: 'Xác nhận mật khẩu',
+    label: 'auth.confirmPassword',
     type: 'password',
-    placeholder: 'Nhập lại mật khẩu',
+    placeholder: 'auth.enterYourPasswordAgain',
     autoComplete: 'new-password'
   }
 ]
 
 export default function RegisterPage() {
+  const { t } = useTranslation()
   const { setFlow } = useOutletContext()
   const navigate = useNavigate()
 
@@ -69,20 +71,20 @@ export default function RegisterPage() {
         <AuthBrand />
       </div>
       <AuthHeading
-        title="Tạo tài khoản"
+        title={t('auth.createAnAccount')}
         className="text-center"
       />
       <AuthForm
         schema={registerSchema}
         onSubmit={register}
-        submitLabel="Đăng ký & nhận mã OTP"
+        submitLabel={t('auth.registerReceiveOtp')}
         fields={fields}
       />
       <AuthSwitchLink
         to={AUTH_ROUTES.LOGIN}
-        prompt="Đã có tài khoản?"
+        prompt={t('auth.alreadyHaveAnAccount')}
       >
-        Đăng nhập
+        {t('auth.signIn')}
       </AuthSwitchLink>
     </>
   )

@@ -1,9 +1,9 @@
 import authorizedAxios from '~/utils/authorizedAxios'
-import { AUTH_API_ENDPOINTS } from '~/utils/constants'
+import { AUTH_API_ENDPOINTS, GOOGLE_ADMIN_PORTAL_MESSAGE } from '~/utils/constants'
 
 const unwrap = ({ data }) => {
   if (!data.succeeded) {
-    throw new Error(data.message || 'Không thể thực hiện yêu cầu.')
+    throw new Error(data.message || 'auth.unableToCompleteTheRequest')
   }
   return data.data
 }
@@ -15,7 +15,7 @@ const googleLogin = async (idToken) => {
   } catch (error) {
     // Backend separates Customer sign-in from linked back-office Google accounts.
     const message = error.response?.data?.message || error.message || ''
-    if (message.includes('Vui lòng dùng cổng quản trị.')) {
+    if (message.includes(GOOGLE_ADMIN_PORTAL_MESSAGE)) {
       return postPublic(AUTH_API_ENDPOINTS.GOOGLE_ADMIN_LOGIN, { idToken })
     }
     throw error

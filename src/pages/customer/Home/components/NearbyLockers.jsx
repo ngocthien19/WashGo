@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useCallback } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { ArrowRight, MapPinned } from 'lucide-react'
@@ -12,6 +13,7 @@ import LockerResults from '~/components/customer/lockers/LockerResults'
 import LocationButton from '~/components/customer/lockers/LocationButton'
 
 export default function NearbyLockers() {
+  const { t } = useTranslation()
   const { position, locating, locationError, requestLocation } = useOutletContext()
   const load = useCallback((signal) => customerCatalogApi.getLockers({
     page: CUSTOMER_CATALOG.INITIAL_PAGE,
@@ -30,8 +32,8 @@ export default function NearbyLockers() {
         <Reveal className="mb-7 flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
           <SectionHeading
             id="nearby-lockers-heading"
-            title="Locker gần bạn"
-            description={position ? 'Các locker khả dụng gần vị trí của bạn nhất.' : 'Tìm điểm gửi đồ thuận tiện. Dùng vị trí để xem locker gần nhất.'}
+            title={t('customer.lockersNearYou')}
+            description={position ? t('customer.availableLockersClosestToYourLocation') : t('customer.findAConvenientDropOffPointUseYourLocation')}
             icon={MapPinned}
           />
           <div className="flex flex-wrap gap-3">
@@ -45,7 +47,7 @@ export default function NearbyLockers() {
               variant="outline"
               className="h-11 rounded-full"
             >
-              Xem tất cả locker
+              {t('customer.viewAllLockers')}
               <ArrowRight className="transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />
             </Button>
           </div>
@@ -55,16 +57,16 @@ export default function NearbyLockers() {
             role="alert"
             className="mb-5 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 text-sm text-amber-800 dark:text-amber-300"
           >
-            {locationError}
+            {t(locationError)}
           </p>
         )}
         {loading || error || !lockers.length ? (
           <CatalogFeedback
             loading={loading}
-            loadingText="Đang tải locker..."
+            loadingText={t('customer.loadingLockers')}
             error={error}
             retry={retry}
-            empty="Hiện chưa có locker khả dụng."
+            empty={t('customer.noLockersAreAvailableRightNow')}
           />
         ) : (
           <LockerResults

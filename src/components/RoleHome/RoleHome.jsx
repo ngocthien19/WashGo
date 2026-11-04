@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { LogOut, UserRound } from 'lucide-react'
@@ -9,6 +10,7 @@ import FormError from '~/components/ui/FormError'
 import logo from '~/assets/logo-washgo.svg'
 
 export default function RoleHome({ title, description }) {
+  const { t } = useTranslation()
   const { user, refreshToken } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
   const [error, setError] = useState('')
@@ -35,7 +37,7 @@ export default function RoleHome({ title, description }) {
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 py-5 pl-6 pr-20 sm:pr-24">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 py-5 pl-6 pr-32 sm:pr-36">
           <div className="flex items-center gap-3 text-xl font-bold">
             <img
               src={logo}
@@ -51,7 +53,7 @@ export default function RoleHome({ title, description }) {
               onClick={logout}
             >
               <LogOut size={16} />
-              {pending ? 'Đang đăng xuất...' : 'Đăng xuất'}
+              {pending ? t('common.signingOut') : t('common.signOut')}
             </Button>
           </div>
         </div>
@@ -69,18 +71,22 @@ export default function RoleHome({ title, description }) {
               <UserRound size={24} />
             </span>
             <h2 className="text-xl font-semibold">
-              {`Xin chào, ${user?.fullName || 'bạn'}`}
+              {t('common.hello', { value1: user?.fullName || t('common.there') })}
             </h2>
           </div>
           <dl className="grid gap-4 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-muted-foreground">Email</dt>
+              <dt className="text-muted-foreground">
+                {t('common.email')}
+              </dt>
               <dd className="mt-1 break-words">
                 {user?.email}
               </dd>
             </div>
             <div>
-              <dt className="text-muted-foreground">Vai trò</dt>
+              <dt className="text-muted-foreground">
+                {t('common.role')}
+              </dt>
               <dd className="mt-1">
                 {user?.role}
               </dd>

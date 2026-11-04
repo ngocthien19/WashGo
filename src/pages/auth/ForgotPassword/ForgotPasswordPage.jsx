@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { AUTH_ROUTES, OTP_PURPOSE } from '~/utils/constants'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { LockKeyholeOpen } from 'lucide-react'
@@ -10,7 +11,7 @@ import { forgotPasswordSchema } from '../authSchemas'
 const fields = [
   {
     name: 'email',
-    label: 'Email của bạn',
+    label: 'auth.yourEmail',
     type: 'email',
     placeholder: 'ban@example.com',
     autoComplete: 'email'
@@ -18,6 +19,7 @@ const fields = [
 ]
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation()
   const { setFlow } = useOutletContext()
   const navigate = useNavigate()
 
@@ -31,19 +33,19 @@ export default function ForgotPasswordPage() {
     <>
       <AuthHeading
         icon={LockKeyholeOpen}
-        title="Quên mật khẩu?"
+        title={t('auth.forgotPasswordTitle')}
         centered
       >
-        Nhập email đã đăng ký để nhận mã OTP đặt lại mật khẩu.
+        {t('auth.enterYourRegisteredEmailToReceiveAPasswordReset')}
       </AuthHeading>
       <AuthForm
         schema={forgotPasswordSchema}
         onSubmit={sendOtp}
-        submitLabel="Gửi OTP"
+        submitLabel={t('auth.sendOtp')}
         fields={fields}
       />
       <AuthBackLink to={AUTH_ROUTES.LOGIN}>
-        Quay lại đăng nhập
+        {t('auth.backToSignIn')}
       </AuthBackLink>
     </>
   )

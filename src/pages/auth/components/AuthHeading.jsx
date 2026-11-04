@@ -9,7 +9,7 @@ export default function AuthHeading({ icon: Icon, eyebrow, title, children, succ
           centered && 'mx-auto size-16 rounded-full',
           success
             ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-            : 'border-primary/20 bg-primary/10 text-orange-600 dark:text-orange-300'
+            : 'border-primary/20 bg-primary/10 text-blue-600 dark:text-blue-300'
         )}
         >
           <Icon size={23} />

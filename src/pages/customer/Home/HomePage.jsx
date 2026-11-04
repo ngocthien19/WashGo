@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -17,15 +18,16 @@ const loadFeaturedServices = (signal) => customerCatalogApi.getServices({
 }, signal)
 
 export default function HomePage() {
+  const { t } = useTranslation()
   const reduceMotion = useReducedMotion()
   const { hash, key } = useLocation()
   const featured = useCatalogResource(loadFeaturedServices)
   useEffect(() => {
-    document.title = 'Trang chủ | WashGo'
+    document.title = t('customer.homeWashgo')
     if (!hash) {
       window.scrollTo({ top: 0, behavior: 'instant' })
     }
-  }, [hash, key])
+  }, [hash, key, t])
   useEffect(() => {
     if (!hash) {
       return
@@ -48,12 +50,14 @@ export default function HomePage() {
             transition={{ duration: reduceMotion ? 0 : HERO_MOTION.DURATION, ease: UI_MOTION.EASE }}
           >
             <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-              Giặt ủi thông minh,
+              {t('customer.smartLaundry')}
               <br />
-              <span className="text-primary">tiện lợi mỗi ngày.</span>
+              <span className="text-primary">
+                {t('customer.everydayConvenience')}
+              </span>
             </h1>
             <p className="mt-6 max-w-md text-base leading-8 text-muted-foreground">
-              Gửi đồ tại locker, WashGo lo phần còn lại. Chọn dịch vụ phù hợp và dành thời gian cho những điều bạn yêu thích.
+              {t('customer.dropYourLaundryInALockerAndLetWashgo')}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
@@ -61,7 +65,7 @@ export default function HomePage() {
                 nativeButton={false}
                 className="h-12 rounded-xl px-6"
               >
-                Khám phá dịch vụ
+                {t('customer.exploreServices')}
                 <ArrowRight className="transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />
               </Button>
               <Button
@@ -70,7 +74,7 @@ export default function HomePage() {
                 variant="outline-primary"
                 className="h-12 rounded-xl px-6"
               >
-                Tìm hiểu thêm
+                {t('customer.learnMore')}
               </Button>
             </div>
           </motion.div>
@@ -79,7 +83,7 @@ export default function HomePage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: reduceMotion ? 0 : HERO_MOTION.DURATION, ease: UI_MOTION.EASE }}
             src={hero}
-            alt="Khách hàng sử dụng tủ locker giặt ủi WashGo"
+            alt={t('customer.aCustomerUsingAWashgoLaundryLocker')}
             className="mx-auto aspect-square w-full max-w-lg rounded-3xl object-cover shadow-sm"
             width={1024}
             height={1024}

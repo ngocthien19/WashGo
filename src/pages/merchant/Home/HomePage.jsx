@@ -1,10 +1,12 @@
+import { useTranslation } from 'react-i18next'
 import RoleHome from '~/components/RoleHome/RoleHome'
 
 export default function HomePage() {
+  const { t } = useTranslation()
   return (
     <RoleHome
-      title="Trang chủ đối tác"
-      description="Không gian làm việc dành cho cửa hàng đối tác WashGo."
+      title={t('common.merchantHome')}
+      description={t('common.workspaceForWashgoPartnerStores')}
     />
   )
 }

@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next'
 import { LocateFixed } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 
 export default function LocationButton({ locating, onClick }) {
+  const { t } = useTranslation()
   return (
     <Button
       variant="outline-primary"
@@ -10,7 +12,7 @@ export default function LocationButton({ locating, onClick }) {
       onClick={onClick}
     >
       <LocateFixed size={16} />
-      {locating ? 'Đang lấy vị trí...' : 'Dùng vị trí của tôi'}
+      {locating ? t('customer.gettingYourLocation') : t('customer.useMyLocation')}
     </Button>
   )
 }

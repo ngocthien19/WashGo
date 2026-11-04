@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useOutletContext, useSearchParams } from 'react-router-dom'
 import { ArrowDownAZ, Check, ChevronDown, ChevronRight, LocateFixed, MapPinned } from 'lucide-react'
@@ -13,9 +14,10 @@ import LocationButton from '~/components/customer/lockers/LocationButton'
 import Pagination from '~/components/Pagination/Pagination'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import useCatalogResource from '~/hooks/customer/useCatalogResource'
-import { CUSTOMER_CATALOG, CUSTOMER_ROUTES, TEXT_LINK_STYLES } from '~/utils/constants'
+import { CUSTOMER_CATALOG, CUSTOMER_ROUTES, TEXT_LINK_STYLES, UI_TRANSITIONS } from '~/utils/constants'
 
 export default function LockersPage() {
+  const { t } = useTranslation()
   const { position, locating, locationError, requestLocation } = useOutletContext()
   const [sort, setSort] = useState(position ? 'nearest' : 'name')
   const [params, setParams] = useSearchParams()
@@ -65,39 +67,39 @@ export default function LockersPage() {
 
   useEffect(() => {
     active.current = true
-    document.title = 'Tất cả locker | WashGo'
+    document.title = t('customer.allLockersWashgo')
     window.scrollTo({ top: 0, behavior: 'instant' })
     return () => {
       active.current = false
     }
-  }, [])
+  }, [t])
 
   return (
     <div className="min-h-[70dvh] bg-muted/35">
       <div className="mx-auto max-w-7xl space-y-7 px-4 pb-20 pt-8 sm:px-6 lg:px-8">
         <nav
-          aria-label="Đường dẫn trang"
+          aria-label={t('customer.breadcrumb')}
           className="flex items-center gap-2 text-sm text-muted-foreground"
         >
           <Link
             to={CUSTOMER_ROUTES.HOME}
             className={`hover:text-primary ${TEXT_LINK_STYLES}`}
           >
-            Trang chủ
+            {t('common.home')}
           </Link>
           <ChevronRight size={14} />
           <span
             aria-current="page"
             className="font-semibold text-foreground"
           >
-            Tất cả locker
+            {t('customer.allLockers')}
           </span>
         </nav>
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <SectionHeading
             as="h1"
-            title="Tìm locker của bạn"
-            description="Chọn điểm gửi đồ thuận tiện và xem các ô trống hiện tại."
+            title={t('customer.findYourLocker')}
+            description={t('customer.chooseAConvenientDropOffPointAndCheckAvailable')}
             icon={MapPinned}
           />
           <LocationButton
@@ -107,8 +109,8 @@ export default function LockersPage() {
         </div>
         <CatalogToolbar
           keyword={query.keyword}
-          label="Tìm locker"
-          placeholder="Tìm theo tên, mã hoặc địa chỉ locker..."
+          label={t('customer.searchLockers')}
+          placeholder={t('customer.searchByLockerNameCodeOrAddress')}
           onSearch={(keyword) => setQuery({ keyword, page: CUSTOMER_CATALOG.INITIAL_PAGE })}
         >
           <DropdownMenu>
@@ -116,31 +118,35 @@ export default function LockersPage() {
               render={(
                 <Button
                   variant="outline"
-                  className="min-w-36 justify-between rounded-xl"
+                  className="group min-w-36 justify-between rounded-xl"
                 />
               )}
-              aria-label="Sắp xếp locker"
+              aria-label={t('customer.sortLockers')}
               disabled={locating}
             >
-              {sort === 'nearest' ? 'Gần nhất' : 'Tên A–Z'}
-              <ChevronDown size={16} />
+              {sort === 'nearest' ? t('customer.nearest') : t('customer.nameAZ')}
+              <ChevronDown className={`size-4 group-data-[popup-open]:rotate-180 ${UI_TRANSITIONS.ICON}`} />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem
+                aria-current={sort === 'name' ? 'true' : undefined}
                 onClick={() => {
                   setSort('name')
                   setQuery({ page: CUSTOMER_CATALOG.INITIAL_PAGE })
                 }}
               >
                 <ArrowDownAZ size={16} />
-                Tên A–Z
+                {t('customer.nameAZ')}
                 {sort === 'name' && (
                   <Check className="ml-auto size-4 text-primary" />
                 )}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={useNearest}>
+              <DropdownMenuItem
+                aria-current={sort === 'nearest' ? 'true' : undefined}
+                onClick={useNearest}
+              >
                 <LocateFixed size={16} />
-                Gần nhất
+                {t('customer.nearest')}
                 {sort === 'nearest' && (
                   <Check className="ml-auto size-4 text-primary" />
                 )}
@@ -162,12 +168,12 @@ export default function LockersPage() {
             role="alert"
             className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 text-sm text-amber-800 dark:text-amber-300"
           >
-            {locationError}
+            {t(locationError)}
           </p>
         )}
         <section
           ref={resultsRef}
-          aria-label="Kết quả tìm locker"
+          aria-label={t('customer.lockerSearchResults')}
           aria-busy={loading}
           className="scroll-mt-[var(--customer-header-offset)] space-y-5"
         >
@@ -181,10 +187,10 @@ export default function LockersPage() {
           {loading || error || !lockers.length ? (
             <CatalogFeedback
               loading={loading}
-              loadingText="Đang tải locker..."
+              loadingText={t('customer.loadingLockers')}
               error={error}
               retry={retry}
-              empty={hasFilters ? 'Không có locker phù hợp. Hãy thử từ khóa hoặc khu vực khác.' : 'Hiện chưa có locker khả dụng.'}
+              empty={hasFilters ? t('customer.noLockersMatchTryAnotherKeywordOrArea') : t('customer.noLockersAreAvailableRightNow')}
             />
           ) : (
             <LockerResults

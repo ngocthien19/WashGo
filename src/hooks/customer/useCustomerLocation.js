@@ -20,7 +20,7 @@ export default function useCustomerLocation() {
       return pending.current
     }
     if (!navigator.geolocation) {
-      setLocationError('Trình duyệt chưa hỗ trợ vị trí. Bạn vẫn có thể tìm locker theo địa chỉ.')
+      setLocationError('customer.yourBrowserDoesNotSupportLocationYouCanStill')
       return Promise.resolve(null)
     }
     setLocating(true)
@@ -37,8 +37,8 @@ export default function useCustomerLocation() {
         if (active.current) {
           setLocating(false)
           setLocationError(error.code === 1
-            ? 'Chưa được cấp quyền vị trí. Bạn có thể bật quyền trong trình duyệt hoặc tìm theo địa chỉ.'
-            : 'Không lấy được vị trí hiện tại. Vui lòng thử lại hoặc tìm theo địa chỉ.')
+            ? 'customer.locationPermissionHasNotBeenGrantedEnableItIn'
+            : 'customer.weCouldNotGetYourLocationPleaseTryAgain')
         }
         resolve(null)
       }, { timeout: LOCKER_MAP.LOCATION_TIMEOUT_MS, maximumAge: LOCKER_MAP.LOCATION_MAX_AGE_MS })

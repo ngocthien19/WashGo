@@ -18,7 +18,7 @@ export const loadGoogleIdentity = () => {
       clearTimeout(timer)
       script.remove()
       sdkPromise = null
-      reject(new Error('Không thể kết nối Google. Vui lòng thử lại hoặc đăng nhập bằng email.'))
+      reject(new Error('common.unableToConnectToGooglePleaseTryAgainOr'))
     }
     const timer = setTimeout(fail, GOOGLE_SIGN_IN.LOAD_TIMEOUT_MS)
     script.src = GOOGLE_SIGN_IN.SCRIPT_URL
