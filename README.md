@@ -13,6 +13,8 @@ Unit tests cover translation keys/interpolation and error localization. Integrat
 
 Customer profile coverage includes validation/image limits, safe identity synchronization, update failure/retry, avatar upload/removal, persistence, shared breadcrumb navigation and guest access. Run only profile browser flows with `npm run test:e2e -- customer-profile.spec.js`.
 
+Service catalog tests cover POST `/customer/services/filter`, combined keyword/type/price filters, name/price sorting, URL persistence, pagination, validation and retry. Run the catalog browser flow with `npm run test:e2e -- display-preferences.spec.js -g "service filters POST"`. Run Playwright commands sequentially to avoid sharing its output directory between processes.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
