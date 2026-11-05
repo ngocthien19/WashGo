@@ -17,7 +17,7 @@ export default function CatalogFeedback({
         role="status"
         className="grid min-h-48 place-items-center text-sm text-muted-foreground"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex text-base items-center gap-2">
           <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
           {t(loadingText)}
         </div>

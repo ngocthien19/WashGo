@@ -128,7 +128,7 @@ export default function CustomerHeader() {
                 avatar={user?.avatar}
                 fullName={user?.fullName}
               />
-              <span className="hidden max-w-24 truncate text-sm xl:block xl:max-w-36">
+              <span className="hidden max-w-24 truncate text-base xl:block xl:max-w-36">
                 {user?.fullName || t('common.account')}
               </span>
               <ChevronDown size={14} />
