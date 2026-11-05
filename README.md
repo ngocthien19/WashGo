@@ -15,6 +15,8 @@ Customer profile coverage includes validation/image limits, safe identity synchr
 
 Service catalog tests cover POST `/customer/services/filter`, combined keyword/type/price filters, name/price sorting, URL persistence, pagination, validation and retry. Run the catalog browser flow with `npm run test:e2e -- display-preferences.spec.js -g "service filters POST"`. Run Playwright commands sequentially to avoid sharing its output directory between processes.
 
+Customer order creation is available at `/customer/orders/new`. Tests cover mixed service quantities, server quotes/vouchers, compartment availability and conflicts, duplicate submission protection, uncertain network outcomes, language/theme changes and mobile keyboard interaction. Run its browser flows with `npm run test:e2e -- customer-create-order.spec.js`. Drafts and drop-off PINs are kept in memory only. This feature creates an unpaid cash order; online payment and locker drop-off operations are separate features.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

@@ -192,8 +192,8 @@ export default function ProfileEditor({ profile }) {
                   </h3>
                   <Button
                     type="button"
-                    variant="outline"
-                    className="h-9 rounded-xl border-violet-300 bg-violet-50 px-3 text-violet-700 hover:border-violet-600 hover:bg-violet-600 hover:text-white focus-visible:border-violet-600 focus-visible:ring-violet-500/30 dark:border-violet-400/50 dark:bg-violet-400/10 dark:text-violet-300 dark:hover:border-violet-500 dark:hover:bg-violet-500 dark:hover:text-white"
+                    variant="outline-violet"
+                    className="h-9 rounded-xl px-3"
                     onClick={() => setMapOpen(true)}
                   >
                     <MapPinned size={16} />
