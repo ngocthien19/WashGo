@@ -95,6 +95,22 @@ export const CUSTOMER_CATALOG = {
   INITIAL_PAGE: 1
 }
 
+export const SERVICE_SORT_OPTIONS = [
+  { value: 'name-asc', label: 'customer.nameAZ', sortBy: [{ field: 'Name', isDescending: false }, { field: 'UnitPrice', isDescending: false }] },
+  { value: 'name-desc', label: 'customer.serviceCatalog.nameZA', sortBy: [{ field: 'Name', isDescending: true }, { field: 'UnitPrice', isDescending: false }] },
+  { value: 'price-asc', label: 'customer.serviceCatalog.priceLowHigh', sortBy: [{ field: 'UnitPrice', isDescending: false }, { field: 'Name', isDescending: false }] },
+  { value: 'price-desc', label: 'customer.serviceCatalog.priceHighLow', sortBy: [{ field: 'UnitPrice', isDescending: true }, { field: 'Name', isDescending: false }] }
+]
+
+// Inclusive API bounds; UnitPrice is stored with two decimal places in the backend.
+export const SERVICE_PRICE_RANGES = [
+  { value: '', label: 'common.all', minPrice: '', maxPrice: '' },
+  { value: 'under-30000', label: 'customer.serviceCatalog.under30000', minPrice: '', maxPrice: '29999.99' },
+  { value: '30000-50000', label: 'customer.serviceCatalog.from30000To50000', minPrice: '30000', maxPrice: '50000' },
+  { value: '50000-100000', label: 'customer.serviceCatalog.from50000To100000', minPrice: '50000', maxPrice: '100000' },
+  { value: 'over-100000', label: 'customer.serviceCatalog.over100000', minPrice: '100000.01', maxPrice: '' }
+]
+
 export const LOCKER_AREA_PAGE_SIZE = 100
 
 export const UI_MOTION = {

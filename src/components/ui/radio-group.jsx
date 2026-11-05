@@ -15,7 +15,7 @@ export function RadioGroup({ className, ...props }) {
 export function RadioGroupItem({ className, ...props }) {
   return (
     <Radio.Root
-      className={cn('grid size-5 shrink-0 cursor-pointer place-items-center rounded-full border border-input bg-card text-primary outline-none data-checked:border-primary focus-visible:ring-3 focus-visible:ring-ring/25 data-disabled:cursor-not-allowed data-disabled:opacity-50', UI_TRANSITIONS.INPUT, className)}
+      className={cn('grid size-5 shrink-0 cursor-pointer place-items-center rounded-full border border-foreground/45 bg-card text-primary outline-none data-checked:border-primary focus-visible:ring-3 focus-visible:ring-ring/25 data-disabled:cursor-not-allowed data-disabled:opacity-50 dark:border-foreground/40', UI_TRANSITIONS.INPUT, className)}
       {...props}
     >
       <Radio.Indicator className="size-2.5 rounded-full bg-primary" />
