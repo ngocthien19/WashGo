@@ -51,7 +51,7 @@ const mockCustomer = async (page, options = {}) => {
       state.uploadHeaders = request.headers()
       state.uploadBody = request.postDataBuffer().toString('latin1')
       json = envelope({ url: uploadedUrl, size: png.length, contentType: 'image/png' })
-    } else if (path === '/customer/services' || path === '/customer/lockers') {
+    } else if (path === '/customer/services/filter' || path === '/customer/lockers') {
       json = { succeeded: true, list: [], total: 0, currentPage: 1, totalPages: 1, hasPreviousPage: false, hasNextPage: false }
     } else {
       await route.fulfill({ status: 404, json: { succeeded: false } })

@@ -75,6 +75,49 @@ export default function LockersPage() {
     }
   }, [t])
 
+  const sortControl = (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={(
+          <Button
+            variant="outline"
+            className="group h-10 min-w-36 justify-between rounded-xl"
+          />
+        )}
+        aria-label={t('customer.sortLockers')}
+        disabled={locating}
+      >
+        {sort === 'nearest' ? t('customer.nearest') : t('customer.nameAZ')}
+        <ChevronDown className={`size-4 group-data-[popup-open]:rotate-180 ${UI_TRANSITIONS.ICON}`} />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem
+          aria-current={sort === 'name' ? 'true' : undefined}
+          onClick={() => {
+            setSort('name')
+            setQuery({ page: CUSTOMER_CATALOG.INITIAL_PAGE })
+          }}
+        >
+          <ArrowDownAZ size={16} />
+          {t('customer.nameAZ')}
+          {sort === 'name' && (
+            <Check className="ml-auto size-4 text-primary" />
+          )}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          aria-current={sort === 'nearest' ? 'true' : undefined}
+          onClick={useNearest}
+        >
+          <LocateFixed size={16} />
+          {t('customer.nearest')}
+          {sort === 'nearest' && (
+            <Check className="ml-auto size-4 text-primary" />
+          )}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+
   return (
     <div className="min-h-[70dvh] bg-muted/35">
       <div className="mx-auto max-w-7xl space-y-7 px-4 pb-20 pt-8 sm:px-6 lg:px-8">
@@ -98,48 +141,7 @@ export default function LockersPage() {
           label={t('customer.searchLockers')}
           placeholder={t('customer.searchByLockerNameCodeOrAddress')}
           onSearch={(keyword) => setQuery({ keyword, page: CUSTOMER_CATALOG.INITIAL_PAGE })}
-        >
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={(
-                <Button
-                  variant="outline"
-                  className="group min-w-36 justify-between rounded-xl"
-                />
-              )}
-              aria-label={t('customer.sortLockers')}
-              disabled={locating}
-            >
-              {sort === 'nearest' ? t('customer.nearest') : t('customer.nameAZ')}
-              <ChevronDown className={`size-4 group-data-[popup-open]:rotate-180 ${UI_TRANSITIONS.ICON}`} />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem
-                aria-current={sort === 'name' ? 'true' : undefined}
-                onClick={() => {
-                  setSort('name')
-                  setQuery({ page: CUSTOMER_CATALOG.INITIAL_PAGE })
-                }}
-              >
-                <ArrowDownAZ size={16} />
-                {t('customer.nameAZ')}
-                {sort === 'name' && (
-                  <Check className="ml-auto size-4 text-primary" />
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                aria-current={sort === 'nearest' ? 'true' : undefined}
-                onClick={useNearest}
-              >
-                <LocateFixed size={16} />
-                {t('customer.nearest')}
-                {sort === 'nearest' && (
-                  <Check className="ml-auto size-4 text-primary" />
-                )}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </CatalogToolbar>
+        />
         <LockerAreaFilters
           key={`${query.city}:${query.district}`}
           city={query.city}
@@ -167,8 +169,12 @@ export default function LockersPage() {
             data={data}
             loading={loading}
             error={error}
-            keyword={query.keyword}
-            sort={sort}
+            query={query}
+            sortControl={sortControl}
+            onRemoveFilter={(id) => setQuery({
+              ...(id === 'city' ? { city: '', district: '' } : { [id]: '' }), page: CUSTOMER_CATALOG.INITIAL_PAGE
+            })}
+            onClearFilters={() => setQuery({ keyword: '', city: '', district: '', page: CUSTOMER_CATALOG.INITIAL_PAGE })}
           />
           {loading || error || !lockers.length ? (
             <CatalogFeedback

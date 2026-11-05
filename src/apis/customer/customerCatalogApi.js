@@ -10,7 +10,7 @@ const ensureSuccess = ({ data }) => {
 
 export const customerCatalogApi = {
   // Catalog uses PaginatedResult (list/total), unlike the data envelope for details.
-  getServices: (params, signal) => authorizedAxios.get(CUSTOMER_API_ENDPOINTS.SERVICES, { params, signal })
+  getServices: (filter, signal) => authorizedAxios.post(CUSTOMER_API_ENDPOINTS.SERVICE_FILTER, filter, { signal })
     .then(ensureSuccess),
   getService: (id, signal) => authorizedAxios.get(`${CUSTOMER_API_ENDPOINTS.SERVICES}/${encodeURIComponent(id)}`, { signal })
     .then(ensureSuccess).then((response) => response.data),

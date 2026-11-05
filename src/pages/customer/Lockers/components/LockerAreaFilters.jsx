@@ -66,7 +66,7 @@ export default function LockerAreaFilters({ city, district, hasFilters, onApply,
           {t('customer.apply')}
         </Button>
         <Button
-          variant="secondary"
+          variant="destructive"
           className="h-11 rounded-xl"
           disabled={!hasFilters && !selectedCity && !selectedDistrict}
           onClick={() => {

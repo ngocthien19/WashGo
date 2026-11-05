@@ -1,18 +1,16 @@
-import { useTranslation } from 'react-i18next'
 import { useId } from 'react'
-import { ArrowDownAZ, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 
-export default function CatalogToolbar({ keyword, onSearch, label, placeholder, children }) {
-  const { t } = useTranslation()
+export default function CatalogToolbar({ keyword, onSearch, label, placeholder }) {
   const id = useId()
   return (
     <div className="flex min-w-0 flex-col gap-4 rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-5 md:flex-row md:items-center md:justify-between">
       <form
         role="search"
         aria-label={label}
-        className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-border bg-muted/35 p-1.5 pl-4 focus-within:ring-2 focus-within:ring-ring/20 md:max-w-xl"
+        className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-border bg-muted/35 p-1.5 pl-4 focus-within:ring-2 focus-within:ring-ring/20"
         onSubmit={(event) => {
           event.preventDefault()
           onSearch(String(new FormData(event.currentTarget).get('keyword') || '').trim())
@@ -42,21 +40,6 @@ export default function CatalogToolbar({ keyword, onSearch, label, placeholder, 
           <Search size={18} />
         </Button>
       </form>
-      <div className="flex shrink-0 flex-wrap items-center gap-3 text-sm">
-        <span className="text-muted-foreground">
-          {t('customer.sortBy')}
-        </span>
-        {children || (
-          <Button
-            variant="outline"
-            disabled
-            tooltip={t('customer.servicesAreCurrentlySortedAZOtherNameAnd')}
-          >
-            <ArrowDownAZ size={16} />
-            {t('customer.nameAZ')}
-          </Button>
-        )}
-      </div>
     </div>
   )
 }

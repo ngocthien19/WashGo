@@ -2,55 +2,46 @@ import { useTranslation } from 'react-i18next'
 import { useCallback, useMemo, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
-import { CUSTOMER_CATALOG, SERVICE_TYPES } from '~/utils/constants'
+import { CUSTOMER_CATALOG, SERVICE_PRICE_RANGES, SERVICE_TYPES } from '~/utils/constants'
+import { formatCurrency } from '~/utils/formats'
 import CatalogFeedback from '~/components/customer/catalog/CatalogFeedback'
 import ServiceGrid from '~/components/customer/services/ServiceGrid'
 import Pagination from '~/components/Pagination/Pagination'
 import useCatalogResource from '~/hooks/customer/useCatalogResource'
 import ServiceFilters from './ServiceFilters'
 import CatalogToolbar from '~/components/customer/catalog/CatalogToolbar'
-
-const initialQuery = { keyword: '', serviceType: '', page: CUSTOMER_CATALOG.INITIAL_PAGE }
+import CatalogResultSummary from '~/components/customer/catalog/CatalogResultSummary'
+import ServiceSort from './ServiceSort'
+import { buildServiceFilter, initialServiceQuery, readServiceQuery, writeServiceQuery } from '../serviceCatalogQuery'
 
 export default function ServiceCatalog() {
   const { t } = useTranslation()
   const resultsRef = useRef(null)
   const [searchParams, setSearchParams] = useSearchParams()
-  const query = useMemo(() => {
-    const page = Number(searchParams.get('page'))
-    const serviceType = searchParams.get('serviceType') || ''
-    return {
-      keyword: searchParams.get('keyword')?.trim() || '',
-      serviceType: SERVICE_TYPES.some((type) => type.value === serviceType) ? serviceType : '',
-      page: Number.isSafeInteger(page) && page >= CUSTOMER_CATALOG.INITIAL_PAGE ? page : CUSTOMER_CATALOG.INITIAL_PAGE
-    }
-  }, [searchParams])
-  const load = useCallback((signal) => customerCatalogApi.getServices({
-    ...query,
-    keyword: query.keyword || undefined,
-    serviceType: query.serviceType || undefined,
-    take: CUSTOMER_CATALOG.PAGE_SIZE
-  }, signal), [query])
+  const query = useMemo(() => readServiceQuery(searchParams), [searchParams])
+  const load = useCallback((signal) => customerCatalogApi.getServices(buildServiceFilter(query), signal), [query])
   const { data, loading, error, retry } = useCatalogResource(load)
   const services = data?.list || []
-  const hasFilters = !!(query.keyword || query.serviceType)
+  const hasFilters = !!(query.keyword || query.serviceType || query.minPrice || query.maxPrice)
+  const priceRange = SERVICE_PRICE_RANGES.find((range) => range.minPrice === query.minPrice && range.maxPrice === query.maxPrice)
+  const priceLabel = priceRange ? t(priceRange.label) : query.minPrice && query.maxPrice
+    ? t('customer.serviceCatalog.customBetween', { min: formatCurrency(query.minPrice), max: formatCurrency(query.maxPrice) })
+    : t(query.minPrice ? 'customer.serviceCatalog.customFrom' : 'customer.serviceCatalog.customTo', {
+      price: formatCurrency(query.minPrice || query.maxPrice)
+    })
+  const filters = [
+    query.keyword && { id: 'keyword', label: t('customer.keywordFilter', { keyword: query.keyword }) },
+    query.serviceType && { id: 'serviceType', label: t(SERVICE_TYPES.find((type) => type.value === query.serviceType).label) },
+    (query.minPrice || query.maxPrice) && { id: 'price', label: priceLabel }
+  ].filter(Boolean)
   const firstResult = services.length ? (data.currentPage - 1) * (data.pageSize || CUSTOMER_CATALOG.PAGE_SIZE) + 1 : 0
   const lastResult = services.length ? firstResult + services.length - 1 : 0
 
   const setQuery = (update) => {
     const next = typeof update === 'function' ? update(query) : update
-    const params = new URLSearchParams()
-    if (next.keyword) {
-      params.set('keyword', next.keyword)
-    }
-    if (next.serviceType) {
-      params.set('serviceType', next.serviceType)
-    }
-    if (next.page > CUSTOMER_CATALOG.INITIAL_PAGE) {
-      params.set('page', String(next.page))
-    }
-    setSearchParams(params)
+    setSearchParams(writeServiceQuery(next))
   }
+  const clearFilters = () => setQuery({ ...initialServiceQuery, sort: query.sort })
 
   return (
     <section
@@ -66,8 +57,12 @@ export default function ServiceCatalog() {
       <div className="grid items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)] xl:gap-8">
         <ServiceFilters
           value={query.serviceType}
+          minPrice={query.minPrice}
+          maxPrice={query.maxPrice}
+          priceLabel={priceLabel}
+          onPriceApply={(prices) => setQuery((current) => ({ ...current, ...prices, page: CUSTOMER_CATALOG.INITIAL_PAGE }))}
           onChange={(serviceType) => setQuery((current) => ({ ...current, serviceType, page: CUSTOMER_CATALOG.INITIAL_PAGE }))}
-          onReset={() => setQuery(initialQuery)}
+          onReset={clearFilters}
           hasFilters={hasFilters}
         />
         <div className="min-w-0 space-y-6">
@@ -82,12 +77,9 @@ export default function ServiceCatalog() {
             className="scroll-mt-[var(--customer-header-offset)]"
             aria-busy={loading}
           >
-            <div className="mb-6 flex min-h-20 flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card px-5 py-5 shadow-sm sm:px-6">
-              <p
-                role="status"
-                className="text-sm text-muted-foreground sm:text-base"
-              >
-                {loading ? t('customer.loadingServices') : error ? t('customer.serviceList') : (
+            <div className="mb-6">
+              <CatalogResultSummary
+                title={loading ? t('customer.loadingServices') : error ? t('customer.serviceList') : (
                   <>
                     <strong className="mr-2 text-xl font-bold text-foreground">
                       {data?.total || 0}
@@ -95,21 +87,20 @@ export default function ServiceCatalog() {
                     {t('customer.servicesFound', { count: data?.total || 0 })}
                   </>
                 )}
-              </p>
-              {!loading && !error && services.length > 0 && (
-                <p className="text-xs text-muted-foreground sm:text-sm">
-                  {t('customer.showing', { firstResult: firstResult, lastResult: lastResult, total: data.total })}
-                </p>
-              )}
-              {query.keyword && (
-                <p className="w-full break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">
-                  {t('customer.resultsFor')}
-                  <strong className="font-semibold text-primary">
-                    {query.keyword}
-                  </strong>
-                  {t('customer.closingQuote')}
-                </p>
-              )}
+                sortControl={(
+                  <ServiceSort
+                    value={query.sort}
+                    onChange={(sort) => setQuery((current) => ({ ...current, sort, page: CUSTOMER_CATALOG.INITIAL_PAGE }))}
+                  />
+                )}
+                range={!loading && !error && services.length > 0
+                  ? t('customer.showing', { firstResult, lastResult, total: data.total }) : undefined}
+                filters={filters}
+                onRemoveFilter={(id) => setQuery((current) => ({
+                  ...current, ...(id === 'price' ? { minPrice: '', maxPrice: '' } : { [id]: '' }), page: CUSTOMER_CATALOG.INITIAL_PAGE
+                }))}
+                onClearFilters={clearFilters}
+              />
             </div>
             {loading || error || !services.length ? (
               <CatalogFeedback

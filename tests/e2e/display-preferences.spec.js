@@ -20,8 +20,8 @@ test.beforeEach(async ({ page }) => {
       response = envelope(user)
     } else if (path === '/customer/services/service-test') {
       response = envelope(service)
-    } else if (path === '/customer/services' || path === '/customer/lockers') {
-      const list = path.endsWith('/services') ? [service] : []
+    } else if (path === '/customer/services/filter' || path === '/customer/lockers') {
+      const list = path.endsWith('/services/filter') ? [service] : []
       response = {
         succeeded: true, list, total: list.length, currentPage: 1,
         totalPages: 1, hasPreviousPage: false, hasNextPage: false
@@ -39,6 +39,103 @@ const chooseEnglish = async (page) => {
   await page.getByRole('menuitem', { name: 'English', exact: true }).click()
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
 }
+
+test('service filters POST combined presets and removable badges with server sorting', async ({ page }) => {
+  const calls = []
+  let fail = false
+  await page.route('**/api/customer/services/filter', async (route) => {
+    const request = route.request()
+    expect(request.method()).toBe('POST')
+    expect(request.headers().authorization).toBe('Bearer test-access')
+    expect(new URL(request.url()).search).toBe('')
+    const body = request.postDataJSON()
+    calls.push(body)
+    if (fail) {
+      return route.fulfill({ status: 500, json: { succeeded: false, message: 'customer.unableToLoadDataPleaseTryAgain' } })
+    }
+    const list = Array.from({ length: 6 }, (_, index) => ({ ...service, id: `service-${body.page}-${index}`, name: `Service ${body.page}-${index}` }))
+    return route.fulfill({ json: { succeeded: true, list, total: 12, currentPage: body.page, pageSize: body.take, totalPages: 2 } })
+  })
+  await page.goto('/login')
+  await chooseEnglish(page)
+  await page.getByLabel('Email', { exact: true }).fill(user.email)
+  await page.getByLabel('Password', { exact: true }).fill('Password123')
+  await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click()
+  await expect(page).toHaveURL('/customer')
+  await page.goto('/customer/services?keyword=silk&serviceType=2&minPrice=30000&maxPrice=50000&sort=price-asc&page=2')
+  await expect(page.getByRole('heading', { name: 'Service 2-0', exact: true })).toBeVisible()
+  await expect(page.getByRole('radio', { name: '30,000–50,000 ₫', exact: true })).toBeChecked()
+  await expect(page.getByRole('button', { name: 'Filters', exact: true })).toHaveCount(0)
+  const typeToggle = page.getByRole('button', { name: 'Service type', exact: true })
+  const priceToggle = page.getByRole('button', { name: 'Price range (VND)', exact: true })
+  await typeToggle.click()
+  await expect(typeToggle).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.getByRole('radio', { name: 'Dry cleaning', exact: true })).not.toBeVisible()
+  await expect(page.getByRole('radio', { name: '30,000–50,000 ₫', exact: true })).toBeVisible()
+  await priceToggle.click()
+  await expect(priceToggle).toHaveAttribute('aria-expanded', 'false')
+  await typeToggle.click()
+  await expect(page.getByRole('radio', { name: 'Dry cleaning', exact: true })).toBeChecked()
+  await expect(page.getByRole('radio', { name: '30,000–50,000 ₫', exact: true })).not.toBeVisible()
+  await priceToggle.click()
+  await expect(page.getByRole('radio', { name: '30,000–50,000 ₫', exact: true })).toBeChecked()
+  const badges = page.getByRole('group', { name: 'Active filters', exact: true })
+  await expect(badges.getByRole('button', { name: /^Remove filter/ })).toHaveCount(3)
+  const sort = page.getByRole('button', { name: 'Sort services', exact: true })
+  const search = page.getByRole('search', { name: 'Search services', exact: true })
+  expect(await search.locator('button', { hasText: 'Price:' }).count()).toBe(0)
+  await sort.click()
+  const active = page.getByRole('menuitem', { name: 'Price: low to high', exact: true })
+  await expect(active).toHaveAttribute('aria-current', 'true')
+  await expect(active).toHaveCSS('font-weight', '400')
+  await page.getByRole('menuitem', { name: 'Price: high to low', exact: true }).click()
+  await expect.poll(() => calls.at(-1).sortBy[0]).toEqual({ field: 'UnitPrice', isDescending: true })
+  expect(calls.at(-1)).toMatchObject({ page: 1, keyword: 'silk', serviceType: 2, minPrice: 30000, maxPrice: 50000 })
+  await page.getByRole('button', { name: 'Next page', exact: true }).click()
+  await expect.poll(() => calls.at(-1).page).toBe(2)
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Service 2-0', exact: true })).toBeVisible()
+  await expect(sort).toContainText('Price: high to low')
+  await page.getByRole('radio', { name: 'Over 100,000 ₫', exact: true }).click()
+  await expect.poll(() => calls.at(-1).minPrice).toBe(100000.01)
+  expect(calls.at(-1).maxPrice).toBeUndefined()
+  expect(calls.at(-1).page).toBe(1)
+  await badges.getByRole('button', { name: 'Remove filter Over 100,000 ₫', exact: true }).click()
+  await expect.poll(() => calls.at(-1).minPrice).toBeUndefined()
+  expect(calls.at(-1)).toMatchObject({ keyword: 'silk', serviceType: 2 })
+  await page.getByRole('radio', { name: 'Under 30,000 ₫', exact: true }).click()
+  await expect.poll(() => calls.at(-1).maxPrice).toBe(29999.99)
+  await badges.getByRole('button', { name: 'Remove filter Dry cleaning', exact: true }).click()
+  await expect.poll(() => calls.at(-1).serviceType).toBeUndefined()
+  expect(calls.at(-1)).toMatchObject({ keyword: 'silk', maxPrice: 29999.99 })
+  await badges.getByRole('button', { name: 'Remove filter Search: silk', exact: true }).click()
+  await expect.poll(() => calls.at(-1).keyword).toBeUndefined()
+  await page.getByRole('radio', { name: '50,000–100,000 ₫', exact: true }).click()
+  await expect.poll(() => calls.at(-1).maxPrice).toBe(100000)
+  await page.goBack()
+  await expect(page.getByRole('radio', { name: 'Under 30,000 ₫', exact: true })).toBeChecked()
+  await expect.poll(() => calls.at(-1).maxPrice).toBe(29999.99)
+  for (const width of [375, 768, 1440]) {
+    await page.setViewportSize({ width, height: 1000 })
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  }
+  await page.getByRole('button', { name: 'Switch to dark mode', exact: true }).click()
+  await sort.click()
+  await expect(page.getByRole('menuitem', { name: 'Price: high to low', exact: true })).toHaveCSS('font-weight', '400')
+  await page.keyboard.press('Escape')
+  await page.setViewportSize({ width: 375, height: 1000 })
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await badges.getByRole('button', { name: 'Clear all', exact: true }).click()
+  await expect(badges).toHaveCount(0)
+  await expect.poll(() => calls.at(-1)).toEqual({ page: 1, take: 6, sortBy: [{ field: 'UnitPrice', isDescending: true }, { field: 'Name', isDescending: false }] })
+  fail = true
+  await sort.click()
+  await page.getByRole('menuitem', { name: 'Name Z–A', exact: true }).click()
+  await expect(page.getByRole('alert')).toContainText('Unable to load data')
+  fail = false
+  await page.getByRole('button', { name: 'Try again', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Service 1-0', exact: true })).toBeVisible()
+})
 
 test('password reset requires a verified token and sends it instead of the OTP', async ({ page }) => {
   let verificationAttempt = 0
@@ -133,6 +230,14 @@ test('locker sort and area selectors retain selected styling while hovered in bo
   await selectedDistrict.hover()
   await expect(selectedDistrict).toHaveCSS('font-weight', '400')
   await expect(selectedDistrict).toHaveCSS('color', 'rgb(96, 165, 250)')
+  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: 'Apply', exact: true }).click()
+  const badges = page.getByRole('group', { name: 'Active filters', exact: true })
+  await expect(badges.getByRole('button', { name: /^Remove filter/ })).toHaveCount(2)
+  await expect(page.getByRole('search', { name: 'Search lockers', exact: true }).getByRole('button', { name: 'Sort lockers', exact: true })).toHaveCount(0)
+  await badges.getByRole('button', { name: 'Remove filter TP. Hồ Chí Minh', exact: true }).click()
+  await expect(badges).toHaveCount(0)
+  await expect(district).toBeDisabled()
 })
 
 test('language selection preserves form values, persists and shows the active language', async ({ page }) => {
