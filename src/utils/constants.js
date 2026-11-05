@@ -26,23 +26,33 @@ export const CUSTOMER_ROUTES = {
   HOME: ROLE_HOME_ROUTES[USER_ROLES.CUSTOMER],
   SERVICES: '/customer/services',
   LOCKERS: '/customer/lockers',
+  CREATE_ORDER: '/customer/orders/new',
   PROFILE: '/customer/profile'
 }
 
 export const CUSTOMER_NAVIGATION = [
   { label: 'common.home', href: CUSTOMER_ROUTES.HOME },
-  { label: 'common.createAnOrder', pending: true },
+  { label: 'common.createAnOrder', href: CUSTOMER_ROUTES.CREATE_ORDER },
   { label: 'common.myOrders', pending: true },
   { label: 'common.services', href: CUSTOMER_ROUTES.SERVICES },
   { label: 'common.lockers', href: CUSTOMER_ROUTES.LOCKERS }
 ]
 
 export const CUSTOMER_API_ENDPOINTS = {
+  ORDERS: '/wash-order',
+  ORDER_QUOTE: '/wash-order/apply-voucher',
   PROFILE: '/customer/me',
   SERVICES: '/customer/services',
   SERVICE_FILTER: '/customer/services/filter',
   LOCKERS: '/customer/lockers'
 }
+
+export const ORDER_LIMITS = { MAX_SERVICES: 30, MAX_QUANTITY: 1000, NOTE_MAX: 500, CODE_MAX: 50 }
+export const ORDER_PAYMENT_METHODS = { CASH: 1 }
+export const ORDER_PANEL_HEADER_STYLES = 'flex items-center gap-3 border-b border-border/60 bg-primary/5 p-5'
+
+// Order choices deliberately keep a light blue surface in both themes.
+export const ORDER_CHOICE_STYLES = 'transition-[background-color,border-color,box-shadow,color] delay-0 duration-200 ease-in-out motion-reduce:transition-none [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])]:border-blue-400 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])]:bg-blue-50 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])]:text-slate-900 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])_.order-choice-muted]:text-slate-600 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])_.order-choice-primary]:text-blue-600 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])_.order-choice-availability]:text-emerald-700'
 
 export const IMAGE_UPLOAD = {
   ENDPOINT: '/files/images',
