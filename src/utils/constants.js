@@ -40,6 +40,7 @@ export const CUSTOMER_NAVIGATION = [
 export const CUSTOMER_API_ENDPOINTS = {
   PROFILE: '/customer/me',
   SERVICES: '/customer/services',
+  SERVICE_FILTER: '/customer/services/filter',
   LOCKERS: '/customer/lockers'
 }
 
