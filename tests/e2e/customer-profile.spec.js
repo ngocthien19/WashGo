@@ -81,6 +81,23 @@ const mockMapTiles = (page) => page.route('https://tile.openstreetmap.de/**', (r
   contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><path fill="#e6edf4" d="M0 0h256v256H0z"/><path stroke="white" stroke-width="12" d="M0 72h256M64 0v256M200 0v256"/></svg>'
 }))
 
+test('profile requires phone, address and city before upload or save', async ({ page }) => {
+  const state = await mockCustomer(page, { profile: { phone: '', address: '', city: '', avatarUrl: uploadedUrl } })
+  await signIn(page)
+  await page.goto('/customer/profile')
+  const form = page.getByRole('form', { name: 'Personal information', exact: true })
+  await form.getByLabel('Full name', { exact: true }).fill('Alex Updated')
+  await form.getByRole('button', { name: 'Save changes', exact: true }).click()
+  await expect(form.getByText('Please enter your phone number.', { exact: true })).toBeVisible()
+  await expect(form.getByText('Please enter your address.', { exact: true })).toBeVisible()
+  await expect(form.getByText('Please enter your province/city.', { exact: true })).toBeVisible()
+  await form.getByLabel('Phone number', { exact: true }).fill('1901234567')
+  await form.getByRole('button', { name: 'Save changes', exact: true }).click()
+  await expect(form.getByText('A phone number is required: 10 digits starting with 0.', { exact: true })).toBeVisible()
+  expect(state.bodies).toHaveLength(0)
+  expect(state.uploadCount).toBe(0)
+})
+
 test('post-merger boundaries replace a stale province and omit legacy districts', async ({ page, context }) => {
   const state = await mockCustomer(page)
   await mockMapTiles(page)
@@ -113,7 +130,7 @@ test('post-merger boundaries replace a stale province and omit legacy districts'
   expect(boundaryRequests.every((request) => !request.headers().authorization && !request.url().includes('?'))).toBe(true)
   await page.getByRole('button', { name: 'Save changes', exact: true }).click()
   await expect(page.getByText('Profile updated successfully!', { exact: true })).toBeVisible()
-  expect(state.bodies.at(-1).district).toBeNull()
+  expect(state.bodies.at(-1)).not.toHaveProperty('district')
   expect(state.bodies.at(-1)).not.toHaveProperty('boundaryStatus')
 })
 
@@ -185,7 +202,7 @@ test('map address selection previews, cancels and applies fields without saving 
   await expect(page.getByText('Profile updated successfully!', { exact: true })).toBeVisible()
   expect(state.bodies.at(-1)).toEqual({
     fullName: initialProfile.fullName, phone: initialProfile.phone, avatarUrl: null,
-    address: '125 Lê Lợi, Phường Bến Thành', district: null, city: 'Thành phố Hồ Chí Minh'
+    address: '125 Lê Lợi, Phường Bến Thành', city: 'Thành phố Hồ Chí Minh'
   })
 })
 
@@ -312,7 +329,7 @@ test('customer edits profile, retries errors and saves an uploaded photo without
   expect(state.bodies).toHaveLength(0)
   await form.getByLabel('Full name', { exact: true }).fill('Alex Updated')
   await form.getByLabel('Address', { exact: true }).fill('456 Nguyen Hue')
-  await form.getByLabel('Phone number', { exact: true }).fill('+84 (90) 123-4567')
+  await form.getByLabel('Phone number', { exact: true }).fill('0901234567')
   await page.getByLabel('Choose profile photo', { exact: true }).setInputFiles({ name: 'invalid.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg/>') })
   await expect(page.getByRole('alert')).toContainText('Only JPG, PNG or WEBP')
   expect(state.uploadCount).toBe(0)
@@ -328,8 +345,8 @@ test('customer edits profile, retries errors and saves an uploaded photo without
   expect(state.uploadHeaders.authorization).toBe('Bearer test-access')
   expect(state.uploadBody).toContain('name="file"')
   expect(state.bodies.at(-1)).toEqual({
-    fullName: 'Alex Updated', phone: '84901234567', address: '456 Nguyen Hue',
-    district: null, city: initialProfile.city, avatarUrl: uploadedUrl
+    fullName: 'Alex Updated', phone: '0901234567', address: '456 Nguyen Hue',
+    city: initialProfile.city, avatarUrl: uploadedUrl
   })
   expect(state.authorization.every((header) => header === 'Bearer test-access')).toBe(true)
   await expect(page.locator('header').getByText('Alex Updated', { exact: true })).toBeVisible()

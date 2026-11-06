@@ -10,7 +10,7 @@ describe('customer catalog API', () => {
   it('posts the filter body to the new endpoint and retains pagination metadata', async () => {
     const response = { succeeded: true, list: [], total: 0, currentPage: 1, totalPages: 0 }
     authorizedAxios.post.mockResolvedValue({ data: response })
-    const body = { keyword: 'wash', serviceType: 1, minPrice: 0, maxPrice: 50000, page: 1, take: 6, sortBy: [{ field: 'UnitPrice', isDescending: true }] }
+    const body = { keyword: 'wash', serviceTypes: [1, 2], priceRanges: [{ minPrice: 0, maxPrice: 50000 }], page: 1, take: 6, sortBy: [{ field: 'UnitPrice', isDescending: true }] }
     const signal = new AbortController().signal
     await expect(customerCatalogApi.getServices(body, signal)).resolves.toBe(response)
     expect(authorizedAxios.post).toHaveBeenCalledWith('/customer/services/filter', body, { signal })

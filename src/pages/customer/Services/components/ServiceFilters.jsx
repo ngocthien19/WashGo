@@ -2,11 +2,11 @@ import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { Banknote, ChevronDown, RotateCcw, Shirt } from 'lucide-react'
 import { Button } from '~/components/ui/button'
-import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
+import { Checkbox } from '~/components/ui/checkbox'
 import { SERVICE_PRICE_RANGES, SERVICE_TYPES, UI_TRANSITIONS } from '~/utils/constants'
 import { cn } from '~/lib/utils'
 
-function FilterOptions({ id, title, icon: Icon, options, value, onChange }) {
+function FilterOptions({ id, title, icon: Icon, options, values, onChange }) {
   const [expanded, setExpanded] = useState(true)
   return (
     <div className="mt-6 border-t border-border pt-5 first:mt-0 first:border-0 first:pt-0">
@@ -32,20 +32,20 @@ function FilterOptions({ id, title, icon: Icon, options, value, onChange }) {
         id={`${id}-options`}
         hidden={!expanded}
       >
-        <RadioGroup
-          name={id}
-          value={value}
-          onValueChange={onChange}
+        <div
+          role="group"
+          className="grid gap-1"
           aria-labelledby={id}
         >
           {options.map((option) => (
             <label
               key={option.value}
               className={cn('flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-sm hover:bg-muted', UI_TRANSITIONS.BUTTON,
-                option.value === value ? 'bg-primary/8 font-normal text-primary hover:bg-primary/12' : 'text-foreground/90')}
+                (option.value ? values.includes(option.value) : !values.length) ? 'bg-primary/8 font-normal text-primary hover:bg-primary/12' : 'text-foreground/90')}
             >
-              <RadioGroupItem
-                value={option.value}
+              <Checkbox
+                checked={option.value ? values.includes(option.value) : !values.length}
+                onCheckedChange={(checked) => onChange(!option.value ? [] : checked ? [...values, option.value] : values.filter((value) => value !== option.value))}
                 aria-label={option.label}
               />
               <span>
@@ -53,17 +53,16 @@ function FilterOptions({ id, title, icon: Icon, options, value, onChange }) {
               </span>
             </label>
           ))}
-        </RadioGroup>
+        </div>
       </div>
     </div>
   )
 }
 
-export default function ServiceFilters({ value, onChange, onReset, hasFilters, minPrice, maxPrice, priceLabel, onPriceApply }) {
+export default function ServiceFilters({ values, onChange, onReset, hasFilters, priceRanges, minPrice, maxPrice, priceLabel, onPriceApply }) {
   const { t } = useTranslation()
-  const selectedRange = SERVICE_PRICE_RANGES.find((range) => range.minPrice === minPrice && range.maxPrice === maxPrice)
   const priceOptions = SERVICE_PRICE_RANGES.map((range) => ({ ...range, label: t(range.label) }))
-  if (!selectedRange) {
+  if (minPrice || maxPrice) {
     priceOptions.push({ value: 'custom', label: priceLabel })
   }
 
@@ -78,7 +77,7 @@ export default function ServiceFilters({ value, onChange, onReset, hasFilters, m
           title={t('customer.serviceType')}
           icon={Shirt}
           options={SERVICE_TYPES.map((type) => ({ ...type, label: t(type.label) }))}
-          value={value}
+          values={values}
           onChange={onChange}
         />
         <FilterOptions
@@ -86,13 +85,8 @@ export default function ServiceFilters({ value, onChange, onReset, hasFilters, m
           title={t('customer.serviceCatalog.priceRange')}
           icon={Banknote}
           options={priceOptions}
-          value={selectedRange?.value ?? 'custom'}
-          onChange={(next) => {
-            const range = SERVICE_PRICE_RANGES.find((option) => option.value === next)
-            if (range) {
-              onPriceApply({ minPrice: range.minPrice, maxPrice: range.maxPrice })
-            }
-          }}
+          values={[...priceRanges, ...(minPrice || maxPrice ? ['custom'] : [])]}
+          onChange={onPriceApply}
         />
         <div className="mt-6 border-t border-border pt-5">
           <Button

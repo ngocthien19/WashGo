@@ -1,6 +1,6 @@
 import * as yup from 'yup'
 import { AUTH_LIMITS, IMAGE_UPLOAD, PROFILE_LIMITS } from '~/utils/constants'
-import { hasControlCharacters, normalizePhone } from '~/utils/formats'
+import { hasControlCharacters } from '~/utils/formats'
 
 export const profileSchema = yup.object({
   fullName: yup.string().trim()
@@ -8,18 +8,13 @@ export const profileSchema = yup.object({
     .min(AUTH_LIMITS.NAME_MIN, 'auth.fullNameMustHaveAtLeastCharacters')
     .max(AUTH_LIMITS.NAME_MAX, 'auth.fullNameMustBeAtMostCharacters')
     .test('no-control', 'customer.profile.invalidName', (value) => !value || !hasControlCharacters(value)),
-  phone: yup.string().trim().test('phone', 'auth.pleaseEnterAValidPhoneNumber', (value) => {
-    if (!value) {
-      return true
-    }
-    const length = normalizePhone(value).length
-    return value.length <= PROFILE_LIMITS.PHONE_DISPLAY_MAX && /^\+?[0-9 ()-]+$/.test(value)
-      && length >= AUTH_LIMITS.PHONE_MIN && length <= AUTH_LIMITS.PHONE_MAX
-  }),
+  phone: yup.string().trim().required('auth.pleaseEnterYourPhoneNumber')
+    .matches(/^0[0-9]{9}$/, { message: 'customer.profile.phoneFormat', excludeEmptyString: true }),
   address: yup.string().trim().required('customer.profile.addressRequired')
     .max(PROFILE_LIMITS.ADDRESS_MAX, 'customer.profile.addressTooLong'),
   district: yup.string().trim().max(PROFILE_LIMITS.AREA_MAX, 'customer.profile.areaTooLong'),
-  city: yup.string().trim().max(PROFILE_LIMITS.AREA_MAX, 'customer.profile.areaTooLong')
+  city: yup.string().trim().required('customer.profile.cityRequired')
+    .max(PROFILE_LIMITS.AREA_MAX, 'customer.profile.areaTooLong')
 })
 
 export const getProfileValues = (profile) => ({
