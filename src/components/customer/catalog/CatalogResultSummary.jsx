@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { Button } from '~/components/ui/button'
+import { formatNumber } from '~/utils/formats'
 
-export default function CatalogResultSummary({ title, range, sortControl, icon: Icon, filters = [], onRemoveFilter, onClearFilters }) {
+export default function CatalogResultSummary({ title, count, range, sortControl, actions, icon: Icon, filters = [], onRemoveFilter, onClearFilters }) {
   const { t } = useTranslation()
   return (
     <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm">
@@ -21,10 +22,19 @@ export default function CatalogResultSummary({ title, range, sortControl, icon: 
             </span>
           )}
           <p>
+            {Number.isFinite(count) && (
+              <>
+                <strong className="text-2xl font-bold tabular-nums tracking-tight text-foreground">
+                  {formatNumber(count)}
+                </strong>
+                {' '}
+              </>
+            )}
             {title}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm">
+          {actions}
           {sortControl && (
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="text-muted-foreground">

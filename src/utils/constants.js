@@ -32,7 +32,9 @@ export const CUSTOMER_ROUTES = {
   ORDER_RECEIPT: '/customer/orders/:orderId/receipt',
   PAYMENT: '/customer/orders/:orderId/payment',
   PAYMENT_RETURN: '/payment/return',
-  PROFILE: '/customer/profile'
+  PROFILE: '/customer/profile',
+  COMPLAINTS: '/customer/complaints',
+  COMPLAINT_DETAIL: '/customer/complaints/:incidentId'
 }
 
 export const CUSTOMER_NAVIGATION = [
@@ -55,6 +57,14 @@ export const CUSTOMER_API_ENDPOINTS = {
 }
 
 export const ORDER_LIMITS = { MAX_SERVICES: 30, MAX_QUANTITY: 1000, NOTE_MAX: 500, CODE_MAX: 50 }
+export const RATING_CONFIG = {
+  ENDPOINT: '/rating', MAX_STARS: 5, COMMENT_MAX: 1000, MAX_IMAGES: 5,
+  CRITERIA: ['qualityStars', 'speedStars', 'attitudeStars', 'packagingStars']
+}
+export const INCIDENT_CONFIG = { ENDPOINT: '/incident', PAGE_SIZE: 6, DESCRIPTION_MAX: 2000, REPORT_WINDOW_DAYS: 3, MAX_IMAGES: 5 }
+export const INCIDENT_TYPES = [1, 2, 3]
+export const INCIDENT_SEVERITIES = [1, 2, 3]
+export const INCIDENT_STATUS_COLORS = { 1: 'amber', 2: 'emerald', 3: 'red' }
 export const ORDER_PAYMENT_METHODS = { CASH: 1, VNPAY: 2, MOMO: 3 }
 export const ORDER_STATUSES = {
   PENDING: 1, DEPOSITED: 2, COLLECTED: 3, WASHING: 4, DRYING: 5, IRONING: 6, FOLDING: 7,

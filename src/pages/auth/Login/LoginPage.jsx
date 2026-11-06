@@ -70,14 +70,16 @@ export default function LoginPage() {
       <AuthHeading
         title={t('auth.signIn')}
         className="text-center"
-      />
+      >
+        {t('auth.signInDescription')}
+      </AuthHeading>
       <AuthForm
         schema={loginSchema}
         onSubmit={login}
         submitLabel={t('auth.signIn')}
         fields={fields}
       >
-        <div className="mb-6 flex justify-end text-xs">
+        <div className="mb-6 flex justify-end text-sm">
           <Link
             to={AUTH_ROUTES.FORGOT_PASSWORD}
             className={cn(

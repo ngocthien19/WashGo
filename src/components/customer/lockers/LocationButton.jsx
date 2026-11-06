@@ -6,12 +6,11 @@ export default function LocationButton({ locating, onClick }) {
   const { t } = useTranslation()
   return (
     <Button
-      variant="outline-primary"
-      className="h-11 rounded-full"
+      className="h-11 rounded-full px-5 text-base"
       disabled={locating}
       onClick={onClick}
     >
-      <LocateFixed size={16} />
+      <LocateFixed size={18} />
       {locating ? t('customer.gettingYourLocation') : t('customer.useMyLocation')}
     </Button>
   )

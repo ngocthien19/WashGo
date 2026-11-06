@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Clock3, History, Info, MapPin, PackageCheck, RefreshCw, Shirt, TicketPercent, Printer, CircleCheck } from 'lucide-react'
+import { ArrowLeft, Clock3, History, Info, MapPin, PackageCheck, RefreshCw, Shirt, TicketPercent, CircleCheck } from 'lucide-react'
 import Breadcrumb from '~/components/Breadcrumb/Breadcrumb'
 import CatalogFeedback from '~/components/customer/catalog/CatalogFeedback'
 import OrderStatusBadge from '~/components/customer/orders/OrderStatusBadge'
 import OrderProgress from '~/components/customer/orders/OrderProgress'
-import { canPrintReceipt } from '~/components/customer/orders/orderWorkflow'
+import OrderReceiptAction from './components/OrderReceiptAction'
 import OrderTimeline from './components/OrderTimeline'
 import LockerAccessCard from './components/LockerAccessCard'
 import LockerActionButton from './components/LockerActionButton'
+import OrderRatingAction from './components/OrderRatingAction'
+import IncidentReportAction from '~/pages/customer/Complaints/components/IncidentReportAction'
 import DepositDeadlineNotice from './components/DepositDeadlineNotice'
 import { Button } from '~/components/ui/button'
 import Reveal from '~/components/motion/Reveal'
@@ -23,7 +25,7 @@ import CancelOrderDialog from './components/CancelOrderDialog'
 function DetailPanel({ icon: Icon, title, children }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm">
-      <h2 className="flex items-center gap-3 p-5 pb-0 text-lg font-semibold">
+      <h2 className="flex items-center gap-3 border-b border-border/70 p-5 text-lg font-semibold">
         <Icon className="size-5 text-primary" />
         {title}
       </h2>
@@ -42,8 +44,8 @@ export default function OrderDetailPage() {
   const [cancelOrderId, setCancelOrderId] = useState(null)
   const order = resource.data
   useEffect(() => {
-    document.title = `${t('customer.orders.details')} | WashGo`
-  }, [t])
+    document.title = `${order?.orderCode ? t('customer.orders.detailTitle', { code: order.orderCode }) : t('customer.orders.details')} | WashGo`
+  }, [order?.orderCode, t])
   return (
     <div className="min-h-[70dvh] bg-muted/30">
       <div className="mx-auto max-w-7xl space-y-7 px-4 py-8 sm:px-6 lg:px-8">
@@ -60,7 +62,7 @@ export default function OrderDetailPage() {
                 <h1 className="break-all text-2xl font-bold sm:text-3xl">
                   {t('customer.orders.detailTitle', { code: order.orderCode })}
                 </h1>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="mt-2 text-sm font-semibold text-muted-foreground">
                   {formatDateTime(order.createdOn)}
                 </p>
               </div>
@@ -70,16 +72,7 @@ export default function OrderDetailPage() {
                   order={order}
                   onUpdated={resource.retry}
                 />
-                {canPrintReceipt(order) && (
-                  <Button
-                    render={<Link to={CUSTOMER_ROUTES.ORDER_RECEIPT.replace(':orderId', order.id)} />}
-                    nativeButton={false}
-                    variant="outline"
-                  >
-                    <Printer size={16} />
-                    {t('customer.orders.receipt.action')}
-                  </Button>
-                )}
+                <OrderReceiptAction order={order} />
                 <Button
                   variant="outline"
                   className="h-11 rounded-xl px-4"
@@ -120,16 +113,31 @@ export default function OrderDetailPage() {
                               {item.serviceName}
                             </p>
                             <p className="mt-1 text-xs text-muted-foreground">
-                              {t('customer.orders.quantity', { count: item.quantity })}
+                              {t('customer.orders.receipt.quantity')}
+                              {': '}
+                              <strong className="font-bold text-foreground">
+                                {item.quantity}
+                              </strong>
                               {' / '}
                               {t('customer.orders.unitPrice')}
                               {': '}
-                              {formatCurrency(item.unitPrice)}
-                              {item.weightKg != null ? ` · ${formatNumber(item.weightKg)} kg` : ''}
+                              <strong className="font-bold text-foreground">
+                                {formatCurrency(item.unitPrice)}
+                              </strong>
+                              {item.weightKg != null && (
+                                <>
+                                  {' · '}
+                                  <strong className="font-bold text-foreground">
+                                    {formatNumber(item.weightKg)}
+                                    {' '}
+                                    kg
+                                  </strong>
+                                </>
+                              )}
                             </p>
                           </div>
                         </div>
-                        <p className="shrink-0 font-medium tabular-nums">
+                        <p className="shrink-0 font-bold tabular-nums">
                           {formatCurrency(item.subTotal)}
                         </p>
                       </li>
@@ -145,13 +153,19 @@ export default function OrderDetailPage() {
                       </p>
                       {order.returnBoxNumber && (
                         <p className="text-sm text-muted-foreground">
-                          {t('customer.orders.returnBox', { number: order.returnBoxNumber })}
+                          {t('customer.orders.returnBoxLabel')}
+                          {': '}
+                          <strong className="font-bold text-foreground">
+                            {order.returnBoxNumber}
+                          </strong>
                         </p>
                       )}
                       <p className="text-sm text-muted-foreground">
                         {t('customer.orders.actualWeight')}
                         {': '}
-                        {order.actualWeightKg != null ? `${formatNumber(order.actualWeightKg)} kg` : t('customer.orders.notWeighed')}
+                        <strong className="font-bold text-foreground">
+                          {order.actualWeightKg != null ? `${formatNumber(order.actualWeightKg)} kg` : t('customer.orders.notWeighed')}
+                        </strong>
                       </p>
                     </div>
                   </div>
@@ -160,7 +174,7 @@ export default function OrderDetailPage() {
                       <dt className="text-xs text-muted-foreground">
                         {t('customer.orders.compartmentSize')}
                       </dt>
-                      <dd className="mt-1 font-medium">
+                      <dd className="mt-1 font-bold">
                         {t(LOCKER_SLOT_SIZES[order.boxSize] || 'customer.orders.unknown')}
                       </dd>
                     </div>
@@ -168,7 +182,7 @@ export default function OrderDetailPage() {
                       <dt className="text-xs text-muted-foreground">
                         {t('customer.orders.weightSurcharge')}
                       </dt>
-                      <dd className="mt-1 font-medium">
+                      <dd className="mt-1 font-bold">
                         {formatCurrency(order.weightSurchargeAmount)}
                       </dd>
                     </div>
@@ -243,7 +257,11 @@ export default function OrderDetailPage() {
                   <OrderProgress order={order} />
                   {order.pickupDeadline && (
                     <p className="text-sm text-muted-foreground">
-                      {t('customer.orders.pickupDeadline', { date: formatDateTime(order.pickupDeadline) })}
+                      {t('customer.orders.pickupDeadlineLabel')}
+                      {': '}
+                      <strong className="font-bold text-foreground">
+                        {formatDateTime(order.pickupDeadline)}
+                      </strong>
                     </p>
                   )}
                   {order.storageLocation && (
@@ -276,7 +294,7 @@ export default function OrderDetailPage() {
                         <dt className="text-muted-foreground">
                           {t(label)}
                         </dt>
-                        <dd className="font-medium tabular-nums">
+                        <dd className="font-bold tabular-nums">
                           {formatCurrency(amount)}
                         </dd>
                       </div>
@@ -300,6 +318,14 @@ export default function OrderDetailPage() {
                     </Button>
                   )}
                 </DetailPanel>
+                <OrderRatingAction
+                  key={order.id}
+                  order={order}
+                />
+                <IncidentReportAction
+                  key={`incident-${order.id}`}
+                  order={order}
+                />
                 {[ORDER_STATUSES.PENDING, ORDER_STATUSES.DEPOSITED, ORDER_STATUSES.COLLECTED].includes(order.status) && (
                   <Button
                     variant="destructive"

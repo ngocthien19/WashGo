@@ -9,3 +9,5 @@ export const getOrderProgress = (order) => {
 }
 
 export const canPrintReceipt = (order) => order.status === ORDER_STATUSES.COMPLETED && order.paymentStatus === PAYMENT_STATUSES.PAID
+
+export const canPickupFromLocker = (order) => order.status === ORDER_STATUSES.READY_TO_RETURN && order.paymentStatus === PAYMENT_STATUSES.PAID

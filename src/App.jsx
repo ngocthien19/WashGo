@@ -1,12 +1,10 @@
 import { AUTH_ROUTES, CUSTOMER_ROUTES, ROLE_HOME_ROUTES, USER_ROLES } from '~/utils/constants'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
-import { ToastContainer } from 'react-toastify'
 import { lazy, Suspense } from 'react'
-import { useTheme } from '~/hooks/useTheme'
 import LoadingScreen from '~/components/LoadingScreen/LoadingScreen'
 import ProtectedRoleRoute from '~/routes/ProtectedRoleRoute'
 import DisplayControls from '~/components/DisplayControls/DisplayControls'
-import ToastCloseButton from '~/components/LocalizedMessage/ToastCloseButton'
+import AppToaster from '~/components/LocalizedMessage/AppToaster'
 
 const AuthLayout = lazy(() => import('~/layouts/auth/AuthLayout'))
 const LoginPage = lazy(() => import('~/pages/auth/Login/LoginPage'))
@@ -24,13 +22,14 @@ const CustomerPaymentPage = lazy(() => import('~/pages/customer/Payment/PaymentP
 const CustomerOrdersPage = lazy(() => import('~/pages/customer/Orders/OrdersPage'))
 const CustomerOrderDetailPage = lazy(() => import('~/pages/customer/Orders/OrderDetailPage'))
 const CustomerOrderReceiptPage = lazy(() => import('~/pages/customer/Orders/OrderReceiptPage'))
+const CustomerComplaintsPage = lazy(() => import('~/pages/customer/Complaints/ComplaintsPage'))
+const CustomerComplaintDetailPage = lazy(() => import('~/pages/customer/Complaints/ComplaintDetailPage'))
 const CustomerLayout = lazy(() => import('~/layouts/customer/CustomerLayout'))
 const AdminHomePage = lazy(() => import('~/pages/admin/Home/HomePage'))
 const MerchantHomePage = lazy(() => import('~/pages/merchant/Home/HomePage'))
 const ShipperHomePage = lazy(() => import('~/pages/shipper/Home/HomePage'))
 
 export default function App() {
-  const { theme } = useTheme()
 
   return (
     <BrowserRouter>
@@ -38,6 +37,14 @@ export default function App() {
         <Routes>
           <Route element={<ProtectedRoleRoute role={USER_ROLES.CUSTOMER} />}>
             <Route element={<CustomerLayout />}>
+              <Route
+                path={CUSTOMER_ROUTES.COMPLAINTS}
+                element={<CustomerComplaintsPage />}
+              />
+              <Route
+                path={CUSTOMER_ROUTES.COMPLAINT_DETAIL}
+                element={<CustomerComplaintDetailPage />}
+              />
               <Route
                 path={CUSTOMER_ROUTES.ORDER_RECEIPT}
                 element={<CustomerOrderReceiptPage />}
@@ -146,12 +153,7 @@ export default function App() {
           </Route>
         </Routes>
       </Suspense>
-      <ToastContainer
-        closeButton={ToastCloseButton}
-        position="top-right"
-        autoClose={4000}
-        theme={theme}
-      />
+      <AppToaster />
     </BrowserRouter>
   )
 }

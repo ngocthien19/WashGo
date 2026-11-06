@@ -1,10 +1,21 @@
 import { createElement } from 'react'
-import { toast } from 'react-toastify'
+import toast from 'react-hot-toast'
+import { Info, TriangleAlert } from 'lucide-react'
 import LocalizedMessage from '~/components/LocalizedMessage/LocalizedMessage'
 
-const show = (type, message, values, options) => toast[type](
-  createElement(LocalizedMessage, { message, values }), options
-)
+const show = (type, message, values, options) => {
+  const content = createElement(LocalizedMessage, { message, values })
+  if (type === 'info' || type === 'warning') {
+    return toast(content, {
+      icon: createElement(type === 'info' ? Info : TriangleAlert, { className: `size-5 shrink-0 ${type === 'info' ? 'text-primary' : 'text-amber-500'}` }),
+      ...options
+    })
+  }
+  return toast[type](content, {
+    ...(type === 'error' ? { ariaProps: { role: 'alert', 'aria-live': 'assertive' } } : {}),
+    ...options
+  })
+}
 
 export const notify = {
   success: (message, values, options) => show('success', message, values, options),

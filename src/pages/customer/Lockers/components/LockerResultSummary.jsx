@@ -14,14 +14,8 @@ export default function LockerResultSummary({ data, loading, error, query, sortC
   return (
     <CatalogResultSummary
       icon={MapPinned}
-      title={loading ? t('customer.findingLockers') : error ? t('customer.lockerList') : (
-        <>
-          <strong className="mr-1.5 text-2xl font-bold tabular-nums tracking-tight text-foreground">
-            {data?.total || 0}
-          </strong>
-          {t('customer.lockersAvailable', { count: data?.total || 0 })}
-        </>
-      )}
+      count={!loading && !error ? data?.total || 0 : undefined}
+      title={loading ? t('customer.findingLockers') : error ? t('customer.lockerList') : t('customer.lockersAvailable', { count: data?.total || 0 })}
       sortControl={sortControl}
       range={!loading && !error && first > 0 ? t('customer.showingOfLockers', { first, last, total: data.total }) : undefined}
       filters={filters}

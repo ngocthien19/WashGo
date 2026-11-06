@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { DoorOpen, ShieldCheck, LockKeyhole, HandHeart } from 'lucide-react'
+import { DoorOpen, ShieldCheck, LockKeyhole, HandHeart, Timer, PackageCheck } from 'lucide-react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
@@ -13,6 +13,7 @@ import { getApiError } from '~/utils/apiError'
 import { customerOrderApi } from '~/apis/customer/customerOrderApi'
 import { ORDER_STATUSES, LOCKER_SLOT_SIZES } from '~/utils/constants'
 import DepositDeadlineNotice from './DepositDeadlineNotice'
+import { formatCountdown, formatDateTime } from '~/utils/formats'
 
 export default function LockerActionDialog({ order, deposit, onClose, onUpdated }) {
   const { t } = useTranslation()
@@ -25,6 +26,8 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
   const [unknown, setUnknown] = useState(false)
   const [session, setSession] = useState(null)
   const [expired, setExpired] = useState(false)
+  const [remainingSeconds, setRemainingSeconds] = useState(0)
+  const boxNumber = deposit ? order.boxNumber : session?.returnBoxNumber || order.returnBoxNumber
   const credentialsReady = mode === 'pin' ? /^[0-9]{6}$/.test(pin) : !!qr
   const lock = useRef(false)
   const active = useRef(false)
@@ -38,8 +41,14 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
     if (!session) {
       return
     }
-    const timer = setTimeout(() => setExpired(true), Math.max(0, Date.parse(session.expiresAt) - Date.now()))
-    return () => clearTimeout(timer)
+    const updateRemaining = () => {
+      const seconds = Math.max(0, Math.ceil((Date.parse(session.expiresAt) - Date.now()) / 1000))
+      setRemainingSeconds(seconds)
+      setExpired(seconds === 0)
+    }
+    updateRemaining()
+    const timer = setInterval(updateRemaining, 1000)
+    return () => clearInterval(timer)
   }, [session])
   const acceptQr = (value) => {
     setQr('')
@@ -79,7 +88,7 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
         }
       } else {
         const result = await customerOrderApi.openPickup(order.id, credentials)
-        if (result.orderId !== order.id || !result.pickupSessionToken || !Number.isFinite(Date.parse(result.expiresAt)) || Date.parse(result.expiresAt) <= Date.now()) {
+        if (result.orderId !== order.id || !result.pickupSessionToken || !result.returnLockerName || !result.returnBoxNumber || !Number.isFinite(Date.parse(result.expiresAt)) || Date.parse(result.expiresAt) <= Date.now()) {
           throw new Error('customer.orders.scan.unknownOutcome')
         }
         if (active.current) {
@@ -114,46 +123,44 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
     >
       <DialogContent
         closeLabel="common.close"
-        className={deposit ? 'max-w-4xl overflow-hidden p-0 sm:p-0 [&>button]:z-10' : undefined}
+        className="max-w-4xl overflow-hidden p-0 sm:p-0 [&>button]:z-10"
       >
-        <div className={deposit ? 'grid max-h-[85dvh] md:h-[min(48rem,85dvh)] md:grid-cols-[0.85fr_1fr]' : undefined}>
-          {deposit && (
-            <div className="hidden min-h-0 flex-col items-center justify-center gap-5 bg-linear-to-br from-blue-100 via-blue-50 to-indigo-100 px-7 py-6 text-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 dark:text-white md:flex md:rounded-l-2xl">
-              <p className="flex items-center gap-2 text-sm font-semibold">
-                <DoorOpen className="size-5 text-blue-600 dark:text-emerald-300" />
-                {t('customer.orders.dropoff.lockerPreview')}
-              </p>
-              <div
-                className="grid w-full max-w-64 grid-cols-3 gap-3"
-                aria-hidden="true"
-              >
-                {Array.from({ length: 9 }, (_, index) => index === 4 ? (
-                  <motion.div
-                    key={index}
-                    initial={reducedMotion ? false : { scale: 0.95 }}
-                    animate={{ scale: 1 }}
-                    className="row-span-1 flex min-h-[clamp(3rem,12dvh,6rem)] flex-col items-center justify-center gap-2 rounded-xl border-2 border-blue-400 bg-white/85 p-2 shadow-lg shadow-blue-500/10 dark:border-emerald-400 dark:bg-emerald-400/15 dark:shadow-emerald-500/10"
-                  >
-                    <span className="text-lg font-bold text-blue-700 dark:text-emerald-200">
-                      {order.boxNumber}
-                    </span>
-                    <DoorOpen className="size-7 text-blue-600 dark:text-emerald-300" />
-                  </motion.div>
-                ) : (
-                  <div
-                    key={index}
-                    className="grid min-h-[clamp(3rem,12dvh,6rem)] place-items-center rounded-xl border border-blue-200/65 bg-white/55 shadow-sm dark:border-white/5 dark:bg-white/3 dark:shadow-none"
-                  >
-                    <LockKeyhole className="size-4 text-blue-300 dark:text-slate-600" />
-                  </div>
-                ))}
-              </div>
-              <p className="max-w-64 text-center text-xs leading-6 text-slate-500 dark:text-slate-400">
-                {t('customer.orders.dropoff.previewNote')}
-              </p>
+        <div className="grid max-h-[85dvh] md:h-[min(48rem,85dvh)] md:grid-cols-[0.85fr_1fr]">
+          <div className="hidden min-h-0 flex-col items-center justify-center gap-5 bg-linear-to-br from-blue-100 via-blue-50 to-indigo-100 px-7 py-6 text-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 dark:text-white md:flex md:rounded-l-2xl">
+            <p className="flex items-center gap-2 text-sm font-semibold">
+              <DoorOpen className="size-5 text-blue-600 dark:text-emerald-300" />
+              {t(deposit ? 'customer.orders.dropoff.lockerPreview' : 'customer.orders.pickup.lockerPreview')}
+            </p>
+            <div
+              className="grid w-full max-w-64 grid-cols-3 gap-3"
+              aria-hidden="true"
+            >
+              {Array.from({ length: 9 }, (_, index) => index === 4 ? (
+                <motion.div
+                  key={index}
+                  initial={reducedMotion ? false : { scale: 0.95 }}
+                  animate={{ scale: 1 }}
+                  className="row-span-1 flex min-h-[clamp(3rem,12dvh,6rem)] flex-col items-center justify-center gap-2 rounded-xl border-2 border-blue-400 bg-white/85 p-2 shadow-lg shadow-blue-500/10 dark:border-emerald-400 dark:bg-emerald-400/15 dark:shadow-emerald-500/10"
+                >
+                  <span className="text-lg font-bold text-blue-700 dark:text-emerald-200">
+                    {boxNumber || '—'}
+                  </span>
+                  <DoorOpen className="size-7 text-blue-600 dark:text-emerald-300" />
+                </motion.div>
+              ) : (
+                <div
+                  key={index}
+                  className="grid min-h-[clamp(3rem,12dvh,6rem)] place-items-center rounded-xl border border-blue-200/65 bg-white/55 shadow-sm dark:border-white/5 dark:bg-white/3 dark:shadow-none"
+                >
+                  <LockKeyhole className="size-4 text-blue-300 dark:text-slate-600" />
+                </div>
+              ))}
             </div>
-          )}
-          <div className={deposit ? 'max-h-[85dvh] min-h-0 overflow-y-auto overscroll-contain p-6 sm:p-8 md:max-h-none' : undefined}>
+            <p className="max-w-64 text-center text-xs leading-6 text-slate-500 dark:text-slate-400">
+              {t('customer.orders.dropoff.previewNote')}
+            </p>
+          </div>
+          <div className="max-h-[85dvh] min-h-0 overflow-y-auto overscroll-contain p-6 sm:p-8 md:max-h-none">
             <DialogTitle className="flex items-center gap-3 pr-7 text-xl font-bold">
               <DoorOpen className="text-primary" />
               {t(deposit ? 'customer.orders.scan.deposit' : 'customer.orders.scan.pickup')}
@@ -208,6 +215,27 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
               noValidate
               className="mt-5 space-y-5"
             >
+              {!deposit && !session && (
+                <div className="space-y-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 dark:border-sky-400/20 dark:bg-sky-400/10">
+                  <p className="flex items-center gap-2 font-semibold text-sky-800 dark:text-sky-200">
+                    <PackageCheck size={18} />
+                    {t('customer.orders.pickup.ready')}
+                  </p>
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    {t('customer.orders.pickup.instructions')}
+                  </p>
+                  {order.returnBoxNumber && (
+                    <p className="text-sm font-medium">
+                      {t('customer.orders.returnBox', { number: order.returnBoxNumber })}
+                    </p>
+                  )}
+                  {order.pickupDeadline && (
+                    <p className="text-xs leading-6 text-muted-foreground">
+                      {t('customer.orders.pickupDeadline', { date: formatDateTime(order.pickupDeadline) })}
+                    </p>
+                  )}
+                </div>
+              )}
               {session ? (
                 <div className="space-y-3 rounded-xl bg-emerald-500/10 p-4">
                   <p className="font-semibold text-emerald-700 dark:text-emerald-300">
@@ -223,6 +251,15 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
                   <p className="text-xs leading-6 text-muted-foreground">
                     {t('customer.orders.scan.confirmNote')}
                   </p>
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-emerald-500/15 pt-3 text-sm">
+                    <span className="flex items-center gap-2">
+                      <Timer size={16} />
+                      {t('customer.orders.pickup.sessionTime')}
+                    </span>
+                    <span className="font-semibold tabular-nums">
+                      {formatCountdown(remainingSeconds)}
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -297,6 +334,7 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
                     variant="outline"
                     onClick={() => {
                       setSession(null)
+                      setRemainingSeconds(0)
                       setExpired(false)
                       setError('')
                       setPin('')
@@ -309,7 +347,7 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
                   : (
                     <Button
                       type="submit"
-                      className={deposit ? 'h-auto min-h-11 min-w-0 flex-1 whitespace-normal bg-emerald-600 py-3 text-center text-white hover:bg-emerald-700 focus-visible:ring-emerald-500/40' : 'h-auto min-h-11 min-w-0 whitespace-normal'}
+                      className="h-auto min-h-11 min-w-0 flex-1 whitespace-normal bg-emerald-600 py-3 text-center text-white hover:bg-emerald-700 focus-visible:ring-emerald-500/40"
                       disabled={busy || unknown || (!session && !credentialsReady)}
                     >
                       <ShieldCheck size={16} />

@@ -53,7 +53,7 @@ export default function CustomerHeader() {
         <span
           key={t(item.label)}
           title={t('customer.comingInAFutureUpdate')}
-          className="cursor-not-allowed rounded-lg px-3 py-2.5 text-sm text-muted-foreground/60"
+          className="cursor-not-allowed rounded-lg px-3 py-2.5 text-base text-muted-foreground/60"
           aria-disabled="true"
         >
           {t(item.label)}
@@ -69,7 +69,7 @@ export default function CustomerHeader() {
             }
           }}
           aria-current={isActive(item.href) ? 'page' : undefined}
-          className={cn('relative whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-medium no-underline hover:bg-primary/5 hover:text-primary focus-visible:outline-2 focus-visible:outline-ring lg:px-2 xl:px-3', UI_TRANSITIONS.BUTTON, isActive(item.href) && 'text-primary')}
+          className={cn('relative whitespace-nowrap rounded-xl px-3 py-2.5 text-base font-medium no-underline hover:bg-primary/5 hover:text-primary focus-visible:outline-2 focus-visible:outline-ring lg:px-1.5 xl:px-3', UI_TRANSITIONS.BUTTON, isActive(item.href) && 'text-primary')}
         >
           {isActive(item.href) && (
             <motion.span
@@ -155,7 +155,7 @@ export default function CustomerHeader() {
                 <ClipboardList size={16} />
                 {t('common.myOrders')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => notify.info('customer.thisContentIsBeingUpdated')}>
+              <DropdownMenuItem render={<Link to={CUSTOMER_ROUTES.COMPLAINTS} />}>
                 <MessageSquareWarning size={16} />
                 {t('customer.profile.manageComplaints')}
               </DropdownMenuItem>

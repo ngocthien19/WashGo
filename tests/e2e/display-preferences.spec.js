@@ -239,6 +239,72 @@ test('language selection preserves form values, persists and shows the active la
   await expect(trigger).toHaveText('EN')
 })
 
+test('auth forms use readable 16px fields and descriptions without breaking responsive scrolling', async ({ page }) => {
+  await page.goto('/login')
+  await chooseEnglish(page)
+  for (const [path, description] of [
+    ['/login', 'Sign in to manage your orders and care for your clothes with ease.'],
+    ['/register', 'Create an account to start your laundry journey with WashGo.']
+  ]) {
+    await page.goto(path)
+    await expect(page.getByText(description, { exact: true })).toHaveCSS('font-size', '16px')
+    for (const input of await page.locator('form input').all()) {
+      await expect(input).toHaveCSS('font-size', '16px')
+    }
+    for (const label of await page.locator('form label').all()) {
+      await expect(label).toHaveCSS('font-size', '16px')
+    }
+    for (const width of [375, 768, 1440]) {
+      await page.setViewportSize({ width, height: 900 })
+      const submit = page.locator('form button[type=submit]')
+      await submit.scrollIntoViewIfNeeded()
+      await expect(submit).toBeInViewport()
+      await expect(submit).toHaveCSS('font-size', '16px')
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    }
+    await expect(page.locator('aside p')).toHaveCSS('font-size', '16px')
+    await expect(page.locator('aside strong')).toHaveCSS('font-size', '16px')
+    await expect(page.locator('aside small')).toHaveCSS('font-size', '16px')
+  }
+  await page.setViewportSize({ width: 1440, height: 900 })
+})
+
+test('home descriptions and locker actions use larger text and a primary location button', async ({ page }) => {
+  await page.route(/\/api\/customer\/lockers(?:\?|$)/, (route) => route.fulfill({ json: {
+    succeeded: true, currentPage: 1, totalPages: 1, total: 1,
+    list: [{ id: 'locker-test', code: 'LK_TEST', name: 'Locker test', city: 'Test city', address: '123 Test Street', availableSlotCount: 2, latitude: null, longitude: null }]
+  } }))
+  await page.goto('/login')
+  await chooseEnglish(page)
+  await page.getByLabel('Email', { exact: true }).fill(user.email)
+  await page.getByLabel('Password', { exact: true }).fill('Password123')
+  await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click()
+  await expect(page).toHaveURL('/customer')
+  for (const text of [
+    'Choose the right care for every item. Consistent prices across our network.',
+    'Find a convenient drop-off point. Use your location to see the nearest lockers.',
+    'One less thing to worry about. More time for yourself.'
+  ]) {
+    await expect(page.getByText(text, { exact: true })).toHaveCSS('font-size', '16px')
+  }
+  for (const description of await page.locator('#how-it-works ol p').all()) {
+    await expect(description).toHaveCSS('font-size', '16px')
+  }
+  const lockerSection = page.locator('#lockers')
+  const location = lockerSection.getByRole('button', { name: 'Use my location', exact: true })
+  await expect(location).toHaveCSS('font-size', '16px')
+  await expect(location).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+  for (const name of ['Show on map', 'Details']) {
+    const button = lockerSection.getByRole('button', { name, exact: true })
+    await expect(button).toHaveCSS('font-size', '16px')
+    expect((await button.boundingBox()).height).toBe(44)
+    expect(parseFloat(await button.evaluate((element) => getComputedStyle(element).paddingLeft))).toBeGreaterThanOrEqual(16)
+  }
+  await page.setViewportSize({ width: 375, height: 844 })
+  await lockerSection.getByRole('button', { name: 'Details', exact: true }).scrollIntoViewIfNeeded()
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
+
 test('customer service modal works in dark mode, with responsive layout and keyboard close', async ({ page }) => {
   const errors = []
   page.on('pageerror', (error) => errors.push(error.message))

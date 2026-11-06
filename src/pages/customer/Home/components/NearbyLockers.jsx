@@ -36,6 +36,7 @@ export default function NearbyLockers() {
             id="nearby-lockers-heading"
             title={t('customer.lockersNearYou')}
             description={position ? t('customer.availableLockersClosestToYourLocation') : t('customer.findAConvenientDropOffPointUseYourLocation')}
+            descriptionClassName="text-base"
             icon={MapPinned}
           />
           <div className="flex flex-wrap gap-3">
@@ -46,8 +47,8 @@ export default function NearbyLockers() {
             <Button
               render={<Link to={CUSTOMER_ROUTES.LOCKERS} />}
               nativeButton={false}
-              variant="outline"
-              className="h-11 rounded-full"
+              variant="secondary"
+              className="h-11 rounded-full px-5 text-base"
             >
               {t('customer.viewAllLockers')}
               <ArrowRight className="transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />

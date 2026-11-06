@@ -2,7 +2,8 @@ import { lazy, Suspense, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DoorOpen } from 'lucide-react'
 import { Button } from '~/components/ui/button'
-import { ORDER_STATUSES, PAYMENT_STATUSES } from '~/utils/constants'
+import { ORDER_STATUSES } from '~/utils/constants'
+import { canPickupFromLocker } from '~/components/customer/orders/orderWorkflow'
 
 const LockerActionDialog = lazy(() => import('./LockerActionDialog'))
 
@@ -10,7 +11,7 @@ export default function LockerActionButton({ order, onUpdated }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const deposit = order.status === ORDER_STATUSES.PENDING
-  const pickup = order.status === ORDER_STATUSES.READY_TO_RETURN && order.paymentStatus === PAYMENT_STATUSES.PAID
+  const pickup = canPickupFromLocker(order)
   if (!deposit && !pickup) {
     return null
   }

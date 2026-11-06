@@ -25,7 +25,7 @@ export default function AuthHeading({ icon: Icon, eyebrow, title, children, succ
           {title}
         </h2>
         {children && (
-          <p className="text-sm leading-7 text-muted-foreground">
+          <p className="text-base leading-7 text-muted-foreground">
             {children}
           </p>
         )}

@@ -104,7 +104,8 @@ export default function OrdersPage() {
         >
           <CatalogResultSummary
             icon={ClipboardList}
-            title={t(loading ? 'customer.orders.loading' : 'customer.orders.found', { count: data?.total || 0 })}
+            count={!loading && !error ? data?.total || 0 : undefined}
+            title={t(loading ? 'customer.orders.loading' : error ? 'common.myOrders' : 'customer.orders.foundLabel', { count: data?.total || 0 })}
             range={!loading && !error && data?.list.length ? t('customer.showing', { firstResult, lastResult: firstResult + data.list.length - 1, total: data.total }) : undefined}
             sortControl={(
               <SelectField
@@ -119,6 +120,9 @@ export default function OrdersPage() {
             onRemoveFilter={(id) => setQuery({ [id]: '' })}
             onClearFilters={() => setParams(writeOrdersQuery({ ...initialOrdersQuery, sort: query.sort }))}
           />
+          <h2 className="border-b-2 border-border pb-4 pt-2 text-center text-lg font-semibold">
+            {t('customer.orders.listTitle')}
+          </h2>
           {loading || error || !data?.list.length ? (
             <CatalogFeedback
               {...resource}
