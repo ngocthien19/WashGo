@@ -1,12 +1,10 @@
 import { AUTH_ROUTES, CUSTOMER_ROUTES, ROLE_HOME_ROUTES, USER_ROLES } from '~/utils/constants'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
-import { ToastContainer } from 'react-toastify'
 import { lazy, Suspense } from 'react'
-import { useTheme } from '~/hooks/useTheme'
 import LoadingScreen from '~/components/LoadingScreen/LoadingScreen'
 import ProtectedRoleRoute from '~/routes/ProtectedRoleRoute'
 import DisplayControls from '~/components/DisplayControls/DisplayControls'
-import ToastCloseButton from '~/components/LocalizedMessage/ToastCloseButton'
+import AppToaster from '~/components/LocalizedMessage/AppToaster'
 
 const AuthLayout = lazy(() => import('~/layouts/auth/AuthLayout'))
 const LoginPage = lazy(() => import('~/pages/auth/Login/LoginPage'))
@@ -32,7 +30,6 @@ const MerchantHomePage = lazy(() => import('~/pages/merchant/Home/HomePage'))
 const ShipperHomePage = lazy(() => import('~/pages/shipper/Home/HomePage'))
 
 export default function App() {
-  const { theme } = useTheme()
 
   return (
     <BrowserRouter>
@@ -156,12 +153,7 @@ export default function App() {
           </Route>
         </Routes>
       </Suspense>
-      <ToastContainer
-        closeButton={ToastCloseButton}
-        position="top-right"
-        autoClose={4000}
-        theme={theme}
-      />
+      <AppToaster />
     </BrowserRouter>
   )
 }

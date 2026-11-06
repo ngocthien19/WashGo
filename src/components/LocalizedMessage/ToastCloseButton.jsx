@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 
-export default function ToastCloseButton({ closeToast }) {
+export default function ToastCloseButton({ onClose }) {
   const { t } = useTranslation()
   return (
     <Button
@@ -12,7 +12,7 @@ export default function ToastCloseButton({ closeToast }) {
       aria-label={t('common.closeNotification')}
       onClick={(event) => {
         event.stopPropagation()
-        closeToast(true)
+        onClose()
       }}
     >
       <X size={16} />
