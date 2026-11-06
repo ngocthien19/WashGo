@@ -172,6 +172,40 @@
     "forgotPasswordTitle": "Forgot password?"
   },
   "customer": {
+    "serviceTerms": {
+      "title": "Terms of service",
+      "description": "What to know about placing orders, drop-off, payment and cancellation at WashGo.",
+      "intro": "Please read before using the service. Eligibility, deadlines and amounts are checked by the system when you act. Check your Order details for the latest information.",
+      "understood": "I understand", "footerNote": "You can reopen these terms at any time from the footer.",
+      "booking": { "title": "Orders and drop-off", "body": "Creating an order reserves a compartment; it does not confirm drop-off or payment. Use the locker and compartment assigned to your order, place your items inside, close the door and confirm drop-off using your PIN or QR code.\nDrop off within the deadline applicable to your order. This depends on system settings; the current 30-minute reminder is the default reference. Prices may change after the merchant records the actual weight and any surcharge." },
+      "cancellation": {
+        "title": "Cancellation eligibility and fees",
+        "body": "You may cancel only your own eligible orders and must provide a reason of 1–500 characters. Review the cancellation quote, estimated refund and outstanding fee before confirming. The quote is an estimate; the system recalculates the fee when you confirm.",
+        "pending": { "label": "Awaiting drop-off, within deadline", "value": "No cancellation fee." },
+        "late": { "label": "Awaiting drop-off, past deadline", "value": "A configured percentage of the service amount before discounts." },
+        "deposited": { "label": "Dropped off in locker", "value": "A configured percentage of the service amount before discounts." },
+        "collected": { "label": "Collected and weighed", "value": "Cancellation requires a recorded actual weight. The configured percentage applies to the final amount after discounts and confirmed surcharges." },
+        "processing": { "label": "Washing has started or later", "value": "Cancellation is unavailable. Refunded orders cannot be cancelled again." },
+        "configNote": "Default system settings: 30% for overdue drop-off, 30% after drop-off, and 50% after collection and weighing. Administrators can change rates and deadlines; these defaults do not guarantee the current fee. The fee confirmed for your cancellation applies."
+      },
+      "refund": { "title": "Refunds and return of cancelled items", "body": "Refunds are based on verified payments minus the cancellation fee. If a refund is due, the system creates a pending refund request; cancellation does not mean money has already been returned.\nOutstanding cancellation fees must be paid before collecting your items. Cancellation does not automatically release an occupied compartment or confirm collection. Follow your order's item location and return instructions. An existing refund request that has not been rejected must be handled before cancellation." },
+      "pickup": { "title": "Payment, collection and code security", "body": "Collect only when the system confirms eligibility and payment conditions. Check Order details for the collection deadline and any overdue or storage charges. Keep your PIN and QR private; drop-off and pickup credentials serve different actions.\nConfirm collection and door closure only after retrieving all your items. Locker operations in this version are simulated through user confirmation." },
+      "complaints": { "title": "Incident reports and complaints", "body": "For completed orders, report an incident within 3 days of the completion recorded in the order history. Reports require a description of 1–2,000 characters and 1–5 evidence images. Each order may have only one pending complaint.\nTrack the outcome in Manage complaints. Any compensation is determined during review; submitting a report does not mean it has been approved or paid." }
+    },
+    "notification": {
+      "incoming": "New notification: {{title}}",
+      "shortDescription": "Your latest activity updates", "latest": "Latest notifications", "read": "Read",
+      "deleteAll": "Delete all", "deleteAllDescription": "Delete all notifications? Deleted notifications cannot be restored.",
+      "title": "Notifications",
+      "description": "Updates about your orders, payments and responses from WashGo.",
+      "all": "All", "unread": "Unread", "filter": "Filter notifications",
+      "readAll": "Read all", "markRead": "Mark as read", "delete": "Delete notification",
+      "viewDetails": "View details", "loading": "Loading notifications…",
+      "empty": "There are no notifications in this list.",
+      "live": "Live updates connected",
+      "offline": "Reconnecting. Refresh to check for new notifications.",
+      "invalidResponse": "Unable to load notifications. Please try again."
+    },
     "imageUpload": {
       "viewAll": "View {{count}} photos",
       "galleryTitle": "Attached photos",
@@ -351,6 +385,8 @@
       "next": "Continue",
       "create": "Confirm order",
       "success": "Order created!",
+      "reviewAccessNote": "You can view your QR code and PIN again in",
+      "depositReminder": "Please drop off your items within 30 minutes of creating your order.",
       "includedWeight": "Included weight for your compartment: {{weight}} kg.",
       "depositPin": "Drop-off PIN",
       "showPin": "Show drop-off PIN",

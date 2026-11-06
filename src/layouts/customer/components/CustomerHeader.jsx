@@ -16,6 +16,7 @@ import { getApiError } from '~/utils/apiError'
 import { cn } from '~/lib/utils'
 import Brand from '~/components/Brand/Brand'
 import CustomerAvatar from '~/components/customer/CustomerAvatar/CustomerAvatar'
+import NotificationBell from '~/components/customer/notifications/NotificationBell'
 
 export default function CustomerHeader() {
   const { t } = useTranslation()
@@ -103,16 +104,7 @@ export default function CustomerHeader() {
         />
         {navigation()}
         <div className="flex items-center gap-1 sm:gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-10 rounded-full"
-            disabled
-            aria-label={t('customer.notificationsComingSoon')}
-            tooltip={t('customer.notificationsWillBeAvailableInAFutureUpdate')}
-          >
-            <Bell size={19} />
-          </Button>
+          <NotificationBell />
           <LanguageSwitcher />
           <ThemeToggle inline />
           <DropdownMenu>
@@ -159,7 +151,7 @@ export default function CustomerHeader() {
                 <MessageSquareWarning size={16} />
                 {t('customer.profile.manageComplaints')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => notify.info('customer.thisContentIsBeingUpdated')}>
+              <DropdownMenuItem render={<Link to={CUSTOMER_ROUTES.NOTIFICATIONS} />}>
                 <Bell size={16} />
                 {t('customer.profile.allNotifications')}
               </DropdownMenuItem>

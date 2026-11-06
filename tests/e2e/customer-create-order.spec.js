@@ -15,7 +15,7 @@ async function setup(page, options = {}) {
   await page.addInitScript(({ identity, dark }) => {
     localStorage.setItem('persist:root', JSON.stringify({
       auth: JSON.stringify({ user: identity, accessToken: 'mock-access', refreshToken: 'mock-refresh', expiresAt: '2099-01-01T00:00:00Z' }),
-      preferences: JSON.stringify({ language: 'en' }), theme: JSON.stringify({ mode: dark ? 'dark' : 'light' }),
+      preferences: JSON.stringify({ language: 'en', serviceTermsSeen: { 'customer-test': true } }), theme: JSON.stringify({ mode: dark ? 'dark' : 'light' }),
       _persist: JSON.stringify({ version: 1, rehydrated: true })
     }))
   }, { identity, dark: options.dark })
@@ -49,7 +49,7 @@ async function setup(page, options = {}) {
         await route.fulfill({ status: 409, json: { succeeded: false, message: 'Ô này vừa được đặt. Vui lòng chọn ô khác.' } })
         return
       }
-      data = envelope({ id: 'created-order', orderCode: 'WG2611051234', lockerName: locker.name, boxNumber: state.creates.at(-1).boxId === slots[0].id ? 1 : 2, finalAmount: 49000, includedWeightKg: 5, depositPinCode: '654321' })
+      data = envelope({ id: 'created-order', orderCode: 'WG2611051234', lockerName: locker.name, boxNumber: state.creates.at(-1).boxId === slots[0].id ? 1 : 2, finalAmount: 49000, includedWeightKg: 5, depositPinCode: '654321', qrCodeString: 'WASHGO:DEPOSIT:WG2611051234:654321' })
     } else {
       await route.fulfill({ status: 404, json: { succeeded: false } })
       return
@@ -106,6 +106,11 @@ test('mixed services, server voucher and confirmation work with language switchi
   expect(persisted).not.toContain('654321')
   expect(persisted).not.toContain('Care for colours')
   const success = page.locator('section[aria-labelledby="order-success-title"]')
+  await expect(success.getByRole('img', { name: 'Mã QR gửi đồ', exact: true })).toBeVisible()
+  await expect(page.getByRole('status').filter({ hasText: 'Tạo đơn thành công!' })).toHaveCount(0)
+  await expect(success.getByText('Vui lòng gửi đồ trong vòng 30 phút kể từ khi tạo đơn thành công.')).toBeVisible()
+  const actions = await Promise.all(['Đơn hàng của tôi', 'Xem thông tin thanh toán', 'Trang chủ'].map((name) => success.getByRole('button', { name, exact: true }).boundingBox()))
+  expect(new Set(actions.map((rect) => Math.round(rect.y))).size).toBe(1)
   await expect(success.locator('..')).toHaveCSS('opacity', '1')
   await success.getByRole('button', { name: 'Trang chủ', exact: true }).click()
   await expect(page).toHaveURL('/customer')

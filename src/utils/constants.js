@@ -34,6 +34,7 @@ export const CUSTOMER_ROUTES = {
   PAYMENT_RETURN: '/payment/return',
   PROFILE: '/customer/profile',
   COMPLAINTS: '/customer/complaints',
+  NOTIFICATIONS: '/customer/notifications',
   COMPLAINT_DETAIL: '/customer/complaints/:incidentId'
 }
 
@@ -62,6 +63,7 @@ export const RATING_CONFIG = {
   CRITERIA: ['qualityStars', 'speedStars', 'attitudeStars', 'packagingStars']
 }
 export const INCIDENT_CONFIG = { ENDPOINT: '/incident', PAGE_SIZE: 6, DESCRIPTION_MAX: 2000, REPORT_WINDOW_DAYS: 3, MAX_IMAGES: 5 }
+export const NOTIFICATION_CONFIG = { ENDPOINT: '/notification', HUB: '/hubs/notifications', EVENT: 'notification', PAGE_SIZE: 10, RETRY_MS: 30000, TOAST_HISTORY_LIMIT: 200 }
 export const INCIDENT_TYPES = [1, 2, 3]
 export const INCIDENT_SEVERITIES = [1, 2, 3]
 export const INCIDENT_STATUS_COLORS = { 1: 'amber', 2: 'emerald', 3: 'red' }

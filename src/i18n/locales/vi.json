@@ -172,6 +172,52 @@
     "forgotPasswordTitle": "Quên mật khẩu?"
   },
   "customer": {
+    "serviceTerms": {
+      "title": "Điều khoản dịch vụ",
+      "description": "Những quy định cần biết khi đặt đơn, gửi đồ, thanh toán và hủy đơn tại WashGo.",
+      "intro": "Vui lòng đọc trước khi sử dụng dịch vụ. Quyền thao tác, thời hạn và các khoản tiền của từng đơn được hệ thống kiểm tra tại thời điểm thực hiện. Hãy xem thông tin cập nhật trong Chi tiết đơn hàng.",
+      "understood": "Tôi đã hiểu", "footerNote": "Bạn có thể xem lại bất cứ lúc nào tại mục Điều khoản ở footer.",
+      "booking": {
+        "title": "Đặt đơn và gửi đồ",
+        "body": "Tạo đơn thành công là giữ chỗ ô tủ, chưa phải xác nhận đã gửi đồ hoặc đã thanh toán. Hãy mang đồ đến đúng locker và ô tủ của đơn, đặt đồ gọn vào tủ, đóng cửa rồi xác nhận gửi đồ bằng PIN hoặc QR.\nVui lòng gửi đồ trong thời hạn áp dụng cho đơn. Hạn gửi phụ thuộc cấu hình hệ thống; lời nhắc 30 phút hiện là mốc mặc định. Giá có thể được cập nhật theo khối lượng thực tế và phụ phí sau khi đối tác cân đồ."
+      },
+      "cancellation": {
+        "title": "Điều kiện và phí hủy đơn",
+        "body": "Bạn chỉ được hủy đơn của mình khi hệ thống cho phép và phải nhập lý do từ 1 đến 500 ký tự. Trước khi xác nhận, hãy kiểm tra báo phí hủy, khoản hoàn dự kiến và phần phí còn thiếu. Báo phí là ước tính tại thời điểm xem; hệ thống tính lại khi bạn xác nhận.",
+        "pending": { "label": "Chờ gửi đồ, còn trong hạn", "value": "Miễn phí hủy." },
+        "late": { "label": "Chờ gửi đồ, đã quá hạn", "value": "Phí theo tỷ lệ cấu hình trên giá dịch vụ trước giảm giá." },
+        "deposited": { "label": "Đã gửi đồ vào tủ", "value": "Phí theo tỷ lệ cấu hình trên giá dịch vụ trước giảm giá." },
+        "collected": { "label": "Đã thu gom và đã cân", "value": "Chỉ hủy được khi đã ghi nhận khối lượng thực tế. Phí theo tỷ lệ cấu hình trên tổng tiền sau giảm giá và phụ phí đã chốt." },
+        "processing": { "label": "Đã bắt đầu giặt trở đi", "value": "Không hỗ trợ hủy đơn. Đơn đã hoàn tiền cũng không được hủy lại." },
+        "configNote": "Mức cấu hình mặc định trong hệ thống: quá hạn gửi 30%, đã gửi đồ 30%, đã thu gom và cân 50%. Quản trị viên có thể thay đổi tỷ lệ và thời hạn; đây không phải cam kết mức phí hiện tại. Phí hiển thị khi xác nhận hủy mới là mức áp dụng cho đơn của bạn."
+      },
+      "refund": {
+        "title": "Hoàn tiền và nhận lại đồ sau hủy",
+        "body": "Khoản hoàn được tính từ số tiền đã thanh toán được hệ thống xác minh, trừ phí hủy. Nếu còn tiền được hoàn, hệ thống tạo yêu cầu hoàn tiền chờ xử lý; hủy đơn không đồng nghĩa tiền đã được chuyển trả ngay.\nPhần phí hủy còn thiếu phải được thanh toán trước khi nhận lại đồ. Nếu đồ đã nằm trong tủ hoặc ở đối tác, việc hủy không tự giải phóng tủ hoặc xác nhận bạn đã nhận đồ. Hãy theo dõi vị trí và hướng dẫn trả đồ trong đơn. Đơn đã có yêu cầu hoàn tiền chưa bị từ chối cần được xử lý trước khi hủy."
+      },
+      "pickup": {
+        "title": "Thanh toán, nhận đồ và bảo mật mã",
+        "body": "Chỉ nhận đồ theo trạng thái và điều kiện thanh toán mà hệ thống xác nhận. Hãy kiểm tra hạn nhận, các khoản quá hạn hoặc lưu kho trong Chi tiết đơn hàng. Không chia sẻ PIN hoặc QR cho người khác; mã gửi và mã nhận phục vụ các thao tác riêng.\nChỉ xác nhận đã nhận đồ và đóng cửa sau khi bạn đã lấy đủ đồ. Thao tác locker trong phiên bản hiện tại đang được mô phỏng theo xác nhận của người dùng."
+      },
+      "complaints": {
+        "title": "Báo cáo sự cố và khiếu nại",
+        "body": "Với đơn đã hoàn thành, bạn có thể báo cáo sự cố trong vòng 3 ngày từ thời điểm hoàn thành được ghi nhận trong lịch sử đơn. Báo cáo cần mô tả từ 1 đến 2.000 ký tự và 1–5 ảnh minh chứng. Mỗi đơn chỉ có một khiếu nại đang chờ xử lý.\nTheo dõi kết quả ở Quản lý khiếu nại. Khoản bồi thường, nếu có, được xác định khi xử lý sự cố; gửi báo cáo không đồng nghĩa đã được duyệt hoặc đã chi trả."
+      }
+    },
+    "notification": {
+      "incoming": "Thông báo mới: {{title}}",
+      "shortDescription": "Cập nhật hoạt động của bạn", "latest": "Thông báo mới nhất", "read": "Đã đọc",
+      "deleteAll": "Xóa tất cả", "deleteAllDescription": "Bạn muốn xóa tất cả thông báo? Các thông báo đã xóa không thể khôi phục.",
+      "title": "Thông báo",
+      "description": "Cập nhật đơn hàng, thanh toán và phản hồi của WashGo dành cho bạn.",
+      "all": "Tất cả", "unread": "Chưa đọc", "filter": "Lọc thông báo",
+      "readAll": "Đọc tất cả", "markRead": "Đánh dấu đã đọc", "delete": "Xóa thông báo",
+      "viewDetails": "Xem chi tiết", "loading": "Đang tải thông báo…",
+      "empty": "Không có thông báo trong danh sách này.",
+      "live": "Đang cập nhật trực tiếp",
+      "offline": "Đang kết nối lại. Bạn có thể bấm cập nhật để xem thông báo mới.",
+      "invalidResponse": "Không thể tải thông báo. Vui lòng thử lại."
+    },
     "imageUpload": {
       "viewAll": "Xem {{count}} ảnh",
       "galleryTitle": "Ảnh đính kèm",
@@ -351,6 +397,8 @@
       "next": "Tiếp tục",
       "create": "Xác nhận tạo đơn",
       "success": "Tạo đơn thành công!",
+      "reviewAccessNote": "Bạn có thể xem lại mã QR và mã PIN trong",
+      "depositReminder": "Vui lòng gửi đồ trong vòng 30 phút kể từ khi tạo đơn thành công.",
       "includedWeight": "Khối lượng bao gồm theo ô tủ: {{weight}} kg.",
       "depositPin": "Mã PIN gửi đồ",
       "showPin": "Hiện mã PIN gửi đồ",

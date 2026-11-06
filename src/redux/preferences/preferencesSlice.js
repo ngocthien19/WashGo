@@ -5,6 +5,11 @@ const preferencesSlice = createSlice({
   name: 'preferences',
   initialState: { language: DEFAULT_LANGUAGE },
   reducers: {
+    markServiceTermsSeen: (state, { payload }) => {
+      if (typeof payload === 'string' && payload) {
+        state.serviceTermsSeen = { ...state.serviceTermsSeen, [payload]: true }
+      }
+    },
     setLanguage: (state, { payload }) => {
       if (LANGUAGE_OPTIONS.some((language) => language.value === payload)) {
         state.language = payload
@@ -13,5 +18,5 @@ const preferencesSlice = createSlice({
   }
 })
 
-export const { setLanguage } = preferencesSlice.actions
+export const { setLanguage, markServiceTermsSeen } = preferencesSlice.actions
 export default preferencesSlice.reducer

@@ -1,0 +1,149 @@
+import { test, expect } from '@playwright/test'
+
+const orderId = '11111111-1111-4111-8111-111111111111'
+const notificationId = '22222222-2222-4222-8222-222222222222'
+async function setup(page) {
+  const state = { items: [{ id: notificationId, title: 'Your laundry is ready', content: 'Collect your items from Ben Thanh Locker.', isRead: false, linkType: 'order', linkId: orderId, createdOn: 1793923200 }], fail: false, writes: [] }
+  await page.addInitScript(() => localStorage.setItem('persist:root', JSON.stringify({
+    auth: JSON.stringify({ user: { id: 'notification-customer', fullName: 'Alex', role: 'Customer' }, accessToken: 'test', refreshToken: 'test', expiresAt: '2099-01-01T00:00:00Z' }),
+    preferences: JSON.stringify({ language: 'en', serviceTermsSeen: { 'notification-customer': true } }), theme: JSON.stringify({ mode: 'light' }), _persist: JSON.stringify({ version: 1, rehydrated: true })
+  })))
+  await page.route('**/api/**', (route) => {
+    const request = route.request()
+    const url = new URL(request.url())
+    const path = url.pathname.replace(/^\/api/, '')
+    const ok = (data) => route.fulfill({ json: { succeeded: true, data } })
+    if (path === '/auth/me') {
+      return ok({ id: 'notification-customer', fullName: 'Alex', role: 'Customer' })
+    }
+    if (path === '/notification/unread-count') {
+      return ok(state.items.filter((item) => !item.isRead).length)
+    }
+    if (path === '/notification' && request.method() === 'GET') {
+      if (state.fail) {
+        return route.fulfill({ status: 500, json: { succeeded: false } })
+      }
+      const pageNumber = Number(url.searchParams.get('page'))
+      const take = Number(url.searchParams.get('take'))
+      const items = state.items.filter((item) => url.searchParams.get('unreadOnly') !== 'true' || !item.isRead)
+      return route.fulfill({ json: { succeeded: true, list: items.slice((pageNumber - 1) * take, pageNumber * take), total: items.length, currentPage: pageNumber, totalPages: Math.ceil(items.length / take) } })
+    }
+    if (path === '/notification/read-all') {
+      state.writes.push(path)
+      state.items.forEach((item) => {
+        item.isRead = true
+      })
+      return ok(state.items.length)
+    }
+    if (path === `/notification/${notificationId}/read`) {
+      state.writes.push(path)
+      state.items[0].isRead = true
+      return ok(state.items[0])
+    }
+    if (path === '/notification' && request.method() === 'DELETE') {
+      state.writes.push('delete-all')
+      const count = state.items.length
+      state.items = []
+      return ok(count)
+    }
+    if (path === `/notification/${notificationId}` && request.method() === 'DELETE') {
+      state.writes.push(path)
+      state.items = []
+      return ok(true)
+    }
+    return route.fulfill({ status: 404, json: { succeeded: false } })
+  })
+  return state
+}
+
+test('bell popover anchors below the header and read/delete stay synchronized', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto('/customer/notifications')
+  await expect(page.getByRole('heading', { name: 'Your laundry is ready' })).toBeVisible()
+  const bell = page.getByRole('button', { name: 'Notifications', exact: true })
+  await expect(bell).toContainText('1')
+  await bell.click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { name: 'Notifications', exact: true })).toBeVisible()
+  const anchor = await bell.boundingBox()
+  const popup = await dialog.boundingBox()
+  expect(popup.y).toBeGreaterThan(anchor.y + anchor.height)
+  expect(popup.x + popup.width).toBeLessThanOrEqual(anchor.x + anchor.width + 1)
+  await dialog.getByRole('button', { name: 'Mark as read', exact: true }).click()
+  await expect(dialog.getByRole('button', { name: 'Mark as read', exact: true })).toHaveCount(0)
+  await dialog.getByText('All notifications', { exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  await expect(bell).not.toContainText('1')
+  await page.getByRole('button', { name: 'Unread', exact: true }).click()
+  await expect(page.getByText('There are no notifications in this list.')).toBeVisible()
+  await page.getByRole('button', { name: 'All', exact: true }).click()
+  await page.getByRole('button', { name: 'Delete notification', exact: true }).click()
+  await expect(page.getByText('There are no notifications in this list.')).toBeVisible()
+  expect(state.writes).toHaveLength(2)
+})
+
+test('delete all requires confirmation and Escape dismisses the bell popover', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto('/customer/notifications')
+  await expect(page.getByRole('heading', { name: 'Your laundry is ready' })).toBeVisible()
+  await page.getByRole('button', { name: 'Notifications', exact: true }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Delete all', exact: true }).click()
+  expect(state.writes).toHaveLength(0)
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete all', exact: true }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByText('There are no notifications in this list.')).toBeVisible()
+  expect(state.writes).toEqual(['delete-all'])
+})
+
+test('mobile list supports API filter, failure/retry and mark all without overflow', async ({ page }) => {
+  const state = await setup(page)
+  await page.setViewportSize({ width: 375, height: 812 })
+  state.fail = true
+  await page.goto('/customer/notifications?unread=true')
+  await page.getByRole('button', { name: 'Try again', exact: true }).waitFor()
+  state.fail = false
+  // The hub may reconcile while the error is visible; the toolbar remains available.
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Your laundry is ready' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Unread', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await page.getByRole('button', { name: 'Read all', exact: true }).click()
+  await expect(page.getByText('There are no notifications in this list.')).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.getByRole('button', { name: 'Notifications', exact: true }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  expect(await page.getByRole('dialog').evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+})
+
+test('pagination persists in URL and detail action uses the correct order target', async ({ page }) => {
+  const state = await setup(page)
+  state.items = Array.from({ length: 11 }, (_, index) => ({ ...state.items[0], id: index === 0 ? notificationId : `notification-${index}`, title: `Update ${index + 1}`, isRead: true }))
+  await page.goto('/customer/notifications?page=2')
+  await expect(page.getByRole('heading', { name: 'Update 11', exact: true })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Update 11', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'View details', exact: true }).click()
+  await expect(page).toHaveURL(new RegExp(`/customer/orders/${orderId}$`))
+  expect(state.writes).toHaveLength(0)
+})
+
+test('long notification preview scrolls independently and supports dark mode', async ({ page }) => {
+  const state = await setup(page)
+  const titles = ['Payment completed', 'Order cancelled', 'Laundry in progress', 'Ready for pickup', 'Complaint updated']
+  state.items = [6, 10, 4, 8, 12].map((type, index) => ({ ...state.items[0], type, id: `preview-${index}`, title: titles[index], isRead: index > 1 }))
+  await page.goto('/customer/notifications')
+  await expect(page.getByRole('heading', { name: titles[0], exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Notifications', exact: true }).click()
+  const popup = page.getByRole('dialog')
+  await expect(popup).toBeVisible()
+  await popup.getByRole('heading', { name: titles[4], exact: true }).scrollIntoViewIfNeeded()
+  await expect(popup.getByRole('heading', { name: titles[4], exact: true })).toBeInViewport()
+  await expect(popup.getByRole('link', { name: 'All notifications', exact: true })).toBeInViewport()
+  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: 'Switch to dark mode', exact: true }).click()
+  await page.getByRole('button', { name: 'Notifications', exact: true }).click()
+  await expect(popup).toBeVisible()
+  expect(await popup.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+})

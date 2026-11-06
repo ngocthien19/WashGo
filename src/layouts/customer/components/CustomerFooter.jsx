@@ -29,7 +29,7 @@ function FooterPendingLink({ children, className }) {
   )
 }
 
-export default function CustomerFooter() {
+export default function CustomerFooter({ onOpenTerms }) {
   const { t } = useTranslation()
   return (
     <footer className="bg-[#202b3b] text-slate-200 dark:border-t dark:border-border dark:bg-card print:hidden">
@@ -89,9 +89,19 @@ export default function CustomerFooter() {
           <ul className="mt-4 space-y-4 text-sm leading-6 text-slate-400">
             {CUSTOMER_FOOTER.SUPPORT.map((label) => (
               <li key={t(label)}>
-                <FooterPendingLink>
-                  {t(label)}
-                </FooterPendingLink>
+                {label === 'common.termsOfService' ? (
+                  <Button
+                    variant="link"
+                    onClick={onOpenTerms}
+                    className={`h-auto whitespace-normal p-0 text-left text-sm font-normal text-slate-400 hover:text-primary ${TEXT_LINK_STYLES}`}
+                  >
+                    {t(label)}
+                  </Button>
+                ) : (
+                  <FooterPendingLink>
+                    {t(label)}
+                  </FooterPendingLink>
+                )}
               </li>
             ))}
           </ul>
@@ -130,9 +140,13 @@ export default function CustomerFooter() {
           <FooterPendingLink className="text-xs">
             {t('customer.privacy')}
           </FooterPendingLink>
-          <FooterPendingLink className="text-xs">
+          <Button
+            variant="link"
+            onClick={onOpenTerms}
+            className={`h-auto p-0 text-xs font-normal text-slate-400 hover:text-primary ${TEXT_LINK_STYLES}`}
+          >
             {t('customer.terms')}
-          </FooterPendingLink>
+          </Button>
         </div>
       </div>
     </footer>

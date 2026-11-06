@@ -25,6 +25,7 @@ const CustomerOrderReceiptPage = lazy(() => import('~/pages/customer/Orders/Orde
 const CustomerComplaintsPage = lazy(() => import('~/pages/customer/Complaints/ComplaintsPage'))
 const CustomerComplaintDetailPage = lazy(() => import('~/pages/customer/Complaints/ComplaintDetailPage'))
 const CustomerLayout = lazy(() => import('~/layouts/customer/CustomerLayout'))
+const CustomerNotificationsPage = lazy(() => import('~/pages/customer/Notifications/NotificationsPage'))
 const AdminHomePage = lazy(() => import('~/pages/admin/Home/HomePage'))
 const MerchantHomePage = lazy(() => import('~/pages/merchant/Home/HomePage'))
 const ShipperHomePage = lazy(() => import('~/pages/shipper/Home/HomePage'))
@@ -37,6 +38,10 @@ export default function App() {
         <Routes>
           <Route element={<ProtectedRoleRoute role={USER_ROLES.CUSTOMER} />}>
             <Route element={<CustomerLayout />}>
+              <Route
+                path={CUSTOMER_ROUTES.NOTIFICATIONS}
+                element={<CustomerNotificationsPage />}
+              />
               <Route
                 path={CUSTOMER_ROUTES.COMPLAINTS}
                 element={<CustomerComplaintsPage />}

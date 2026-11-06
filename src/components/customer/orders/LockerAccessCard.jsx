@@ -8,9 +8,9 @@ import { ORDER_STATUSES } from '~/utils/constants'
 import { canPickupFromLocker } from '~/components/customer/orders/orderWorkflow'
 import { notify } from '~/utils/notifications'
 
-export default function LockerAccessCard({ order }) {
+export default function LockerAccessCard({ order, defaultShowQr = false }) {
   const { t } = useTranslation()
-  const [showQr, setShowQr] = useState(false)
+  const [showQr, setShowQr] = useState(defaultShowQr)
   const canvas = useRef(null)
   const deposit = order.status === ORDER_STATUSES.PENDING
   const pickup = canPickupFromLocker(order)

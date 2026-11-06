@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { seedSeenTerms } from './helpers/serviceTerms'
 
 const initialProfile = {
   id: '11111111-1111-1111-1111-111111111111', fullName: 'Alex Nguyen', email: 'alex@example.test',
@@ -10,6 +11,7 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR
 const envelope = (data) => ({ succeeded: true, statusCode: 200, data })
 
 const mockCustomer = async (page, options = {}) => {
+  await seedSeenTerms(page, initialProfile.id)
   const state = {
     profile: { ...initialProfile, ...options.profile },
     getFailures: options.getFailures || 0, putFailures: options.putFailures || 0,
