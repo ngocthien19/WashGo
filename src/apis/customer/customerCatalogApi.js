@@ -19,7 +19,7 @@ export const customerCatalogApi = {
   getLocker: (id, signal) => authorizedAxios.get(`${CUSTOMER_API_ENDPOINTS.LOCKERS}/${encodeURIComponent(id)}`, { signal })
     .then(ensureSuccess).then((response) => response.data),
   getLockerAreas: async (signal) => {
-    const areas = new Map()
+    const areas = new Set()
     let page = CUSTOMER_CATALOG.INITIAL_PAGE
     let totalPages = page
     // Customer has no area/distinct endpoint. Read every page, not just the visible results.
@@ -27,18 +27,12 @@ export const customerCatalogApi = {
       const response = await customerCatalogApi.getLockers({ page, take: LOCKER_AREA_PAGE_SIZE }, signal)
       for (const locker of response.list || []) {
         if (locker.city) {
-          if (!areas.has(locker.city)) {
-            areas.set(locker.city, new Set())
-          }
-          if (locker.district) {
-            areas.get(locker.city).add(locker.district)
-          }
+          areas.add(locker.city)
         }
       }
       totalPages = response.totalPages || 0
       page += 1
     }
-    return [...areas].sort(([a], [b]) => a.localeCompare(b, 'vi'))
-      .map(([city, districts]) => ({ city, districts: [...districts].sort((a, b) => a.localeCompare(b, 'vi')) }))
+    return [...areas].sort((a, b) => a.localeCompare(b, 'vi')).map((city) => ({ city }))
   }
 }

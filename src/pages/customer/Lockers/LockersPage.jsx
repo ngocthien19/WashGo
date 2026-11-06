@@ -29,7 +29,6 @@ export default function LockersPage() {
     return {
       keyword: params.get('keyword')?.trim() || '',
       city: params.get('city')?.trim() || '',
-      district: params.get('district')?.trim() || '',
       page: Number.isSafeInteger(page) && page > 0 ? page : CUSTOMER_CATALOG.INITIAL_PAGE
     }
   }, [params])
@@ -38,13 +37,22 @@ export default function LockersPage() {
     take: CUSTOMER_CATALOG.PAGE_SIZE,
     keyword: query.keyword || undefined,
     city: query.city || undefined,
-    district: query.district || undefined,
     ...(sort === 'nearest' ? position : {})
   }, signal), [query, sort, position])
   const { data, loading, error, retry } = useCatalogResource(load)
   const areas = useCatalogResource(customerCatalogApi.getLockerAreas)
   const lockers = data?.list || []
-  const hasFilters = !!(query.keyword || query.city || query.district)
+  const hasFilters = !!(query.keyword || query.city)
+  useEffect(() => {
+    if (params.has('district')) {
+      setParams((current) => {
+        const search = new URLSearchParams(current)
+        search.delete('district')
+        search.delete('page')
+        return search
+      }, { replace: true })
+    }
+  }, [params, setParams])
   const setQuery = (update) => {
     setParams((current) => {
       const search = new URLSearchParams(current)
@@ -136,20 +144,22 @@ export default function LockersPage() {
             onClick={useNearest}
           />
         </div>
-        <CatalogToolbar
-          keyword={query.keyword}
-          label={t('customer.searchLockers')}
-          placeholder={t('customer.searchByLockerNameCodeOrAddress')}
-          onSearch={(keyword) => setQuery({ keyword, page: CUSTOMER_CATALOG.INITIAL_PAGE })}
-        />
         <LockerAreaFilters
-          key={`${query.city}:${query.district}`}
+          key={query.city}
           city={query.city}
-          district={query.district}
+          search={(
+            <CatalogToolbar
+              embedded
+              keyword={query.keyword}
+              label={t('customer.searchLockers')}
+              placeholder={t('customer.searchByLockerNameCodeOrAddress')}
+              onSearch={(keyword) => setQuery({ keyword, page: CUSTOMER_CATALOG.INITIAL_PAGE })}
+            />
+          )}
           hasFilters={hasFilters}
           resource={areas}
           onApply={(areas) => setQuery({ ...areas, page: CUSTOMER_CATALOG.INITIAL_PAGE })}
-          onReset={() => setQuery({ keyword: '', city: '', district: '', page: CUSTOMER_CATALOG.INITIAL_PAGE })}
+          onReset={() => setQuery({ keyword: '', city: '', page: CUSTOMER_CATALOG.INITIAL_PAGE })}
         />
         {locationError && (
           <p
@@ -172,9 +182,9 @@ export default function LockersPage() {
             query={query}
             sortControl={sortControl}
             onRemoveFilter={(id) => setQuery({
-              ...(id === 'city' ? { city: '', district: '' } : { [id]: '' }), page: CUSTOMER_CATALOG.INITIAL_PAGE
+              [id]: '', page: CUSTOMER_CATALOG.INITIAL_PAGE
             })}
-            onClearFilters={() => setQuery({ keyword: '', city: '', district: '', page: CUSTOMER_CATALOG.INITIAL_PAGE })}
+            onClearFilters={() => setQuery({ keyword: '', city: '', page: CUSTOMER_CATALOG.INITIAL_PAGE })}
           />
           {loading || error || !lockers.length ? (
             <CatalogFeedback
