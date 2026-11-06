@@ -15,7 +15,7 @@ async function setup(page, options = {}) {
   await page.addInitScript(({ identity, dark }) => {
     localStorage.setItem('persist:root', JSON.stringify({
       auth: JSON.stringify({ user: identity, accessToken: 'mock-access', refreshToken: 'mock-refresh', expiresAt: '2099-01-01T00:00:00Z' }),
-      preferences: JSON.stringify({ language: 'en' }), theme: JSON.stringify({ mode: dark ? 'dark' : 'light' }),
+      preferences: JSON.stringify({ language: 'en', serviceTermsSeen: { 'customer-test': true } }), theme: JSON.stringify({ mode: dark ? 'dark' : 'light' }),
       _persist: JSON.stringify({ version: 1, rehydrated: true })
     }))
   }, { identity, dark: options.dark })

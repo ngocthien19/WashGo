@@ -5,6 +5,9 @@ import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom'
 import CreateOrderPage from './CreateOrderPage'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import { customerOrderApi } from '~/apis/customer/customerOrderApi'
+import { notify } from '~/utils/notifications'
+
+vi.mock('~/utils/notifications', () => ({ notify: { success: vi.fn(), error: vi.fn() } }))
 
 vi.mock('~/apis/customer/customerCatalogApi', () => ({ customerCatalogApi: { getServices: vi.fn(), getLockers: vi.fn(), getLocker: vi.fn() } }))
 vi.mock('~/apis/customer/customerOrderApi', () => ({ customerOrderApi: { quote: vi.fn(), create: vi.fn() } }))
@@ -94,6 +97,7 @@ describe('create order flow', () => {
     expect(customerOrderApi.create).toHaveBeenCalledWith({ lockerId: 'locker', boxId: 'box', returnLockerId: 'locker', paymentMethod: 1, customerNote: 'Handle carefully', promotionCode: null, items: [{ serviceId: 'service', quantity: 1 }] })
     result.resolve({ id: 'order', orderCode: 'WG123', lockerName: locker.name, boxNumber: 1, finalAmount: 29000, depositPinCode: '123456' })
     expect(await screen.findByRole('heading', { name: 'Tạo đơn thành công!' })).toBeVisible()
+    expect(notify.success).not.toHaveBeenCalled()
     expect(screen.getByText('WG123')).toBeVisible()
     expect(screen.queryByText('123456')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Hiện mã PIN gửi đồ' }))

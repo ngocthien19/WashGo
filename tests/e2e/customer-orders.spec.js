@@ -30,7 +30,7 @@ async function setup(page, options = {}) {
   if (!options.guest) {
     await page.addInitScript(() => localStorage.setItem('persist:root', JSON.stringify({
       auth: JSON.stringify({ user: { id: 'customer-test', fullName: 'Alex Nguyen', role: 'Customer' }, accessToken: 'test-access', refreshToken: 'test-refresh', expiresAt: '2099-01-01T00:00:00Z' }),
-      preferences: JSON.stringify({ language: 'en' }), theme: JSON.stringify({ mode: 'light' }), _persist: JSON.stringify({ version: 1, rehydrated: true })
+      preferences: JSON.stringify({ language: 'en', serviceTermsSeen: { 'customer-test': true } }), theme: JSON.stringify({ mode: 'light' }), _persist: JSON.stringify({ version: 1, rehydrated: true })
     })))
   }
   await page.route('**/api/**', async (route) => {
@@ -848,8 +848,7 @@ test('result counts are prominent and hot toasts keep localized text, theme and 
   await expect(complaintCount).toHaveText('1')
   await expect(complaintCount).toHaveCSS('font-size', '24px')
   await expect(complaintCount).toHaveCSS('font-weight', '700')
-  await page.getByRole('button', { name: 'Open account menu', exact: true }).click()
-  await page.getByRole('menuitem', { name: 'All notifications', exact: true }).click()
+  await page.locator('footer').getByRole('button', { name: 'Privacy', exact: true }).click()
   const toaster = page.locator('[data-rht-toaster]')
   const english = toaster.getByText('This content is being updated.', { exact: true })
   await expect(english).toBeVisible()
@@ -860,8 +859,7 @@ test('result counts are prominent and hot toasts keep localized text, theme and 
   await page.getByRole('button', { name: 'Switch to dark mode', exact: true }).click()
   await page.getByRole('button', { name: 'Change language', exact: true }).click()
   await page.getByRole('menuitem', { name: 'Tiếng Việt', exact: true }).click()
-  await page.getByRole('button', { name: 'Mở menu tài khoản', exact: true }).click()
-  await page.getByRole('menuitem', { name: 'Tất cả thông báo', exact: true }).click()
+  await page.locator('footer').getByRole('button', { name: 'Quyền riêng tư', exact: true }).click()
   const vietnamese = toaster.getByText('Nội dung này đang được cập nhật.', { exact: true })
   await expect(vietnamese).toBeVisible()
   expect(await vietnamese.locator('..').evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe(lightBackground)

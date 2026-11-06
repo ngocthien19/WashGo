@@ -27,6 +27,7 @@ export default defineConfig(({ mode }) => ({
         target: loadEnv(mode, process.cwd(), '').API_PROXY_TARGET || 'http://localhost:5000',
         rewrite: (url) => url.replace(/^\/api/, ''),
         changeOrigin: true,
+        ws: true,
         secure: false
       }
     }

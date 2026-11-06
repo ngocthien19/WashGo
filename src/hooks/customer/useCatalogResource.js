@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getApiError } from '~/utils/apiError'
 
-export default function useCatalogResource(load) {
+export default function useCatalogResource(load, revision = 0) {
   const [attempt, setAttempt] = useState(0)
   const [result, setResult] = useState(null)
 
@@ -9,17 +9,17 @@ export default function useCatalogResource(load) {
     const controller = new AbortController()
     load(controller.signal).then((data) => {
       if (!controller.signal.aborted) {
-        setResult({ load, attempt, data, error: '' })
+        setResult({ load, attempt, revision, data, error: '' })
       }
     }).catch((error) => {
       if (!controller.signal.aborted) {
-        setResult({ load, attempt, data: null, error: getApiError(error) })
+        setResult({ load, attempt, revision, data: null, error: getApiError(error) })
       }
     })
     return () => controller.abort()
-  }, [load, attempt])
+  }, [load, attempt, revision])
 
-  const loading = result?.load !== load || result?.attempt !== attempt
+  const loading = result?.load !== load || result?.attempt !== attempt || result?.revision !== revision
   return {
     data: loading ? null : result.data,
     error: loading ? '' : result.error,

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { seedSeenTerms } from './helpers/serviceTerms'
 
 const user = { id: 'customer-test', fullName: 'Alex Nguyen', email: 'alex@example.test', role: 'Customer' }
 const service = {
@@ -9,6 +10,7 @@ const service = {
 const envelope = (data) => ({ succeeded: true, statusCode: 200, data })
 
 test.beforeEach(async ({ page }) => {
+  await seedSeenTerms(page, user.id)
   // No real accounts, mail, geolocation requests or backend writes during E2E.
   await page.route('https://accounts.google.com/**', (route) => route.abort())
   await page.route('**/api/**', async (route) => {

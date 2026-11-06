@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { seedSeenTerms } from './helpers/serviceTerms'
 
 const user = { id: 'payment-customer', fullName: 'Payment Customer', email: 'payment@example.test', role: 'Customer' }
 const orderId = '11111111-1111-4111-8111-111111111111'
@@ -7,10 +8,17 @@ const order = { id: orderId, orderCode: 'WG2611059288', lockerName: 'Test locker
 const envelope = (data) => ({ succeeded: true, data })
 
 async function setup(page, overrides = {}) {
+  await seedSeenTerms(page, user.id)
   const state = { order: { ...order, ...overrides }, calls: [], failure: null }
   await page.route('https://accounts.google.com/**', (route) => route.abort())
   await page.route('**/api/**', async (route) => {
     const path = new URL(route.request().url()).pathname.replace(/^\/api/, '')
+    if (path.startsWith('/hubs/notifications')) {
+      return route.fulfill({ status: 404, json: { succeeded: false } })
+    }
+    if (path === '/notification/unread-count') {
+      return route.fulfill({ json: envelope(0) })
+    }
     if (path === '/auth/login') {
       return route.fulfill({ json: envelope({ user, accessToken: 'test-access', refreshToken: 'test-refresh', expiresAt: '2099-01-01T00:00:00Z' }) })
     }
