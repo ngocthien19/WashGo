@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { getOrderProgress, canPrintReceipt } from './orderWorkflow'
+import { getOrderProgress, canPrintReceipt, canPickupFromLocker } from './orderWorkflow'
 
 describe('order workflow display', () => {
+  it('offers normal locker pickup only for ready and paid orders', () => {
+    expect(canPickupFromLocker({ status: 10, paymentStatus: 2 })).toBe(true)
+    for (const status of [1, 2, 4, 8, 9, 11, 12, 13, 99]) {
+      expect(canPickupFromLocker({ status, paymentStatus: 2 })).toBe(false)
+    }
+    expect(canPickupFromLocker({ status: 10, paymentStatus: 1 })).toBe(false)
+    expect(canPickupFromLocker({ status: 10, paymentStatus: 3 })).toBe(false)
+  })
   it('counts status milestones instead of inventing time or AI completion estimates', () => {
     expect(getOrderProgress({ status: 1 })).toBe(0)
     expect(getOrderProgress({ status: 12 })).toBe(100)

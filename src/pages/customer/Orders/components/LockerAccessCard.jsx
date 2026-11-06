@@ -4,7 +4,8 @@ import { QRCodeCanvas } from 'qrcode.react'
 import { Copy, Download, QrCode } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import OrderPin from '~/components/customer/orders/OrderPin'
-import { ORDER_STATUSES, PAYMENT_STATUSES } from '~/utils/constants'
+import { ORDER_STATUSES } from '~/utils/constants'
+import { canPickupFromLocker } from '~/components/customer/orders/orderWorkflow'
 import { notify } from '~/utils/notifications'
 
 export default function LockerAccessCard({ order }) {
@@ -12,7 +13,7 @@ export default function LockerAccessCard({ order }) {
   const [showQr, setShowQr] = useState(false)
   const canvas = useRef(null)
   const deposit = order.status === ORDER_STATUSES.PENDING
-  const pickup = order.status === ORDER_STATUSES.READY_TO_RETURN && order.paymentStatus === PAYMENT_STATUSES.PAID
+  const pickup = canPickupFromLocker(order)
   if (!deposit && !pickup) {
     return null
   }

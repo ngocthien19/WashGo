@@ -1,10 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Package, Printer } from 'lucide-react'
+import { Package } from 'lucide-react'
 import Reveal from '~/components/motion/Reveal'
 import OrderStatusBadge from '~/components/customer/orders/OrderStatusBadge'
 import OrderProgress from '~/components/customer/orders/OrderProgress'
-import { canPrintReceipt } from '~/components/customer/orders/orderWorkflow'
 import { Button } from '~/components/ui/button'
 import { CUSTOMER_ROUTES, ORDER_STATUSES } from '~/utils/constants'
 import { formatCurrency, formatDateTime, formatNumber } from '~/utils/formats'
@@ -30,11 +29,11 @@ export default function OrderCard({ order }) {
             <h2 className="break-all font-bold">
               {order.orderCode}
             </h2>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs font-semibold text-muted-foreground">
               {formatDateTime(order.createdOn)}
             </p>
-            <p className="line-clamp-2 text-xs text-primary">
-              {order.serviceNames?.join(' ? ') || t('customer.orders.detailsHint')}
+            <p className="line-clamp-2 text-xs text-primary font-bold">
+              {order.serviceNames?.join(' / ') || t('customer.orders.detailsHint')}
             </p>
           </div>
         </div>
@@ -42,7 +41,7 @@ export default function OrderCard({ order }) {
           <p className="text-xs text-muted-foreground">
             {t('customer.orders.locker')}
           </p>
-          <p className="line-clamp-2 text-sm font-medium">
+          <p className="line-clamp-2 text-sm font-bold">
             {order.lockerName || t('customer.notProvided')}
           </p>
         </div>
@@ -50,15 +49,15 @@ export default function OrderCard({ order }) {
           <p className="text-xs text-muted-foreground">
             {t('customer.orders.compartment')}
           </p>
-          <p className="text-sm font-medium">
-            {order.boxNumber || '?'}
+          <p className="text-sm font-bold">
+            {order.boxNumber || '\u2014'}
           </p>
         </div>
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground">
             {t('customer.orders.actualWeight')}
           </p>
-          <p className="text-sm font-medium">
+          <p className="text-sm font-bold">
             {order.actualWeightKg != null ? `${formatNumber(order.actualWeightKg)} kg` : t('customer.orders.notWeighed')}
           </p>
         </div>
@@ -78,7 +77,7 @@ export default function OrderCard({ order }) {
               {t(order.status === ORDER_STATUSES.CANCELLED ? 'customer.orders.cancel.reason' : 'customer.orders.estimatedFinish')}
             </p>
             <p className="mt-1 line-clamp-2 font-medium text-foreground">
-              {order.status === ORDER_STATUSES.CANCELLED ? order.cancellationReason || '?' : t('customer.orders.etaPending')}
+              {order.status === ORDER_STATUSES.CANCELLED ? order.cancellationReason || '\u2014' : t('customer.orders.etaPending')}
             </p>
           </div>
           <div className="flex flex-wrap items-end justify-between gap-3 xl:justify-end">
@@ -106,17 +105,6 @@ export default function OrderCard({ order }) {
                   className="h-10 rounded-xl"
                 >
                   {t('customer.orders.pay')}
-                </Button>
-              )}
-              {canPrintReceipt(order) && (
-                <Button
-                  render={<Link to={CUSTOMER_ROUTES.ORDER_RECEIPT.replace(':orderId', order.id)} />}
-                  nativeButton={false}
-                  variant="outline"
-                  className="h-10 rounded-xl"
-                >
-                  <Printer size={15} />
-                  {t('customer.orders.receipt.action')}
                 </Button>
               )}
             </div>

@@ -9,7 +9,7 @@ export default function Breadcrumb({ items, className }) {
   return (
     <nav
       aria-label={t('common.breadcrumb')}
-      className={cn('text-sm text-muted-foreground', className)}
+      className={cn('text-base text-muted-foreground', className)}
     >
       <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
         {items.map((item, index) => (

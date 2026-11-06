@@ -24,6 +24,8 @@ const CustomerPaymentPage = lazy(() => import('~/pages/customer/Payment/PaymentP
 const CustomerOrdersPage = lazy(() => import('~/pages/customer/Orders/OrdersPage'))
 const CustomerOrderDetailPage = lazy(() => import('~/pages/customer/Orders/OrderDetailPage'))
 const CustomerOrderReceiptPage = lazy(() => import('~/pages/customer/Orders/OrderReceiptPage'))
+const CustomerComplaintsPage = lazy(() => import('~/pages/customer/Complaints/ComplaintsPage'))
+const CustomerComplaintDetailPage = lazy(() => import('~/pages/customer/Complaints/ComplaintDetailPage'))
 const CustomerLayout = lazy(() => import('~/layouts/customer/CustomerLayout'))
 const AdminHomePage = lazy(() => import('~/pages/admin/Home/HomePage'))
 const MerchantHomePage = lazy(() => import('~/pages/merchant/Home/HomePage'))
@@ -38,6 +40,14 @@ export default function App() {
         <Routes>
           <Route element={<ProtectedRoleRoute role={USER_ROLES.CUSTOMER} />}>
             <Route element={<CustomerLayout />}>
+              <Route
+                path={CUSTOMER_ROUTES.COMPLAINTS}
+                element={<CustomerComplaintsPage />}
+              />
+              <Route
+                path={CUSTOMER_ROUTES.COMPLAINT_DETAIL}
+                element={<CustomerComplaintDetailPage />}
+              />
               <Route
                 path={CUSTOMER_ROUTES.ORDER_RECEIPT}
                 element={<CustomerOrderReceiptPage />}

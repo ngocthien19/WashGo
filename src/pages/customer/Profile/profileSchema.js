@@ -1,5 +1,6 @@
 import * as yup from 'yup'
-import { AUTH_LIMITS, IMAGE_UPLOAD, PROFILE_LIMITS } from '~/utils/constants'
+import { AUTH_LIMITS, PROFILE_LIMITS } from '~/utils/constants'
+import { validateImageFile } from '~/utils/images'
 import { hasControlCharacters } from '~/utils/formats'
 
 export const profileSchema = yup.object({
@@ -22,12 +23,4 @@ export const getProfileValues = (profile) => ({
   address: profile.address || '', district: profile.district || '', city: profile.city || ''
 })
 
-export const validateAvatarFile = (file) => {
-  if (!IMAGE_UPLOAD.MIME_TYPES.includes(file.type)) {
-    return 'customer.profile.imageTypeError'
-  }
-  if (!file.size || file.size > IMAGE_UPLOAD.MAX_BYTES) {
-    return 'customer.profile.imageSizeError'
-  }
-  return ''
-}
+export const validateAvatarFile = validateImageFile
