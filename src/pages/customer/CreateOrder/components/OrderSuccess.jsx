@@ -1,14 +1,13 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { CircleCheck, Eye, EyeOff, Home, PanelsTopLeft, Info, KeyRound, ArrowRight } from 'lucide-react'
+import { CircleCheck, Home, PanelsTopLeft, Info, ArrowRight } from 'lucide-react'
 import { Button } from '~/components/ui/button'
+import OrderPin from '~/components/customer/orders/OrderPin'
 import { CUSTOMER_ROUTES } from '~/utils/constants'
 import { formatCurrency } from '~/utils/formats'
 
 export default function OrderSuccess({ order }) {
   const { t } = useTranslation()
-  const [showPin, setShowPin] = useState(false)
   return (
     <section
       aria-labelledby="order-success-title"
@@ -54,34 +53,29 @@ export default function OrderSuccess({ order }) {
             {t('customer.order.includedWeight', { weight: order.includedWeightKg })}
           </p>
         )}
-        {order.depositPinCode && (
-          <div className="rounded-2xl border border-border bg-muted/15 p-4 sm:p-5">
-            <p className="flex items-center gap-2 text-sm font-medium">
-              <KeyRound className="size-4 text-primary" />
-              {t('customer.order.depositPin')}
-            </p>
-            <div className="mt-3 flex items-center justify-between gap-4">
-              <span className="font-mono text-2xl tracking-[0.25em]">
-                {showPin ? order.depositPinCode : '••••••'}
-              </span>
-              <Button
-                size="icon-lg"
-                variant="secondary"
-                aria-label={t(showPin ? 'customer.order.hidePin' : 'customer.order.showPin')}
-                aria-pressed={showPin}
-                onClick={() => setShowPin(!showPin)}
-              >
-                {showPin ? <EyeOff /> : <Eye />}
-              </Button>
-            </div>
-          </div>
-        )}
+        <OrderPin pin={order.depositPinCode} />
         <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-4">
           <Info className="mt-1 size-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
           <p className="text-sm leading-7 text-muted-foreground">
             {t('customer.order.successNote')}
           </p>
         </div>
+        <Button
+          render={<Link to={CUSTOMER_ROUTES.ORDERS} />}
+          nativeButton={false}
+          variant="secondary"
+          className="h-11 w-full rounded-xl"
+        >
+          {t('common.myOrders')}
+        </Button>
+        <Button
+          render={<Link to={CUSTOMER_ROUTES.PAYMENT.replace(':orderId', order.id)} />}
+          nativeButton={false}
+          className="h-11 w-full rounded-xl"
+        >
+          {t('customer.payment.view')}
+          <ArrowRight />
+        </Button>
         <Button
           render={<Link to={CUSTOMER_ROUTES.HOME} />}
           nativeButton={false}

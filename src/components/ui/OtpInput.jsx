@@ -3,7 +3,7 @@ import { useRef } from 'react'
 import { Input } from '~/components/ui/input'
 import { OTP_CONFIG } from '~/utils/constants'
 
-export default function OtpInput({ value = '', onChange, onBlur, inputRef, error }) {
+export default function OtpInput({ value = '', onChange, onBlur, inputRef, error, disabled = false, masked = false, label = 'common.otpCode', digitLabel = 'common.otpDigit', autoComplete = 'one-time-code' }) {
   const { t } = useTranslation()
   const inputs = useRef([])
   const slots = value.padEnd(OTP_CONFIG.CODE_LENGTH, ' ').split('')
@@ -42,7 +42,7 @@ export default function OtpInput({ value = '', onChange, onBlur, inputRef, error
       <div
         className="grid grid-cols-6 gap-2"
         role="group"
-        aria-label={t('common.otpCode')}
+        aria-label={t(label)}
       >
         {slots.map((digit, index) => (
           <Input
@@ -54,11 +54,12 @@ export default function OtpInput({ value = '', onChange, onBlur, inputRef, error
               }
             }}
             value={digit.trim()}
-            type="text"
+            type={masked ? 'password' : 'text'}
+            disabled={disabled}
             inputMode="numeric"
-            autoComplete={index === 0 ? 'one-time-code' : 'off'}
+            autoComplete={index === 0 ? autoComplete : 'off'}
             maxLength={OTP_CONFIG.CODE_LENGTH}
-            aria-label={t('common.otpDigit', { value1: index + 1 })}
+            aria-label={t(digitLabel, { value1: index + 1 })}
             aria-invalid={!!error}
             aria-describedby={error ? 'otp-error' : undefined}
             className="h-12 rounded-lg bg-background px-0 text-center text-xl font-medium sm:h-14"

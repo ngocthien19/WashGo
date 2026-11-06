@@ -7,6 +7,7 @@ import Reveal from '~/components/motion/Reveal'
 import CatalogFeedback from '~/components/customer/catalog/CatalogFeedback'
 import ServiceGrid from '~/components/customer/services/ServiceGrid'
 import { CUSTOMER_ROUTES } from '~/utils/constants'
+import SectionGlow from './SectionGlow'
 
 export default function FeaturedServices({ data, loading, error, retry }) {
   const { t } = useTranslation()
@@ -16,35 +17,38 @@ export default function FeaturedServices({ data, loading, error, retry }) {
     <section
       id="services"
       aria-labelledby="featured-services-heading"
-      className="mx-auto max-w-7xl scroll-mt-[var(--customer-header-offset)] px-4 py-20 sm:px-6 lg:px-8 lg:py-24"
+      className="relative isolate scroll-mt-[var(--customer-header-offset)] overflow-hidden"
     >
-      <Reveal className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
-        <SectionHeading
-          id="featured-services-heading"
-          title={t('customer.servicesForYou')}
-          description={t('customer.chooseTheRightCareForEveryItemConsistentPrices')}
-          icon={Shirt}
-        />
-        <Button
-          render={<Link to={CUSTOMER_ROUTES.SERVICES} />}
-          nativeButton={false}
-          variant="outline-primary"
-          className="h-11 w-fit shrink-0 gap-2 rounded-full px-5"
-        >
-          {t('customer.viewAll')}
-          <ArrowRight className="transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />
-        </Button>
-      </Reveal>
-      <div aria-busy={loading}>
-        {loading || error || !services.length ? (
-          <CatalogFeedback
-            loading={loading}
-            error={error}
-            retry={retry}
+      <SectionGlow side="left" />
+      <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
+        <Reveal className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
+          <SectionHeading
+            id="featured-services-heading"
+            title={t('customer.servicesForYou')}
+            description={t('customer.chooseTheRightCareForEveryItemConsistentPrices')}
+            icon={Shirt}
           />
-        ) : (
-          <ServiceGrid services={services} />
-        )}
+          <Button
+            render={<Link to={CUSTOMER_ROUTES.SERVICES} />}
+            nativeButton={false}
+            variant="outline-primary"
+            className="h-11 w-fit shrink-0 gap-2 rounded-full px-5"
+          >
+            {t('customer.viewAll')}
+            <ArrowRight className="transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />
+          </Button>
+        </Reveal>
+        <div aria-busy={loading}>
+          {loading || error || !services.length ? (
+            <CatalogFeedback
+              loading={loading}
+              error={error}
+              retry={retry}
+            />
+          ) : (
+            <ServiceGrid services={services} />
+          )}
+        </div>
       </div>
     </section>
   )

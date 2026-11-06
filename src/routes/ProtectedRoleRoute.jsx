@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { authApi } from '~/apis/auth/authApi'
 import { setUser, clearSession } from '~/redux/auth/authSlice'
-import { AUTH_ROUTES } from '~/utils/constants'
+import { AUTH_ROUTES, CUSTOMER_ROUTES } from '~/utils/constants'
 import { getRoleHome, normalizeRole } from '~/utils/roles'
 import { getApiError } from '~/utils/apiError'
 import LoadingScreen from '~/components/LoadingScreen/LoadingScreen'
@@ -14,6 +14,7 @@ import FormError from '~/components/ui/FormError'
 export default function ProtectedRoleRoute({ role }) {
   const { t } = useTranslation()
   const dispatch = useDispatch()
+  const location = useLocation()
   const auth = useSelector((state) => state.auth)
   const hasSession = !!auth.accessToken
   const [profile, setProfile] = useState(null)
@@ -44,6 +45,7 @@ export default function ProtectedRoleRoute({ role }) {
     return (
       <Navigate
         to={AUTH_ROUTES.LOGIN}
+        state={location.pathname === CUSTOMER_ROUTES.PAYMENT_RETURN ? { paymentReturn: `${location.pathname}${location.search}` } : undefined}
         replace
       />
     )

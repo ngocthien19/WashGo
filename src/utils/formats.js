@@ -7,6 +7,14 @@ const getLocale = () => LANGUAGE_OPTIONS.find((option) => option.value === i18n.
 export const formatNumber = (value) => Number.isFinite(value)
   ? new Intl.NumberFormat(getLocale()).format(value) : '—'
 
+export const formatDateTime = (value) => {
+  if (!value) {
+    return '—'
+  }
+  const date = new Date(typeof value === 'number' ? value * 1000 : value)
+  return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat(getLocale(), { dateStyle: 'medium', timeStyle: 'short' }).format(date)
+}
+
 export const getImageUrl = (value) => {
   if (!value?.startsWith('/uploads/')) {
     return value || ''

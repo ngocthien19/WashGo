@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
-import { AUTH_ROUTES, UI_TRANSITIONS } from '~/utils/constants'
+import { AUTH_ROUTES, CUSTOMER_ROUTES, USER_ROLES, UI_TRANSITIONS } from '~/utils/constants'
 import { cn } from '~/lib/utils'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { notify } from '~/utils/notifications'
 import { authApi } from '~/apis/auth/authApi'
@@ -36,6 +36,10 @@ export default function LoginPage() {
   const { t } = useTranslation()
   const dispatch = useDispatch()
   const auth = useSelector((state) => state.auth)
+  const { state } = useLocation()
+  const paymentReturn = auth.user?.role === USER_ROLES.CUSTOMER && typeof state?.paymentReturn === 'string'
+    && (state.paymentReturn === CUSTOMER_ROUTES.PAYMENT_RETURN || state.paymentReturn.startsWith(`${CUSTOMER_ROUTES.PAYMENT_RETURN}?`))
+    ? state.paymentReturn : null
   const completeLogin = useCallback((data) => {
     if (!getRoleHome(data.user?.role)) {
       throw new Error('auth.yourAccountDoesNotHaveASupportedRolePlease')
@@ -47,7 +51,7 @@ export default function LoginPage() {
   if (auth.accessToken) {
     return (
       <Navigate
-        to={getRoleHome(auth.user?.role) || AUTH_ROUTES.ACCOUNT}
+        to={paymentReturn || getRoleHome(auth.user?.role) || AUTH_ROUTES.ACCOUNT}
         replace
       />
     )

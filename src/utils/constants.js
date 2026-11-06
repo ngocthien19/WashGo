@@ -27,13 +27,18 @@ export const CUSTOMER_ROUTES = {
   SERVICES: '/customer/services',
   LOCKERS: '/customer/lockers',
   CREATE_ORDER: '/customer/orders/new',
+  ORDERS: '/customer/orders',
+  ORDER_DETAIL: '/customer/orders/:orderId',
+  ORDER_RECEIPT: '/customer/orders/:orderId/receipt',
+  PAYMENT: '/customer/orders/:orderId/payment',
+  PAYMENT_RETURN: '/payment/return',
   PROFILE: '/customer/profile'
 }
 
 export const CUSTOMER_NAVIGATION = [
   { label: 'common.home', href: CUSTOMER_ROUTES.HOME },
   { label: 'common.createAnOrder', href: CUSTOMER_ROUTES.CREATE_ORDER },
-  { label: 'common.myOrders', pending: true },
+  { label: 'common.myOrders', href: CUSTOMER_ROUTES.ORDERS },
   { label: 'common.services', href: CUSTOMER_ROUTES.SERVICES },
   { label: 'common.lockers', href: CUSTOMER_ROUTES.LOCKERS }
 ]
@@ -41,6 +46,8 @@ export const CUSTOMER_NAVIGATION = [
 export const CUSTOMER_API_ENDPOINTS = {
   ORDERS: '/wash-order',
   ORDER_QUOTE: '/wash-order/apply-voucher',
+  MY_ORDERS: '/wash-order/mine',
+  PAYMENT: '/payment/create-url',
   PROFILE: '/customer/me',
   SERVICES: '/customer/services',
   SERVICE_FILTER: '/customer/services/filter',
@@ -48,7 +55,41 @@ export const CUSTOMER_API_ENDPOINTS = {
 }
 
 export const ORDER_LIMITS = { MAX_SERVICES: 30, MAX_QUANTITY: 1000, NOTE_MAX: 500, CODE_MAX: 50 }
-export const ORDER_PAYMENT_METHODS = { CASH: 1 }
+export const ORDER_PAYMENT_METHODS = { CASH: 1, VNPAY: 2, MOMO: 3 }
+export const ORDER_STATUSES = {
+  PENDING: 1, DEPOSITED: 2, COLLECTED: 3, WASHING: 4, DRYING: 5, IRONING: 6, FOLDING: 7,
+  AWAITING_PAYMENT: 8, PAID: 9, READY_TO_RETURN: 10, RETURNED: 11, COMPLETED: 12, MOVED_TO_STORAGE: 13, CANCELLED: 99
+}
+export const ORDER_STATUS_OPTIONS = [
+  ['PENDING', 'slate'], ['DEPOSITED', 'sky'], ['COLLECTED', 'cyan'], ['WASHING', 'blue'],
+  ['DRYING', 'blue'], ['IRONING', 'blue'], ['FOLDING', 'blue'], ['AWAITING_PAYMENT', 'amber'],
+  ['PAID', 'emerald'], ['READY_TO_RETURN', 'violet'], ['RETURNED', 'teal'], ['COMPLETED', 'emerald'],
+  ['MOVED_TO_STORAGE', 'amber'], ['CANCELLED', 'red']
+].map(([name, color]) => ({ value: String(ORDER_STATUSES[name]), label: `customer.orders.status.${name}`, color }))
+export const ORDER_STATUS_COLORS = {
+  slate: 'bg-slate-500/10 text-slate-700 dark:text-slate-300',
+  sky: 'bg-sky-500/10 text-sky-700 dark:text-sky-300',
+  cyan: 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300',
+  blue: 'bg-blue-500/10 text-blue-700 dark:text-blue-300',
+  amber: 'bg-amber-500/10 text-amber-800 dark:text-amber-300',
+  emerald: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  violet: 'bg-violet-500/10 text-violet-700 dark:text-violet-300',
+  teal: 'bg-teal-500/10 text-teal-700 dark:text-teal-300',
+  red: 'bg-red-500/10 text-red-700 dark:text-red-300'
+}
+export const ORDER_WORKFLOW = ORDER_STATUS_OPTIONS.filter((option) => Number(option.value) <= ORDER_STATUSES.COMPLETED)
+export const QR_SCAN = { MAX_BYTES: 5 * 1024 * 1024, MAX_PIXELS: 16000000, MIME_TYPES: ['image/png', 'image/jpeg', 'image/webp'] }
+export const ORDER_LIST = { PAGE_SIZE: 6, REASON_MAX: 500 }
+export const ORDER_SORT_OPTIONS = [
+  { value: 'newest', label: 'customer.orders.newest', sortBy: [{ field: 'CreatedOn', isDescending: true }] },
+  { value: 'oldest', label: 'customer.orders.oldest', sortBy: [{ field: 'CreatedOn', isDescending: false }] }
+]
+export const PAYMENT_STATUSES = { UNPAID: 1, PAID: 2, REFUNDED: 3 }
+export const PAYMENT_OPTIONS = [
+  { value: ORDER_PAYMENT_METHODS.CASH, label: 'customer.order.cash' },
+  { value: ORDER_PAYMENT_METHODS.VNPAY, label: 'VNPAY' },
+  { value: ORDER_PAYMENT_METHODS.MOMO, label: 'MoMo' }
+]
 export const ORDER_PANEL_HEADER_STYLES = 'flex items-center gap-3 border-b border-border/60 bg-primary/5 p-5'
 
 // Order choices deliberately keep a light blue surface in both themes.

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { ClipboardList, PackageCheck, ScanLine, WashingMachine } from 'lucide-react'
 import Reveal from '~/components/motion/Reveal'
 import { UI_MOTION } from '~/utils/constants'
+import SectionGlow from './SectionGlow'
 
 const steps = [
   { icon: ClipboardList, title: 'customer.createAnOrder', description: 'customer.chooseTheServiceAndLockerThatWorkForYou' },
@@ -18,7 +19,7 @@ export default function HowItWorks() {
       aria-labelledby="how-it-works-heading"
       className="relative isolate scroll-mt-[var(--customer-header-offset)] overflow-hidden bg-primary/4 px-4 py-20 sm:px-6 lg:py-24"
     >
-      <div className="pointer-events-none absolute -right-24 -top-36 -z-10 size-96 rounded-full bg-primary/7 blur-3xl" />
+      <SectionGlow side="left" />
       <div className="mx-auto max-w-7xl">
         <Reveal className="text-center">
           <h2

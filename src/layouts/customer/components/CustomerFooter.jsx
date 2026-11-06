@@ -32,7 +32,7 @@ function FooterPendingLink({ children, className }) {
 export default function CustomerFooter() {
   const { t } = useTranslation()
   return (
-    <footer className="bg-[#202b3b] text-slate-200 dark:border-t dark:border-border dark:bg-card">
+    <footer className="bg-[#202b3b] text-slate-200 dark:border-t dark:border-border dark:bg-card print:hidden">
       <Reveal className="mx-auto grid max-w-7xl gap-10 px-6 pb-16 pt-16 sm:grid-cols-2 lg:grid-cols-4 lg:gap-14 lg:px-8 lg:pb-24 lg:pt-20">
         <div>
           <Brand
