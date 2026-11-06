@@ -11,6 +11,7 @@ import { CUSTOMER_CATALOG, CUSTOMER_ROUTES } from '~/utils/constants'
 import CatalogFeedback from '~/components/customer/catalog/CatalogFeedback'
 import LockerResults from '~/components/customer/lockers/LockerResults'
 import LocationButton from '~/components/customer/lockers/LocationButton'
+import SectionGlow from './SectionGlow'
 
 export default function NearbyLockers() {
   const { t } = useTranslation()
@@ -26,8 +27,9 @@ export default function NearbyLockers() {
     <section
       id="lockers"
       aria-labelledby="nearby-lockers-heading"
-      className="scroll-mt-[var(--customer-header-offset)] bg-muted/35"
+      className="relative isolate scroll-mt-[var(--customer-header-offset)] overflow-hidden bg-muted/35"
     >
+      <SectionGlow side="right" />
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
         <Reveal className="mb-7 flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
           <SectionHeading

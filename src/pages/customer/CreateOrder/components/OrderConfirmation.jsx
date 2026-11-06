@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next'
+import { Controller } from 'react-hook-form'
+import PaymentMethodPicker from '~/components/customer/payments/PaymentMethodPicker'
 import { MapPin, Banknote, TicketPercent, RefreshCw, X, PackageCheck, Shirt, PanelsTopLeft, Info } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import FormField from '~/components/ui/FormField'
@@ -69,14 +71,25 @@ export default function OrderConfirmation({ items, locker, box, form, quote, pro
           </div>
         </section>
         <section className="space-y-5 rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
+          <Controller
+            name="paymentMethod"
+            control={form.control}
+            render={({ field }) => (
+              <PaymentMethodPicker
+                value={field.value}
+                onChange={field.onChange}
+                disabled={busy}
+              />
+            )}
+          />
           <div className="flex items-start gap-3 rounded-xl bg-emerald-500/8 p-4">
             <Banknote className="shrink-0 text-emerald-700 dark:text-emerald-400" />
             <div>
               <h2 className="font-semibold">
-                {t('customer.order.cash')}
+                {t('customer.payment.afterProcessing')}
               </h2>
               <p className="mt-1 text-xs leading-6 text-muted-foreground">
-                {t('customer.order.cashNote')}
+                {t('customer.payment.processingNote')}
               </p>
             </div>
           </div>

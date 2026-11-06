@@ -25,6 +25,8 @@ export default function CustomerHeader() {
   const reduceMotion = useReducedMotion()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [pending, setPending] = useState(false)
+  const isActive = (href) => pathname === href || (href === CUSTOMER_ROUTES.ORDERS
+    && pathname.startsWith(`${CUSTOMER_ROUTES.ORDERS}/`) && pathname !== CUSTOMER_ROUTES.CREATE_ORDER)
 
   const logout = async () => {
     if (pending) {
@@ -45,7 +47,7 @@ export default function CustomerHeader() {
   const navigation = (mobile = false) => (
     <nav
       aria-label={mobile ? t('customer.mobileNavigation') : t('customer.mainNavigation')}
-      className={cn('gap-1', mobile ? 'flex flex-col border-t border-border px-4 py-3' : 'hidden items-center xl:flex')}
+      className={cn('gap-1', mobile ? 'flex flex-col border-t border-border px-4 py-3' : 'hidden items-center lg:flex')}
     >
       {CUSTOMER_NAVIGATION.map((item) => item.pending ? (
         <span
@@ -66,10 +68,10 @@ export default function CustomerHeader() {
               window.scrollTo({ top: 0, behavior: 'instant' })
             }
           }}
-          aria-current={pathname === item.href ? 'page' : undefined}
-          className={cn('relative rounded-xl px-3 py-2.5 text-sm font-medium no-underline hover:bg-primary/5 hover:text-primary focus-visible:outline-2 focus-visible:outline-ring', UI_TRANSITIONS.BUTTON, pathname === item.href && 'text-primary')}
+          aria-current={isActive(item.href) ? 'page' : undefined}
+          className={cn('relative whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-medium no-underline hover:bg-primary/5 hover:text-primary focus-visible:outline-2 focus-visible:outline-ring lg:px-2 xl:px-3', UI_TRANSITIONS.BUTTON, isActive(item.href) && 'text-primary')}
         >
-          {pathname === item.href && (
+          {isActive(item.href) && (
             <motion.span
               layoutId={`customer-active-nav-${mobile ? 'mobile' : 'desktop'}`}
               transition={{ duration: reduceMotion ? 0 : UI_MOTION.DURATION, ease: UI_MOTION.EASE }}
@@ -88,7 +90,7 @@ export default function CustomerHeader() {
   )
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur-md print:hidden">
       <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <Brand
           to={CUSTOMER_ROUTES.HOME}
@@ -149,7 +151,7 @@ export default function CustomerHeader() {
                 <UserRound size={16} />
                 {t('customer.profile.title')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => notify.info('customer.thisContentIsBeingUpdated')}>
+              <DropdownMenuItem render={<Link to={CUSTOMER_ROUTES.ORDERS} />}>
                 <ClipboardList size={16} />
                 {t('common.myOrders')}
               </DropdownMenuItem>
@@ -174,7 +176,7 @@ export default function CustomerHeader() {
           <Button
             variant="ghost"
             size="icon"
-            className="size-9 xl:hidden"
+            className="size-9 lg:hidden"
             aria-label={t('customer.openNavigationMenu')}
             aria-expanded={mobileOpen}
             aria-controls="customer-mobile-navigation"
@@ -185,7 +187,10 @@ export default function CustomerHeader() {
         </div>
       </div>
       {mobileOpen && (
-        <div id="customer-mobile-navigation">
+        <div
+          id="customer-mobile-navigation"
+          className="lg:hidden"
+        >
           {navigation(true)}
         </div>
       )}

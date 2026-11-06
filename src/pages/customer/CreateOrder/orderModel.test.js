@@ -5,6 +5,11 @@ const weighted = { service: { id: 'wash', unit: 'KG' }, quantity: 1 }
 const perItem = { service: { id: 'iron', unit: 'piece' }, quantity: 2 }
 
 describe('order input contract', () => {
+  it.each([1, 2, 3])('sends the selected supported payment method %s', async (paymentMethod) => {
+    expect(toCreateOrder({ items: [perItem], locker: { id: 'locker' }, box: { id: 'box' }, paymentMethod }).paymentMethod).toBe(paymentMethod)
+    await expect(orderDetailsSchema.validate({ paymentMethod })).resolves.toMatchObject({ paymentMethod })
+    await expect(orderDetailsSchema.validate({ paymentMethod: 99 })).rejects.toThrow('customer.payment.invalidMethod')
+  })
   it('accepts mixed services and rejects invalid quantities or duplicates', () => {
     expect(validOrderItems([weighted, perItem])).toBe(true)
     for (const quantity of ['', 0, 1.5, 1001, NaN]) {

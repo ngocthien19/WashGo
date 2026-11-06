@@ -8,6 +8,9 @@ export default defineConfig(({ mode }) => ({
     react(),
     tailwindcss()
   ],
+  optimizeDeps: {
+    include: ['qrcode.react', '@yudiel/react-qr-scanner', 'barcode-detector/ponyfill']
+  },
   resolve: {
     alias: [
       { find: '~', replacement: path.resolve(import.meta.dirname, './src') }

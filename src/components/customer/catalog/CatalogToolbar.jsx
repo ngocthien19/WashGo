@@ -2,11 +2,12 @@ import { useId } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
+import { cn } from '~/lib/utils'
 
-export default function CatalogToolbar({ keyword, onSearch, label, placeholder, actions }) {
+export default function CatalogToolbar({ keyword, onSearch, label, placeholder, actions, embedded = false, className }) {
   const id = useId()
   return (
-    <div className="flex min-w-0 flex-col gap-4 rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-5 md:flex-row md:items-center md:justify-between">
+    <div className={cn('flex min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between', !embedded && 'rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-5', className)}>
       <form
         role="search"
         aria-label={label}

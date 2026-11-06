@@ -1,7 +1,7 @@
-import { CUSTOMER_CATALOG, SERVICE_SORT_OPTIONS, SERVICE_TYPES } from '~/utils/constants'
+import { CUSTOMER_CATALOG, SERVICE_PRICE_RANGES, SERVICE_SORT_OPTIONS, SERVICE_TYPES } from '~/utils/constants'
 
 export const initialServiceQuery = {
-  keyword: '', serviceType: '', minPrice: '', maxPrice: '', sort: SERVICE_SORT_OPTIONS[0].value,
+  keyword: '', serviceTypes: [], priceRanges: [], minPrice: '', maxPrice: '', sort: SERVICE_SORT_OPTIONS[0].value,
   page: CUSTOMER_CATALOG.INITIAL_PAGE
 }
 
@@ -25,28 +25,37 @@ export const getPriceRangeError = (minPrice, maxPrice) => {
 
 export const readServiceQuery = (params) => {
   const page = Number(params.get('page'))
-  const serviceType = params.get('serviceType') || ''
+  const serviceTypes = [...new Set(params.getAll('serviceType'))].filter((value) => value && SERVICE_TYPES.some((type) => type.value === value))
+  const priceRanges = [...new Set(params.getAll('priceRange'))].filter((value) => value && SERVICE_PRICE_RANGES.some((range) => range.value === value))
   const sort = params.get('sort') || ''
   const minPrice = params.get('minPrice')?.trim() || ''
   const maxPrice = params.get('maxPrice')?.trim() || ''
   const invalidRange = getPriceRangeError(minPrice, maxPrice)
+  const legacyPreset = !invalidRange && (minPrice || maxPrice)
+    ? SERVICE_PRICE_RANGES.find((range) => range.value && range.minPrice === minPrice && range.maxPrice === maxPrice) : null
+  if (legacyPreset && !priceRanges.includes(legacyPreset.value)) {
+    priceRanges.push(legacyPreset.value)
+  }
   return {
     keyword: params.get('keyword')?.trim() || '',
-    serviceType: SERVICE_TYPES.some((type) => type.value === serviceType) ? serviceType : '',
+    serviceTypes,
+    priceRanges,
     sort: SERVICE_SORT_OPTIONS.some((option) => option.value === sort) ? sort : initialServiceQuery.sort,
-    minPrice: invalidRange ? '' : minPrice,
-    maxPrice: invalidRange ? '' : maxPrice,
+    minPrice: invalidRange || legacyPreset ? '' : minPrice,
+    maxPrice: invalidRange || legacyPreset ? '' : maxPrice,
     page: Number.isSafeInteger(page) && page >= CUSTOMER_CATALOG.INITIAL_PAGE ? page : CUSTOMER_CATALOG.INITIAL_PAGE
   }
 }
 
 export const writeServiceQuery = (query) => {
   const params = new URLSearchParams()
-  for (const key of ['keyword', 'serviceType', 'minPrice', 'maxPrice']) {
+  for (const key of ['keyword', 'minPrice', 'maxPrice']) {
     if (query[key]) {
       params.set(key, query[key])
     }
   }
+  query.serviceTypes.forEach((value) => params.append('serviceType', value))
+  query.priceRanges.forEach((value) => params.append('priceRange', value))
   if (query.sort !== initialServiceQuery.sort) {
     params.set('sort', query.sort)
   }
@@ -60,8 +69,10 @@ export const buildServiceFilter = (query) => ({
   page: query.page,
   take: CUSTOMER_CATALOG.PAGE_SIZE,
   keyword: query.keyword || undefined,
-  serviceType: query.serviceType ? Number(query.serviceType) : undefined,
-  minPrice: parsePrice(query.minPrice),
-  maxPrice: parsePrice(query.maxPrice),
+  serviceTypes: query.serviceTypes.map(Number),
+  priceRanges: [
+    ...query.priceRanges.map((value) => SERVICE_PRICE_RANGES.find((range) => range.value === value)),
+    ...(query.minPrice || query.maxPrice ? [query] : [])
+  ].map((range) => ({ minPrice: parsePrice(range.minPrice), maxPrice: parsePrice(range.maxPrice) })),
   sortBy: (SERVICE_SORT_OPTIONS.find((option) => option.value === query.sort) || SERVICE_SORT_OPTIONS[0]).sortBy
 })

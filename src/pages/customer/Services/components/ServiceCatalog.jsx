@@ -22,7 +22,7 @@ export default function ServiceCatalog() {
   const load = useCallback((signal) => customerCatalogApi.getServices(buildServiceFilter(query), signal), [query])
   const { data, loading, error, retry } = useCatalogResource(load)
   const services = data?.list || []
-  const hasFilters = !!(query.keyword || query.serviceType || query.minPrice || query.maxPrice)
+  const hasFilters = !!(query.keyword || query.serviceTypes.length || query.priceRanges.length || query.minPrice || query.maxPrice)
   const priceRange = SERVICE_PRICE_RANGES.find((range) => range.minPrice === query.minPrice && range.maxPrice === query.maxPrice)
   const priceLabel = priceRange ? t(priceRange.label) : query.minPrice && query.maxPrice
     ? t('customer.serviceCatalog.customBetween', { min: formatCurrency(query.minPrice), max: formatCurrency(query.maxPrice) })
@@ -31,7 +31,8 @@ export default function ServiceCatalog() {
     })
   const filters = [
     query.keyword && { id: 'keyword', label: t('customer.keywordFilter', { keyword: query.keyword }) },
-    query.serviceType && { id: 'serviceType', label: t(SERVICE_TYPES.find((type) => type.value === query.serviceType).label) },
+    ...query.serviceTypes.map((value) => ({ id: `type:${value}`, label: t(SERVICE_TYPES.find((type) => type.value === value).label) })),
+    ...query.priceRanges.map((value) => ({ id: `range:${value}`, label: t(SERVICE_PRICE_RANGES.find((range) => range.value === value).label) })),
     (query.minPrice || query.maxPrice) && { id: 'price', label: priceLabel }
   ].filter(Boolean)
   const firstResult = services.length ? (data.currentPage - 1) * (data.pageSize || CUSTOMER_CATALOG.PAGE_SIZE) + 1 : 0
@@ -56,12 +57,14 @@ export default function ServiceCatalog() {
       </h1>
       <div className="grid items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)] xl:gap-8">
         <ServiceFilters
-          value={query.serviceType}
+          values={query.serviceTypes}
+          priceRanges={query.priceRanges}
           minPrice={query.minPrice}
           maxPrice={query.maxPrice}
           priceLabel={priceLabel}
-          onPriceApply={(prices) => setQuery((current) => ({ ...current, ...prices, page: CUSTOMER_CATALOG.INITIAL_PAGE }))}
-          onChange={(serviceType) => setQuery((current) => ({ ...current, serviceType, page: CUSTOMER_CATALOG.INITIAL_PAGE }))}
+          onPriceApply={(ranges) => setQuery((current) => ({ ...current, priceRanges: ranges.filter((value) => value !== 'custom'),
+            minPrice: ranges.includes('custom') ? current.minPrice : '', maxPrice: ranges.includes('custom') ? current.maxPrice : '', page: CUSTOMER_CATALOG.INITIAL_PAGE }))}
+          onChange={(serviceTypes) => setQuery((current) => ({ ...current, serviceTypes, page: CUSTOMER_CATALOG.INITIAL_PAGE }))}
           onReset={clearFilters}
           hasFilters={hasFilters}
         />
@@ -97,7 +100,11 @@ export default function ServiceCatalog() {
                   ? t('customer.showing', { firstResult, lastResult, total: data.total }) : undefined}
                 filters={filters}
                 onRemoveFilter={(id) => setQuery((current) => ({
-                  ...current, ...(id === 'price' ? { minPrice: '', maxPrice: '' } : { [id]: '' }), page: CUSTOMER_CATALOG.INITIAL_PAGE
+                  ...current,
+                  ...(id.startsWith('type:') ? { serviceTypes: current.serviceTypes.filter((value) => `type:${value}` !== id) }
+                    : id.startsWith('range:') ? { priceRanges: current.priceRanges.filter((value) => `range:${value}` !== id) }
+                      : id === 'price' ? { minPrice: '', maxPrice: '' } : { keyword: '' }),
+                  page: CUSTOMER_CATALOG.INITIAL_PAGE
                 }))}
                 onClearFilters={clearFilters}
               />

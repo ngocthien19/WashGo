@@ -20,6 +20,10 @@ const CustomerServicesPage = lazy(() => import('~/pages/customer/Services/Servic
 const CustomerLockersPage = lazy(() => import('~/pages/customer/Lockers/LockersPage'))
 const CustomerProfilePage = lazy(() => import('~/pages/customer/Profile/ProfilePage'))
 const CustomerCreateOrderPage = lazy(() => import('~/pages/customer/CreateOrder/CreateOrderPage'))
+const CustomerPaymentPage = lazy(() => import('~/pages/customer/Payment/PaymentPage'))
+const CustomerOrdersPage = lazy(() => import('~/pages/customer/Orders/OrdersPage'))
+const CustomerOrderDetailPage = lazy(() => import('~/pages/customer/Orders/OrderDetailPage'))
+const CustomerOrderReceiptPage = lazy(() => import('~/pages/customer/Orders/OrderReceiptPage'))
 const CustomerLayout = lazy(() => import('~/layouts/customer/CustomerLayout'))
 const AdminHomePage = lazy(() => import('~/pages/admin/Home/HomePage'))
 const MerchantHomePage = lazy(() => import('~/pages/merchant/Home/HomePage'))
@@ -34,6 +38,26 @@ export default function App() {
         <Routes>
           <Route element={<ProtectedRoleRoute role={USER_ROLES.CUSTOMER} />}>
             <Route element={<CustomerLayout />}>
+              <Route
+                path={CUSTOMER_ROUTES.ORDER_RECEIPT}
+                element={<CustomerOrderReceiptPage />}
+              />
+              <Route
+                path={CUSTOMER_ROUTES.ORDERS}
+                element={<CustomerOrdersPage />}
+              />
+              <Route
+                path={CUSTOMER_ROUTES.ORDER_DETAIL}
+                element={<CustomerOrderDetailPage />}
+              />
+              <Route
+                path={CUSTOMER_ROUTES.PAYMENT}
+                element={<CustomerPaymentPage />}
+              />
+              <Route
+                path={CUSTOMER_ROUTES.PAYMENT_RETURN}
+                element={<CustomerPaymentPage />}
+              />
               <Route
                 path={CUSTOMER_ROUTES.CREATE_ORDER}
                 element={<CustomerCreateOrderPage />}

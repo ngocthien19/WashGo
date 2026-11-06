@@ -11,7 +11,7 @@ import { Button } from '~/components/ui/button'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import { customerOrderApi } from '~/apis/customer/customerOrderApi'
 import useCatalogResource from '~/hooks/customer/useCatalogResource'
-import { CUSTOMER_ROUTES } from '~/utils/constants'
+import { CUSTOMER_ROUTES, ORDER_PAYMENT_METHODS } from '~/utils/constants'
 import { getApiError } from '~/utils/apiError'
 import { orderDetailsSchema, toCreateOrder, toOrderItems, validOrderItems } from './orderModel'
 import OrderStepper from './components/OrderStepper'
@@ -34,7 +34,7 @@ export default function CreateOrderPage() {
   const pending = useRef(false)
   const active = useRef(true)
   const stepTitle = useRef(null)
-  const form = useForm({ resolver: yupResolver(orderDetailsSchema), defaultValues: { customerNote: '', promotionCode: '' } })
+  const form = useForm({ resolver: yupResolver(orderDetailsSchema), defaultValues: { customerNote: '', promotionCode: '', paymentMethod: ORDER_PAYMENT_METHODS.CASH } })
   const loadQuote = useCallback((signal) => step === 2
     ? customerOrderApi.quote({ lockerId: locker.id, items: toOrderItems(items), promotionCode: promotionCode || null }, signal)
     : Promise.resolve(null), [step, locker, items, promotionCode])
@@ -126,7 +126,7 @@ export default function CreateOrderPage() {
     setBusy(true)
     setError('')
     try {
-      const result = await customerOrderApi.create(toCreateOrder({ items, locker, box, customerNote: values.customerNote, promotionCode }))
+      const result = await customerOrderApi.create(toCreateOrder({ items, locker, box, customerNote: values.customerNote, promotionCode, paymentMethod: values.paymentMethod }))
       if (!result.id || !result.orderCode || !Number.isFinite(result.finalAmount)) {
         // The server may already have created the order even if its response is incomplete.
         throw new Error('customer.order.unknownOutcome')

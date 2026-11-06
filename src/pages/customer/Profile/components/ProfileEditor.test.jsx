@@ -19,7 +19,7 @@ vi.mock('~/components/motion/Reveal', () => ({
 vi.mock('~/utils/notifications', () => ({ notify: { success: vi.fn() } }))
 
 const profile = {
-  id: 'customer-1', email: 'alex@example.test', fullName: 'Alex Nguyen', phone: null,
+  id: 'customer-1', email: 'alex@example.test', fullName: 'Alex Nguyen', phone: '0901234567',
   address: '123 Le Loi', district: 'Quan 1', city: 'TP. Ho Chi Minh', avatarUrl: null,
   totalOrders: 0, totalSpent: 0, loyaltyPoints: 0
 }
@@ -54,8 +54,8 @@ describe('profile editing', () => {
     await user.click(save)
     await waitFor(() => expect(save).toBeDisabled())
     expect(update).toHaveBeenLastCalledWith({
-      fullName: 'Alex Updated', phone: null, address: profile.address,
-      district: profile.district, city: profile.city, avatarUrl: null
+      fullName: 'Alex Updated', phone: profile.phone, address: profile.address,
+      city: profile.city, avatarUrl: null
     }, expect.any(AbortSignal))
     expect(store.getState().auth.user.fullName).toBe('Alex Updated')
     expect(store.getState().auth.user.role).toBe('Customer')

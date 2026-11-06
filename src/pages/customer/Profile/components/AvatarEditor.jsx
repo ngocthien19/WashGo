@@ -49,7 +49,7 @@ export default function AvatarEditor({ profile, file, removed, disabled, onChang
             {t('customer.profile.changePhoto')}
           </Button>
           <Button
-            variant="secondary"
+            variant="destructive"
             size="icon"
             className="size-10 rounded-xl"
             disabled={disabled || !avatar}

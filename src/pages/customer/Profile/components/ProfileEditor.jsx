@@ -12,7 +12,6 @@ import FormField from '~/components/ui/FormField'
 import FormError from '~/components/ui/FormError'
 import Reveal from '~/components/motion/Reveal'
 import { getApiError } from '~/utils/apiError'
-import { normalizePhone } from '~/utils/formats'
 import { notify } from '~/utils/notifications'
 import { AUTH_LIMITS, PROFILE_LIMITS } from '~/utils/constants'
 import { getProfileValues, profileSchema } from '../profileSchema'
@@ -73,9 +72,10 @@ export default function ProfileEditor({ profile }) {
         avatarUrl = uploaded.current.url
       }
       const result = await customerProfileApi.updateProfile({
-        ...values, phone: values.phone ? normalizePhone(values.phone) : null,
-        city: values.city || null,
-        district: values.address !== (saved.address || '') || values.city !== (saved.city || '') ? null : values.district || null,
+        fullName: values.fullName,
+        phone: values.phone,
+        address: values.address,
+        city: values.city,
         avatarUrl
       }, controller.signal)
       if (controller.signal.aborted) {
@@ -156,8 +156,9 @@ export default function ProfileEditor({ profile }) {
                   register={register}
                   name="phone"
                   type="tel"
+                  required
                   label="auth.phoneNumber"
-                  hint="customer.profile.phoneOptional"
+                  hint="customer.profile.phoneFormat"
                   error={errors.phone}
                   maxLength={PROFILE_LIMITS.PHONE_DISPLAY_MAX}
                   autoComplete="tel"
@@ -213,6 +214,7 @@ export default function ProfileEditor({ profile }) {
                 <FormField
                   register={register}
                   name="city"
+                  required
                   label="customer.provinceCity"
                   hint="customer.addressMap.currentStructure"
                   error={errors.city}

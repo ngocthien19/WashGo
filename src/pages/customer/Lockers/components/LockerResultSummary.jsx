@@ -9,8 +9,7 @@ export default function LockerResultSummary({ data, loading, error, query, sortC
   const last = first ? first + data.list.length - 1 : 0
   const filters = [
     query.keyword && { id: 'keyword', label: t('customer.keywordFilter', { keyword: query.keyword }) },
-    query.city && { id: 'city', label: query.city },
-    query.district && { id: 'district', label: query.district }
+    query.city && { id: 'city', label: query.city }
   ].filter(Boolean)
   return (
     <CatalogResultSummary
