@@ -24,7 +24,7 @@ export default function ProfileStats({ profile }) {
             />
           </span>
           <div className="min-w-0">
-            <dt className="text-xs leading-5 text-muted-foreground">
+            <dt className="text-sm leading-5 text-muted-foreground">
               {t(label)}
             </dt>
             <dd className="mt-1 break-words text-lg font-bold tracking-tight">
