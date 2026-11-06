@@ -1,4 +1,6 @@
-export default function SectionHeading({ id, title, description, icon: Icon, as: Heading = 'h2' }) {
+import { cn } from '~/lib/utils'
+
+export default function SectionHeading({ id, title, description, descriptionClassName, icon: Icon, as: Heading = 'h2' }) {
   return (
     <div className="flex min-w-0 items-start gap-4">
       <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/15 to-primary/5 text-primary shadow-sm sm:size-14">
@@ -15,7 +17,7 @@ export default function SectionHeading({ id, title, description, icon: Icon, as:
         >
           {title}
         </Heading>
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">
+        <p className={cn('mt-3 max-w-2xl text-sm leading-7 text-muted-foreground', descriptionClassName)}>
           {description}
         </p>
       </div>

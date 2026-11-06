@@ -22,7 +22,7 @@ export default function AuthStory() {
             {t('auth.lessTimeOnLaundry')}
           </span>
         </h1>
-        <p className="text-sm leading-7 text-muted-foreground [@media(max-height:650px)]:hidden">
+        <p className="text-base leading-7 text-muted-foreground [@media(max-height:650px)]:hidden">
           {t('auth.aLittleConvenienceEveryDay')}
           <br />
           {t('auth.dropYourLaundryInALockerWashgoHandlesThe')}
@@ -32,7 +32,7 @@ export default function AuthStory() {
           {benefits.map(({ icon: Icon, label }) => (
             <span
               key={t(label)}
-              className="flex items-center gap-1.5 text-[11px] text-blue-900/70 dark:text-blue-200/80"
+              className="flex items-center gap-1.5 text-base text-blue-900/70 dark:text-blue-200/80"
             >
               <Icon size={17} />
               {t(label)}

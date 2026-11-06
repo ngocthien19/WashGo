@@ -82,14 +82,8 @@ export default function ServiceCatalog() {
           >
             <div className="mb-6">
               <CatalogResultSummary
-                title={loading ? t('customer.loadingServices') : error ? t('customer.serviceList') : (
-                  <>
-                    <strong className="mr-2 text-xl font-bold text-foreground">
-                      {data?.total || 0}
-                    </strong>
-                    {t('customer.servicesFound', { count: data?.total || 0 })}
-                  </>
-                )}
+                count={!loading && !error ? data?.total || 0 : undefined}
+                title={loading ? t('customer.loadingServices') : error ? t('customer.serviceList') : t('customer.servicesFound', { count: data?.total || 0 })}
                 sortControl={(
                   <ServiceSort
                     value={query.sort}

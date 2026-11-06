@@ -4,7 +4,7 @@ import { UI_TRANSITIONS } from '~/utils/constants'
 
 export default function AuthSwitchLink({ to, prompt, children }) {
   return (
-    <p className="my-6 text-center text-xs text-muted-foreground">
+    <p className="my-6 text-center text-base text-muted-foreground">
       {prompt}
       {' '}
       <Link

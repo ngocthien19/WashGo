@@ -80,23 +80,21 @@ export default function LockerResults({ lockers, position }) {
                       <div className="mt-3 flex flex-wrap gap-2">
                         <Button
                           variant="outline-primary"
-                          size="sm"
-                          className="rounded-lg"
+                          className="h-11 rounded-xl px-4 text-base"
                           disabled={!hasCoordinates(locker)}
                           aria-pressed={selectedId === locker.id}
                           onClick={() => selectLocker(locker.id, true)}
                         >
-                          <MapPin size={14} />
+                          <MapPin size={18} />
                           {t('customer.showOnMap')}
                         </Button>
                         <Button
                           variant="ghost"
-                          size="sm"
-                          className="rounded-lg"
+                          className="h-11 rounded-xl px-4 text-base"
                           onClick={() => setDetailId(locker.id)}
                         >
                           {t('customer.details')}
-                          <ArrowUpRight size={14} />
+                          <ArrowUpRight size={18} />
                         </Button>
                       </div>
                     </div>

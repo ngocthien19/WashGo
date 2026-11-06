@@ -26,13 +26,13 @@ export default function FeaturedServices({ data, loading, error, retry }) {
             id="featured-services-heading"
             title={t('customer.servicesForYou')}
             description={t('customer.chooseTheRightCareForEveryItemConsistentPrices')}
+            descriptionClassName="text-base"
             icon={Shirt}
           />
           <Button
             render={<Link to={CUSTOMER_ROUTES.SERVICES} />}
             nativeButton={false}
-            variant="outline-primary"
-            className="h-11 w-fit shrink-0 gap-2 rounded-full px-5"
+            className="h-11 w-fit shrink-0 gap-2 rounded-full px-5 text-base"
           >
             {t('customer.viewAll')}
             <ArrowRight className="transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />

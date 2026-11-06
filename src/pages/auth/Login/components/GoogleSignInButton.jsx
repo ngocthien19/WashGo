@@ -106,7 +106,7 @@ export default function GoogleSignInButton({ onSuccess }) {
           <Button
             type="button"
             variant="outline"
-            className="h-12 w-full gap-3 rounded-lg"
+            className="h-12 w-full gap-3 rounded-lg text-base"
             disabled
           >
             <FcGoogle size={20} />

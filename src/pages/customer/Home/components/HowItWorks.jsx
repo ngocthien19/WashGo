@@ -32,7 +32,7 @@ export default function HowItWorks() {
               {t('customer.fourSteps')}
             </span>
           </h2>
-          <p className="mx-auto mt-4 max-w-lg text-sm leading-7 text-muted-foreground">
+          <p className="mx-auto mt-4 max-w-lg text-base leading-7 text-muted-foreground">
             {t('customer.oneLessThingToWorryAboutMoreTimeFor')}
           </p>
         </Reveal>
@@ -63,7 +63,7 @@ export default function HowItWorks() {
                 <h3 className="mt-6 text-lg font-bold">
                   {t(title)}
                 </h3>
-                <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                <p className="mt-3 text-base leading-7 text-muted-foreground">
                   {t(description)}
                 </p>
               </Reveal>

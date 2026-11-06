@@ -63,7 +63,7 @@ export default function HomePage() {
               <Button
                 render={<a href="#services" />}
                 nativeButton={false}
-                className="h-12 rounded-xl px-6"
+                className="h-12 rounded-xl px-6 text-base"
               >
                 {t('customer.exploreServices')}
                 <ArrowRight className="transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />
@@ -72,7 +72,7 @@ export default function HomePage() {
                 render={<a href="#how-it-works" />}
                 nativeButton={false}
                 variant="outline-primary"
-                className="h-12 rounded-xl px-6"
+                className="h-12 rounded-xl px-6 text-base"
               >
                 {t('customer.learnMore')}
               </Button>

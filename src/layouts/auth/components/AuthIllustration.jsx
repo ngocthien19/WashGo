@@ -15,7 +15,7 @@ export default function AuthIllustration() {
       </div>
       <div className="absolute left-1/2 top-8 h-[226px] w-[190px] -translate-x-1/2 -rotate-5 rounded-2xl border border-blue-200 bg-gradient-to-br from-white to-blue-50 p-4 shadow-[10px_17px_0_#bfdbfe80,0_20px_25px_#1e40af18] dark:border-zinc-600 dark:from-zinc-700 dark:to-zinc-800 dark:shadow-[10px_17px_0_#00000033]">
         <div className="flex h-9 items-center gap-1.5 border-b border-blue-100 dark:border-zinc-600">
-          <span className="mr-auto text-[10px] font-extrabold text-blue-600 dark:text-blue-300">WashGo</span>
+          <span className="mr-auto text-base font-extrabold text-blue-600 dark:text-blue-300">WashGo</span>
           <span className="h-4 w-6 rounded-sm bg-teal-950" />
           <span className="size-2 rounded-full bg-blue-300" />
           <span className="size-2 rounded-full bg-blue-300" />
@@ -40,15 +40,15 @@ export default function AuthIllustration() {
           <ShieldCheck size={21} />
         </span>
         <div>
-          <strong className="block text-[11px]">
+          <strong className="block text-base">
             {t('auth.freshCleanAndCaredFor')}
           </strong>
-          <small className="text-[10px] text-muted-foreground">
+          <small className="text-base text-muted-foreground">
             {t('auth.careForEveryItem')}
           </small>
         </div>
       </div>
-      <div className="absolute -left-2 top-7 flex -rotate-6 items-center gap-1.5 rounded-full bg-card px-3 py-2 text-[10px] text-blue-800 shadow-sm dark:text-blue-200">
+      <div className="absolute -left-2 top-7 flex -rotate-6 items-center gap-1.5 rounded-full bg-card px-3 py-2 text-base text-blue-800 shadow-sm dark:text-blue-200">
         <Clock3 size={16} />
         {t('auth.lockersReady247')}
       </div>

@@ -26,6 +26,7 @@ export default function AuthForm({ schema, fields = [], renderFields, onSubmit, 
 
   return (
     <form
+      className="[&_label]:text-base [&_button[type=submit]]:text-base"
       onSubmit={handleSubmit(submit)}
       noValidate
     >
@@ -38,6 +39,7 @@ export default function AuthForm({ schema, fields = [], renderFields, onSubmit, 
           <FormField
             key={field.name}
             {...field}
+            className="text-base"
             register={register}
             error={errors[field.name]}
           />

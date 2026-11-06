@@ -73,7 +73,9 @@ export default function RegisterPage() {
       <AuthHeading
         title={t('auth.createAnAccount')}
         className="text-center"
-      />
+      >
+        {t('auth.createAccountDescription')}
+      </AuthHeading>
       <AuthForm
         schema={registerSchema}
         onSubmit={register}

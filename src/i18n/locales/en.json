@@ -70,6 +70,8 @@
     "contactAddress": "123 Street 7, Tan Kieng Ward, District 7, Ho Chi Minh City"
   },
   "auth": {
+    "signInDescription": "Sign in to manage your orders and care for your clothes with ease.",
+    "createAccountDescription": "Create an account to start your laundry journey with WashGo.",
     "unableToCompleteTheRequest": "Unable to complete the request.",
     "pleaseUseTheAdministrationPortal": "Please use the administration portal.",
     "signIn": "Sign in",
