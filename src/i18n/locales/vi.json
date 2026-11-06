@@ -397,6 +397,8 @@
       "next": "Tiếp tục",
       "create": "Xác nhận tạo đơn",
       "success": "Tạo đơn thành công!",
+      "reviewAccessNote": "Bạn có thể xem lại mã QR và mã PIN trong",
+      "depositReminder": "Vui lòng gửi đồ trong vòng 30 phút kể từ khi tạo đơn thành công.",
       "includedWeight": "Khối lượng bao gồm theo ô tủ: {{weight}} kg.",
       "depositPin": "Mã PIN gửi đồ",
       "showPin": "Hiện mã PIN gửi đồ",

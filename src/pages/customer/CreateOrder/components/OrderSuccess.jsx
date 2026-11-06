@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { CircleCheck, Home, PanelsTopLeft, Info, ArrowRight } from 'lucide-react'
+import { CircleCheck, Home, PanelsTopLeft, Info, ArrowRight, Timer } from 'lucide-react'
 import { Button } from '~/components/ui/button'
-import OrderPin from '~/components/customer/orders/OrderPin'
-import { CUSTOMER_ROUTES } from '~/utils/constants'
+import LockerAccessCard from '~/components/customer/orders/LockerAccessCard'
+import { CUSTOMER_ROUTES, ORDER_STATUSES, TEXT_LINK_STYLES } from '~/utils/constants'
 import { formatCurrency } from '~/utils/formats'
 
 export default function OrderSuccess({ order }) {
@@ -11,7 +11,7 @@ export default function OrderSuccess({ order }) {
   return (
     <section
       aria-labelledby="order-success-title"
-      className="mx-auto max-w-2xl overflow-hidden rounded-3xl border border-emerald-500/20 bg-card shadow-sm"
+      className="mx-auto max-w-4xl overflow-hidden rounded-3xl border border-emerald-500/20 bg-card shadow-sm"
     >
       <div className="bg-gradient-to-br from-emerald-500/12 to-card p-7 text-center sm:p-10">
         <CircleCheck className="mx-auto mb-5 size-14 text-emerald-600 dark:text-emerald-400" />
@@ -53,39 +53,59 @@ export default function OrderSuccess({ order }) {
             {t('customer.order.includedWeight', { weight: order.includedWeightKg })}
           </p>
         )}
-        <OrderPin pin={order.depositPinCode} />
+        <LockerAccessCard
+          order={{ ...order, status: ORDER_STATUSES.PENDING }}
+          defaultShowQr
+        />
+        <p className="text-sm leading-6 text-muted-foreground">
+          {t('customer.order.reviewAccessNote')}
+          {' '}
+          <Link
+            className={`${TEXT_LINK_STYLES} font-semibold text-primary`}
+            to={CUSTOMER_ROUTES.ORDER_DETAIL.replace(':orderId', order.id)}
+          >
+            {t('customer.order.orderDetails')}
+          </Link>
+          .
+        </p>
+        <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm font-semibold leading-6 text-amber-900 dark:text-amber-200">
+          <Timer className="mt-0.5 size-5 shrink-0" />
+          {t('customer.order.depositReminder')}
+        </div>
         <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-4">
           <Info className="mt-1 size-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
           <p className="text-sm leading-7 text-muted-foreground">
             {t('customer.order.successNote')}
           </p>
         </div>
-        <Button
-          render={<Link to={CUSTOMER_ROUTES.ORDERS} />}
-          nativeButton={false}
-          variant="secondary"
-          className="h-11 w-full rounded-xl"
-        >
-          {t('common.myOrders')}
-        </Button>
-        <Button
-          render={<Link to={CUSTOMER_ROUTES.PAYMENT.replace(':orderId', order.id)} />}
-          nativeButton={false}
-          className="h-11 w-full rounded-xl"
-        >
-          {t('customer.payment.view')}
-          <ArrowRight />
-        </Button>
-        <Button
-          render={<Link to={CUSTOMER_ROUTES.HOME} />}
-          nativeButton={false}
-          variant="outline-violet"
-          className="h-11 w-full gap-3 rounded-xl px-5"
-        >
-          <Home size={17} />
-          {t('common.home')}
-          <ArrowRight className="ml-auto transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />
-        </Button>
+        <div className="grid gap-3 md:grid-cols-3">
+          <Button
+            render={<Link to={CUSTOMER_ROUTES.ORDERS} />}
+            nativeButton={false}
+            variant="secondary"
+            className="h-11 w-full rounded-xl"
+          >
+            {t('common.myOrders')}
+          </Button>
+          <Button
+            render={<Link to={CUSTOMER_ROUTES.PAYMENT.replace(':orderId', order.id)} />}
+            nativeButton={false}
+            className="h-11 w-full rounded-xl"
+          >
+            {t('customer.payment.view')}
+            <ArrowRight />
+          </Button>
+          <Button
+            render={<Link to={CUSTOMER_ROUTES.HOME} />}
+            nativeButton={false}
+            variant="outline-violet"
+            className="h-11 w-full gap-3 rounded-xl px-5"
+          >
+            <Home size={17} />
+            {t('common.home')}
+            <ArrowRight className="ml-auto transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />
+          </Button>
+        </div>
       </div>
     </section>
   )

@@ -76,7 +76,7 @@ export default function OrderCard({ order }) {
             <p>
               {t(order.status === ORDER_STATUSES.CANCELLED ? 'customer.orders.cancel.reason' : 'customer.orders.estimatedFinish')}
             </p>
-            <p className="mt-1 line-clamp-2 font-medium text-foreground">
+            <p className={`mt-1 line-clamp-2 text-base font-bold ${order.status === ORDER_STATUSES.CANCELLED ? 'text-red-700 dark:text-red-300' : 'text-foreground'}`}>
               {order.status === ORDER_STATUSES.CANCELLED ? order.cancellationReason || '\u2014' : t('customer.orders.etaPending')}
             </p>
           </div>

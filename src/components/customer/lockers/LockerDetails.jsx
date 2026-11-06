@@ -98,25 +98,25 @@ export default function LockerDetails({ id, onClose }) {
                   />
                   {t('customer.availableCompartmentsTitle', { availableSlotCount: locker.availableSlotCount })}
                 </h4>
-                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <div className="mt-3 grid grid-cols-2 gap-2 min-[480px]:grid-cols-3 sm:grid-cols-6">
                   {locker.availableSlots?.map((slot) => (
                     <div
                       key={slot.id}
-                      className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/8 to-card p-4"
+                      className="min-w-0 rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/8 to-card p-2.5"
                     >
-                      <div className="mb-4 flex items-center justify-between gap-2">
+                      <div className="mb-2 flex items-center justify-between gap-1">
                         <DoorOpen
-                          className="size-6 text-emerald-600 dark:text-emerald-400"
+                          className="size-5 text-emerald-600 dark:text-emerald-400"
                           strokeWidth={1.5}
                         />
-                        <span className="grid size-5 place-items-center rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
-                          <Check size={12} />
+                        <span className="grid size-4 shrink-0 place-items-center rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
+                          <Check size={10} />
                         </span>
                       </div>
-                      <p className="text-base font-bold">
+                      <p className="break-words text-sm font-bold">
                         {t('customer.compartment', { slotNumber: slot.slotNumber })}
                       </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
+                      <p className="mt-1 break-words text-xs text-muted-foreground">
                         {t(LOCKER_SLOT_SIZES[slot.size] || 'customer.sizeNotSpecified')}
                       </p>
                     </div>

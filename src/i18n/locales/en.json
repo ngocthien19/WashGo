@@ -385,6 +385,8 @@
       "next": "Continue",
       "create": "Confirm order",
       "success": "Order created!",
+      "reviewAccessNote": "You can view your QR code and PIN again in",
+      "depositReminder": "Please drop off your items within 30 minutes of creating your order.",
       "includedWeight": "Included weight for your compartment: {{weight}} kg.",
       "depositPin": "Drop-off PIN",
       "showPin": "Show drop-off PIN",
