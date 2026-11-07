@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Users, UserCheck, Pause, CircleCheck, Truck, WifiOff } from 'lucide-react'
-import AnimatedNumber from '~/components/motion/AnimatedNumber'
+import StatCard from '~/components/merchant/StatCard'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 
 const cards = [
@@ -26,20 +26,14 @@ export default function ShipperSummary({ resource }) {
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
           {cards.map(({ key, Icon, edge, color }) => (
-            <div
+            <StatCard
               key={key}
-              className={`rounded-2xl border border-border border-l-4 bg-card p-4 shadow-sm sm:p-5 ${edge}`}
-            >
-              <span className={`mb-3 grid size-10 place-items-center rounded-xl ${color}`}>
-                <Icon size={21} />
-              </span>
-              <h2 className="text-sm text-muted-foreground">
-                {t(`merchant.shippers.summary.${key}`)}
-              </h2>
-              <p className="mt-2 text-3xl font-bold">
-                <AnimatedNumber value={resource.data[key]} />
-              </p>
-            </div>
+              icon={Icon}
+              label={t(`merchant.shippers.summary.${key}`)}
+              value={resource.data[key]}
+              className={edge}
+              iconClassName={color}
+            />
           ))}
         </div>
       )}

@@ -14,4 +14,8 @@ describe('merchant shipper management', () => {
     await expect(shipperSchema.validate({ ...valid, identityNumber: '1234' })).rejects.toThrow()
     await expect(shipperSchema.validate({ ...valid, phone: 'abc0901234567' })).rejects.toThrow()
   })
+  it('keeps rating sorting in URL and passes it to server before paging', () => {
+    expect(shipperFilter(readShipperQuery(new URLSearchParams('ratingSort=desc&page=2')))).toMatchObject({ page: 2, sortBy: [{ field: 'Rating', isDescending: true }] })
+    expect(shipperFilter(readShipperQuery(new URLSearchParams('ratingSort=unsupported'))).sortBy).toBeUndefined()
+  })
 })

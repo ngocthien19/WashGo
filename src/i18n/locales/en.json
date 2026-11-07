@@ -378,6 +378,24 @@
     "forgotPasswordTitle": "Forgot password?"
   },
   "merchant": {
+    "shipperSync": {
+      "bulkUnlock": "Unlock selected",
+      "batchToast": "Succeeded: {{succeeded}} · Failed: {{failed}}. {{details}}",
+      "unlockFailed": "Could not unlock the account.",
+      "success": { "lock": "Account locked.", "unlock": "Account unlocked.", "delete": "Account deleted." },
+      "delivery": { "0": "Credential email delivery is not confirmed", "1": "Login credentials were emailed", "2": "Credential email failed; the shipper can use Forgot password" },
+      "sortRating": "Sort by rating", "sort": { "default": "Default", "asc": "Rating: low to high", "desc": "Rating: high to low" },
+      "locked": "Account locked", "reason": "Reason", "reasonPlaceholder": "Enter a reason for this action…", "reasonRequired": "Enter a reason up to 500 characters and select 1–50 shippers.",
+      "accountHint": "Account access is separate from Working/On leave. Finish or reassign active tasks before locking or deleting.",
+      "actionUnknown": "The outcome is unknown. Close and refresh the list to check before taking another action.",
+      "batchResult": "Succeeded: {{succeeded}} · Failed: {{failed}}",
+      "codes": { "Locked": "Account locked", "AlreadyLocked": "Account was already locked", "Deleted": "Shipper deleted", "AlreadyDeleted": "Shipper was already deleted", "HasActiveTasks": "Unfinished tasks remain", "NotFound": "Shipper not found in this store", "NotShipper": "This account is not a shipper" },
+      "legacyImages": "Legacy identity photos have no confirmed front/back sides. Keep them or replace both sides; photo order does not identify a side.", "clearLegacy": "Remove legacy identity photos",
+      "retryCreate": "Retry same create request", "emailFailed": "Shipper created, but email delivery failed. The shipper can use Forgot password to sign in.", "emailUnknown": "The shipper was recorded; email delivery is not yet confirmed. Refresh the profile to check.",
+      "tasks": "Task history", "audit": "Administration history", "noHistory": "No matching history yet.", "taskTypeLabel": "Task type", "taskStatus": "Task status",
+      "taskType": { "1": "Collection", "2": "Return" }, "status": { "1": "Assigned", "2": "Completed", "3": "Reassigned", "4": "Cancelled" },
+      "assignedAt": "Assigned at", "completedAt": "Completed at", "endedAt": "Ended at", "auditAction": { "1": "Account locked", "2": "Account unlocked", "3": "Shipper deleted", "4": "Identity updated" }
+    },
     "orderSync": {
       "missingVersion": "No valid order version is available. Refresh before updating.",
       "missingActions": "Order permissions are unavailable. Refresh to check again.",

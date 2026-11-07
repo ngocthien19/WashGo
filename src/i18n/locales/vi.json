@@ -378,6 +378,24 @@
     "forgotPasswordTitle": "Quên mật khẩu?"
   },
   "merchant": {
+    "shipperSync": {
+      "bulkUnlock": "Mở khóa đã chọn",
+      "batchToast": "Thành công: {{succeeded}} · Thất bại: {{failed}}. {{details}}",
+      "unlockFailed": "Không thể mở khóa tài khoản.",
+      "success": { "lock": "Đã khóa tài khoản.", "unlock": "Đã mở khóa tài khoản.", "delete": "Đã xóa tài khoản." },
+      "delivery": { "0": "Chưa xác định kết quả gửi email đăng nhập", "1": "Đã gửi email thông tin đăng nhập", "2": "Gửi email đăng nhập thất bại; shipper có thể dùng Quên mật khẩu" },
+      "sortRating": "Sắp xếp đánh giá", "sort": { "default": "Mặc định", "asc": "Đánh giá thấp đến cao", "desc": "Đánh giá cao đến thấp" },
+      "locked": "Tài khoản đã khóa", "reason": "Lý do", "reasonPlaceholder": "Nhập lý do thực hiện thao tác…", "reasonRequired": "Nhập lý do tối đa 500 ký tự và chọn từ 1–50 shipper.",
+      "accountHint": "Thao tác tài khoản khác với trạng thái Đang làm việc/Tạm nghỉ. Nhiệm vụ đang thực hiện phải được xử lý trước khi khóa hoặc xóa.",
+      "actionUnknown": "Chưa xác định được kết quả. Đóng cửa sổ và cập nhật danh sách để kiểm tra trước khi thao tác tiếp.",
+      "batchResult": "Thành công: {{succeeded}} · Không thành công: {{failed}}",
+      "codes": { "Locked": "Đã khóa tài khoản", "AlreadyLocked": "Tài khoản đã được khóa trước đó", "Deleted": "Đã xóa shipper", "AlreadyDeleted": "Shipper đã được xóa trước đó", "HasActiveTasks": "Còn nhiệm vụ chưa hoàn tất", "NotFound": "Không tìm thấy shipper trong cửa hàng", "NotShipper": "Tài khoản không phải shipper" },
+      "legacyImages": "Ảnh giấy tờ cũ chưa xác định mặt trước/sau. Giữ nguyên hoặc thay bằng đủ hai mặt; không tự gán mặt theo thứ tự ảnh.", "clearLegacy": "Xóa ảnh giấy tờ cũ",
+      "retryCreate": "Thử lại cùng yêu cầu tạo", "emailFailed": "Đã tạo shipper nhưng chưa gửi được email. Shipper có thể dùng Quên mật khẩu để đăng nhập.", "emailUnknown": "Đã ghi nhận shipper; kết quả gửi email chưa xác định. Vui lòng kiểm tra lại hồ sơ.",
+      "tasks": "Lịch sử nhiệm vụ", "audit": "Lịch sử quản trị", "noHistory": "Chưa có lịch sử phù hợp.", "taskTypeLabel": "Loại nhiệm vụ", "taskStatus": "Trạng thái nhiệm vụ",
+      "taskType": { "1": "Lấy đồ", "2": "Trả đồ" }, "status": { "1": "Đang thực hiện", "2": "Hoàn tất", "3": "Đã chuyển người khác", "4": "Đã hủy" },
+      "assignedAt": "Phân công lúc", "completedAt": "Hoàn tất lúc", "endedAt": "Kết thúc lúc", "auditAction": { "1": "Khóa tài khoản", "2": "Mở khóa tài khoản", "3": "Xóa shipper", "4": "Cập nhật giấy tờ" }
+    },
     "orderSync": {
       "missingVersion": "Chưa có phiên bản đơn hàng hợp lệ. Vui lòng tải lại trước khi cập nhật.",
       "missingActions": "Chưa tải được quyền thao tác của đơn. Vui lòng cập nhật để kiểm tra lại.",

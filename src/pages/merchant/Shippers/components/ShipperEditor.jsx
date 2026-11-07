@@ -22,14 +22,17 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [uncertain, setUncertain] = useState(false)
+  const [canRetryCreate, setCanRetryCreate] = useState(false)
   const lock = useRef(false)
-  const front = useImages(1)
-  const back = useImages(1)
+  const createIntent = useRef(null)
+  const [clearLegacy, setClearLegacy] = useState(false)
+  const front = useImages(1, shipper?.identityFrontImageUrl ? [shipper.identityFrontImageUrl] : [])
+  const back = useImages(1, shipper?.identityBackImageUrl ? [shipper.identityBackImageUrl] : [])
   const submit = async (values) => {
-    if (lock.current || uncertain) {
+    if (lock.current || uncertain && !canRetryCreate) {
       return
     }
-    if (!edit && Boolean(front.images.length) !== Boolean(back.images.length)) {
+    if (Boolean(front.images.length) !== Boolean(back.images.length)) {
       setError('merchant.shippers.bothSides'); return
     }
     lock.current = true
@@ -39,7 +42,7 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
     try {
       if (edit) {
         const latest = await merchantShipperApi.detail(shipper.id)
-        if (shipperSnapshot(latest) !== shipperSnapshot(shipper)) {
+        if (!Number.isSafeInteger(shipper.revision) || shipperSnapshot(latest) !== shipperSnapshot(shipper)) {
           setUncertain(true)
           setError('merchant.shippers.changed')
           return
@@ -48,22 +51,39 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
           setError('merchant.shippers.activeTasks'); return
         }
       }
-      const payload = { ...values, phone: values.phone.replace(/\D/g, ''), vehiclePlate: values.vehiclePlate || null, identityNumber: values.identityNumber || null }
-      if (!edit) {
-        payload.identityImageUrls = [...await front.upload(), ...await back.upload()]
+      const payload = { ...values, phone: values.phone.replace(/\D/g, ''), vehiclePlate: values.vehiclePlate || null, identityNumber: values.identityNumber || (edit ? '' : null) }
+      const sidesChanged = front.images[0]?.url !== (shipper?.identityFrontImageUrl || undefined) || back.images[0]?.url !== (shipper?.identityBackImageUrl || undefined)
+      if (!edit || sidesChanged || clearLegacy) {
+        payload.identityFrontImageUrl = (await front.upload())[0] || ''
+        payload.identityBackImageUrl = (await back.upload())[0] || ''
       }
-      writing = true
+      let result
       if (edit) {
-        await merchantShipperApi.update(shipper.id, payload)
+        payload.expectedRevision = shipper.revision
+        writing = true
+        result = await merchantShipperApi.update(shipper.id, payload)
       } else {
-        await merchantShipperApi.create(payload)
+        if (!createIntent.current) {
+          createIntent.current = { ...payload, clientRequestId: crypto.randomUUID() }
+        }
+        writing = true
+        result = await merchantShipperApi.create(createIntent.current)
       }
-      notify.success(edit ? 'merchant.shippers.updated' : 'merchant.shippers.created')
+      if (!edit && result.credentialDelivery !== 1) {
+        notify.info(result.credentialDelivery === 2 ? 'merchant.shipperSync.emailFailed' : 'merchant.shipperSync.emailUnknown')
+      }
+      if (edit || result.credentialDelivery === 1) {
+        notify.success(edit ? 'merchant.shippers.updated' : 'merchant.shippers.created')
+      }
       onSaved()
     } catch (failure) {
       const unknown = writing && (failure.uncertain || !failure.response || failure.response.status >= 500)
-      setUncertain(Boolean(unknown))
-      setError(unknown ? 'merchant.shippers.uncertain' : getApiError(failure))
+      setUncertain(Boolean(unknown || failure.response?.status === 409))
+      setCanRetryCreate(Boolean(unknown && !edit))
+      if (!unknown && failure.response?.status !== 409) {
+        createIntent.current = null
+      }
+      setError(failure.response?.status === 409 ? 'merchant.shippers.changed' : unknown ? 'merchant.shippers.uncertain' : getApiError(failure))
     } finally {
       lock.current = false
       setPending(false)
@@ -117,7 +137,6 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
                   id={`shipper-${key}`}
                   type={key === 'email' ? 'email' : 'text'}
                   autoComplete="off"
-                  readOnly={edit && key === 'identityNumber'}
                   {...register(key)}
                   aria-invalid={Boolean(errors[key])}
                   className="h-11 text-base"
@@ -186,15 +205,39 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
                 {t('merchant.shippers.identityImages')}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {t(edit ? 'merchant.shippers.identityReadOnly' : 'merchant.shippers.twoImagesHint')}
+                {t('merchant.shippers.twoImagesHint')}
               </p>
+              {edit && shipper.identityImageSides === 'Unspecified' && !clearLegacy && (
+                <div className="space-y-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
+                  <p className="text-sm text-muted-foreground">
+                    {t('merchant.shipperSync.legacyImages')}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {(shipper.identityImageUrls || []).map((url) => (
+                      <img
+                        key={url}
+                        src={getImageUrl(url)}
+                        alt={t('merchant.shippers.identityImages')}
+                        className="h-20 w-24 rounded-lg object-contain"
+                      />
+                    ))}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setClearLegacy(true)}
+                  >
+                    {t('merchant.shipperSync.clearLegacy')}
+                  </Button>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
-                {[{ key: 'front', resource: front, url: shipper?.identityImageUrls?.[0] }, { key: 'back', resource: back, url: shipper?.identityImageUrls?.[1] }].map(({ key, resource, url }) => (
+                {[{ key: 'front', resource: front }, { key: 'back', resource: back }].map(({ key, resource }) => (
                   <div
                     key={key}
                     className="relative"
                   >
-                    {!edit && (
+                    {(
                       <input
                         id={`identity-${key}`}
                         type="file"
@@ -210,12 +253,12 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
                       />
                     )}
                     <label
-                      htmlFor={!edit ? `identity-${key}` : undefined}
-                      className={`flex min-h-32 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-input bg-background p-3 text-sm text-muted-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-primary ${!edit && !resource.images.length ? 'cursor-pointer hover:border-primary hover:bg-primary/5' : ''}`}
+                      htmlFor={`identity-${key}`}
+                      className={`flex min-h-32 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-input bg-background p-3 text-sm text-muted-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-primary ${!resource.images.length ? 'cursor-pointer hover:border-primary hover:bg-primary/5' : ''}`}
                     >
-                      {resource.images[0]?.url || url ? (
+                      {resource.images[0]?.url ? (
                         <img
-                          src={resource.images[0]?.url || getImageUrl(url)}
+                          src={getImageUrl(resource.images[0]?.url)}
                           alt={t(`merchant.shippers.${key}`)}
                           className="h-24 w-full rounded-lg object-contain"
                         />
@@ -227,7 +270,7 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
                       )}
                       {t(`merchant.shippers.${key}`)}
                     </label>
-                    {!edit && resource.images.length > 0 && (
+                    {resource.images.length > 0 && (
                       <Button
                         type="button"
                         variant="destructive"
@@ -272,11 +315,11 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
             </Button>
             <Button
               type="submit"
-              disabled={pending || uncertain}
+              disabled={pending || uncertain && !canRetryCreate}
               className="h-11 px-5 text-base"
             >
               <Save size={18} />
-              {t(pending ? 'merchant.shippers.saving' : 'merchant.shippers.save')}
+              {t(pending ? 'merchant.shippers.saving' : uncertain && !edit ? 'merchant.shipperSync.retryCreate' : 'merchant.shippers.save')}
             </Button>
           </div>
         </form>
