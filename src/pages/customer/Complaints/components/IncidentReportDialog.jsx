@@ -1,3 +1,5 @@
+import useVideos from '~/hooks/useVideos'
+import CustomerVideoPicker from '~/components/customer/CustomerVideoPicker'
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm, Controller, useWatch } from 'react-hook-form'
@@ -15,27 +17,30 @@ import { CUSTOMER_ROUTES, INCIDENT_CONFIG, INCIDENT_TYPES, INCIDENT_SEVERITIES, 
 import { formatDateTime } from '~/utils/formats'
 import { getApiError } from '~/utils/apiError'
 import { notify } from '~/utils/notifications'
-import { incidentSchema, incidentReportDeadline } from '../incidentModel'
+import { incidentSchema } from '../incidentModel'
 
-export default function IncidentReportDialog({ order, onClose }) {
+export default function IncidentReportDialog({ order, onClose, eligibility, initialIncident, onSaved }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const selection = useCustomerImages(INCIDENT_CONFIG.MAX_IMAGES)
+  const selection = useCustomerImages(INCIDENT_CONFIG.MAX_IMAGES, initialIncident?.imageUrls || [])
+  const videos = useVideos(initialIncident?.videoUrls || [])
+  const [clientRequestId] = useState(() => crypto.randomUUID())
+  const submittedPayload = useRef(null)
   const [busy, setBusy] = useState(false)
   const [uncertain, setUncertain] = useState(false)
   const [error, setError] = useState('')
   const lock = useRef(false)
-  const [openedAt] = useState(() => Date.now())
-  const deadline = incidentReportDeadline(order)
-  const expired = deadline != null && openedAt > deadline
-  const { control, register, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(incidentSchema), defaultValues: { type: 1, severity: 1, description: '' } })
+  const deadline = !initialIncident && eligibility?.reportDeadline ? Date.parse(eligibility.reportDeadline) : null
+  // Eligibility is authoritative; a misconfigured device clock must not reject a valid report.
+  const expired = !initialIncident && eligibility?.canReport === false
+  const { control, register, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(incidentSchema), defaultValues: { type: initialIncident?.type || 1, severity: initialIncident?.severity || 1, description: initialIncident?.description || '' } })
   const description = useWatch({ control, name: 'description' })
   const submit = async (values) => {
     if (lock.current || uncertain) {
       return
     }
-    if (deadline != null && Date.now() > deadline) {
-      setError('customer.incidents.expired')
+    if (expired) {
+      setError(eligibility.reason || 'customer.sync.notEligible')
       return
     }
     if (!selection.images.length) {
@@ -47,10 +52,24 @@ export default function IncidentReportDialog({ order, onClose }) {
     setError('')
     let posting = false
     try {
+      if (initialIncident) {
+        const fresh = await customerIncidentApi.get(initialIncident.id)
+        if (!fresh.canEdit || JSON.stringify([fresh.type, fresh.severity, fresh.description, fresh.imageUrls, fresh.videoUrls]) !== JSON.stringify([initialIncident.type, initialIncident.severity, initialIncident.description, initialIncident.imageUrls, initialIncident.videoUrls])) {
+          throw new Error('customer.sync.incidentChanged')
+        }
+      } else {
+        const fresh = await customerIncidentApi.eligibility(order.id)
+        if (!fresh.canReport) {
+          throw new Error(fresh.reason || 'customer.sync.notEligible')
+        }
+      }
       const imageUrls = await selection.upload()
+      const videoUrls = await videos.upload()
+      submittedPayload.current = { orderId: order.id, ...values, imageUrls, videoUrls, clientRequestId }
       posting = true
-      const incident = await customerIncidentApi.create({ orderId: order.id, ...values, imageUrls })
+      const incident = initialIncident ? await customerIncidentApi.update(initialIncident.id, submittedPayload.current) : await customerIncidentApi.create(submittedPayload.current)
       notify.success('customer.incidents.submitted')
+      onSaved?.(incident)
       navigate(CUSTOMER_ROUTES.COMPLAINT_DETAIL.replace(':incidentId', incident.id))
       onClose()
     } catch (failure) {
@@ -87,21 +106,18 @@ export default function IncidentReportDialog({ order, onClose }) {
               <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-300">
                 <ShieldAlert size={24} />
               </span>
-              {t('customer.incidents.report')}
+              {t(initialIncident ? 'customer.sync.editIncident' : 'customer.incidents.report')}
             </DialogTitle>
             <DialogDescription className="mt-3 text-sm text-muted-foreground">
               {order.orderCode}
-              {' '}
-              ·
-              {' '}
-              {t('customer.incidents.reportHint')}
+              {!initialIncident && ` · ${t('customer.incidents.reportHint')}`}
             </DialogDescription>
           </div>
           <div className="min-h-0 space-y-5 overflow-y-auto overscroll-contain p-5 sm:p-6">
             <p className="flex items-start gap-2 rounded-xl border border-amber-400/25 bg-amber-400/10 p-3 text-xs leading-6 text-amber-800 dark:text-amber-200">
               <Info className="mt-1 size-4 shrink-0" />
               <span>
-                {expired ? t('customer.incidents.expired') : deadline ? t('customer.incidents.deadline', { date: formatDateTime(new Date(deadline).toISOString()) }) : t('customer.incidents.windowHint')}
+                {initialIncident ? t('customer.sync.editIncidentHint') : expired ? t('customer.incidents.expired') : deadline ? t('customer.incidents.deadline', { date: formatDateTime(new Date(deadline).toISOString()) }) : t('customer.incidents.windowHint')}
               </span>
             </p>
             <fieldset
@@ -171,10 +187,41 @@ export default function IncidentReportDialog({ order, onClose }) {
                 disabled={busy || uncertain || expired}
                 help={t('customer.incidents.imageHelp')}
               />
+              <CustomerVideoPicker
+                selection={videos}
+                disabled={busy || uncertain || expired}
+              />
             </fieldset>
             <FormError>
               {error === 'customer.incidents.imagesRequired' && selection.images.length ? '' : error}
             </FormError>
+            {uncertain && !initialIncident && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={busy}
+                onClick={async () => {
+                  if (lock.current) {
+                    return
+                  }
+                  lock.current = true; setBusy(true)
+                  try {
+                    const found = await customerIncidentApi.request(clientRequestId)
+                    if (found) {
+                      navigate(CUSTOMER_ROUTES.COMPLAINT_DETAIL.replace(':incidentId', found.id)); onClose()
+                    } else {
+                      setError('customer.sync.requestNotFound')
+                    }
+                  } catch (failure) {
+                    setError(getApiError(failure))
+                  } finally {
+                    lock.current = false; setBusy(false)
+                  }
+                }}
+              >
+                {t('customer.sync.checkRequest')}
+              </Button>
+            )}
             <Link
               to={CUSTOMER_ROUTES.COMPLAINTS}
               onClick={(event) => {
@@ -202,7 +249,7 @@ export default function IncidentReportDialog({ order, onClose }) {
               disabled={busy || uncertain || expired}
             >
               <Send size={16} />
-              {t(busy ? 'customer.incidents.sending' : 'customer.incidents.submit')}
+              {t(busy ? 'customer.incidents.sending' : initialIncident ? 'customer.sync.saveIncident' : 'customer.incidents.submit')}
             </Button>
           </div>
         </form>
