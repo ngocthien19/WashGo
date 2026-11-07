@@ -5,11 +5,12 @@ import Reveal from '~/components/motion/Reveal'
 import OrderStatusBadge from '~/components/customer/orders/OrderStatusBadge'
 import OrderProgress from '~/components/customer/orders/OrderProgress'
 import { Button } from '~/components/ui/button'
-import { CUSTOMER_ROUTES, ORDER_STATUSES } from '~/utils/constants'
+import { CUSTOMER_ROUTES } from '~/utils/constants'
 import { formatCurrency, formatDateTime, formatNumber } from '~/utils/formats'
 import { paymentBlockReason } from '~/pages/customer/Payment/paymentModel'
+import OrderCardSummary from './OrderCardSummary'
 
-export default function OrderCard({ order }) {
+export default function OrderCard({ order, estimate }) {
   const { t } = useTranslation()
   return (
     <Reveal
@@ -72,14 +73,10 @@ export default function OrderCard({ order }) {
           />
         </div>
         <div className="space-y-3 sm:col-span-2 xl:col-span-1 xl:border-l xl:border-border xl:pl-5">
-          <div className="text-xs text-muted-foreground xl:text-right">
-            <p>
-              {t(order.status === ORDER_STATUSES.CANCELLED ? 'customer.orders.cancel.reason' : 'customer.orders.estimatedFinish')}
-            </p>
-            <p className={`mt-1 line-clamp-2 text-base font-bold ${order.status === ORDER_STATUSES.CANCELLED ? 'text-red-700 dark:text-red-300' : 'text-foreground'}`}>
-              {order.status === ORDER_STATUSES.CANCELLED ? order.cancellationReason || '\u2014' : t('customer.orders.etaPending')}
-            </p>
-          </div>
+          <OrderCardSummary
+            order={order}
+            estimate={estimate}
+          />
           <div className="flex flex-wrap items-end justify-between gap-3 xl:justify-end">
             <div className="min-w-0 xl:text-right">
               <p className="text-xs text-muted-foreground">
