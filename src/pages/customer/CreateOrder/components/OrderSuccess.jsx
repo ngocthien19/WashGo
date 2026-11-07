@@ -1,6 +1,7 @@
+import DepositDeadlineNotice from '~/pages/customer/Orders/components/DepositDeadlineNotice'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { CircleCheck, Home, PanelsTopLeft, Info, ArrowRight, Timer } from 'lucide-react'
+import { CircleCheck, Home, PanelsTopLeft, Info, ArrowRight } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import LockerAccessCard from '~/components/customer/orders/LockerAccessCard'
 import { CUSTOMER_ROUTES, ORDER_STATUSES, TEXT_LINK_STYLES } from '~/utils/constants'
@@ -68,10 +69,7 @@ export default function OrderSuccess({ order }) {
           </Link>
           .
         </p>
-        <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm font-semibold leading-6 text-amber-900 dark:text-amber-200">
-          <Timer className="mt-0.5 size-5 shrink-0" />
-          {t('customer.order.depositReminder')}
-        </div>
+        <DepositDeadlineNotice order={order} />
         <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-4">
           <Info className="mt-1 size-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
           <p className="text-sm leading-7 text-muted-foreground">

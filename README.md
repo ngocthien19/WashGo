@@ -21,7 +21,7 @@ Customer profiles require a phone number (exactly 10 digits starting with 0), ad
 
 ## Online payments
 
-Orders use a combined search/filter row and milestone progress bars. Progress is a labelled status-based indicator, not an actual processing-time percentage; AI ETA remains a placeholder pending backend support. See `docs/BACKEND_GAPS.md` for the backend coordination list.
+Orders use a combined search/filter row and server-provided workflow progress. ETA distinguishes estimates from historical processing data, rule-based estimates and actual completion times.
 
 Locker QR generation/download uses `qrcode.react`. The simulation dialog supports PIN, camera QR scanning with `@yudiel/react-qr-scanner`, and PNG/JPG/WEBP uploads decoded locally with `barcode-detector`. Its WASM is bundled with the app. Camera access starts only on request and requires HTTPS/localhost. No image is sent to the backend; only the credential is submitted after confirmation. Drop-off uses one API step; pickup uses an expiring in-memory session followed by explicit collection confirmation. There is no physical locker hardware integration.
 
