@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Package, Truck, WashingMachine, Wallet, DoorOpen, CircleCheck, Warehouse, CircleX } from 'lucide-react'
-import AnimatedNumber from '~/components/motion/AnimatedNumber'
+import StatCard from '~/components/merchant/StatCard'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { groupOrders } from '~/utils/orderGroups'
 
@@ -32,22 +32,14 @@ export default function OrderSummary({ resource }) {
           {[{ key: 'total', value: resource.data.total }, ...groupOrders(resource.data.counts)].map(({ key, value }) => {
             const [Icon, edge, color] = styles[key]
             return (
-              <section
+              <StatCard
                 key={key}
-                className={`flex items-center gap-4 rounded-2xl border border-border border-l-4 bg-card p-5 shadow-sm ${edge}`}
-              >
-                <span className={`grid size-11 shrink-0 place-items-center rounded-xl ${color}`}>
-                  <Icon size={22} />
-                </span>
-                <div className="min-w-0">
-                  <h2 className="text-sm text-muted-foreground">
-                    {t(key === 'total' ? 'merchant.totalOrders' : `merchant.groups.${key}`)}
-                  </h2>
-                  <p className="mt-2 text-3xl font-bold">
-                    <AnimatedNumber value={value} />
-                  </p>
-                </div>
-              </section>
+                icon={Icon}
+                label={t(key === 'total' ? 'merchant.totalOrders' : `merchant.groups.${key}`)}
+                value={value}
+                className={edge}
+                iconClassName={color}
+              />
             )
           })}
         </div>
