@@ -17,7 +17,10 @@ export default function NotificationsPage() {
           title={t('customer.profile.allNotifications')}
           description={t('customer.notification.description')}
         />
-        <NotificationCenter stickyClassName="lg:top-[var(--customer-header-offset)]" />
+        <NotificationCenter
+          advanced
+          stickyClassName="lg:top-[var(--customer-header-offset)]"
+        />
       </div>
     </div>
   )

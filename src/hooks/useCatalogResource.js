@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getApiError } from '~/utils/apiError'
 
-export default function useCatalogResource(load, revision = 0) {
+export default function useCatalogResource(load, revision = 0, keepPreviousData = false) {
   const [attempt, setAttempt] = useState(0)
   const [result, setResult] = useState(null)
 
@@ -21,7 +21,7 @@ export default function useCatalogResource(load, revision = 0) {
 
   const loading = result?.load !== load || result?.attempt !== attempt || result?.revision !== revision
   return {
-    data: loading ? null : result.data,
+    data: loading && !(keepPreviousData && result?.load === load) ? null : result?.data,
     error: loading ? '' : result.error,
     loading,
     retry: () => setAttempt((value) => value + 1)

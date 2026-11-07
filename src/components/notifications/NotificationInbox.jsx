@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { motion, useReducedMotion } from 'framer-motion'
+import NotificationContent from './NotificationContent'
 import { CheckCheck, Check, Trash2, ArrowUpRight, RefreshCw } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import NotificationIcon from './NotificationIcon'
@@ -14,10 +16,11 @@ import { notify } from '~/utils/notifications'
 import { getApiError } from '~/utils/apiError'
 import { cn } from '~/lib/utils'
 import { useNotifications } from './NotificationContext'
-import { notificationHref } from './notificationModel'
+import { notificationHref, notificationText } from './notificationModel'
 
-export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = false, onChange, compact = false }) {
+export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = false, onChange, compact = false, filters, onCounts }) {
   const { t } = useTranslation()
+  const reduceMotion = useReducedMotion()
   const navigate = useNavigate()
   const { revision, refresh, resolveHref = notificationHref } = useNotifications()
   const [pending, setPending] = useState(false)
@@ -30,9 +33,14 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
       mounted.current = false
     }
   }, [])
-  const load = useCallback((signal) => notificationApi.list(page, unreadOnly, signal), [page, unreadOnly])
-  const resource = useCatalogResource(load, revision)
+  const load = useCallback((signal) => filters ? notificationApi.filter({ ...filters, page, unreadOnly }, signal) : notificationApi.list(page, unreadOnly, signal), [page, unreadOnly, filters])
+  const resource = useCatalogResource(load, revision, true)
   const { data, loading, error, retry } = resource
+  useEffect(() => {
+    if (data?.counts && onCounts) {
+      onCounts(data.counts)
+    }
+  }, [data, onCounts])
   const mutate = async (action, next) => {
     if (lock.current) {
       return
@@ -71,9 +79,14 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
     }
   }
   return (
-    <div>
+    <motion.div
+      initial={reduceMotion ? false : { y: 6 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
+      aria-busy={loading}
+    >
       {!compact && (
-        <div className="space-y-4 border-b border-border p-5 sm:p-6">
+        <div className="space-y-4 border-b border-border bg-card p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-bold">
               {t(unreadOnly ? 'customer.notification.unread' : 'customer.profile.allNotifications')}
@@ -113,7 +126,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
           </div>
         </div>
       )}
-      {loading || error || !data?.list.length ? (
+      {(loading && !data) || error || !data?.list.length ? (
         <CatalogFeedback
           {...resource}
           loadingText="customer.notification.loading"
@@ -134,7 +147,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
                 <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
                   <div className="flex min-w-0 flex-1 items-start gap-2">
                     <h2 className="break-words text-base font-bold">
-                      {item.title}
+                      {notificationText(item, t).title}
                     </h2>
                     {!item.isRead && (
                       <span
@@ -148,7 +161,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
                   </span>
                 </div>
                 <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
-                  {item.content}
+                  <NotificationContent item={item} />
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   {resolveHref(item) && (
@@ -245,6 +258,6 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   )
 }
