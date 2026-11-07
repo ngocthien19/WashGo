@@ -1,3 +1,4 @@
+import Reveal from '~/components/motion/Reveal'
 import { useCallback, useEffect } from 'react'
 import { useOutletContext, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -34,7 +35,7 @@ export default function HomePage() {
     ['completed', orders.data.counts[12], CircleCheck, 'text-emerald-700 dark:text-emerald-300 bg-emerald-500/10', 'border-l-emerald-500']
   ]
   return (
-    <div className="mx-auto max-w-[1440px] space-y-6">
+    <Reveal className="mx-auto max-w-[1440px] space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -195,6 +196,6 @@ export default function HomePage() {
           onClose={() => setParams({})}
         />
       )}
-    </div>
+    </Reveal>
   )
 }

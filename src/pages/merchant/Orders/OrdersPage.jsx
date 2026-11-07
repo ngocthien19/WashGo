@@ -1,3 +1,4 @@
+import Reveal from '~/components/motion/Reveal'
 import { useCallback, useEffect, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -38,7 +39,7 @@ export default function OrdersPage() {
     { key: 'paymentStatus', label: 'customer.orders.paymentLabel', options: Object.values(PAYMENT_STATUSES).map((value) => ({ value: String(value), label: t(`customer.orders.paymentStatus.${value}`) })) }
   ]
   return (
-    <div className="mx-auto max-w-[1600px] space-y-6">
+    <Reveal className="mx-auto max-w-[1600px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="flex items-center gap-3 text-3xl font-bold">
@@ -245,6 +246,6 @@ export default function OrdersPage() {
           </>
         )}
       </section>
-    </div>
+    </Reveal>
   )
 }
