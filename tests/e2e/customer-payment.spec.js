@@ -22,6 +22,9 @@ async function setup(page, overrides = {}) {
     if (path === '/auth/login') {
       return route.fulfill({ json: envelope({ user, accessToken: 'test-access', refreshToken: 'test-refresh', expiresAt: '2099-01-01T00:00:00Z' }) })
     }
+    if (path === '/policy/customer') {
+      return route.fulfill({ json: envelope({ terms: { version: 'v1', content: 'Terms' }, rules: {}, accepted: true, requiresAcceptance: false }) })
+    }
     if (path === '/auth/me') {
       return route.fulfill({ json: envelope(user) })
     }
