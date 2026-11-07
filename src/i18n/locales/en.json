@@ -175,6 +175,41 @@
     "forgotPasswordTitle": "Forgot password?"
   },
   "merchant": {
+    "reports": {
+      "title": "Business reports",
+      "subtitle": "Track store activity and compare performance.",
+      "period": "Reporting period",
+      "periods": {
+        "day": "Day",
+        "week": "Week",
+        "month": "Month",
+        "custom": "Custom"
+      },
+      "customRange": "Choose date range",
+      "current": "Current period",
+      "previous": "Previous period",
+      "comparison": "Compared with the preceding equal-length period",
+      "scope": "Orders are grouped by creation date. Completed orders are orders created in the period that currently have Completed status. The current period may be incomplete; the comparison period has the same number of days and immediately precedes it.",
+      "invalidRange": "Choose both dates through today, up to 366 days, with a valid preceding period.",
+      "total": "Total orders",
+      "completed": "Completed orders",
+      "revenue": "Total revenue",
+      "onTime": "On-time rate",
+      "unavailable": "Report data unavailable",
+      "noBase": "No comparison baseline",
+      "metric": "Metric",
+      "changePercent": "Change (%)",
+      "revenueChart": "Revenue chart",
+      "orderChart": "Order chart",
+      "chartHint": "Hover over or select a bar to see order counts.",
+      "viewData": "View data table",
+      "buckets": "Time bucket (Vietnam time)",
+      "bestServices": "Best-selling services",
+      "revenuePending": "Store revenue reporting is not supported yet. Figures will appear when the system provides report data.",
+      "servicesPending": "Store best-seller reporting is not available yet. Services, photos and growth comparisons will appear when report data is available.",
+      "export": "Export CSV report",
+      "exportHint": "The CSV includes displayed order counts, previous-period comparisons and chart data. Revenue, on-time rates and best-selling services are not available yet."
+    },
     "services": {
       "sharedHint": "Services and prices are shared across the WashGo system.", "approvalHint": "Changes apply only after Admin approval. Prices on existing orders are not changed by this proposal.", "statistics": "Shared catalog and my proposal statistics", "summary": { "total": "Shared services", "active": "Available services", "inactive": "Inactive services", "pending": "Pending proposals", "approved": "Approved proposals", "rejected": "Rejected proposals" },
       "views": "Services and proposals", "tabs": { "catalog": "Service catalog", "proposals": "My proposals" }, "search": "Search services", "searchHint": "Service code or name…", "results": "services found", "proposalResults": "proposals found", "empty": "No services match your filters.", "noProposals": "No proposals match your filters.",

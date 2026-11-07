@@ -175,6 +175,41 @@
     "forgotPasswordTitle": "Quên mật khẩu?"
   },
   "merchant": {
+    "reports": {
+      "title": "Báo cáo kinh doanh",
+      "subtitle": "Theo dõi hoạt động và so sánh hiệu quả của cửa hàng.",
+      "period": "Khoảng thời gian",
+      "periods": {
+        "day": "Ngày",
+        "week": "Tuần",
+        "month": "Tháng",
+        "custom": "Tùy chọn"
+      },
+      "customRange": "Chọn khoảng ngày",
+      "current": "Kỳ này",
+      "previous": "Kỳ trước",
+      "comparison": "So với kỳ trước cùng số ngày",
+      "scope": "Số đơn được tính theo ngày tạo. Đơn hoàn thành là những đơn trong kỳ tạo hiện có trạng thái Hoàn thành. Kỳ này có thể chưa kết thúc; kỳ trước có cùng số ngày, liền trước kỳ này.",
+      "invalidRange": "Vui lòng chọn đủ ngày bắt đầu/kết thúc, không sau hôm nay, tối đa 366 ngày và có kỳ trước hợp lệ.",
+      "total": "Tổng đơn",
+      "completed": "Đơn đã hoàn thành",
+      "revenue": "Tổng doanh thu",
+      "onTime": "Tỷ lệ đúng hạn",
+      "unavailable": "Chưa có dữ liệu báo cáo",
+      "noBase": "Chưa có cơ sở so sánh",
+      "metric": "Chỉ số",
+      "changePercent": "Thay đổi (%)",
+      "revenueChart": "Biểu đồ doanh thu",
+      "orderChart": "Biểu đồ đơn hàng",
+      "chartHint": "Di chuột hoặc chọn một cột để xem số đơn.",
+      "viewData": "Xem bảng số liệu",
+      "buckets": "Mốc thời gian (giờ Việt Nam)",
+      "bestServices": "Dịch vụ bán chạy nhất",
+      "revenuePending": "Báo cáo doanh thu của cửa hàng chưa được hỗ trợ. Số liệu sẽ hiển thị khi có dữ liệu từ hệ thống.",
+      "servicesPending": "Chưa có thống kê dịch vụ bán chạy của cửa hàng. Danh sách, ảnh dịch vụ và mức tăng/giảm sẽ hiển thị khi có dữ liệu báo cáo.",
+      "export": "Xuất báo cáo CSV",
+      "exportHint": "File CSV gồm số đơn, so sánh kỳ trước và bảng số liệu biểu đồ đang hiển thị. Doanh thu, tỷ lệ đúng hạn và dịch vụ bán chạy chưa có dữ liệu."
+    },
     "services": {
       "sharedHint": "Danh mục và giá dịch vụ dùng chung trên toàn hệ thống WashGo.", "approvalHint": "Nội dung chỉ được áp dụng sau khi Admin phê duyệt. Giá trên các đơn đã đặt không thay đổi theo đề xuất này.", "statistics": "Thống kê danh mục chung và đề xuất của tôi", "summary": { "total": "Dịch vụ chung", "active": "Đang cung cấp", "inactive": "Tạm ngừng", "pending": "Đề xuất chờ duyệt", "approved": "Đề xuất đã duyệt", "rejected": "Đề xuất bị từ chối" },
       "views": "Quản lý dịch vụ và đề xuất", "tabs": { "catalog": "Danh mục dịch vụ", "proposals": "Đề xuất của tôi" }, "search": "Tìm kiếm dịch vụ", "searchHint": "Nhập mã hoặc tên dịch vụ…", "results": "dịch vụ tìm thấy", "proposalResults": "đề xuất tìm thấy", "empty": "Chưa có dịch vụ phù hợp.", "noProposals": "Chưa có đề xuất phù hợp.",

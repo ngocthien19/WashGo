@@ -67,7 +67,7 @@ export default function MerchantLayout() {
         aria-label={t('merchant.navigation')}
         className="space-y-1"
       >
-        {navigation.map(([key, Icon]) => ['overview', 'orders', 'shippers', 'lockers', 'services'].includes(key) ? (
+        {navigation.map(([key, Icon]) => (
           <NavTooltip
             key={key}
             content={t(`merchant.nav.${key}`)}
@@ -84,25 +84,6 @@ export default function MerchantLayout() {
               <Icon size={19} />
               {!compact && t(`merchant.nav.${key}`)}
             </Link>
-          </NavTooltip>
-        ) : (
-          <NavTooltip
-            key={key}
-            content={`${t(`merchant.nav.${key}`)} — ${t('merchant.comingSoon')}`}
-            show={compact}
-            hoverClassName="group/nav-item cursor-not-allowed rounded-xl hover:bg-primary/12 focus-within:bg-primary/12"
-            disabled
-          >
-            <Button
-              variant="ghost"
-              disabled
-              aria-label={t(`merchant.nav.${key}`)}
-              className={`h-12 w-full rounded-xl text-base font-normal text-muted-foreground disabled:opacity-100 group-hover/nav-item:text-primary group-focus-within/nav-item:text-primary ${compact ? 'justify-center px-0' : 'justify-start gap-3 px-4'}`}
-              title={t('merchant.comingSoon')}
-            >
-              <Icon size={19} />
-              {!compact && t(`merchant.nav.${key}`)}
-            </Button>
           </NavTooltip>
         ))}
       </nav>
