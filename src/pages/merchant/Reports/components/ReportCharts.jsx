@@ -1,202 +1,199 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BarChart3, TrendingUp, DatabaseZap } from 'lucide-react'
-import { formatNumber } from '~/utils/formats'
+import { BarChart3, TrendingUp } from 'lucide-react'
+import { formatCurrency, formatNumber } from '~/utils/formats'
 
-export function ReportPending({ message, icon: Icon = DatabaseZap }) {
-  const { t } = useTranslation()
-  return (
-    <div className="grid min-h-64 content-center justify-items-center gap-3 p-6 text-center">
-      <span className="grid size-14 place-items-center rounded-2xl bg-primary/8 text-primary">
-        <Icon size={26} />
-      </span>
-      <p className="max-w-md text-base leading-relaxed text-muted-foreground">
-        {t(message)}
-      </p>
-    </div>
-  )
-}
-
-export default function ReportCharts({ buckets }) {
-  const { t } = useTranslation()
+function Chart({ title, Icon, points, series, line = false }) {
+  const { t, i18n } = useTranslation()
   const [active, setActive] = useState(null)
-  const max = Math.ceil(Math.max(1, ...buckets.flatMap((bucket) => [bucket.current, bucket.previous])) / 4) * 4
-  const width = 640, height = 270, left = 48, bottom = 35, top = 15, plotHeight = height - bottom - top
-  const step = (width - left - 15) / buckets.length
-  const selected = buckets.find((bucket) => bucket.key === active)
+  const known = points.filter((point) => point.computed)
+  const values = known.flatMap((point) => series.map((s) => point[s.key]))
+  const min = Math.min(0, ...values), max = Math.max(1, ...values)
+  const spread = max - min
+  const y = (value) => (max - value) / spread * 208
+  const selected = points.find((point) => point.index === active)
+  const money = line ? formatCurrency : formatNumber
+  const label = (point) => `${point.label}: ${point.computed ? series.map((s) => `${t(s.label)} ${money(point[s.key])}`).join(', ') : t('merchant.reportSync.notComputed')}`
   return (
-    <div className="grid gap-6 xl:grid-cols-2">
-      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <h2 className="flex items-center gap-2 border-b border-border p-5 text-lg font-bold">
-          <TrendingUp
-            className="text-primary"
-            size={21}
-          />
-          {t('merchant.reports.revenueChart')}
-        </h2>
-        <ReportPending
-          message="merchant.reports.revenuePending"
-          icon={TrendingUp}
+    <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <h2 className="flex items-center gap-2 text-lg font-bold">
+        <Icon
+          size={21}
+          className="text-primary"
         />
-      </section>
-      <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <h2 className="flex items-center gap-2 text-lg font-bold">
-          <BarChart3
-            className="text-primary"
-            size={21}
-          />
-          {t('merchant.reports.orderChart')}
-        </h2>
-        <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
-          {['current', 'previous'].map((key) => (
-            <span
-              key={key}
-              className="flex items-center gap-2"
-            >
-              <i className={`size-2.5 rounded-full ${key === 'current' ? 'bg-primary' : 'bg-violet-400'}`} />
-              {t(`merchant.reports.${key}`)}
-            </span>
-          ))}
-        </div>
-        <div className="overflow-x-auto">
-          <svg
-            viewBox={`0 0 ${width} ${height}`}
-            role="img"
-            aria-label={t('merchant.reports.orderChart')}
-            className="mt-5 min-w-[480px] w-full text-muted-foreground"
+        {t(title)}
+      </h2>
+      <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
+        {series.map((s) => (
+          <span
+            key={s.key}
+            className="flex items-center gap-2"
           >
-            {[0, 1, 2, 3, 4].map((index) => {
-              const y = top + index * plotHeight / 4
-              return (
-                <g key={index}>
-                  <line
-                    x1={left}
-                    x2={width - 15}
-                    y1={y}
-                    y2={y}
-                    stroke="currentColor"
-                    opacity="0.12"
-                  />
-                  <text
-                    x={left - 8}
-                    y={y + 4}
-                    textAnchor="end"
-                    fontSize="11"
-                    fill="currentColor"
-                  >
-                    {formatNumber(Math.ceil(max * (4 - index) / 4))}
-                  </text>
-                </g>
-              )
-            })}
-            {buckets.map((bucket, index) => (
-              <g
-                key={bucket.key}
-                tabIndex={0}
-                role="button"
-                aria-label={`${bucket.label}: ${t('merchant.reports.current')} ${bucket.current}, ${t('merchant.reports.previous')} ${bucket.previous}`}
-                className="cursor-pointer outline-none focus:text-primary"
-                onMouseEnter={() => setActive(bucket.key)}
-                onMouseLeave={() => setActive(null)}
-                onFocus={() => setActive(bucket.key)}
-                onBlur={() => setActive(null)}
-                onClick={() => setActive(bucket.key)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault(); setActive(bucket.key)
-                  }
-                }}
+            <i
+              aria-hidden="true"
+              className="size-2.5 rounded-full"
+              style={{ backgroundColor: s.color }}
+            />
+            {t(s.label)}
+          </span>
+        ))}
+      </div>
+      <div
+        className="mt-5 overflow-x-auto"
+        role="group"
+        aria-label={t(title)}
+        tabIndex={0}
+      >
+        <div style={{ minWidth: Math.max(520, points.length * 18) }}>
+          <div className="relative ml-14 h-52">
+            {[0, 1, 2, 3, 4].map((tick) => (
+              <div
+                key={tick}
+                className="pointer-events-none absolute inset-x-0 border-t border-border/60"
+                style={{ top: `${tick * 25}%` }}
               >
-                <rect
-                  x={left + index * step + 2}
-                  y={top}
-                  width={Math.max(1, step - 4)}
-                  height={plotHeight}
-                  fill="currentColor"
-                  opacity={active === bucket.key ? 0.07 : 0}
-                />
-                {['previous', 'current'].map((key, column) => {
-                  const barHeight = bucket[key] / max * plotHeight
-                  return (
-                    <rect
-                      key={key}
-                      x={left + index * step + step * (0.15 + column * 0.36)}
-                      y={height - bottom - barHeight}
-                      width={step * 0.3}
-                      height={barHeight}
-                      rx="3"
-                      fill={key === 'current' ? 'var(--primary)' : '#a78bfa'}
-                      opacity={key === 'current' ? 1 : 0.65}
-                    />
-                  )
-                })}
-                {(buckets.length <= 7 || index % 2 === 0 || index === buckets.length - 1) && (
-                  <text
-                    x={left + (index + 0.5) * step}
-                    y={height - 12}
-                    textAnchor="middle"
-                    fontSize="10"
-                    fill="currentColor"
-                  >
-                    {bucket.label}
-                  </text>
-                )}
-              </g>
+                <span className="absolute -left-14 -top-2 w-12 text-right text-xs text-muted-foreground">
+                  {new Intl.NumberFormat(i18n.resolvedLanguage, { notation: line ? 'compact' : 'standard', maximumFractionDigits: line ? 1 : 0 }).format(max - spread * tick / 4)}
+                </span>
+              </div>
             ))}
-          </svg>
+            {line && (
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 1000 208"
+                preserveAspectRatio="none"
+                className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+              >
+                {series.map((s) => (
+                  <path
+                    key={s.key}
+                    d={points.map((point, index) => point.computed ? `${index === 0 || !points[index - 1].computed ? 'M' : 'L'}${(index + 0.5) / Math.max(1, points.length) * 1000},${y(point[s.key])}` : '').join(' ')}
+                    fill="none"
+                    stroke={s.color}
+                    strokeWidth="2.5"
+                    vectorEffect="non-scaling-stroke"
+                    strokeDasharray={s.key === 'previousNetRevenue' ? '5 4' : undefined}
+                  />
+                ))}
+              </svg>
+            )}
+            <div className="absolute inset-0 flex">
+              {points.map((point) => (
+                <button
+                  key={point.index}
+                  type="button"
+                  aria-label={label(point)}
+                  onMouseEnter={() => setActive(point.index)}
+                  onMouseLeave={() => setActive(null)}
+                  onFocus={() => setActive(point.index)}
+                  onBlur={() => setActive(null)}
+                  onClick={() => setActive(point.index)}
+                  className="relative min-w-0 flex-1 outline-none hover:bg-primary/5 focus-visible:bg-primary/10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+                >
+                  {point.computed && series.map((s, column) => line ? (
+                    <span
+                      key={s.key}
+                      className="absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-card"
+                      style={{ left: '50%', top: y(point[s.key]), backgroundColor: s.color }}
+                    />
+                  ) : (
+                    <span
+                      key={s.key}
+                      className="absolute w-[30%] rounded-t-sm"
+                      style={{ left: `${15 + column * 36}%`, top: Math.min(y(0), y(point[s.key])), height: Math.abs(y(0) - y(point[s.key])), backgroundColor: s.color }}
+                    />
+                  ))}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="ml-14 mt-2 flex text-center text-xs text-muted-foreground">
+            {points.map((point, index) => (
+              <span
+                key={point.index}
+                className="min-w-0 flex-1 whitespace-nowrap"
+              >
+                {index % Math.max(1, Math.ceil(points.length / 6)) === 0 ? point.label.replace(/\/\d{4}$/, '') : ''}
+              </span>
+            ))}
+          </div>
         </div>
-        <p
-          className="min-h-6 text-sm text-muted-foreground"
-          aria-live="polite"
-        >
-          {selected ? `${selected.label} · ${t('merchant.reports.current')}: ${formatNumber(selected.current)} · ${t('merchant.reports.previous')}: ${formatNumber(selected.previous)}` : t('merchant.reports.chartHint')}
-        </p>
-        <details className="mt-3 rounded-xl bg-muted/30 p-3 text-sm">
-          <summary className="cursor-pointer font-semibold">
-            {t('merchant.reports.viewData')}
-          </summary>
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full text-left">
-              <caption className="sr-only">
-                {t('merchant.reports.orderChart')}
-              </caption>
-              <thead>
-                <tr>
-                  {['buckets', 'current', 'previous'].map((key) => (
-                    <th
-                      key={key}
-                      className="p-2"
+      </div>
+      <p
+        aria-live="polite"
+        className="mt-4 min-h-10 text-sm text-muted-foreground"
+      >
+        {selected ? label(selected) : t('merchant.reports.chartHint')}
+      </p>
+      <details className="rounded-xl bg-muted/25 p-3 text-sm">
+        <summary className="cursor-pointer font-semibold">
+          {t('merchant.reports.viewData')}
+        </summary>
+        <div className="mt-3 max-h-72 overflow-auto">
+          <table className="w-full text-left">
+            <caption className="sr-only">
+              {t(title)}
+            </caption>
+            <thead>
+              <tr>
+                <th className="p-2">
+                  {t('merchant.reports.buckets')}
+                </th>
+                {series.map((s) => (
+                  <th
+                    key={s.key}
+                    className="p-2"
+                  >
+                    {t(s.label)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {points.map((point) => (
+                <tr
+                  key={point.index}
+                  className="border-t border-border"
+                >
+                  <th
+                    scope="row"
+                    className="p-2 font-medium"
+                  >
+                    {point.label}
+                  </th>
+                  {series.map((s) => (
+                    <td
+                      key={s.key}
+                      className="whitespace-nowrap p-2"
                     >
-                      {t(`merchant.reports.${key}`)}
-                    </th>
+                      {point.computed ? money(point[s.key]) : t('merchant.reportSync.notComputed')}
+                    </td>
                   ))}
                 </tr>
-              </thead>
-              <tbody>
-                {buckets.map((bucket) => (
-                  <tr
-                    key={bucket.key}
-                    className="border-t border-border"
-                  >
-                    <th
-                      scope="row"
-                      className="p-2 font-medium"
-                    >
-                      {bucket.label}
-                    </th>
-                    <td className="p-2">
-                      {formatNumber(bucket.current)}
-                    </td>
-                    <td className="p-2">
-                      {formatNumber(bucket.previous)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </details>
-      </section>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+  )
+}
+export default function ReportCharts({ report }) {
+  return (
+    <div className="grid gap-6 xl:grid-cols-2">
+      <Chart
+        title="merchant.reportSync.netChart"
+        Icon={TrendingUp}
+        points={report.series}
+        series={[{ key: 'netRevenue', label: 'merchant.reports.current', color: 'var(--primary)' }, { key: 'previousNetRevenue', label: 'merchant.reports.previous', color: '#a78bfa' }]}
+        line
+      />
+      <Chart
+        title="merchant.reports.orderChart"
+        Icon={BarChart3}
+        points={report.series}
+        series={[{ key: 'ordersCreated', label: 'merchant.reportSync.created', color: 'var(--primary)' }, { key: 'ordersCompleted', label: 'merchant.reportSync.completed', color: '#10b981' }]}
+      />
     </div>
   )
 }

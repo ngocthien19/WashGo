@@ -378,6 +378,28 @@
     "forgotPasswordTitle": "Quên mật khẩu?"
   },
   "merchant": {
+    "reportSync": {
+      "flow": { "grossLaundryRevenue": "Tiền giặt đã thu", "refunds": "Trừ tiền hoàn cho khách", "netRevenue": "Còn lại sau hoàn tiền", "commission": "Trừ hoa hồng WashGo", "formula": "Tiền giặt − Tiền hoàn − Hoa hồng", "fees": "Phí hủy/lưu kho · theo dõi riêng" },
+      "income": "Thu nhập sau hoa hồng",
+      "created": "Đơn tạo trong kỳ",
+      "completed": "Đơn hoàn thành trong kỳ",
+      "onTime": "Tỷ lệ giặt xong đúng hạn",
+      "points": "điểm %", "new": "Mới phát sinh", "estimated": "Tạm tính · chưa phải tiền đã chi trả", "reconcile": "Chờ đối soát",
+      "onTimeSample": "{{numerator}}/{{denominator}} đơn đủ điều kiện",
+      "finance": "Chi tiết doanh thu và hoa hồng",
+      "money": { "grossLaundryRevenue": "Tiền giặt đã thu", "refunds": "Tiền đã hoàn", "netRevenue": "Doanh thu sau hoàn tiền", "commission": "Hoa hồng WashGo", "merchantPayout": "Thu nhập sau hoa hồng (tạm tính)", "feesCollected": "Phí hủy/lưu kho đã thu (ngoài thu nhập tiệm)" },
+      "coverage": "Có {{count}} đơn chưa xác định được hoa hồng lịch sử. Thu nhập sau hoa hồng và xuất báo cáo đang chờ đối soát.",
+      "incomeNote": "Thu nhập tạm tính = tiền giặt đã thu − tiền hoàn − hoa hồng. Đây là khoản được hưởng, không phải lợi nhuận hoặc xác nhận đã chi trả. Phí hủy/lưu kho được theo dõi riêng.",
+      "cancelled": "Đơn hủy trong kỳ: {{count}}",
+      "netChart": "Doanh thu sau hoàn tiền (trước hoa hồng)",
+      "notComputed": "Chưa tới thời điểm tính",
+      "ranking": "Xếp theo số đơn đã thanh toán có dịch vụ. Giá trị dịch vụ theo giá trên đơn, trước phụ phí cân và giảm giá; không phải thu nhập thực nhận.",
+      "serviceOrders": "{{count}} đơn đã thanh toán", "listValue": "Giá trị dịch vụ", "noServices": "Chưa có dịch vụ phát sinh thanh toán trong kỳ.",
+      "scope": "Doanh thu theo ngày thanh toán/hoàn tiền; đơn hoàn thành theo thời điểm hoàn thành. Kỳ trước liền kề, cùng độ dài và so cùng tiến độ nếu kỳ này chưa kết thúc.",
+      "asOf": "Số liệu tính tới {{time}}", "incomplete": "Kỳ chưa kết thúc",
+      "exportHint": "CSV được tạo lại tại thời điểm xuất theo khoảng ngày đang hiển thị, gồm KPI, biểu đồ và dịch vụ bán chạy; số liệu có thể cập nhật sau lần xem.",
+      "exportBlocked": "Cần đối soát các đơn thiếu hoa hồng lịch sử trước khi xuất báo cáo.", "exporting": "Đang xuất…", "exported": "Đã tải báo cáo CSV."
+    },
     "serviceSync": {
       "sortLabel": "Sắp xếp dịch vụ",
       "sort": { "name": "Tên A–Z", "nameDesc": "Tên Z–A", "price": "Giá tăng dần", "priceDesc": "Giá giảm dần", "duration": "Thời gian ngắn nhất", "durationDesc": "Thời gian dài nhất", "newest": "Mới nhất" },

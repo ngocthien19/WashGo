@@ -1,33 +1,42 @@
-import { afterEach, expect, it, vi } from 'vitest'
-vi.mock('./merchantOrderApi', () => ({ merchantOrderApi: { list: vi.fn() } }))
-import { merchantOrderApi } from './merchantOrderApi'
+import { beforeEach, expect, it, vi } from 'vitest'
+import authorizedAxios from '~/utils/authorizedAxios'
 import { merchantReportApi } from './merchantReportApi'
-
-afterEach(() => {
-  vi.useRealTimers(); vi.clearAllMocks()
+import { reportFixture } from '../../../tests/e2e/helpers/merchantReportData'
+vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn() } }))
+beforeEach(() => vi.clearAllMocks())
+const range = { mode: 'custom', from: '2026-11-01', to: '2026-11-07' }
+const response = (data) => ({ data: { succeeded: true, data } })
+it('loads one scoped aggregate, retaining actual completion, points and uncomputed buckets', async () => {
+  const report = reportFixture(range)
+  authorizedAxios.get.mockResolvedValue(response(report))
+  expect(await merchantReportApi.load(range)).toEqual(report)
+  expect(authorizedAxios.get).toHaveBeenCalledExactlyOnceWith('/merchant-reports/overview', { params: { period: 'custom', from: range.from, to: range.to, top: 5 }, signal: undefined })
+  expect(report.series[2].computed).toBe(false)
+  expect(report.kpis.onTimeRate.changePoints).toBe(10)
 })
-it('counts scoped totals with bounded concurrency, deduplication and no order data in report', async () => {
-  vi.useFakeTimers(); vi.setSystemTime(new Date('2026-11-07T04:00:00Z'))
-  let active = 0, peak = 0
-  merchantOrderApi.list.mockImplementation(async (filter) => {
-    active++; peak = Math.max(peak, active)
-    await Promise.resolve(); await Promise.resolve()
-    active--
-    return { total: filter.status === 12 ? 3 : 8, list: [{ customerName: 'private', depositPinCode: 'secret' }] }
-  })
-  const report = await merchantReportApi.load({ from: '2026-11-01', to: '2026-11-07' })
-  expect(peak).toBeLessThanOrEqual(4)
-  expect(report.current).toEqual({ total: 8, completed: 3 })
-  expect(report.buckets).toHaveLength(7)
-  const calls = merchantOrderApi.list.mock.calls.map(([filter]) => filter)
-  expect(calls.length).toBeLessThanOrEqual(28)
-  expect(new Set(calls.map(JSON.stringify)).size).toBe(calls.length)
-  calls.forEach((filter) => expect(Object.keys(filter).sort()).toEqual((filter.status ? ['fromDate', 'toDate', 'page', 'take', 'status'] : ['fromDate', 'toDate', 'page', 'take']).sort()))
-  expect(JSON.stringify(report)).not.toMatch(/private|secret|depositPinCode/)
+it('rejects malformed, wrong-range and wrong-currency snapshots without substituting zero', async () => {
+  for (const change of [{ currency: 'USD' }, { series: null }, { current: {} }, { kpis: {} }]) {
+    authorizedAxios.get.mockResolvedValue(response({ ...reportFixture(range), ...change }))
+    await expect(merchantReportApi.load(range)).rejects.toThrow()
+  }
+  authorizedAxios.get.mockResolvedValue(response(reportFixture({ from: '2026-10-01', to: '2026-10-07' })))
+  await expect(merchantReportApi.load(range)).rejects.toThrow()
 })
-it('fails the report on a failed count and does not substitute zero or export partial data', async () => {
-  vi.useFakeTimers(); vi.setSystemTime(new Date('2026-11-07T04:00:00Z'))
-  merchantOrderApi.list.mockRejectedValue(new Error('failed'))
-  await expect(merchantReportApi.load({ from: '2026-11-01', to: '2026-11-07' })).rejects.toThrow('failed')
-  expect(merchantOrderApi.list.mock.calls.length).toBeLessThanOrEqual(4)
+it('validates dates before requesting and rejects failed reports', async () => {
+  await expect(merchantReportApi.load({ from: 'bad', to: range.to })).rejects.toThrow()
+  expect(authorizedAxios.get).not.toHaveBeenCalled()
+  authorizedAxios.get.mockRejectedValue(new Error('failed'))
+  await expect(merchantReportApi.load(range)).rejects.toThrow('failed')
+})
+it('exports the displayed applied range and rejects non-CSV or incomplete financial coverage', async () => {
+  const report = reportFixture(range), blob = new Blob(['csv'], { type: 'text/csv' })
+  authorizedAxios.get.mockResolvedValue({ data: blob, headers: { 'content-type': 'text/csv; charset=utf-8' } })
+  expect(await merchantReportApi.export(report)).toBe(blob)
+  expect(authorizedAxios.get).toHaveBeenCalledWith('/merchant-reports/export', { params: { period: 'custom', from: range.from, to: range.to, granularity: 'day', top: 5 }, responseType: 'blob' })
+  report.kpis.ordersWithoutCommissionSnapshot = 1
+  await expect(merchantReportApi.export(report)).rejects.toThrow('merchant.reportSync.exportBlocked')
+  expect(authorizedAxios.get).toHaveBeenCalledTimes(1)
+  report.kpis.ordersWithoutCommissionSnapshot = 0
+  authorizedAxios.get.mockResolvedValue({ data: new Blob(['{}'], { type: 'application/json' }), headers: {} })
+  await expect(merchantReportApi.export(report)).rejects.toThrow()
 })

@@ -378,6 +378,28 @@
     "forgotPasswordTitle": "Forgot password?"
   },
   "merchant": {
+    "reportSync": {
+      "flow": { "grossLaundryRevenue": "Laundry payments received", "refunds": "Less customer refunds", "netRevenue": "Remaining after refunds", "commission": "Less WashGo commission", "formula": "Laundry payments − Refunds − Commission", "fees": "Cancellation/storage fees · tracked separately" },
+      "income": "Income after commission",
+      "created": "Orders created in period",
+      "completed": "Orders completed in period",
+      "onTime": "On-time laundry completion",
+      "points": "pp", "new": "New activity", "estimated": "Estimated · payment not confirmed", "reconcile": "Awaiting reconciliation",
+      "onTimeSample": "{{numerator}}/{{denominator}} eligible orders",
+      "finance": "Revenue and commission breakdown",
+      "money": { "grossLaundryRevenue": "Laundry payments received", "refunds": "Refunds paid", "netRevenue": "Revenue after refunds", "commission": "WashGo commission", "merchantPayout": "Income after commission (estimated)", "feesCollected": "Cancellation/storage fees (outside store income)" },
+      "coverage": "{{count}} orders lack confirmed historical commission. Income after commission and report export await reconciliation.",
+      "incomeNote": "Estimated income = laundry payments − refunds − commission. This is income earned, not profit or confirmation of payout. Cancellation/storage fees are tracked separately.",
+      "cancelled": "Orders cancelled in period: {{count}}",
+      "netChart": "Revenue after refunds (before commission)",
+      "notComputed": "Not yet computed",
+      "ranking": "Ranked by paid orders containing each service. Service values use order prices before weight surcharges and discounts; they are not take-home income.",
+      "serviceOrders": "{{count}} paid orders", "listValue": "Service value", "noServices": "No services with payments in this period.",
+      "scope": "Revenue follows payment/refund dates; completed orders follow actual completion times. The preceding equal-length period is compared at the same progress when this period is incomplete.",
+      "asOf": "Data through {{time}}", "incomplete": "Period in progress",
+      "exportHint": "CSV is generated again when exported for the displayed date range, including KPIs, charts and top services. Data may have changed since viewing.",
+      "exportBlocked": "Reconcile orders missing historical commission before exporting.", "exporting": "Exporting…", "exported": "CSV report downloaded."
+    },
     "serviceSync": {
       "sortLabel": "Sort services",
       "sort": { "name": "Name A–Z", "nameDesc": "Name Z–A", "price": "Price: low to high", "priceDesc": "Price: high to low", "duration": "Shortest duration", "durationDesc": "Longest duration", "newest": "Newest first" },
