@@ -13,9 +13,15 @@ export const merchantLockerApi = {
     const { data } = await authorizedAxios.post('/locker/filter', { keyword, status, page, take, sortBy }, { signal })
     return pageResult(data, page, take, validLocker)
   },
-  summary: (signal) => Promise.all([
-    { key: 'total' }, { key: 'active', status: 1 }, { key: 'maintenance', status: 2 }, { key: 'inactive', status: 3 }
-  ].map(async ({ key, ...filter }) => [key, (await merchantLockerApi.list({ page: 1, take: 1, ...filter }, signal)).total])).then(Object.fromEntries),
+  summary: async (signal) => {
+    const { data } = await authorizedAxios.get('/locker/summary', { signal })
+    const value = data?.data
+    const fields = ['totalLockers', 'activeLockers', 'maintenanceLockers', 'inactiveLockers', 'totalBoxes', 'availableBoxes', 'occupiedBoxes', 'reservedBoxes', 'maintenanceBoxes']
+    if (data?.succeeded !== true || fields.some((key) => !Number.isSafeInteger(value?.[key]) || value[key] < 0) || value.totalLockers !== value.activeLockers + value.maintenanceLockers + value.inactiveLockers || value.totalBoxes !== value.availableBoxes + value.occupiedBoxes + value.reservedBoxes + value.maintenanceBoxes) {
+      throw invalid()
+    }
+    return { ...value, total: value.totalLockers, active: value.activeLockers, maintenance: value.maintenanceLockers, inactive: value.inactiveLockers }
+  },
   detail: async (id, signal) => {
     const { data } = await authorizedAxios.get(`/locker/${encodeURIComponent(id)}`, { signal })
     if (data?.succeeded !== true || data.data?.id !== id || !validLocker(data.data) || !Array.isArray(data.data.boxes) || data.data.boxes.some((box) => !box.id || !Number.isInteger(box.status))) {
@@ -25,6 +31,10 @@ export const merchantLockerApi = {
   },
   history: async (id, { page, take, boxId, fromDate, toDate }, signal) => {
     const { data } = await authorizedAxios.get(`/locker/${encodeURIComponent(id)}/usage-history`, { params: { page, take, boxId, fromDate, toDate }, signal })
-    return pageResult(data, page, take, (item) => item.orderId && typeof item.orderCode === 'string' && [1, 2].includes(item.usageType))
+    const result = pageResult(data, page, take, (item) => item.orderId && typeof item.usageId === 'string' && item.usageId.length > 0 && typeof item.orderCode === 'string' && [1, 2].includes(item.usageType))
+    if (new Set(result.list.map((item) => item.usageId)).size !== result.list.length) {
+      throw invalid()
+    }
+    return result
   }
 }

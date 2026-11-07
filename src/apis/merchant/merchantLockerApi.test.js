@@ -3,10 +3,13 @@ import authorizedAxios from '~/utils/authorizedAxios'
 import { merchantLockerApi } from './merchantLockerApi'
 vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
-it('uses scoped totals rather than the current page for locker statistics', async () => {
-  authorizedAxios.post.mockImplementation(async (url, body) => ({ data: { succeeded: true, total: body.status ? { 1: 5, 2: 3, 3: 1 }[body.status] : 9, list: [] } }))
-  expect(await merchantLockerApi.summary()).toEqual({ total: 9, active: 5, maintenance: 3, inactive: 1 })
-  expect(authorizedAxios.post).toHaveBeenCalledTimes(4)
+it('uses one scoped snapshot and rejects inconsistent counts', async () => {
+  const data = { totalLockers: 9, activeLockers: 5, maintenanceLockers: 3, inactiveLockers: 1, totalBoxes: 10, availableBoxes: 4, occupiedBoxes: 3, reservedBoxes: 2, maintenanceBoxes: 1 }
+  authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data } })
+  expect(await merchantLockerApi.summary()).toMatchObject({ total: 9, active: 5, maintenance: 3, inactive: 1, totalBoxes: 10 })
+  expect(authorizedAxios.get).toHaveBeenCalledExactlyOnceWith('/locker/summary', { signal: undefined })
+  authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: { ...data, totalBoxes: 99 } } })
+  await expect(merchantLockerApi.summary()).rejects.toThrow()
 })
 it('whitelists list and history parameters without identity or write fields', async () => {
   authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, total: 25, list: [] } })
@@ -22,4 +25,12 @@ it('rejects wrong-id details and malformed usage responses', async () => {
   await expect(merchantLockerApi.detail('locker')).rejects.toThrow('merchant.invalidResponse')
   authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, total: 1, list: [{ orderId: 'order', orderCode: 'WG', usageType: 99 }] } })
   await expect(merchantLockerApi.history('locker', { page: 1, take: 8 })).rejects.toThrow('merchant.invalidResponse')
+})
+
+it('keeps stable usage identity and nullable times without inventing occupancy', async () => {
+  const row = { usageId: 'order:2', orderId: 'order', orderCode: 'WG', boxId: 'deleted-box', usageType: 2, putInAt: null, takenOutAt: null }
+  authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, list: [row], total: 1 } })
+  expect((await merchantLockerApi.history('locker', { page: 1, take: 8 })).list).toEqual([row])
+  authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, list: [row, row], total: 2 } })
+  await expect(merchantLockerApi.history('locker', { page: 1, take: 8 })).rejects.toThrow()
 })
