@@ -14,7 +14,7 @@ export function DropdownMenuContent({ children, className, ...props }) {
         className="z-50"
       >
         <Menu.Popup
-          className={cn('w-64 origin-top-right rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-lg outline-none', className)}
+          className={cn('w-68 origin-top-right rounded-xl border border-border bg-popover p-1.5 text-popover-foreground shadow-lg outline-none', className)}
           {...props}
         >
           {children}
