@@ -1,3 +1,4 @@
+import CustomerVideoGallery from '~/components/customer/CustomerVideoGallery'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Star, CheckCircle2, CalendarDays, MessageSquareText, Images, PackageCheck } from 'lucide-react'
@@ -94,6 +95,7 @@ export default function RatingDialog({ order, resource, onClose, onSaved }) {
                       </p>
                     </div>
                   )}
+                  <CustomerVideoGallery urls={rating.videoUrls} />
                   {!!rating.imageUrls?.length && (
                     <div className="space-y-3">
                       <h3 className="flex items-center gap-2 text-sm font-semibold">

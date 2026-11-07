@@ -19,7 +19,7 @@ const unwrap = ({ data }, orderId, allowEmpty) => {
 export const customerRatingApi = {
   getByOrder: (orderId, signal) => authorizedAxios.get(`${RATING_CONFIG.ENDPOINT}/order/${encodeURIComponent(orderId)}`, { signal })
     .then((response) => unwrap(response, orderId, true)),
-  create: ({ orderId, overallStars, qualityStars, speedStars, attitudeStars, packagingStars, comment, imageUrls }) =>
-    authorizedAxios.post(RATING_CONFIG.ENDPOINT, { orderId, overallStars, qualityStars, speedStars, attitudeStars, packagingStars, comment, imageUrls })
+  create: ({ orderId, overallStars, qualityStars, speedStars, attitudeStars, packagingStars, comment, imageUrls, videoUrls }) =>
+    authorizedAxios.post(RATING_CONFIG.ENDPOINT, { orderId, overallStars, qualityStars, speedStars, attitudeStars, packagingStars, comment, imageUrls, videoUrls })
       .then((response) => unwrap(response, orderId, false))
 }

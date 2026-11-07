@@ -1,3 +1,5 @@
+import useVideos from '~/hooks/useVideos'
+import CustomerVideoPicker from '~/components/customer/CustomerVideoPicker'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Send, RefreshCw, MessageSquareText, SlidersHorizontal } from 'lucide-react'
@@ -15,6 +17,7 @@ export default function RatingForm({ orderId, onSaved, onBusy, onClose }) {
   const { t } = useTranslation()
   const [values, setValues] = useState({ overallStars: 0, comment: '' })
   const selection = useCustomerImages(RATING_CONFIG.MAX_IMAGES)
+  const videos = useVideos()
   const [busy, setBusy] = useState(false)
   const [uncertain, setUncertain] = useState(false)
   const [error, setError] = useState('')
@@ -42,10 +45,11 @@ export default function RatingForm({ orderId, onSaved, onBusy, onClose }) {
     let posting = false
     try {
       const imageUrls = await selection.upload()
+      const videoUrls = await videos.upload()
       posting = true
       const rating = await customerRatingApi.create({
         orderId, overallStars: values.overallStars, comment: values.comment.trim() || null,
-        ...Object.fromEntries(RATING_CONFIG.CRITERIA.map((key) => [key, values[key] || null])), imageUrls
+        ...Object.fromEntries(RATING_CONFIG.CRITERIA.map((key) => [key, values[key] || null])), imageUrls, videoUrls
       })
       onSaved(rating)
     } catch (failure) {
@@ -142,6 +146,10 @@ export default function RatingForm({ orderId, onSaved, onBusy, onClose }) {
             selection={selection}
             disabled={busy || uncertain}
             help={t('customer.rating.imageHelp')}
+          />
+          <CustomerVideoPicker
+            selection={videos}
+            disabled={busy || uncertain}
           />
         </fieldset>
       </div>
