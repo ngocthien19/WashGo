@@ -5,9 +5,9 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/compone
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import { formatCurrency } from '~/utils/formats'
 import { SERVICE_TYPES } from '~/utils/constants'
-import useCatalogResource from '~/hooks/customer/useCatalogResource'
+import useCatalogResource from '~/hooks/useCatalogResource'
 import { Button } from '~/components/ui/button'
-import CatalogFeedback from '~/components/customer/catalog/CatalogFeedback'
+import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import ServiceIcon from './ServiceIcon'
 
 export default function ServiceDetails({ id, onClose }) {

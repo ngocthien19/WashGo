@@ -10,7 +10,7 @@ import NotificationInbox from './NotificationInbox'
 
 export default function NotificationBell() {
   const { t } = useTranslation()
-  const { unread } = useNotifications()
+  const { unread, listHref = CUSTOMER_ROUTES.NOTIFICATIONS } = useNotifications()
   const [open, setOpen] = useState(false)
   return (
     <Popover.Root
@@ -77,7 +77,7 @@ export default function NotificationBell() {
               </span>
               <Link
                 className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                to={CUSTOMER_ROUTES.NOTIFICATIONS}
+                to={listHref}
                 onClick={() => setOpen(false)}
               >
                 {t('customer.profile.allNotifications')}

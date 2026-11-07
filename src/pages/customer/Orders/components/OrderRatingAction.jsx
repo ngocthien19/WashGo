@@ -4,7 +4,7 @@ import { Star, LoaderCircle } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { ORDER_STATUSES } from '~/utils/constants'
 import { customerRatingApi } from '~/apis/customer/customerRatingApi'
-import useCatalogResource from '~/hooks/customer/useCatalogResource'
+import useCatalogResource from '~/hooks/useCatalogResource'
 
 const RatingDialog = lazy(() => import('./RatingDialog'))
 

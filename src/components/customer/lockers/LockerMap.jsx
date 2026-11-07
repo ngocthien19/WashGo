@@ -1,4 +1,4 @@
-import MapZoomControls from '~/components/customer/maps/MapZoomControls'
+import MapZoomControls from '~/components/maps/MapZoomControls'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon, latLngBounds } from 'leaflet'

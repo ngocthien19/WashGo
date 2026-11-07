@@ -5,10 +5,10 @@ import { CheckCheck, Check, Trash2, ArrowUpRight, RefreshCw } from 'lucide-react
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import NotificationIcon from './NotificationIcon'
 import { Button } from '~/components/ui/button'
-import CatalogFeedback from '~/components/customer/catalog/CatalogFeedback'
+import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import Pagination from '~/components/Pagination/Pagination'
-import useCatalogResource from '~/hooks/customer/useCatalogResource'
-import { customerNotificationApi } from '~/apis/customer/customerNotificationApi'
+import useCatalogResource from '~/hooks/useCatalogResource'
+import { notificationApi } from '~/apis/notificationApi'
 import { formatDateTime } from '~/utils/formats'
 import { notify } from '~/utils/notifications'
 import { getApiError } from '~/utils/apiError'
@@ -19,7 +19,7 @@ import { notificationHref } from './notificationModel'
 export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = false, onChange, compact = false }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { revision, refresh } = useNotifications()
+  const { revision, refresh, resolveHref = notificationHref } = useNotifications()
   const [pending, setPending] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const lock = useRef(false)
@@ -30,7 +30,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
       mounted.current = false
     }
   }, [])
-  const load = useCallback((signal) => customerNotificationApi.list(page, unreadOnly, signal), [page, unreadOnly])
+  const load = useCallback((signal) => notificationApi.list(page, unreadOnly, signal), [page, unreadOnly])
   const resource = useCatalogResource(load, revision)
   const { data, loading, error, retry } = resource
   const mutate = async (action, next) => {
@@ -58,7 +58,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
     }
   }
   const open = (item) => {
-    const href = notificationHref(item)
+    const href = resolveHref(item)
     const go = () => {
       if (href) {
         onNavigate?.(); navigate(href)
@@ -67,7 +67,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
     if (item.isRead) {
       go()
     } else {
-      mutate(() => customerNotificationApi.read(item.id), go)
+      mutate(() => notificationApi.read(item.id), go)
     }
   }
   return (
@@ -95,7 +95,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
                 variant="secondary"
                 className="h-10 rounded-xl px-3 text-emerald-700 dark:text-emerald-300"
                 disabled={pending}
-                onClick={() => mutate(customerNotificationApi.readAll, () => onChange({ page: 1, unreadOnly }))}
+                onClick={() => mutate(notificationApi.readAll, () => onChange({ page: 1, unreadOnly }))}
               >
                 <CheckCheck size={17} />
                 {t('customer.notification.readAll')}
@@ -151,7 +151,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
                   {item.content}
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {notificationHref(item) && (
+                  {resolveHref(item) && (
                     <Button
                       variant="link"
                       className="h-9 px-0"
@@ -169,7 +169,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
                       className="size-9 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200"
                       disabled={pending}
                       aria-label={t('customer.notification.markRead')}
-                      onClick={() => mutate(() => customerNotificationApi.read(item.id), () => {
+                      onClick={() => mutate(() => notificationApi.read(item.id), () => {
                         if (unreadOnly && page > 1 && data.list.length === 1) {
                           onChange({ page: page - 1, unreadOnly })
                         }
@@ -190,7 +190,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
                     className="ml-auto size-9"
                     disabled={pending}
                     aria-label={t('customer.notification.delete')}
-                    onClick={() => mutate(() => customerNotificationApi.remove(item.id), () => {
+                    onClick={() => mutate(() => notificationApi.remove(item.id), () => {
                       if (data.list.length === 1 && page > 1) {
                         onChange({ page: page - 1, unreadOnly })
                       }
@@ -236,7 +236,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
               variant="destructive"
               className="h-11 px-4"
               disabled={pending}
-              onClick={() => mutate(customerNotificationApi.removeAll, () => {
+              onClick={() => mutate(notificationApi.removeAll, () => {
                 setConfirmDelete(false); onChange({ page: 1, unreadOnly })
               })}
             >

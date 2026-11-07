@@ -10,8 +10,8 @@ import { notify } from '~/utils/notifications'
 vi.mock('~/utils/notifications', () => ({ notify: { info: vi.fn() } }))
 
 const mock = vi.hoisted(() => ({ handlers: {}, unread: vi.fn(), stop: vi.fn(async () => {}), options: null, reconnected: null }))
-vi.mock('~/apis/customer/customerNotificationApi', () => ({
-  customerNotificationApi: { unread: mock.unread },
+vi.mock('~/apis/notificationApi', () => ({
+  notificationApi: { unread: mock.unread },
   isNotification: (item) => Boolean(item?.id)
 }))
 vi.mock('@microsoft/signalr', () => ({

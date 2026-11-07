@@ -1,27 +1,29 @@
 import { createElement, useCallback, useEffect, useRef, useState } from 'react'
 import { useSelector, useStore } from 'react-redux'
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
-import { customerNotificationApi, isNotification } from '~/apis/customer/customerNotificationApi'
+import { notificationApi, isNotification } from '~/apis/notificationApi'
 import { API_URL } from '~/utils/authorizedAxios'
 import { NOTIFICATION_CONFIG } from '~/utils/constants'
 import { NotificationContext } from './NotificationContext'
 import NotificationIcon from './NotificationIcon'
 import { notify } from '~/utils/notifications'
 
-export default function NotificationProvider({ children }) {
+export default function NotificationProvider({ children, listHref, resolveHref }) {
   const store = useStore()
   const userId = useSelector((state) => state.auth.user?.id)
   return (
     <NotificationSession
       key={userId || 'guest'}
       store={store}
+      listHref={listHref}
+      resolveHref={resolveHref}
     >
       {children}
     </NotificationSession>
   )
 }
 
-function NotificationSession({ children, store }) {
+function NotificationSession({ children, store, listHref, resolveHref }) {
   const [revision, setRevision] = useState(0)
   const [unread, setUnread] = useState(null)
   const [live, setLive] = useState(false)
@@ -31,7 +33,7 @@ function NotificationSession({ children, store }) {
   useEffect(() => {
     const controller = new AbortController()
     const current = ++generation.current
-    customerNotificationApi.unread(controller.signal).then((value) => {
+    notificationApi.unread(controller.signal).then((value) => {
       if (!controller.signal.aborted && current === generation.current) {
         setUnread(value)
       }
@@ -115,7 +117,7 @@ function NotificationSession({ children, store }) {
     }
   }, [store, refresh])
   return (
-    <NotificationContext.Provider value={{ unread, live, revision, refresh }}>
+    <NotificationContext.Provider value={{ unread, live, revision, refresh, listHref, resolveHref }}>
       {children}
     </NotificationContext.Provider>
   )

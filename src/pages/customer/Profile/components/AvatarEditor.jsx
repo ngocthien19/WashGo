@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Camera, Trash2, UserRound } from 'lucide-react'
-import CustomerAvatar from '~/components/customer/CustomerAvatar/CustomerAvatar'
+import CustomerAvatar from '~/components/UserAvatar/UserAvatar'
 import FormError from '~/components/ui/FormError'
 import { Button } from '~/components/ui/button'
 import { IMAGE_UPLOAD } from '~/utils/constants'

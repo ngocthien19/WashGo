@@ -18,7 +18,7 @@ import { getProfileValues, profileSchema } from '../profileSchema'
 import AvatarEditor from './AvatarEditor'
 import ProfileStats from './ProfileStats'
 
-const AddressPickerDialog = lazy(() => import('~/components/customer/maps/AddressPickerDialog'))
+const AddressPickerDialog = lazy(() => import('~/components/maps/AddressPickerDialog'))
 
 export default function ProfileEditor({ profile }) {
   const { t } = useTranslation()

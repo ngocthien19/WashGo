@@ -15,8 +15,8 @@ import { CUSTOMER_NAVIGATION, CUSTOMER_ROUTES, UI_TRANSITIONS, UI_MOTION } from 
 import { getApiError } from '~/utils/apiError'
 import { cn } from '~/lib/utils'
 import Brand from '~/components/Brand/Brand'
-import CustomerAvatar from '~/components/customer/CustomerAvatar/CustomerAvatar'
-import NotificationBell from '~/components/customer/notifications/NotificationBell'
+import CustomerAvatar from '~/components/UserAvatar/UserAvatar'
+import NotificationBell from '~/components/notifications/NotificationBell'
 
 export default function CustomerHeader() {
   const { t } = useTranslation()
