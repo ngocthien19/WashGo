@@ -22,7 +22,7 @@ function FooterPendingLink({ children, className }) {
     <Button
       variant="link"
       onClick={showPendingContent}
-      className={cn('h-auto min-w-0 shrink justify-start whitespace-normal p-0 text-left text-sm font-normal text-slate-400 hover:text-primary', TEXT_LINK_STYLES, className)}
+      className={cn('h-auto min-w-0 shrink justify-start whitespace-normal p-0 text-left text-base font-normal text-slate-400 hover:text-primary', TEXT_LINK_STYLES, className)}
     >
       {children}
     </Button>
@@ -40,7 +40,7 @@ export default function CustomerFooter({ onOpenTerms }) {
             label={t('customer.washgoHome')}
             className="text-white"
           />
-          <p className="mt-5 text-sm leading-6 text-slate-400">
+          <p className="mt-5 text-base leading-6 text-slate-400">
             {t('customer.aSmartLaundryPlatformWithAutomatedLockersMakingEveryday')}
           </p>
           <div className="mt-6 flex gap-3">
@@ -60,10 +60,10 @@ export default function CustomerFooter({ onOpenTerms }) {
           </div>
         </div>
         <div>
-          <h2 className="font-semibold text-white">
+          <h2 className="text-lg font-semibold text-white">
             {t('common.services')}
           </h2>
-          <ul className="mt-5 space-y-4 text-sm leading-6 text-slate-400">
+          <ul className="mt-5 space-y-4 text-base leading-6 text-slate-400">
             {CUSTOMER_FOOTER.SERVICES.map(({ label, serviceType }) => (
               <li key={t(label)}>
                 <Link
@@ -77,23 +77,23 @@ export default function CustomerFooter({ onOpenTerms }) {
           </ul>
         </div>
         <div>
-          <h2 className="font-semibold text-white">
+          <h2 className="text-lg font-semibold text-white">
             {t('customer.support')}
           </h2>
           <Link
             to={`${CUSTOMER_ROUTES.HOME}#how-it-works`}
-            className={`mt-5 inline-block text-sm leading-6 text-slate-400 hover:text-primary ${TEXT_LINK_STYLES}`}
+            className={`mt-5 inline-block text-base leading-6 text-slate-400 hover:text-primary ${TEXT_LINK_STYLES}`}
           >
             {t('customer.howItWorks')}
           </Link>
-          <ul className="mt-4 space-y-4 text-sm leading-6 text-slate-400">
+          <ul className="mt-4 space-y-4 text-base leading-6 text-slate-400">
             {CUSTOMER_FOOTER.SUPPORT.map((label) => (
               <li key={t(label)}>
                 {label === 'common.termsOfService' ? (
                   <Button
                     variant="link"
                     onClick={onOpenTerms}
-                    className={`h-auto whitespace-normal p-0 text-left text-sm font-normal text-slate-400 hover:text-primary ${TEXT_LINK_STYLES}`}
+                    className={`h-auto whitespace-normal p-0 text-left text-base font-normal text-slate-400 hover:text-primary ${TEXT_LINK_STYLES}`}
                   >
                     {t(label)}
                   </Button>
@@ -107,10 +107,10 @@ export default function CustomerFooter({ onOpenTerms }) {
           </ul>
         </div>
         <div>
-          <h2 className="font-semibold text-white">
+          <h2 className="text-lg font-semibold text-white">
             {t('customer.contact')}
           </h2>
-          <ul className="mt-5 space-y-4 text-sm leading-6 text-slate-400">
+          <ul className="mt-5 space-y-4 text-base leading-6 text-slate-400">
             <li className="flex items-start gap-3">
               <Phone className="mt-1 size-4 shrink-0 text-primary" />
               <FooterPendingLink>
@@ -132,18 +132,18 @@ export default function CustomerFooter({ onOpenTerms }) {
           </ul>
         </div>
       </Reveal>
-      <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 border-t border-white/5 px-6 py-7 text-xs text-slate-400 sm:flex-row lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 border-t border-white/5 px-6 py-7 text-base text-slate-400 sm:flex-row lg:px-8">
         <p>
           {t('common.copyright', { year: new Date().getFullYear() })}
         </p>
         <div className="flex gap-6">
-          <FooterPendingLink className="text-xs">
+          <FooterPendingLink className="text-base">
             {t('customer.privacy')}
           </FooterPendingLink>
           <Button
             variant="link"
             onClick={onOpenTerms}
-            className={`h-auto p-0 text-xs font-normal text-slate-400 hover:text-primary ${TEXT_LINK_STYLES}`}
+            className={`h-auto p-0 text-base font-normal text-slate-400 hover:text-primary ${TEXT_LINK_STYLES}`}
           >
             {t('customer.terms')}
           </Button>
