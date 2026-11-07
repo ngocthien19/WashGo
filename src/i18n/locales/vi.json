@@ -171,6 +171,36 @@
     "yourSessionHasChanged": "Phiên đăng nhập đã thay đổi.",
     "forgotPasswordTitle": "Quên mật khẩu?"
   },
+  "merchant": {
+    "orders": {
+      "createdRange": "Lọc theo ngày tạo đơn", "fromDay": "Từ ngày", "toDay": "Đến ngày", "applyDate": "Áp dụng", "clearDate": "Xóa khoảng ngày", "invalidRange": "Vui lòng chọn ngày hợp lệ. Từ ngày phải trước hoặc bằng Đến ngày.", "statistics": "Thống kê đơn hàng",
+      "description": "Theo dõi đơn được giao, xử lý giặt và điều phối lấy/trả đồ.", "search": "Tìm đơn hàng", "searchHint": "Nhập mã đơn WashGo…", "results": "đơn hàng tìm thấy", "clear": "Xóa bộ lọc", "empty": "Chưa có đơn hàng phù hợp trong phạm vi cửa hàng.",
+      "code": "Mã đơn hàng", "services": "Thông tin dịch vụ", "locker": "Locker gửi đồ", "state": "Trạng thái", "weight": "Khối lượng thực tế", "total": "Tổng tiền theo đơn", "shipper": "Shipper", "actions": "Thao tác", "new": "Mới", "unassigned": "Chưa phân công", "manage": "Quản lý đơn hàng",
+      "delivery": "Thông tin giao nhận", "box": "Ô gửi đồ", "returnBox": "Ô trả đồ", "eta": "Dự kiến hoàn thành", "noEta": "Chưa có dự kiến", "storage": "Vị trí lưu kho", "history": "Lịch sử xử lý", "processing": "Xử lý đơn hàng", "payment": "Tóm tắt thanh toán", "baseAmount": "Giá dịch vụ", "discount": "Giảm giá", "surcharge": "Phụ phí khối lượng",
+      "weigh": "Cân đồ và chốt giá", "weighNote": "Giá và thời gian dự kiến sẽ được hệ thống tính lại theo khối lượng đã xác nhận.", "weightInput": "Khối lượng thực tế (kg)", "process": "Cập nhật xử lý", "processNote": "Chọn bước tiếp theo phù hợp với tiến độ thực tế của đơn.", "nextStatus": "Trạng thái tiếp theo", "assign": "Phân công Shipper", "assignNote": "Chỉ hiển thị Shipper thuộc cửa hàng và đủ điều kiện nhận chuyến.", "assignCollect": "Phân công lấy đồ", "assignReturn": "Phân công trả đồ", "chooseShipper": "Chọn Shipper", "noShippers": "Chưa có Shipper phù hợp. Cập nhật lại sau hoặc kiểm tra đội giao nhận.", "note": "Ghi chú (tối đa 500 ký tự)",
+      "weightRequired": "Cần cân đồ và chốt giá trước khi bắt đầu giặt. Nếu đơn cũ thiếu thông tin gói, vui lòng liên hệ quản trị viên.", "noActions": "Đơn hiện không có thao tác xử lý dành cho cửa hàng. Các bước giao nhận và thanh toán được thực hiện theo luồng tương ứng.", "invalidAction": "Vui lòng kiểm tra lựa chọn và ghi chú. Khối lượng phải lớn hơn 0, tối đa 1.000 kg và có tối đa 2 chữ số thập phân.", "changed": "Đơn vừa được thay đổi. Đóng cửa sổ và cập nhật thông tin trước khi tiếp tục.", "uncertain": "Chưa xác định được kết quả cập nhật. Đóng cửa sổ để tải lại đơn và kiểm tra trước khi thao tác tiếp.", "saved": "Đã cập nhật đơn hàng.", "saving": "Đang cập nhật…", "confirm": "Xác nhận cập nhật", "label": "Mã nhận diện túi đồ", "labelNote": "QR này dùng đối chiếu đơn/túi đồ, không dùng để mở tủ."
+    },
+    "collapseNavigation": "Thu gọn thanh điều hướng", "expandNavigation": "Mở rộng thanh điều hướng",
+    "shop": {
+      "cityRequired": "Vui lòng nhập Tỉnh/Thành phố, tối đa 100 ký tự.",
+      "city": "Tỉnh / Thành phố", "joinedAt": "Ngày tham gia", "location": "Địa chỉ cửa hàng", "cityUpdateNote": "Tỉnh/Thành phố là bắt buộc. Khi đổi tỉnh/thành phố, cần quản trị viên cập nhật trước khi gửi hồ sơ.", "cityUpdateUnavailable": "Chưa thể gửi thay đổi Tỉnh/Thành phố để duyệt. Vui lòng liên hệ quản trị viên cập nhật trường này; thông tin bạn nhập vẫn được giữ tại đây.",
+      "rating": "Điểm cửa hàng", "details": "Chi tiết thông tin", "businessName": "Tên cửa hàng", "taxCode": "Mã số thuế", "address": "Địa chỉ kinh doanh", "phone": "Số điện thoại", "email": "Email liên hệ", "openingHours": "Giờ mở cửa", "active": "Đang hoạt động", "inactive": "Ngừng hoạt động", "suspended": "Tạm đình chỉ",
+      "businessLicense": "Giấy phép kinh doanh", "revenue": "Tổng doanh thu", "notUpdated": "Chưa cập nhật", "noImage": "Chưa có ảnh cửa hàng", "images": "Ảnh cửa hàng", "addImages": "Thêm ảnh", "removeImage": "Xóa ảnh cửa hàng", "imagesHint": "Tối đa 5 ảnh JPG, PNG hoặc WEBP, mỗi ảnh tối đa 5 MB.",
+      "edit": "Chỉnh sửa hồ sơ", "approvalNote": "Thay đổi chỉ được áp dụng sau khi Admin phê duyệt. Thông tin hiện tại vẫn được giữ trong thời gian chờ duyệt.", "pending": "Hồ sơ đang chờ Admin phê duyệt. Bạn có thể gửi yêu cầu mới sau khi yêu cầu này được xử lý.", "submit": "Gửi hồ sơ duyệt", "sending": "Đang gửi hồ sơ…", "submitted": "Đã gửi hồ sơ. Vui lòng chờ phê duyệt.", "hoursPlaceholder": "Ví dụ: 07:00 - 22:00 hằng ngày",
+      "restricted": "Mã số thuế và giấy phép kinh doanh hiện chưa hỗ trợ cập nhật tại đây. Vui lòng liên hệ quản trị viên để bổ sung.", "invalidFields": "Vui lòng kiểm tra tên, địa chỉ, số điện thoại (9–11 chữ số) và giờ mở cửa.", "noChanges": "Bạn chưa thay đổi thông tin nào.", "uncertain": "Chưa xác định được kết quả gửi. Đóng cửa sổ và cập nhật hồ sơ để kiểm tra trước khi gửi lại."
+    },
+    "workspace": "Không gian đối tác", "overview": "Tổng quan cửa hàng", "welcome": "Theo dõi hoạt động và đơn hàng của cửa hàng.",
+    "navigation": "Điều hướng Merchant", "openNavigation": "Mở menu Merchant", "comingSoon": "Tính năng sẽ được triển khai ở lượt tiếp theo",
+    "nav": { "overview": "Tổng quan", "orders": "Quản lý đơn hàng", "shippers": "Quản lý Shipper", "lockers": "Quản lý Locker", "services": "Quản lý dịch vụ", "reports": "Báo cáo", "profile": "Hồ sơ cửa hàng" },
+    "loading": "Đang tải dữ liệu cửa hàng…", "invalidResponse": "Không thể xác minh dữ liệu cửa hàng. Vui lòng thử lại.",
+    "profileDescription": "Thông tin cửa hàng đang được ghi nhận trên WashGo.", "noHours": "Chưa cập nhật giờ mở cửa",
+    "totalOrders": "Tổng đơn được giao", "processing": "Đang giặt / sấy / ủi / gấp", "ready": "Sẵn sàng trả đồ", "completed": "Đã hoàn thành",
+    "allTime": "Theo trạng thái hiện tại · toàn bộ đơn được giao", "statusDistribution": "Đơn hàng theo nhóm trạng thái", "orderComposition": "Phân bố đơn hàng", "emptyChart": "Chưa có đơn hàng để hiển thị biểu đồ.",
+    "groups": { "incoming": "Chờ gửi / thu gom", "processing": "Đang xử lý", "payment": "Thanh toán", "pickup": "Trả / nhận đồ", "completed": "Hoàn thành", "storage": "Lưu kho", "cancelled": "Đã hủy" },
+    "recentOrders": "Đơn hàng mới nhất", "noOrders": "Chưa có đơn hàng được giao cho cửa hàng.", "viewOrder": "Xem đơn {{code}}", "orderPreview": "Thông tin đơn hàng trong phạm vi cửa hàng của bạn.",
+    "settlements": "Kỳ đối soát gần đây", "noSettlements": "Chưa có kỳ đối soát được chốt.", "settlementPayout": "Số tiền thực nhận của kỳ đã chốt", "settlementStatus": { "1": "Chờ chi trả", "2": "Đã chi trả" },
+    "revenueNote": "Kỳ đối soát thể hiện số tiền đã được chốt, không phải doanh thu trong ngày. Biểu đồ doanh thu theo ngày sẽ hiển thị khi có dữ liệu báo cáo."
+  },
   "customer": {
     "serviceTerms": {
       "title": "Điều khoản dịch vụ",

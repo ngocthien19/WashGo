@@ -1,4 +1,4 @@
-import { AUTH_ROUTES, CUSTOMER_ROUTES, ROLE_HOME_ROUTES, USER_ROLES } from '~/utils/constants'
+import { AUTH_ROUTES, CUSTOMER_ROUTES, MERCHANT_ROUTES, ROLE_HOME_ROUTES, USER_ROLES } from '~/utils/constants'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import LoadingScreen from '~/components/LoadingScreen/LoadingScreen'
@@ -28,6 +28,8 @@ const CustomerLayout = lazy(() => import('~/layouts/customer/CustomerLayout'))
 const CustomerNotificationsPage = lazy(() => import('~/pages/customer/Notifications/NotificationsPage'))
 const AdminHomePage = lazy(() => import('~/pages/admin/Home/HomePage'))
 const MerchantHomePage = lazy(() => import('~/pages/merchant/Home/HomePage'))
+const MerchantLayout = lazy(() => import('~/layouts/merchant/MerchantLayout'))
+const MerchantNotificationsPage = lazy(() => import('~/pages/merchant/Notifications/NotificationsPage'))
 const ShipperHomePage = lazy(() => import('~/pages/shipper/Home/HomePage'))
 
 export default function App() {
@@ -92,17 +94,23 @@ export default function App() {
               />
             </Route>
           </Route>
+          <Route element={<ProtectedRoleRoute role={USER_ROLES.MERCHANT} />}>
+            <Route element={<MerchantLayout />}>
+              <Route
+                path={MERCHANT_ROUTES.HOME}
+                element={<MerchantHomePage />}
+              />
+              <Route
+                path={MERCHANT_ROUTES.NOTIFICATIONS}
+                element={<MerchantNotificationsPage />}
+              />
+            </Route>
+          </Route>
           <Route element={<StandaloneThemeLayout />}>
             <Route element={<ProtectedRoleRoute role={USER_ROLES.ADMIN} />}>
               <Route
                 path={ROLE_HOME_ROUTES[USER_ROLES.ADMIN]}
                 element={<AdminHomePage />}
-              />
-            </Route>
-            <Route element={<ProtectedRoleRoute role={USER_ROLES.MERCHANT} />}>
-              <Route
-                path={ROLE_HOME_ROUTES[USER_ROLES.MERCHANT]}
-                element={<MerchantHomePage />}
               />
             </Route>
             <Route element={<ProtectedRoleRoute role={USER_ROLES.SHIPPER} />}>

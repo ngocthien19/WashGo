@@ -293,6 +293,9 @@ test('home descriptions and locker actions use larger text and a primary locatio
     await expect(description).toHaveCSS('font-size', '16px')
   }
   const lockerSection = page.locator('#lockers')
+  await expect(page.locator('footer h2').first()).toHaveCSS('font-size', '18px')
+  await expect(page.locator('footer p').first()).toHaveCSS('font-size', '16px')
+  await expect(page.locator('footer').getByRole('button', { name: 'Terms', exact: true })).toHaveCSS('font-size', '16px')
   const location = lockerSection.getByRole('button', { name: 'Use my location', exact: true })
   await expect(location).toHaveCSS('font-size', '16px')
   await expect(location).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
