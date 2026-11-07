@@ -167,7 +167,17 @@ test('full-height sidebar collapses, expands and signs out from its bottom actio
   await expect(sidebar.getByRole('link', { name: 'Overview', exact: true })).toBeVisible()
   await sidebar.getByRole('link', { name: 'Overview', exact: true }).hover()
   await expect(page.getByRole('tooltip')).toHaveText('Overview')
-  await sidebar.getByRole('button', { name: 'Shipper management', exact: true }).locator('..').hover()
+  const tooltipBounds = await page.getByRole('tooltip').boundingBox()
+  const sidebarBounds = await sidebar.boundingBox()
+  expect(tooltipBounds.x).toBeGreaterThan(sidebarBounds.x + sidebarBounds.width)
+  const arrowBounds = await page.getByRole('tooltip').locator('[data-side]').boundingBox()
+  const textStart = await page.getByRole('tooltip').evaluate((element) => {
+    const range = document.createRange()
+    range.selectNodeContents(element.firstChild)
+    return range.getBoundingClientRect().x
+  })
+  expect(arrowBounds.x + arrowBounds.width).toBeLessThan(textStart)
+  await sidebar.getByRole('link', { name: 'Shipper management', exact: true }).hover()
   await expect(page.getByRole('tooltip')).toContainText('Shipper management')
   await expect(page.getByRole('button', { name: 'Expand navigation', exact: true })).toHaveAttribute('aria-expanded', 'false')
   await page.getByRole('button', { name: 'Expand navigation', exact: true }).click()

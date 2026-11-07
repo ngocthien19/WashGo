@@ -21,6 +21,7 @@ import { notify } from '~/utils/notifications'
 import { getApiError } from '~/utils/apiError'
 
 const navigation = [['overview', LayoutDashboard], ['orders', Package], ['shippers', Truck], ['lockers', PanelsTopLeft], ['services', Shirt], ['reports', ChartNoAxesCombined]]
+const navHref = (key) => MERCHANT_ROUTES[key === 'overview' ? 'HOME' : key.toUpperCase()]
 const resolveMerchantNotification = (item) => item.linkType === 'order' && /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(item.linkId || '') ? `${MERCHANT_ROUTES.HOME}?order=${item.linkId}` : null
 
 export default function MerchantLayout() {
@@ -66,42 +67,23 @@ export default function MerchantLayout() {
         aria-label={t('merchant.navigation')}
         className="space-y-1"
       >
-        {navigation.map(([key, Icon]) => ['overview', 'orders'].includes(key) ? (
+        {navigation.map(([key, Icon]) => (
           <NavTooltip
             key={key}
             content={t(`merchant.nav.${key}`)}
             show={compact}
           >
             <Link
-              to={key === 'orders' ? MERCHANT_ROUTES.ORDERS : MERCHANT_ROUTES.HOME}
+              to={navHref(key)}
               onClick={() => setMobileOpen(false)}
-              aria-current={(key === 'orders' ? pathname.startsWith(MERCHANT_ROUTES.ORDERS) : pathname === MERCHANT_ROUTES.HOME) ? 'page' : undefined}
+              aria-current={(key === 'overview' ? pathname === navHref(key) : pathname.startsWith(navHref(key))) ? 'page' : undefined}
               aria-label={t(`merchant.nav.${key}`)}
 
-              className={`flex w-full items-center hover:bg-primary/12 hover:text-primary focus-visible:bg-primary/12 focus-visible:text-primary ${compact ? 'justify-center px-0' : 'gap-3 px-4'} rounded-xl py-3 text-base font-semibold ${(key === 'orders' ? pathname.startsWith(MERCHANT_ROUTES.ORDERS) : pathname === MERCHANT_ROUTES.HOME) ? 'bg-primary/12 text-primary' : 'text-muted-foreground'}`}
+              className={`flex w-full items-center hover:bg-primary/12 hover:text-primary focus-visible:bg-primary/12 focus-visible:text-primary ${compact ? 'justify-center px-0' : 'gap-3 px-4'} rounded-xl py-3 text-base font-semibold ${(key === 'overview' ? pathname === navHref(key) : pathname.startsWith(navHref(key))) ? 'bg-primary/12 text-primary' : 'text-muted-foreground'}`}
             >
               <Icon size={19} />
               {!compact && t(`merchant.nav.${key}`)}
             </Link>
-          </NavTooltip>
-        ) : (
-          <NavTooltip
-            key={key}
-            content={`${t(`merchant.nav.${key}`)} — ${t('merchant.comingSoon')}`}
-            show={compact}
-            hoverClassName="group/nav-item cursor-not-allowed rounded-xl hover:bg-primary/12 focus-within:bg-primary/12"
-            disabled
-          >
-            <Button
-              variant="ghost"
-              disabled
-              aria-label={t(`merchant.nav.${key}`)}
-              className={`h-12 w-full rounded-xl text-base font-normal text-muted-foreground disabled:opacity-100 group-hover/nav-item:text-primary group-focus-within/nav-item:text-primary ${compact ? 'justify-center px-0' : 'justify-start gap-3 px-4'}`}
-              title={t('merchant.comingSoon')}
-            >
-              <Icon size={19} />
-              {!compact && t(`merchant.nav.${key}`)}
-            </Button>
           </NavTooltip>
         ))}
       </nav>

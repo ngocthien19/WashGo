@@ -1,3 +1,4 @@
+import Reveal from '~/components/motion/Reveal'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -41,7 +42,7 @@ export default function OrderDetailPage() {
     setAction(null); resource.retry()
   }
   return (
-    <div className="mx-auto max-w-[1440px] space-y-6">
+    <Reveal className="mx-auto max-w-[1440px] space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Button
           render={<Link to={MERCHANT_ROUTES.ORDERS} />}
@@ -298,6 +299,6 @@ export default function OrderDetailPage() {
           )}
         </>
       )}
-    </div>
+    </Reveal>
   )
 }

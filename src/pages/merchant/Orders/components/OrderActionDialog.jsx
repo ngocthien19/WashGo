@@ -1,5 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Truck, MapPin, CircleCheck, Package } from 'lucide-react'
+import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -25,13 +27,47 @@ function ShipperSelection({ id, value, onChange, disabled }) {
     )
   }
   return (
-    <SelectField
-      label={t('merchant.orders.shipper')}
-      value={value?.id || ''}
+    <fieldset
+      className="space-y-3"
       disabled={disabled}
-      onValueChange={(next) => onChange(resource.data.find((item) => item.id === next))}
-      options={[{ value: '', label: t('merchant.orders.chooseShipper') }, ...resource.data.map((item) => ({ value: item.id, label: [item.fullName, item.vehiclePlate, item.phone].filter(Boolean).join(' · ') }))]}
-    />
+    >
+      <legend className="mb-3 flex w-full flex-wrap items-center justify-between gap-2 text-base font-semibold">
+        {t('merchant.orders.chooseShipper')}
+        <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+          {t('merchant.shippers.eligibleCount', { count: resource.data.length })}
+        </span>
+      </legend>
+      <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
+        {resource.data.map((item) => (
+          <label
+            key={item.id}
+            className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-colors ${value?.id === item.id ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-border bg-background hover:border-primary/40'} has-focus-visible:ring-2 has-focus-visible:ring-primary`}
+          >
+            <UserAvatar
+              avatar={item.avatar}
+              fullName={item.fullName}
+              className="size-11 text-sm"
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block break-words text-base font-semibold">
+                {item.fullName}
+              </span>
+              <span className="mt-1 block text-sm text-muted-foreground">
+                {[item.vehiclePlate, item.phone].filter(Boolean).join(' · ') || '—'}
+              </span>
+            </span>
+            <input
+              type="radio"
+              name="assignment-shipper"
+              aria-label={item.fullName}
+              checked={value?.id === item.id}
+              onChange={() => onChange(item)}
+              className="size-5 shrink-0 accent-primary"
+            />
+          </label>
+        ))}
+      </div>
+    </fieldset>
   )
 }
 
@@ -93,9 +129,14 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
     >
       <DialogContent
         closeLabel="common.close"
-        className="max-w-xl"
+        className="max-w-xl border-primary/15"
       >
-        <DialogTitle className="pr-8 text-2xl font-bold">
+        <DialogTitle className={action === 'assign' ? '-mx-6 -mt-6 flex items-center gap-3 border-b border-primary/10 bg-primary/5 px-6 py-5 pr-12 text-2xl font-bold sm:-mx-8 sm:-mt-8 sm:px-8' : 'pr-8 text-2xl font-bold'}>
+          {action === 'assign' && (
+            <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
+              <Truck size={23} />
+            </span>
+          )}
           {t(`merchant.orders.${action}`)}
         </DialogTitle>
         <DialogDescription className="mt-2 border-b border-border pb-5 text-base text-muted-foreground">
@@ -105,6 +146,38 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
           {' '}
           {t(`merchant.orders.${action}Note`)}
         </DialogDescription>
+        {action === 'assign' && (
+          <div className="mt-4 grid gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4 sm:grid-cols-2">
+            <div className="flex gap-2">
+              <MapPin
+                size={18}
+                className="mt-1 shrink-0 text-primary"
+              />
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {t('merchant.shippers.assignmentLocation')}
+                </p>
+                <p className="mt-1 text-base font-semibold">
+                  {assignmentTask(order) === 2 ? t('merchant.shippers.returnTask') : (order.lockerName || '—')}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Package
+                size={18}
+                className="mt-1 shrink-0 text-primary"
+              />
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {t('merchant.shippers.taskType')}
+                </p>
+                <p className="mt-1 text-base font-semibold">
+                  {t(assignmentTask(order) === 1 ? 'merchant.orders.assignCollect' : 'merchant.orders.assignReturn')}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         <form
           onSubmit={submit}
           className="mt-5 space-y-5"
@@ -185,6 +258,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
               className="h-11 px-4 text-base"
               disabled={pending || uncertain || (action === 'assign' && !shipper)}
             >
+              {action === 'assign' && <CircleCheck size={18} />}
               {t(pending ? 'merchant.orders.saving' : 'merchant.orders.confirm')}
             </Button>
           </div>

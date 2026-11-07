@@ -28,6 +28,10 @@ const CustomerLayout = lazy(() => import('~/layouts/customer/CustomerLayout'))
 const CustomerNotificationsPage = lazy(() => import('~/pages/customer/Notifications/NotificationsPage'))
 const AdminHomePage = lazy(() => import('~/pages/admin/Home/HomePage'))
 const MerchantHomePage = lazy(() => import('~/pages/merchant/Home/HomePage'))
+const MerchantShippersPage = lazy(() => import('~/pages/merchant/Shippers/ShippersPage'))
+const MerchantLockersPage = lazy(() => import('~/pages/merchant/Lockers/LockersPage'))
+const MerchantServicesPage = lazy(() => import('~/pages/merchant/Services/ServicesPage'))
+const MerchantReportsPage = lazy(() => import('~/pages/merchant/Reports/ReportsPage'))
 const MerchantOrdersPage = lazy(() => import('~/pages/merchant/Orders/OrdersPage'))
 const MerchantOrderDetailPage = lazy(() => import('~/pages/merchant/Orders/OrderDetailPage'))
 const MerchantProfilePage = lazy(() => import('~/pages/merchant/Profile/ProfilePage'))
@@ -102,6 +106,22 @@ export default function App() {
               <Route
                 path={MERCHANT_ROUTES.HOME}
                 element={<MerchantHomePage />}
+              />
+              <Route
+                path={MERCHANT_ROUTES.SHIPPERS}
+                element={<MerchantShippersPage />}
+              />
+              <Route
+                path={MERCHANT_ROUTES.LOCKERS}
+                element={<MerchantLockersPage />}
+              />
+              <Route
+                path={MERCHANT_ROUTES.SERVICES}
+                element={<MerchantServicesPage />}
+              />
+              <Route
+                path={MERCHANT_ROUTES.REPORTS}
+                element={<MerchantReportsPage />}
               />
               <Route
                 path={MERCHANT_ROUTES.ORDERS}

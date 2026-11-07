@@ -1,5 +1,8 @@
 {
   "common": {
+    "photos": "Hình ảnh",
+    "noPhotos": "Chưa có ảnh hiển thị",
+    "photoUnavailable": "Không tải được ảnh",
     "close": "Đóng",
     "breadcrumb": "Điều hướng đường dẫn",
     "loadingWashgo": "Đang tải WashGo...",
@@ -172,6 +175,72 @@
     "forgotPasswordTitle": "Quên mật khẩu?"
   },
   "merchant": {
+    "reports": {
+      "title": "Báo cáo kinh doanh",
+      "subtitle": "Theo dõi hoạt động và so sánh hiệu quả của cửa hàng.",
+      "period": "Khoảng thời gian",
+      "periods": {
+        "day": "Ngày",
+        "week": "Tuần",
+        "month": "Tháng",
+        "custom": "Tùy chọn"
+      },
+      "customRange": "Chọn khoảng ngày",
+      "current": "Kỳ này",
+      "previous": "Kỳ trước",
+      "comparison": "So với kỳ trước cùng số ngày",
+      "scope": "Số đơn được tính theo ngày tạo. Đơn hoàn thành là những đơn trong kỳ tạo hiện có trạng thái Hoàn thành. Kỳ này có thể chưa kết thúc; kỳ trước có cùng số ngày, liền trước kỳ này.",
+      "invalidRange": "Vui lòng chọn đủ ngày bắt đầu/kết thúc, không sau hôm nay, tối đa 366 ngày và có kỳ trước hợp lệ.",
+      "total": "Tổng đơn",
+      "completed": "Đơn đã hoàn thành",
+      "revenue": "Tổng doanh thu",
+      "onTime": "Tỷ lệ đúng hạn",
+      "unavailable": "Chưa có dữ liệu báo cáo",
+      "noBase": "Chưa có cơ sở so sánh",
+      "metric": "Chỉ số",
+      "changePercent": "Thay đổi (%)",
+      "revenueChart": "Biểu đồ doanh thu",
+      "orderChart": "Biểu đồ đơn hàng",
+      "chartHint": "Di chuột hoặc chọn một cột để xem số đơn.",
+      "viewData": "Xem bảng số liệu",
+      "buckets": "Mốc thời gian (giờ Việt Nam)",
+      "bestServices": "Dịch vụ bán chạy nhất",
+      "revenuePending": "Báo cáo doanh thu của cửa hàng chưa được hỗ trợ. Số liệu sẽ hiển thị khi có dữ liệu từ hệ thống.",
+      "servicesPending": "Chưa có thống kê dịch vụ bán chạy của cửa hàng. Danh sách, ảnh dịch vụ và mức tăng/giảm sẽ hiển thị khi có dữ liệu báo cáo.",
+      "export": "Xuất báo cáo CSV",
+      "exportHint": "File CSV gồm số đơn, so sánh kỳ trước và bảng số liệu biểu đồ đang hiển thị. Doanh thu, tỷ lệ đúng hạn và dịch vụ bán chạy chưa có dữ liệu."
+    },
+    "services": {
+      "sharedHint": "Danh mục và giá dịch vụ dùng chung trên toàn hệ thống WashGo.", "approvalHint": "Nội dung chỉ được áp dụng sau khi Admin phê duyệt. Giá trên các đơn đã đặt không thay đổi theo đề xuất này.", "statistics": "Thống kê danh mục chung và đề xuất của tôi", "summary": { "total": "Dịch vụ chung", "active": "Đang cung cấp", "inactive": "Tạm ngừng", "pending": "Đề xuất chờ duyệt", "approved": "Đề xuất đã duyệt", "rejected": "Đề xuất bị từ chối" },
+      "views": "Quản lý dịch vụ và đề xuất", "tabs": { "catalog": "Danh mục dịch vụ", "proposals": "Đề xuất của tôi" }, "search": "Tìm kiếm dịch vụ", "searchHint": "Nhập mã hoặc tên dịch vụ…", "results": "dịch vụ tìm thấy", "proposalResults": "đề xuất tìm thấy", "empty": "Chưa có dịch vụ phù hợp.", "noProposals": "Chưa có đề xuất phù hợp.",
+      "name": "Tên dịch vụ", "category": "Danh mục", "unitPrice": "Giá cơ bản (đ)", "duration": "Thời gian xử lý (giờ)", "unit": "Đơn vị tính", "pricePerKg": "Phụ phí mỗi kg (đ)", "pricePerItem": "Giá theo món (đ)", "hours": "{{count}} giờ", "activityLabel": "Trạng thái cung cấp", "activity": { "true": "Đang cung cấp", "false": "Tạm ngừng" }, "approvalLabel": "Trạng thái duyệt", "approval": { "1": "Chờ duyệt", "2": "Đã duyệt", "3": "Bị từ chối" }, "requestType": "Loại đề xuất", "requestTypes": { "1": "Thêm mới", "2": "Chỉnh sửa", "3": "Xóa" }, "createdAt": "Ngày gửi", "actions": "Thao tác", "actionsNamed": "Thao tác với {{name}}", "unknown": "Chưa xác định",
+      "proposeNew": "Đề xuất dịch vụ mới", "proposeEdit": "Đề xuất chỉnh sửa", "details": "Chi tiết dịch vụ", "proposalDetails": "Chi tiết đề xuất", "before": "Dữ liệu tại lúc gửi", "proposed": "Nội dung đề xuất", "snapshotHint": "So sánh với dữ liệu dịch vụ được ghi nhận lúc gửi đề xuất.", "description": "Mô tả", "reason": "Lý do đề xuất", "rejectionReason": "Lý do từ chối", "reviewedAt": "Ngày xử lý", "images": "Ảnh dịch vụ (không bắt buộc)", "image": "Ảnh dịch vụ {{number}}", "removeImage": "Xóa ảnh dịch vụ", "editRestrictions": "Danh mục và đơn vị giữ nguyên khi đề xuất sửa. Ảnh hiện có được giữ lại; thay ảnh chưa khả dụng cho tới khi có đủ thông tin dịch vụ.", "send": "Gửi đề xuất", "sending": "Đang gửi…", "submitted": "Đã gửi đề xuất. Vui lòng chờ Admin duyệt.", "changed": "Dịch vụ đã thay đổi. Đóng và mở lại trước khi gửi đề xuất.", "uncertain": "Chưa xác định được kết quả gửi. Đóng cửa sổ và kiểm tra Đề xuất của tôi trước khi thử lại.",
+      "placeholders": { "name": "Nhập tên dịch vụ muốn đề xuất", "unitPrice": "Ví dụ: 50000", "pricePerKg": "Ví dụ: 15000 hoặc để trống", "pricePerItem": "Ví dụ: 30000 hoặc để trống", "estimatedDurationHours": "Ví dụ: 24", "unit": "Ví dụ: kg, chiếc, đôi", "description": "Mô tả cách chăm sóc, phạm vi và lưu ý dịch vụ…", "reason": "Nêu lý do hoặc nhu cầu cần thêm/chỉnh sửa dịch vụ…" },
+      "invalid": { "name": "Nhập tên dịch vụ, tối đa 200 ký tự.", "unitPrice": "Giá phải lớn hơn 0, tối đa 100 triệu và 2 chữ số thập phân.", "pricePerKg": "Nhập số tiền dương, tối đa 2 chữ số thập phân, hoặc để trống.", "pricePerItem": "Nhập số tiền dương, tối đa 2 chữ số thập phân, hoặc để trống.", "estimatedDurationHours": "Nhập số giờ nguyên từ 1 đến 8760.", "unit": "Nhập đơn vị, tối đa 20 ký tự.", "description": "Mô tả tối đa 2000 ký tự.", "reason": "Lý do tối đa 1000 ký tự." }
+    },
+    "lockers": {
+      "description": "Theo dõi các trạm locker được phân công và tình trạng từng ô tủ.", "statistics": "Thống kê toàn bộ locker phụ trách", "summary": { "total": "Tổng locker", "active": "Đang hoạt động", "maintenance": "Đang bảo trì", "inactive": "Ngừng hoạt động" },
+      "search": "Tìm kiếm locker", "searchHint": "Nhập mã, tên hoặc địa chỉ locker…", "status": "Trạng thái locker", "results": "locker tìm thấy", "empty": "Chưa có locker phù hợp hoặc chưa được phân công.", "name": "Trạm locker", "address": "Địa chỉ", "type": "Loại tủ", "totalBoxes": "Tổng ô tủ", "emptyBoxes": "Ô trống", "actions": "Thao tác", "actionsNamed": "Thao tác với {{name}}",
+      "statuses": { "1": "Đang hoạt động", "2": "Bảo trì", "3": "Ngừng hoạt động" }, "types": { "1": "Thông thường", "2": "Tủ lạnh" }, "sort": { "code": "Mã locker A–Z", "name": "Tên A–Z", "nameDesc": "Tên Z–A" },
+      "details": "Chi tiết locker", "detailsHint": "Thông tin trạm và trạng thái các ô tủ hiện tại.", "history": "Lịch sử sử dụng", "views": "Nội dung locker", "area": "Khu vực phục vụ", "openMap": "Mở Google Maps", "image": "Ảnh locker {{number}}", "boxes": "Danh sách ô tủ ({{count}})", "boxStates": { "1": "Trống", "2": "Đang có đồ", "3": "Đang giữ chỗ", "4": "Bảo trì" }, "sizes": { "1": "Nhỏ", "2": "Tiêu chuẩn", "3": "Lớn" }, "noBoxes": "Không có ô tủ thuộc trạng thái này.",
+      "filterBox": "Lọc theo ô tủ", "usageRange": "Thời gian đặt đồ vào ô", "noHistory": "Chưa có lượt sử dụng phù hợp.", "usageCount": "{{count}} lượt sử dụng", "order": "Đơn hàng", "box": "Ô tủ", "usageType": "Loại sử dụng", "putInAt": "Đặt đồ vào", "takenOutAt": "Lấy đồ ra", "orderStatus": "Trạng thái đơn", "usageTypes": { "1": "Khách gửi đồ", "2": "Trả đồ đã giặt" }
+    },
+    "shippers": {
+      "statistics": "Thống kê toàn bộ đội ngũ shipper", "summary": { "total": "Tổng shipper", "working": "Đang làm việc", "onLeave": "Tạm nghỉ", "available": "Sẵn sàng", "busy": "Đang bận", "offline": "Offline" },
+      "profileInfo": "Thông tin shipper",
+      "actionsNamed": "Thao tác với {{name}}", "unlock": "Mở khóa tài khoản", "lock": "Khóa tài khoản", "delete": "Xóa shipper", "unlockNamed": "Mở khóa tài khoản {{name}}", "eligibleCount": "{{count}} shipper đủ điều kiện", "assignmentLocation": "Điểm lấy đồ", "returnTask": "Lấy đồ tại cửa hàng để giao trả",
+      "assign": "Phân công đơn hàng", "assignmentHint": "Chọn đơn cần lấy hoặc trả đồ, sau đó chọn shipper đủ điều kiện của cửa hàng.", "taskType": "Loại nhiệm vụ", "tasks": { "2": "Lấy đồ", "9": "Trả đồ đã thanh toán", "99": "Trả đồ đơn hủy" }, "noAssignableOrders": "Chưa có đơn trong nhóm này.", "orderChanged": "Đơn không còn đủ điều kiện phân công. Vui lòng kiểm tra lại trong Quản lý đơn hàng.",
+      "unavailable": "Chức năng xóa/khóa tài khoản đang chờ BE hỗ trợ.", "bulkActions": "Thao tác hàng loạt", "selected": "Đã chọn {{count}} shipper trên trang này", "bulkLock": "Khóa đã chọn", "bulkDelete": "Xóa đã chọn", "clearSelection": "Bỏ chọn tất cả", "selectPage": "Chọn tất cả shipper trên trang", "select": "Chọn {{name}}", "editNamed": "Sửa {{name}}", "lockNamed": "Khóa tài khoản {{name}}", "deleteNamed": "Xóa {{name}}",
+      "front": "Mặt trước CCCD", "back": "Mặt sau CCCD", "bothSides": "Vui lòng chọn đủ mặt trước và mặt sau CCCD, hoặc bỏ cả hai ảnh.", "twoImagesHint": "Chọn đủ hai mặt nếu bổ sung giấy tờ. Mỗi ảnh JPG, PNG hoặc WEBP tối đa 5 MB.", "identityReadOnly": "Giấy tờ hiện chỉ xem; chức năng cập nhật đang chờ BE hỗ trợ. Ảnh cũ hiển thị theo thứ tự đã gửi.",
+      "placeholders": { "fullName": "Nhập họ và tên shipper", "phone": "Ví dụ: 0901234567", "email": "Ví dụ: shipper@example.com", "vehiclePlate": "Ví dụ: 59A-12345", "identityNumber": "Nhập số CCCD hoặc CMND" },
+      "description": "Quản lý đội ngũ giao nhận và tình trạng làm việc của cửa hàng.", "search": "Tìm kiếm shipper", "searchHint": "Họ tên, số điện thoại, email hoặc biển số…", "results": "shipper tìm thấy", "empty": "Không có shipper phù hợp với tìm kiếm.",
+      "add": "Thêm shipper", "edit": "Chỉnh sửa shipper", "details": "Chi tiết shipper", "detailsHint": "Thông tin hồ sơ và hoạt động giao nhận tại cửa hàng.", "view": "Xem {{name}}", "actions": "Thao tác",
+      "fullName": "Họ và tên", "phone": "Số điện thoại", "email": "Email", "vehicleType": "Phương tiện", "vehiclePlate": "Biển số xe", "identityNumber": "Số CMND/CCCD (không bắt buộc)", "identityImages": "Ảnh CMND/CCCD (không bắt buộc)", "imagesHint": "Tối đa 5 ảnh JPG, PNG hoặc WEBP, mỗi ảnh không quá 5 MB.", "photo": "Ảnh giấy tờ {{number}}", "removeImage": "Xóa ảnh giấy tờ",
+      "workState": "Tình trạng làm việc", "status": "Trạng thái vận hành", "activeTaskCount": "Nhiệm vụ đang thực hiện", "totalDeliveries": "Đơn đã giao", "rating": "Đánh giá", "createdAt": "Ngày tham gia",
+      "active": { "true": "Đang làm việc", "false": "Tạm nghỉ" }, "statuses": { "1": "Sẵn sàng", "2": "Đang bận", "3": "Offline" }, "vehicles": { "1": "Xe máy", "2": "Ô tô", "3": "Xe đạp" },
+      "createHint": "Hệ thống tạo tài khoản Shipper và gửi mật khẩu tạm qua email. Nếu chưa nhận được email, shipper có thể dùng Quên mật khẩu.", "editHint": "Shipper còn nhiệm vụ giao nhận chưa hoàn tất không thể chuyển sang Tạm nghỉ. Biển số xe bắt buộc, trừ xe đạp.", "save": "Lưu shipper", "saving": "Đang lưu…", "created": "Đã tạo shipper. Kiểm tra email hoặc dùng Quên mật khẩu để đăng nhập.", "updated": "Đã cập nhật shipper.", "activeTasks": "Vui lòng hoàn tất hoặc phân công lại các nhiệm vụ trước khi cho shipper tạm nghỉ.", "changed": "Hồ sơ đã thay đổi. Đóng và mở lại để cập nhật thông tin mới nhất.", "uncertain": "Chưa xác định được kết quả lưu. Đóng cửa sổ và kiểm tra danh sách trước khi thử lại.",
+      "invalid": { "fullName": "Nhập họ tên, tối đa 100 ký tự.", "phone": "Nhập số điện thoại hợp lệ gồm 9–11 chữ số.", "email": "Nhập email hợp lệ, tối đa 100 ký tự.", "vehiclePlate": "Nhập biển số hợp lệ (4–20 ký tự); xe đạp có thể để trống.", "identityNumber": "Nhập 9 hoặc 12 chữ số, hoặc để trống." }
+    },
     "orders": {
       "createdRange": "Lọc theo ngày tạo đơn", "fromDay": "Từ ngày", "toDay": "Đến ngày", "applyDate": "Áp dụng", "clearDate": "Xóa khoảng ngày", "invalidRange": "Vui lòng chọn ngày hợp lệ. Từ ngày phải trước hoặc bằng Đến ngày.", "statistics": "Thống kê đơn hàng",
       "description": "Theo dõi đơn được giao, xử lý giặt và điều phối lấy/trả đồ.", "search": "Tìm đơn hàng", "searchHint": "Nhập mã đơn WashGo…", "results": "đơn hàng tìm thấy", "clear": "Xóa bộ lọc", "empty": "Chưa có đơn hàng phù hợp trong phạm vi cửa hàng.",

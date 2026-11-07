@@ -1,5 +1,8 @@
 {
   "common": {
+    "photos": "Photos",
+    "noPhotos": "No photos available",
+    "photoUnavailable": "Unable to load photo",
     "close": "Close",
     "breadcrumb": "Breadcrumb",
     "loadingWashgo": "Loading WashGo...",
@@ -172,6 +175,72 @@
     "forgotPasswordTitle": "Forgot password?"
   },
   "merchant": {
+    "reports": {
+      "title": "Business reports",
+      "subtitle": "Track store activity and compare performance.",
+      "period": "Reporting period",
+      "periods": {
+        "day": "Day",
+        "week": "Week",
+        "month": "Month",
+        "custom": "Custom"
+      },
+      "customRange": "Choose date range",
+      "current": "Current period",
+      "previous": "Previous period",
+      "comparison": "Compared with the preceding equal-length period",
+      "scope": "Orders are grouped by creation date. Completed orders are orders created in the period that currently have Completed status. The current period may be incomplete; the comparison period has the same number of days and immediately precedes it.",
+      "invalidRange": "Choose both dates through today, up to 366 days, with a valid preceding period.",
+      "total": "Total orders",
+      "completed": "Completed orders",
+      "revenue": "Total revenue",
+      "onTime": "On-time rate",
+      "unavailable": "Report data unavailable",
+      "noBase": "No comparison baseline",
+      "metric": "Metric",
+      "changePercent": "Change (%)",
+      "revenueChart": "Revenue chart",
+      "orderChart": "Order chart",
+      "chartHint": "Hover over or select a bar to see order counts.",
+      "viewData": "View data table",
+      "buckets": "Time bucket (Vietnam time)",
+      "bestServices": "Best-selling services",
+      "revenuePending": "Store revenue reporting is not supported yet. Figures will appear when the system provides report data.",
+      "servicesPending": "Store best-seller reporting is not available yet. Services, photos and growth comparisons will appear when report data is available.",
+      "export": "Export CSV report",
+      "exportHint": "The CSV includes displayed order counts, previous-period comparisons and chart data. Revenue, on-time rates and best-selling services are not available yet."
+    },
+    "services": {
+      "sharedHint": "Services and prices are shared across the WashGo system.", "approvalHint": "Changes apply only after Admin approval. Prices on existing orders are not changed by this proposal.", "statistics": "Shared catalog and my proposal statistics", "summary": { "total": "Shared services", "active": "Available services", "inactive": "Inactive services", "pending": "Pending proposals", "approved": "Approved proposals", "rejected": "Rejected proposals" },
+      "views": "Services and proposals", "tabs": { "catalog": "Service catalog", "proposals": "My proposals" }, "search": "Search services", "searchHint": "Service code or name…", "results": "services found", "proposalResults": "proposals found", "empty": "No services match your filters.", "noProposals": "No proposals match your filters.",
+      "name": "Service name", "category": "Category", "unitPrice": "Base price (VND)", "duration": "Processing time (hours)", "unit": "Unit", "pricePerKg": "Surcharge per kg (VND)", "pricePerItem": "Price per item (VND)", "hours": "{{count}} h", "activityLabel": "Availability", "activity": { "true": "Available", "false": "Inactive" }, "approvalLabel": "Approval status", "approval": { "1": "Pending", "2": "Approved", "3": "Rejected" }, "requestType": "Proposal type", "requestTypes": { "1": "New service", "2": "Update", "3": "Delete" }, "createdAt": "Submitted on", "actions": "Actions", "actionsNamed": "Actions for {{name}}", "unknown": "Unknown",
+      "proposeNew": "Propose new service", "proposeEdit": "Propose changes", "details": "Service details", "proposalDetails": "Proposal details", "before": "Snapshot when submitted", "proposed": "Proposed changes", "snapshotHint": "Compare the proposal with the service snapshot recorded at submission.", "description": "Description", "reason": "Proposal reason", "rejectionReason": "Rejection reason", "reviewedAt": "Reviewed on", "images": "Service photos (optional)", "image": "Service photo {{number}}", "removeImage": "Remove service photo", "editRestrictions": "Category and unit remain unchanged for updates. Existing photos are preserved; replacing them is unavailable until full service information is provided.", "send": "Submit proposal", "sending": "Submitting…", "submitted": "Proposal submitted. Please wait for Admin approval.", "changed": "The service has changed. Close and reopen it before submitting a proposal.", "uncertain": "The submission outcome is unknown. Close this window and check My proposals before trying again.",
+      "placeholders": { "name": "Enter a proposed service name", "unitPrice": "For example: 50000", "pricePerKg": "For example: 15000, or leave blank", "pricePerItem": "For example: 30000, or leave blank", "estimatedDurationHours": "For example: 24", "unit": "For example: kg, item, pair", "description": "Describe the care process, scope and service notes…", "reason": "Explain why this service should be added or updated…" },
+      "invalid": { "name": "Enter a service name, up to 200 characters.", "unitPrice": "Enter a positive price up to 100 million with at most 2 decimal places.", "pricePerKg": "Enter a positive amount with up to 2 decimal places, or leave blank.", "pricePerItem": "Enter a positive amount with up to 2 decimal places, or leave blank.", "estimatedDurationHours": "Enter whole hours from 1 to 8760.", "unit": "Enter a unit, up to 20 characters.", "description": "Description must be at most 2000 characters.", "reason": "Reason must be at most 1000 characters." }
+    },
+    "lockers": {
+      "description": "Monitor assigned locker stations and the status of each compartment.", "statistics": "Statistics for all assigned lockers", "summary": { "total": "Total lockers", "active": "Active lockers", "maintenance": "Under maintenance", "inactive": "Inactive lockers" },
+      "search": "Search lockers", "searchHint": "Locker code, name or address…", "status": "Locker status", "results": "lockers found", "empty": "No lockers match your search or have been assigned yet.", "name": "Locker station", "address": "Address", "type": "Locker type", "totalBoxes": "Total compartments", "emptyBoxes": "Empty compartments", "actions": "Actions", "actionsNamed": "Actions for {{name}}",
+      "statuses": { "1": "Active", "2": "Maintenance", "3": "Inactive" }, "types": { "1": "Standard", "2": "Refrigerated" }, "sort": { "code": "Locker code A–Z", "name": "Name A–Z", "nameDesc": "Name Z–A" },
+      "details": "Locker details", "detailsHint": "Station information and current compartment states.", "history": "Usage history", "views": "Locker content", "area": "Service area", "openMap": "Open Google Maps", "image": "Locker photo {{number}}", "boxes": "Compartments ({{count}})", "boxStates": { "1": "Empty", "2": "Contains items", "3": "Reserved", "4": "Maintenance" }, "sizes": { "1": "Small", "2": "Standard", "3": "Large" }, "noBoxes": "No compartments have this status.",
+      "filterBox": "Filter by compartment", "usageRange": "Time items were placed in the compartment", "noHistory": "No matching usage records.", "usageCount": "{{count}} usage records", "order": "Order", "box": "Compartment", "usageType": "Usage type", "putInAt": "Placed in", "takenOutAt": "Taken out", "orderStatus": "Order status", "usageTypes": { "1": "Customer drop-off", "2": "Clean laundry return" }
+    },
+    "shippers": {
+      "statistics": "Statistics for the entire shipper team", "summary": { "total": "Total shippers", "working": "Working", "onLeave": "On leave", "available": "Available", "busy": "Busy", "offline": "Offline" },
+      "profileInfo": "Shipper information",
+      "actionsNamed": "Actions for {{name}}", "unlock": "Unlock account", "lock": "Lock account", "delete": "Delete shipper", "unlockNamed": "Unlock account {{name}}", "eligibleCount": "{{count}} eligible shippers", "assignmentLocation": "Collection point", "returnTask": "Collect at the store for return delivery",
+      "assign": "Assign orders", "assignmentHint": "Choose a collection or return order, then select an eligible shipper from your store.", "taskType": "Task type", "tasks": { "2": "Collection", "9": "Paid return delivery", "99": "Cancelled order return" }, "noAssignableOrders": "No orders are available in this group.", "orderChanged": "This order is no longer eligible for assignment. Check it in Order management.",
+      "unavailable": "Account deletion and locking are awaiting backend support.", "bulkActions": "Bulk actions", "selected": "{{count}} shippers selected on this page", "bulkLock": "Lock selected", "bulkDelete": "Delete selected", "clearSelection": "Clear selection", "selectPage": "Select all shippers on this page", "select": "Select {{name}}", "editNamed": "Edit {{name}}", "lockNamed": "Lock account {{name}}", "deleteNamed": "Delete {{name}}",
+      "front": "Identity front", "back": "Identity back", "bothSides": "Choose both identity sides, or remove both photos.", "twoImagesHint": "Include both sides when adding identity photos. JPG, PNG or WEBP, up to 5 MB each.", "identityReadOnly": "Identity documents are read-only until updates are supported. Older photos follow their submitted order.",
+      "placeholders": { "fullName": "Enter shipper name", "phone": "For example: 0901234567", "email": "For example: shipper@example.com", "vehiclePlate": "For example: 59A-12345", "identityNumber": "Enter identity number" },
+      "description": "Manage your store's delivery team and availability.", "search": "Search shippers", "searchHint": "Name, phone, email or vehicle plate…", "results": "shippers found", "empty": "No shippers match your search.",
+      "add": "Add shipper", "edit": "Edit shipper", "details": "Shipper details", "detailsHint": "Profile and delivery activity for your store.", "view": "View {{name}}", "actions": "Actions",
+      "fullName": "Full name", "phone": "Phone number", "email": "Email", "vehicleType": "Vehicle", "vehiclePlate": "Vehicle plate", "identityNumber": "Identity number (optional)", "identityImages": "Identity photos (optional)", "imagesHint": "Up to 5 JPG, PNG or WEBP photos, at most 5 MB each.", "photo": "Identity photo {{number}}", "removeImage": "Remove identity photo",
+      "workState": "Work availability", "status": "Operational status", "activeTaskCount": "Active tasks", "totalDeliveries": "Deliveries completed", "rating": "Rating", "createdAt": "Date joined",
+      "active": { "true": "Working", "false": "On leave" }, "statuses": { "1": "Available", "2": "Busy", "3": "Offline" }, "vehicles": { "1": "Motorbike", "2": "Car", "3": "Bicycle" },
+      "createHint": "A Shipper account will be created. The system attempts to email temporary credentials; if delivery fails, the shipper can use Forgot password.", "editHint": "A shipper with unfinished delivery tasks cannot be put on leave. A vehicle plate is required except for bicycles.", "save": "Save shipper", "saving": "Saving…", "created": "Shipper created. Check email or use Forgot password to sign in.", "updated": "Shipper updated.", "activeTasks": "Finish or reassign this shipper's active tasks before putting them on leave.", "changed": "This profile has changed. Close and reopen it before editing again.", "uncertain": "The save outcome is unknown. Close this window and check the list before trying again.",
+      "invalid": { "fullName": "Enter a name, up to 100 characters.", "phone": "Enter a valid phone number with 9–11 digits.", "email": "Enter a valid email, up to 100 characters.", "vehiclePlate": "Enter a valid vehicle plate (4–20 characters); optional for bicycles.", "identityNumber": "Use 9 or 12 digits, or leave blank." }
+    },
     "orders": {
       "createdRange": "Filter by order creation date", "fromDay": "From date", "toDay": "To date", "applyDate": "Apply", "clearDate": "Clear date range", "invalidRange": "Choose valid dates. From date must be on or before To date.", "statistics": "Order statistics",
       "description": "Track assigned orders, laundry processing and collection/return deliveries.", "search": "Search orders", "searchHint": "Enter a WashGo order code…", "results": "orders found", "clear": "Clear filters", "empty": "No matching orders are available for your store.",

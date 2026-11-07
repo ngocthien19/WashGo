@@ -1,3 +1,4 @@
+import Reveal from '~/components/motion/Reveal'
 import { useCallback, useEffect, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -38,7 +39,7 @@ export default function OrdersPage() {
     { key: 'paymentStatus', label: 'customer.orders.paymentLabel', options: Object.values(PAYMENT_STATUSES).map((value) => ({ value: String(value), label: t(`customer.orders.paymentStatus.${value}`) })) }
   ]
   return (
-    <div className="mx-auto max-w-[1600px] space-y-6">
+    <Reveal className="mx-auto max-w-[1600px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="flex items-center gap-3 text-3xl font-bold">
@@ -62,7 +63,7 @@ export default function OrdersPage() {
         </Button>
       </header>
       <OrderSummary resource={summary} />
-      <section className="grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
+      <section className="grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
         <div className="grid gap-2">
           <p
             className="text-sm text-muted-foreground"
@@ -135,7 +136,7 @@ export default function OrdersPage() {
               value={query.sort}
               options={ORDER_SORT_OPTIONS.map((item) => ({ value: item.value, label: t(item.label) }))}
               onValueChange={(sort) => update({ sort })}
-              className="w-44"
+              className="w-44 font-semibold"
             />
           </div>
         </div>
@@ -245,6 +246,6 @@ export default function OrdersPage() {
           </>
         )}
       </section>
-    </div>
+    </Reveal>
   )
 }
