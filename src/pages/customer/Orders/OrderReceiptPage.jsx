@@ -1,3 +1,4 @@
+import ReceiptDownload from './components/ReceiptDownload'
 import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
@@ -5,15 +6,14 @@ import { ArrowLeft, Printer } from 'lucide-react'
 import OrderReceiptDocument from './components/OrderReceiptDocument'
 import { Button } from '~/components/ui/button'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import { customerOrderApi } from '~/apis/customer/customerOrderApi'
+import { customerReceiptApi } from '~/apis/customer/customerReceiptApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
-import { canPrintReceipt } from '~/components/customer/orders/orderWorkflow'
 import { CUSTOMER_ROUTES } from '~/utils/constants'
 
 export default function OrderReceiptPage() {
   const { t } = useTranslation()
   const { orderId } = useParams()
-  const load = useCallback((signal) => customerOrderApi.get(orderId, signal), [orderId])
+  const load = useCallback((signal) => customerReceiptApi.get(orderId, signal), [orderId])
   const resource = useCatalogResource(load)
   const order = resource.data
   useEffect(() => {
@@ -32,7 +32,8 @@ export default function OrderReceiptPage() {
             <ArrowLeft size={16} />
             {t('customer.orders.details')}
           </Button>
-          {order && canPrintReceipt(order) && (
+          {order && <ReceiptDownload orderId={orderId} />}
+          {order && (
             <Button
               className="h-11 rounded-xl px-4"
               onClick={() => window.print()}
@@ -47,7 +48,7 @@ export default function OrderReceiptPage() {
             {...resource}
             loadingText="customer.orders.loadingDetail"
           />
-        ) : !canPrintReceipt(order) ? (
+        ) : !order ? (
           <p
             role="status"
             className="rounded-2xl border border-border bg-card p-6"

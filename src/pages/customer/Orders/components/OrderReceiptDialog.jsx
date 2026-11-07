@@ -1,3 +1,4 @@
+import ReceiptDownload from './ReceiptDownload'
 import { useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -6,8 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/compone
 import { Button } from '~/components/ui/button'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
-import { customerOrderApi } from '~/apis/customer/customerOrderApi'
-import { canPrintReceipt } from '~/components/customer/orders/orderWorkflow'
+import { customerReceiptApi } from '~/apis/customer/customerReceiptApi'
 import OrderReceiptDocument from './OrderReceiptDocument'
 
 function ReceiptPrintCopy({ order }) {
@@ -29,10 +29,10 @@ function ReceiptPrintCopy({ order }) {
 
 export default function OrderReceiptDialog({ orderId, onClose }) {
   const { t } = useTranslation()
-  const load = useCallback((signal) => customerOrderApi.get(orderId, signal), [orderId])
+  const load = useCallback((signal) => customerReceiptApi.get(orderId, signal), [orderId])
   const resource = useCatalogResource(load)
   const order = resource.data
-  const printable = !!order && canPrintReceipt(order)
+  const printable = !!order
   return (
     <Dialog
       open
@@ -73,7 +73,11 @@ export default function OrderReceiptDialog({ orderId, onClose }) {
               </p>
             )}
           </div>
-          <div className="flex shrink-0 justify-end gap-2 border-t border-border bg-card px-5 py-4 sm:px-7">
+          <div className="flex shrink-0 flex-wrap justify-end gap-2 border-t border-border bg-card px-5 py-4 sm:px-7">
+            <ReceiptDownload
+              orderId={orderId}
+              disabled={!printable || resource.loading || !!resource.error}
+            />
             <Button
               variant="secondary"
               className="h-11 rounded-xl px-4"
