@@ -23,7 +23,10 @@ export default function NavTooltip({ children, content, show, disabled = false, 
         </span>
       )}
       />
-      <TooltipContent side="right">
+      <TooltipContent
+        side="right"
+        sideOffset={20}
+      >
         {content}
       </TooltipContent>
     </Tooltip>
