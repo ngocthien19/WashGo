@@ -378,6 +378,19 @@
     "forgotPasswordTitle": "Quên mật khẩu?"
   },
   "merchant": {
+    "orderSync": {
+      "missingVersion": "Chưa có phiên bản đơn hàng hợp lệ. Vui lòng tải lại trước khi cập nhật.",
+      "missingActions": "Chưa tải được quyền thao tác của đơn. Vui lòng cập nhật để kiểm tra lại.",
+      "checkResult": "Kiểm tra kết quả thao tác",
+      "retrySame": "Thử lại thao tác đã xác nhận",
+      "notRecorded": "Chưa ghi nhận thao tác này. Bạn có thể thử lại cùng yêu cầu; hệ thống sẽ kiểm tra để tránh thực hiện trùng.",
+      "lookupFailed": "Chưa kiểm tra được kết quả. Vui lòng kiểm tra lại trước khi gửi tiếp.",
+      "conflict": "Đơn hàng đã thay đổi hoặc mã thao tác không còn phù hợp. Đóng cửa sổ và tải lại để xem thông tin mới trước khi xác nhận.",
+      "paymentDeadline": "Hạn thanh toán",
+      "pickupDeadline": "Hạn nhận đồ tại tủ",
+      "overdue": { "DepositExpired": "Đã quá hạn gửi đồ", "PaymentOverdue": "Đã quá hạn thanh toán", "PickupOverdue": "Đã quá hạn nhận đồ" },
+      "reasons": { "LegacyPricing": "Đơn cũ chưa có thông tin giá gói để cân và chốt lại giá.", "NoWeightService": "Đơn chỉ có dịch vụ theo món, không áp dụng chốt giá theo kg.", "NoMerchant": "Đơn chưa được giao cho cửa hàng.", "RoleNotAllowed": "Tài khoản hiện tại không có quyền thực hiện thao tác này." }
+    },
     "sync": {
       "chooseLocation": "Vui lòng chọn lại vị trí trên bản đồ để xác nhận địa chỉ và tỉnh/thành phố mới.",
       "dashboardPeriod": "Khoảng thời gian",
@@ -481,7 +494,7 @@
     },
     "orders": {
       "createdRange": "Lọc theo ngày tạo đơn", "fromDay": "Từ ngày", "toDay": "Đến ngày", "applyDate": "Áp dụng", "clearDate": "Xóa khoảng ngày", "invalidRange": "Vui lòng chọn ngày hợp lệ. Từ ngày phải trước hoặc bằng Đến ngày.", "statistics": "Thống kê đơn hàng",
-      "description": "Theo dõi đơn được giao, xử lý giặt và điều phối lấy/trả đồ.", "search": "Tìm đơn hàng", "searchHint": "Nhập mã đơn WashGo…", "results": "đơn hàng tìm thấy", "clear": "Xóa bộ lọc", "empty": "Chưa có đơn hàng phù hợp trong phạm vi cửa hàng.",
+      "description": "Theo dõi đơn được giao, xử lý giặt và điều phối lấy/trả đồ.", "search": "Tìm đơn hàng", "searchHint": "Nhập mã WashGo hoặc mã nội bộ…", "results": "đơn hàng tìm thấy", "clear": "Xóa bộ lọc", "empty": "Chưa có đơn hàng phù hợp trong phạm vi cửa hàng.",
       "code": "Mã đơn hàng", "services": "Thông tin dịch vụ", "locker": "Locker gửi đồ", "state": "Trạng thái", "weight": "Khối lượng thực tế", "total": "Tổng tiền theo đơn", "shipper": "Shipper", "actions": "Thao tác", "new": "Mới", "unassigned": "Chưa phân công", "manage": "Quản lý đơn hàng",
       "delivery": "Thông tin giao nhận", "box": "Ô gửi đồ", "returnBox": "Ô trả đồ", "eta": "Dự kiến hoàn thành", "noEta": "Chưa có dự kiến", "storage": "Vị trí lưu kho", "history": "Lịch sử xử lý", "processing": "Xử lý đơn hàng", "payment": "Tóm tắt thanh toán", "baseAmount": "Giá dịch vụ", "discount": "Giảm giá", "surcharge": "Phụ phí khối lượng",
       "weigh": "Cân đồ và chốt giá", "weighNote": "Giá và thời gian dự kiến sẽ được hệ thống tính lại theo khối lượng đã xác nhận.", "weightInput": "Khối lượng thực tế (kg)", "process": "Cập nhật xử lý", "processNote": "Chọn bước tiếp theo phù hợp với tiến độ thực tế của đơn.", "nextStatus": "Trạng thái tiếp theo", "assign": "Phân công Shipper", "assignNote": "Chỉ hiển thị Shipper thuộc cửa hàng và đủ điều kiện nhận chuyến.", "assignCollect": "Phân công lấy đồ", "assignReturn": "Phân công trả đồ", "chooseShipper": "Chọn Shipper", "noShippers": "Chưa có Shipper phù hợp. Cập nhật lại sau hoặc kiểm tra đội giao nhận.", "note": "Ghi chú (tối đa 500 ký tự)",

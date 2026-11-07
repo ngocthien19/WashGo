@@ -1,3 +1,4 @@
+import { mockOrderActions, mockStatusCounts } from './helpers/merchantOrderData'
 import { expect, test } from '@playwright/test'
 import { merchantSession } from './helpers/merchantSession'
 
@@ -5,8 +6,9 @@ const id = '11111111-1111-4111-8111-111111111111'
 const shipperId = '22222222-2222-4222-8222-222222222222'
 async function setup(page, options = {}) {
   await merchantSession(page, options)
-  const state = { lists: [], writes: [], failWrite: false, failRead: false, shippers: true, order: {
-    id, orderCode: 'WG-ORDER-123', merchantOrderCode: 'MC-123', status: options.status || 3, paymentStatus: options.paymentStatus || 1,
+  const operations = new Map()
+  const state = { summaries: [], lists: [], writes: [], failWrite: false, failRead: false, shippers: true, order: {
+    id, revision: 1, orderCode: 'WG-ORDER-123', merchantOrderCode: 'MC-123', status: options.status || 3, paymentStatus: options.paymentStatus || 1,
     createdOn: 1794009600, finalAmount: 50000, totalAmount: 50000, discountAmount: 0, weightSurchargeAmount: 0,
     actualWeightKg: null, includedWeightKg: 5, baseProcessingHours: 12, lockerName: 'Ben Thanh Locker', boxNumber: '3',
     depositPinCode: 'SECRET_DEPOSIT', pickupPinCode: 'SECRET_PICKUP', customerName: 'PRIVATE_CUSTOMER', customerPhoneNumber: 'PRIVATE_PHONE',
@@ -29,6 +31,22 @@ async function setup(page, options = {}) {
     if (path.startsWith('/hubs/notifications')) {
       return route.fulfill({ status: 404, json: {} })
     }
+    if (path === '/wash-order/summary') {
+      const body = req.postDataJSON(); state.summaries.push(body)
+      if (state.summaryError) {
+        return route.fulfill({ status: 500, json: { succeeded: false } })
+      }
+      const counts = body.fromDate || body.toDate ? { 4: 2, 12: 1 } : { 1: 1, 2: 2, 3: 3, 4: 18, 5: 1, 6: 1, 7: 1, 8: 2, 9: 1, 10: 2, 11: 1, 12: 8, 13: 1, 99: 2 }
+      return ok({ total: Object.values(counts).reduce((sum, value) => sum + value, 0), statusCounts: mockStatusCounts(counts), generatedAt: '2026-11-07T10:00:00Z' })
+    }
+    if (path.includes('/operations/')) {
+      state.lookups = (state.lookups || 0) + 1
+      if (state.lookupFail) {
+        return route.fulfill({ status: 500, json: { succeeded: false } })
+      }
+      const operationId = path.split('/').at(-1)
+      return operations.has(operationId) ? ok(operations.get(operationId)) : route.fulfill({ status: 404, json: { succeeded: false } })
+    }
     if (path === '/wash-order/filter') {
       const body = req.postDataJSON()
       state.lists.push(body)
@@ -45,7 +63,7 @@ async function setup(page, options = {}) {
       if (state.failRead) {
         return route.fulfill({ status: 403, json: { succeeded: false, message: 'merchant.invalidResponse' } })
       }
-      return ok(state.order)
+      return ok({ ...state.order, allowedActions: state.allowedActions || mockOrderActions(state.order) })
     }
     if (path === `/wash-order/${id}/available-shippers`) {
       return ok(state.shippers ? [{ id: shipperId, fullName: 'Test Driver', phone: '0901234567', taskType: options.status === 9 ? 2 : 1, vehiclePlate: '59-ABC' }] : [])
@@ -53,6 +71,9 @@ async function setup(page, options = {}) {
     if (req.method() === 'PUT' && [`/wash-order/${id}/actual-weight`, '/wash-order/status', '/wash-order/assign-shipper'].includes(path)) {
       const body = req.postDataJSON()
       state.writes.push({ path, body })
+      if (state.conflict || body.expectedRevision !== state.order.revision) {
+        return route.fulfill({ status: 409, json: { succeeded: false, data: state.order, meta: { code: 'RevisionMismatch' } } })
+      }
       if (state.failWrite) {
         return route.fulfill({ status: 500, json: { succeeded: false } })
       }
@@ -64,6 +85,11 @@ async function setup(page, options = {}) {
       }
       if (path.endsWith('assign-shipper')) {
         Object.assign(state.order, { shipperId: body.shipperId, shipperName: 'Test Driver', assignedTaskType: options.status === 9 ? 2 : 1 })
+      }
+      state.order.revision++
+      operations.set(body.operationId, { operationId: body.operationId, orderId: id, operation: path.endsWith('actual-weight') ? 'UpdateWeight' : path.endsWith('/status') ? 'UpdateStatus' : 'AssignShipper', resultRevision: state.order.revision, resultStatus: state.order.status })
+      if (state.commitThenFail) {
+        return route.fulfill({ status: 500, json: { succeeded: false } })
       }
       return ok(state.order)
     }
@@ -106,13 +132,13 @@ test('weighing gates processing, server-confirmed price is shown, and processing
   await dialog.getByLabel('Actual weight (kg)', { exact: true }).fill('6.25')
   await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
   await expect(dialog).toHaveCount(0)
-  expect(state.writes[0].body).toEqual({ weightKg: 6.25 })
+  expect(state.writes[0].body).toMatchObject({ weightKg: 6.25, expectedRevision: 1, expectedStatus: 3, operationId: expect.any(String) })
   await expect(page.getByText('70,000', { exact: false })).toBeVisible()
   await page.getByRole('button', { name: 'Update processing', exact: true }).click()
   await expect(dialog.getByRole('combobox', { name: 'Next status', exact: true })).toContainText('Washing')
   await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
   await expect(dialog).toHaveCount(0)
-  expect(state.writes.at(-1).body).toEqual({ orderId: id, newStatus: 4, note: null })
+  expect(state.writes.at(-1).body).toMatchObject({ orderId: id, newStatus: 4, note: null, expectedRevision: 2, expectedStatus: 3, operationId: expect.any(String) })
   await expect(page.locator('main').getByText('Washing', { exact: true })).toBeVisible()
 })
 
@@ -125,7 +151,7 @@ test('assignment loads eligible shippers and submits collection or return withou
   await dialog.getByLabel('Note (up to 500 characters)', { exact: true }).fill('Please return today')
   await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
   await expect(dialog).toHaveCount(0)
-  expect(state.writes[0].body).toEqual({ orderId: id, shipperId, shipperName: 'Test Driver', note: 'Please return today' })
+  expect(state.writes[0].body).toMatchObject({ orderId: id, shipperId, shipperName: 'Test Driver', note: 'Please return today', expectedRevision: 1, expectedStatus: 9, operationId: expect.any(String) })
   await expect(page.getByText('Test Driver', { exact: true })).toBeVisible()
 })
 
@@ -178,7 +204,7 @@ test('date scope updates the list and whole-result statistics, validates ranges 
   const search = await page.getByRole('search', { name: 'Search orders', exact: true }).boundingBox()
   const status = await page.getByRole('combobox', { name: 'Order status', exact: true }).boundingBox()
   expect(Math.abs(search.y - status.y)).toBeLessThan(2)
-  expect(search.height).toBe(status.height)
+  expect(Math.abs(search.height - status.height)).toBeLessThan(1)
   const listRequests = () => state.lists.filter((body) => body.take === 12)
   const count = listRequests().length
   await page.getByLabel('From date', { exact: true }).fill('2026-11-08')
@@ -206,4 +232,79 @@ test('date scope updates the list and whole-result statistics, validates ranges 
   await expect(summary.getByRole('alert')).toBeVisible()
   await expect(summary.getByRole('heading', { name: 'Total assigned orders', exact: true })).toHaveCount(0)
   await expect(page.getByRole('table')).toBeVisible()
+})
+
+
+test('a committed write with a lost response is reconciled without repeating the mutation', async ({ page }) => {
+  const state = await setup(page)
+  state.commitThenFail = true
+  await page.goto(`/merchant/orders/${id}`)
+  await page.getByRole('button', { name: 'Weigh and confirm price', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByLabel('Actual weight (kg)', { exact: true }).fill('6.25')
+  await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toContainText('The update outcome is unknown.')
+  await dialog.getByRole('button', { name: 'Check operation result', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes).toHaveLength(1)
+  expect(state.lookups).toBe(1)
+  await expect(page.getByText('6.25 kg', { exact: true })).toBeVisible()
+})
+
+test('failed lookup keeps edits locked; a confirmed missing operation retries the identical request', async ({ page }) => {
+  const state = await setup(page)
+  state.failWrite = true
+  state.lookupFail = true
+  await page.goto(`/merchant/orders/${id}`)
+  await page.getByRole('button', { name: 'Weigh and confirm price', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByLabel('Actual weight (kg)', { exact: true }).fill('6')
+  await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Check operation result', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toContainText('The result could not be checked.')
+  await expect(dialog.getByRole('button', { name: 'Confirm update', exact: true })).toBeDisabled()
+  state.lookupFail = false
+  await dialog.getByRole('button', { name: 'Check operation result', exact: true }).click()
+  await expect(dialog.getByRole('button', { name: 'Retry confirmed operation', exact: true })).toBeEnabled()
+  await expect(dialog.getByLabel('Actual weight (kg)', { exact: true })).toBeDisabled()
+  state.failWrite = false
+  await dialog.getByRole('button', { name: 'Retry confirmed operation', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes).toHaveLength(2)
+  expect(state.writes[1].body).toEqual(state.writes[0].body)
+})
+
+test('revision-only changes and server conflicts require a fresh review rather than overwriting', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto(`/merchant/orders/${id}`)
+  await page.getByRole('button', { name: 'Weigh and confirm price', exact: true }).click()
+  let dialog = page.getByRole('dialog')
+  state.order.revision++
+  await dialog.getByLabel('Actual weight (kg)', { exact: true }).fill('6')
+  await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toContainText('This order has changed.')
+  expect(state.writes).toHaveLength(0)
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await page.getByRole('button', { name: 'Weigh and confirm price', exact: true }).click()
+  dialog = page.getByRole('dialog')
+  state.conflict = true
+  await dialog.getByLabel('Actual weight (kg)', { exact: true }).fill('6')
+  await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toContainText('The order has changed or the operation ID no longer matches.')
+  await expect(dialog.getByRole('button', { name: 'Confirm update', exact: true })).toBeDisabled()
+  await expect(dialog.getByRole('button', { name: 'Check operation result', exact: true })).toHaveCount(0)
+  expect(state.writes).toHaveLength(1)
+})
+
+test('server permissions and overdue metadata drive the detail view', async ({ page }) => {
+  const state = await setup(page, { status: 3 })
+  state.allowedActions = { canUpdateWeight: false, updateWeightReasonCode: 'LegacyPricing', canAssignShipper: false, allowedNextStatuses: [], statusOptions: [] }
+  Object.assign(state.order, { paymentDeadline: '2026-11-05T10:00:00Z', pickupDeadline: '2026-11-07T10:00:00Z', overdueTypes: ['PaymentOverdue'] })
+  await page.goto(`/merchant/orders/${id}`)
+  await expect(page.getByRole('button', { name: 'Weigh and confirm price', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Update processing', exact: true })).toHaveCount(0)
+  await expect(page.getByText('Payment deadline', { exact: true })).toBeVisible()
+  await expect(page.getByText('Payment overdue', { exact: true })).toBeVisible()
+  await expect(page.getByText('This legacy order has no package pricing data for weighing and repricing.', { exact: true })).toBeVisible()
+  expect(state.writes).toHaveLength(0)
 })

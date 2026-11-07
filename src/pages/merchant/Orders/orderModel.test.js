@@ -1,33 +1,28 @@
 import { expect, it } from 'vitest'
 import { assignmentTask, canWeigh, processingSteps, sameOrderState, validWeight } from './orderModel'
-
-it('allows only Merchant processing transitions and requires weighing for weight-based packages', () => {
-  expect(processingSteps({ status: 3, includedWeightKg: 5 })).toEqual([])
-  expect(processingSteps({ status: 3, includedWeightKg: 5, actualWeightKg: 6 })).toEqual([4])
-  expect(processingSteps({ status: 4 })).toEqual([5, 6, 7, 8])
-  expect(processingSteps({ status: 6 })).toEqual([7, 8])
-  for (const status of [1, 2, 8, 9, 10, 11, 12, 13, 99]) {
-    expect(processingSteps({ status })).toEqual([])
-  }
+it('uses server metadata rather than inferring permissions from a status or kg package', () => {
+  expect(processingSteps({ status: 4 })).toEqual([])
+  expect(canWeigh({ status: 3, includedWeightKg: 5 })).toBe(false)
+  expect(assignmentTask({ status: 2 })).toBe(null)
+  const order = { status: 4, allowedActions: { allowedNextStatuses: [6, 8, 12, 99], canUpdateWeight: false, canAssignShipper: false } }
+  expect(processingSteps(order)).toEqual([6, 8])
+  expect(canWeigh(order)).toBe(false)
+  expect(assignmentTask(order)).toBe(null)
+  expect(canWeigh({ allowedActions: { canUpdateWeight: true } })).toBe(true)
+  expect(assignmentTask({ allowedActions: { canAssignShipper: true, assignTaskType: 2 } })).toBe(2)
+  expect(assignmentTask({ allowedActions: { canAssignShipper: false, assignTaskType: 1 } })).toBe(null)
 })
-it('limits weighing to eligible collected/unpaid packages and validates precise kg input', () => {
-  const order = { status: 3, paymentStatus: 1, includedWeightKg: 5, baseProcessingHours: 12, items: [{ isWeightBased: true }] }
-  expect(canWeigh(order)).toBe(true)
-  expect(canWeigh({ ...order, status: 4 })).toBe(false)
-  expect(canWeigh({ ...order, baseProcessingHours: null })).toBe(false)
-  expect(canWeigh({ ...order, items: [{ isWeightBased: false }] })).toBe(false)
+it('rejects changed revisions even when displayed fields still match', () => {
+  expect(sameOrderState({ revision: 10, status: 3 }, { revision: 11, status: 3 })).toBe(false)
+  expect(sameOrderState({ status: 3 }, { status: 3 })).toBe(false)
+  expect(sameOrderState({ revision: 10, status: 3 }, { revision: 10, status: 3 })).toBe(true)
+  expect(sameOrderState({ revision: 10, finalAmount: 100 }, { revision: 10, finalAmount: 200 })).toBe(false)
+})
+it('accepts only precise positive kg input in the supported range', () => {
   for (const value of ['0', '-1', '1001', '1.234', '1e2', '']) {
     expect(validWeight(value)).toBe(false)
   }
   for (const value of ['0.01', '6.25', '1000']) {
     expect(validWeight(value)).toBe(true)
   }
-})
-it('assigns only the proper delivery stages, including cancelled goods still at the merchant', () => {
-  expect(assignmentTask({ status: 2 })).toBe(1)
-  expect(assignmentTask({ status: 9, paymentStatus: 1 })).toBe(null)
-  expect(assignmentTask({ status: 9, paymentStatus: 2 })).toBe(2)
-  expect(assignmentTask({ status: 99, cancelledGoodsStatus: 2 })).toBe(2)
-  expect(assignmentTask({ status: 99, cancelledGoodsStatus: 4 })).toBe(null)
-  expect(sameOrderState({ status: 3, finalAmount: 50000 }, { status: 3, finalAmount: 55000 })).toBe(false)
 })

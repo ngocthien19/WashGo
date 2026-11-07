@@ -378,6 +378,19 @@
     "forgotPasswordTitle": "Forgot password?"
   },
   "merchant": {
+    "orderSync": {
+      "missingVersion": "No valid order version is available. Refresh before updating.",
+      "missingActions": "Order permissions are unavailable. Refresh to check again.",
+      "checkResult": "Check operation result",
+      "retrySame": "Retry confirmed operation",
+      "notRecorded": "This operation has not been recorded. You may retry the same request; the server will prevent duplicate execution.",
+      "lookupFailed": "The result could not be checked. Check again before sending another update.",
+      "conflict": "The order has changed or the operation ID no longer matches. Close and refresh to review the current information before confirming.",
+      "paymentDeadline": "Payment deadline",
+      "pickupDeadline": "Locker pickup deadline",
+      "overdue": { "DepositExpired": "Drop-off deadline passed", "PaymentOverdue": "Payment overdue", "PickupOverdue": "Pickup overdue" },
+      "reasons": { "LegacyPricing": "This legacy order has no package pricing data for weighing and repricing.", "NoWeightService": "This order contains item-priced services; kg repricing does not apply.", "NoMerchant": "This order has not been assigned to the store.", "RoleNotAllowed": "This account is not permitted to perform this action." }
+    },
     "sync": {
       "chooseLocation": "Choose the location on the map to confirm the new address and city/province.",
       "dashboardPeriod": "Date range",
@@ -481,7 +494,7 @@
     },
     "orders": {
       "createdRange": "Filter by order creation date", "fromDay": "From date", "toDay": "To date", "applyDate": "Apply", "clearDate": "Clear date range", "invalidRange": "Choose valid dates. From date must be on or before To date.", "statistics": "Order statistics",
-      "description": "Track assigned orders, laundry processing and collection/return deliveries.", "search": "Search orders", "searchHint": "Enter a WashGo order code…", "results": "orders found", "clear": "Clear filters", "empty": "No matching orders are available for your store.",
+      "description": "Track assigned orders, laundry processing and collection/return deliveries.", "search": "Search orders", "searchHint": "Enter a WashGo or store order code…", "results": "orders found", "clear": "Clear filters", "empty": "No matching orders are available for your store.",
       "code": "Order code", "services": "Service information", "locker": "Drop-off locker", "state": "Status", "weight": "Actual weight", "total": "Order total", "shipper": "Shipper", "actions": "Actions", "new": "New", "unassigned": "Not assigned", "manage": "Manage order",
       "delivery": "Delivery information", "box": "Drop-off compartment", "returnBox": "Return compartment", "eta": "Estimated completion", "noEta": "Not estimated yet", "storage": "Storage location", "history": "Processing history", "processing": "Order processing", "payment": "Payment summary", "baseAmount": "Service price", "discount": "Discount", "surcharge": "Weight surcharge",
       "weigh": "Weigh and confirm price", "weighNote": "The system recalculates the price and estimated completion using the confirmed weight.", "weightInput": "Actual weight (kg)", "process": "Update processing", "processNote": "Choose the next step that matches the order's actual progress.", "nextStatus": "Next status", "assign": "Assign shipper", "assignNote": "Only eligible shippers belonging to your store are listed.", "assignCollect": "Assign collection", "assignReturn": "Assign return delivery", "chooseShipper": "Choose a shipper", "noShippers": "No eligible shipper is available. Refresh later or check your delivery team.", "note": "Note (up to 500 characters)",
