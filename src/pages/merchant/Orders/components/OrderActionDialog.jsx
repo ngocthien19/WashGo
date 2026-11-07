@@ -79,14 +79,38 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
   const [note, setNote] = useState('')
   const [pending, setPending] = useState(false)
   const [uncertain, setUncertain] = useState(false)
+  const [canRetry, setCanRetry] = useState(false)
+  const [canCheck, setCanCheck] = useState(false)
   const [error, setError] = useState('')
   const lock = useRef(false)
-  const submit = async (event) => {
-    event.preventDefault()
-    if (lock.current || uncertain) {
+  const intent = useRef(null)
+  const operation = { weigh: 'UpdateWeight', process: 'UpdateStatus', assign: 'AssignShipper' }[action]
+  const complete = () => {
+    notify.success('merchant.orders.saved'); onSaved()
+  }
+  const checkResult = async () => {
+    if (lock.current || !intent.current) {
       return
     }
-    if ((action === 'weigh' && (!canWeigh(order) || !validWeight(weight))) || (action === 'process' && !processingSteps(order).includes(Number(next))) || (action === 'assign' && (!assignmentTask(order) || !shipper)) || note.trim().length > 500) {
+    lock.current = true; setPending(true); setCanRetry(false)
+    try {
+      const result = await merchantOrderApi.operation(order.id, intent.current.guard.operationId, operation)
+      if (result) {
+        complete(); return
+      }
+      setCanRetry(true); setError('merchant.orderSync.notRecorded')
+    } catch {
+      setError('merchant.orderSync.lookupFailed')
+    } finally {
+      lock.current = false; setPending(false)
+    }
+  }
+  const submit = async (event) => {
+    event.preventDefault()
+    if (lock.current || uncertain && !canRetry) {
+      return
+    }
+    if (!intent.current && ((action === 'weigh' && (!canWeigh(order) || !validWeight(weight))) || (action === 'process' && !processingSteps(order).includes(Number(next))) || (action === 'assign' && (!assignmentTask(order) || !shipper)) || note.trim().length > 500)) {
       setError('merchant.orders.invalidAction'); return
     }
     lock.current = true
@@ -94,26 +118,38 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
     setError('')
     let writing = false
     try {
-      const latest = await merchantOrderApi.detail(order.id)
-      if (!sameOrderState(order, latest)) {
-        setUncertain(true); setError('merchant.orders.changed'); return
+      if (!intent.current) {
+        const latest = await merchantOrderApi.detail(order.id)
+        if (!sameOrderState(order, latest)) {
+          setUncertain(true); setError('merchant.orders.changed'); return
+        }
+        if ((action === 'weigh' && !canWeigh(latest)) || (action === 'process' && !processingSteps(latest).includes(Number(next))) || (action === 'assign' && !assignmentTask(latest))) {
+          setUncertain(true); setError('merchant.orders.changed'); return
+        }
+        intent.current = { weight: Number(weight), next: Number(next), shipper, note: note.trim() || null, guard: { expectedRevision: order.revision, expectedStatus: order.status, operationId: crypto.randomUUID() } }
       }
+      const request = intent.current
+      setCanRetry(false)
       writing = true
       if (action === 'weigh') {
-        await merchantOrderApi.weigh(order.id, Number(weight))
+        await merchantOrderApi.weigh(order.id, request.weight, request.guard)
       }
       if (action === 'process') {
-        await merchantOrderApi.status(order.id, Number(next), note.trim() || null)
+        await merchantOrderApi.status(order.id, request.next, request.note, request.guard)
       }
       if (action === 'assign') {
-        await merchantOrderApi.assign(order.id, shipper, note.trim() || null)
+        await merchantOrderApi.assign(order.id, request.shipper, request.note, request.guard)
       }
-      notify.success('merchant.orders.saved')
-      onSaved()
+      complete()
     } catch (failure) {
       const unknown = writing && (failure.uncertain || !failure.response || failure.response.status >= 500)
-      setUncertain(unknown)
-      setError(unknown ? 'merchant.orders.uncertain' : getApiError(failure))
+      const conflict = failure.response?.status === 409
+      setUncertain(unknown || conflict)
+      setCanCheck(unknown)
+      if (!unknown && !conflict) {
+        intent.current = null
+      }
+      setError(conflict ? 'merchant.orderSync.conflict' : unknown ? 'merchant.orders.uncertain' : getApiError(failure))
     } finally {
       lock.current = false; setPending(false)
     }
@@ -243,6 +279,17 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
               {t(error)}
             </p>
           )}
+          {canCheck && (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 px-4 text-base"
+              disabled={pending}
+              onClick={checkResult}
+            >
+              {t('merchant.orderSync.checkResult')}
+            </Button>
+          )}
           <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
             <Button
               type="button"
@@ -256,10 +303,10 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
             <Button
               type="submit"
               className="h-11 px-4 text-base"
-              disabled={pending || uncertain || (action === 'assign' && !shipper)}
+              disabled={pending || uncertain && !canRetry || (action === 'assign' && !shipper)}
             >
               {action === 'assign' && <CircleCheck size={18} />}
-              {t(pending ? 'merchant.orders.saving' : 'merchant.orders.confirm')}
+              {t(pending ? 'merchant.orders.saving' : canRetry ? 'merchant.orderSync.retrySame' : 'merchant.orders.confirm')}
             </Button>
           </div>
         </form>

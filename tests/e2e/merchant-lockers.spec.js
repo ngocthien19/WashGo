@@ -22,7 +22,7 @@ test('locker thumbnail uses returned images and handles a failed image', async (
 async function setup(page, options = {}) {
   await merchantSession(page, options)
 
-  const state = { filters: [], histories: [], empty: false, detailError: false, summaryError: false }
+  const state = { filters: [], histories: [], empty: false, detailError: false, summaryError: false, summaryCalls: 0 }
   const locker = { id, code: 'LK-TEST-01', name: 'Test Locker', address: '123 Test Street', city: 'Test City', status: 1, lockerType: 1, totalBoxes: 6, availableBoxes: 99, emptyBoxesCount: 2, latitude: 10.77, longitude: 106.69, serviceAreaName: 'Central', description: 'Assigned locker station', imageUrls: options.images ? ['/uploads/mock/locker.svg'] : [], boxes: Array.from({ length: 6 }, (_, index) => ({ id: index === 0 ? boxId : `box-${index}`, boxNumber: String(index + 1), size: 2, status: [1, 2, 3, 4, 1, 2][index], hasItems: [1, 5].includes(index) })), depositPinCode: 'PRIVATE_PIN' }
   await page.route('**/api/**', async (route) => {
     const req = route.request()
@@ -42,15 +42,14 @@ async function setup(page, options = {}) {
     if (path === '/notification/unread-count') {
       return ok(0)
     }
+    if (path === '/locker/summary') {
+      state.summaryCalls++
+      expect(url.searchParams.has('merchantId')).toBe(false)
+      return state.summaryError ? fail() : ok({ totalLockers: 25, activeLockers: 15, maintenanceLockers: 7, inactiveLockers: 3, totalBoxes: 150, availableBoxes: 60, occupiedBoxes: 40, reservedBoxes: 30, maintenanceBoxes: 20, generatedAt: '2026-11-08T00:00:00Z' })
+    }
     if (path === '/locker/filter') {
       const body = req.postDataJSON()
       expect(body).not.toHaveProperty('merchantId')
-      if (body.take === 1) {
-        if (state.summaryError) {
-          return fail()
-        }
-        return route.fulfill({ json: { succeeded: true, total: body.status ? { 1: 15, 2: 7, 3: 3 }[body.status] : 25, list: [] } })
-      }
       state.filters.push(body)
       return route.fulfill({ json: { succeeded: true, total: state.empty ? 0 : 25, list: state.empty ? [] : [{ ...locker, name: body.page === 2 ? 'Page Two Locker' : locker.name }] } })
     }
@@ -59,7 +58,7 @@ async function setup(page, options = {}) {
     }
     if (path === `/locker/${id}/usage-history`) {
       state.histories.push(Object.fromEntries(url.searchParams))
-      return route.fulfill({ json: { succeeded: true, total: 10, list: [{ orderId: '66666666-6666-4666-8666-666666666666', orderCode: 'WG-USAGE', boxNumber: '1', usageType: 1, putInAt: '2026-11-07T02:00:00Z', takenOutAt: null, orderStatus: 2 }] } })
+      return route.fulfill({ json: { succeeded: true, total: 10, list: [{ usageId: 'usage-1', boxId, orderId: '66666666-6666-4666-8666-666666666666', orderCode: 'WG-USAGE', boxNumber: '1', usageType: 1, putInAt: '2026-11-07T02:00:00Z', takenOutAt: null, orderStatus: 2 }] } })
     }
     return route.fulfill({ status: 404, json: { succeeded: false } })
   })
@@ -79,6 +78,8 @@ test('locker list uses server totals, real empty counts and URL filters/sorting/
   await page.getByRole('searchbox', { name: 'Search lockers' }).fill('Test')
   await page.getByRole('searchbox', { name: 'Search lockers' }).press('Enter')
   await expect.poll(() => state.filters.at(-1)?.keyword).toBe('Test')
+  expect(state.summaryCalls).toBe(1)
+  await expect(summary).toContainText('150')
   await page.getByRole('combobox', { name: 'Locker status' }).click()
   await page.getByRole('option', { name: 'Maintenance', exact: true }).click()
   await expect.poll(() => state.filters.at(-1)?.status).toBe(2)
@@ -89,6 +90,7 @@ test('locker list uses server totals, real empty counts and URL filters/sorting/
   await expect(page).toHaveURL(/page=2/)
   await page.reload()
   await expect(page.getByRole('table')).toContainText('Page Two Locker')
+  expect(state.summaryCalls).toBe(2)
   expect(state.filters.at(-1)).toMatchObject({ page: 2, status: 2, keyword: 'Test' })
 })
 test('locker detail displays all compartment states in six columns and no access secrets', async ({ page }) => {

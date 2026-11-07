@@ -1,15 +1,14 @@
-import { test, expect as baseExpect } from '@playwright/test'
-const expect = baseExpect.configure({ timeout: 20000 })
+import { test, expect } from '@playwright/test'
 import { merchantSession } from './helpers/merchantSession'
+import { reportFixture } from './helpers/merchantReportData'
 
 async function setup(page, options = {}) {
   await merchantSession(page, options)
-  const state = { calls: [], fail: false, zero: false }
+  const state = { calls: [], exports: [], fail: false, missing: false, noRate: false, exportFail: false, negative: false }
   await page.route('**/api/**', async (route) => {
-    const req = route.request()
-    const path = new URL(req.url()).pathname.replace(/^\/api/, '')
+    const req = route.request(), url = new URL(req.url()), path = url.pathname.replace(/^\/api/, '')
     const ok = (data) => route.fulfill({ json: { succeeded: true, data } })
-    expect(path).not.toMatch(/finance|customer\/|merchant-reports/)
+    expect(path).not.toMatch(/finance|customer\/|wash-order/)
     if (path === '/auth/me') {
       return ok({ id: 'merchant-test', fullName: 'Store Owner', role: 'Merchant' })
     }
@@ -19,71 +18,87 @@ async function setup(page, options = {}) {
     if (path === '/notification/unread-count') {
       return ok(0)
     }
-    if (path === '/wash-order/filter') {
-      expect(req.method()).toBe('POST')
-      const body = req.postDataJSON()
-      expect(Object.keys(body).sort()).toEqual((body.status ? ['fromDate', 'toDate', 'page', 'take', 'status'] : ['fromDate', 'toDate', 'page', 'take']).sort())
-      expect(body).toMatchObject({ page: 1, take: 1 })
-      expect(body.fromDate).toBeLessThan(body.toDate)
-      state.calls.push(body)
+    if (path.startsWith('/uploads/mock/')) {
+      return route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" fill="#2563eb"/></svg>' })
+    }
+    if (path === '/merchant-reports/overview') {
+      expect(req.method()).toBe('GET')
+      const params = Object.fromEntries(url.searchParams)
+      expect(Object.keys(params).every((key) => ['period', 'from', 'to', 'top'].includes(key))).toBe(true)
+      state.calls.push(params)
       if (state.fail) {
-        return route.fulfill({ status: 500, json: { succeeded: false, message: 'merchant.invalidResponse' } })
+        return route.fulfill({ status: 500, json: { succeeded: false } })
       }
-      const day = new Date(body.fromDate * 1000 + 7 * 3600000).toISOString().slice(0, 10)
-      const current = day >= '2026-11-01'
-      const days = (body.toDate - body.fromDate + 1) / 86400
-      const base = body.status ? current ? 8 : 10 : current ? 120 : 100
-      const total = state.zero ? 0 : Math.round(base * days)
-      return route.fulfill({ json: { succeeded: true, total, list: [] } })
+      const report = reportFixture(params)
+      if (state.missing) {
+        report.kpis.ordersWithoutCommissionSnapshot = 2
+      }
+      if (state.noRate) {
+        report.kpis.onTimeRate = { numerator: 0, denominator: 0, rate: null, previousNumerator: 0, previousDenominator: 0, previousRate: null, changePoints: null }
+      }
+      if (state.negative) {
+        report.series[0].netRevenue = -400000; report.kpis.netRevenue.current = -400000; report.kpis.merchantPayout.current = -320000
+      }
+      return ok(report)
+    }
+    if (path === '/merchant-reports/export') {
+      state.exports.push(Object.fromEntries(url.searchParams))
+      if (state.exportFail) {
+        return route.fulfill({ status: 500, json: { succeeded: false } })
+      }
+      return route.fulfill({ contentType: 'text/csv; charset=utf-8', body: '\uFEFFMetric,Current\r\nRevenue after refunds,1000000\r\nIncome after commission,800000\r\n' })
     }
     return route.fulfill({ status: 404, json: { succeeded: false } })
   })
   return state
 }
+const url = '/merchant/reports?period=custom&from=2026-11-01&to=2026-11-07'
 
-test('reports show real count comparisons and charts without inventing revenue or best sellers', async ({ page }) => {
+test('one report shows actual metrics, pp rate change, top-service images and accessible charts', async ({ page }) => {
   const state = await setup(page)
-  await page.goto('/merchant/reports?period=custom&from=2026-11-01&to=2026-11-07')
-  await expect(page.getByRole('button', { name: 'Export CSV report' })).toBeEnabled({ timeout: 30000 })
-  await expect(page.getByRole('region', { name: 'Total orders', exact: true })).toContainText('+20%')
-  await expect(page.getByRole('region', { name: 'Completed orders', exact: true })).toContainText('-20%')
-  await expect(page.getByRole('region', { name: 'Total revenue', exact: true })).toContainText('—')
-  await expect(page.getByRole('region', { name: 'On-time rate', exact: true })).toContainText('Report data unavailable')
-  await expect(page.getByRole('img', { name: 'Order chart', exact: true })).toBeVisible()
-  await expect(page.getByText('Store best-seller reporting is not available yet.', { exact: false })).toBeVisible()
-  expect(state.calls.length).toBeLessThanOrEqual(28)
-  await page.getByText('View data table', { exact: true }).click()
-  await expect(page.getByRole('table')).toContainText('120')
-  await page.getByRole('button', { name: '11-01: Current period 120, Previous period 100', exact: true }).focus()
-  await expect(page.getByText('11-01 · Current period: 120 · Previous period: 100', { exact: true })).toBeVisible()
+  await page.goto(url)
+  await expect(page.getByRole('region', { name: 'Income after commission', exact: true })).toContainText('800,000')
+  await expect(page.getByRole('region', { name: 'Orders created in period', exact: true })).toContainText('+20%')
+  await expect(page.getByRole('region', { name: 'Orders completed in period', exact: true })).toContainText('-20%')
+  await expect(page.getByRole('region', { name: 'On-time laundry completion', exact: true })).toContainText('+10 pp')
+  await expect(page.getByRole('region', { name: 'On-time laundry completion', exact: true })).not.toContainText('9/10 eligible orders')
+  const revenue = page.getByRole('heading', { name: 'Revenue after refunds (before commission)', exact: true }).locator('..')
+  await revenue.getByText('View data table', { exact: true }).click()
+  await expect(revenue.getByRole('table')).toContainText('Not yet computed')
+  await revenue.getByRole('button', { name: /Bucket 1: Current period/ }).focus()
+  await expect(revenue.locator('[aria-live="polite"]')).toContainText('400,000')
+  const image = page.getByRole('img', { name: 'Everyday laundry', exact: true })
+  await image.scrollIntoViewIfNeeded()
+  await expect.poll(() => image.evaluate((img) => img.naturalWidth)).toBeGreaterThan(0)
+  await expect(page.getByText('Service value', { exact: true })).toBeVisible()
+  expect(state.calls).toHaveLength(1)
 })
 
-test('CSV exports the current visible range and supported metrics only', async ({ page }) => {
-  await setup(page)
-  await page.goto('/merchant/reports?period=custom&from=2026-11-01&to=2026-11-07')
+test('CSV comes from Merchant export with the applied range and matching top limit', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto(url)
   const button = page.getByRole('button', { name: 'Export CSV report', exact: true })
   await expect(button).toBeEnabled()
-  const download = page.waitForEvent('download')
+  const downloaded = page.waitForEvent('download')
   await button.click()
-  const file = await download
+  const file = await downloaded
   expect(file.suggestedFilename()).toBe('washgo-report-2026-11-01-2026-11-07.csv')
-  const stream = await file.createReadStream()
-  const buffers = []
+  const buffers = [], stream = await file.createReadStream()
   for await (const chunk of stream) {
     buffers.push(chunk)
   }
   const csv = Buffer.concat(buffers).toString('utf8')
-  expect(csv).toContain('"Total orders","840","700","20"')
-  expect(csv).toContain('"Total revenue","Report data unavailable"')
-  expect(csv).not.toMatch(/PIN|customerId|mock-access/)
+  expect(csv.startsWith('\uFEFF')).toBe(true)
+  expect(csv).toContain('Income after commission,800000')
+  expect(state.exports).toEqual([{ period: 'custom', from: '2026-11-01', to: '2026-11-07', granularity: 'day', top: '5' }])
 })
 
-test('day week month and valid custom dates update URL and server filters', async ({ page }) => {
-  await setup(page)
+test('presets and custom dates keep URL state and send BE calendar periods', async ({ page }) => {
+  const state = await setup(page)
   await page.goto('/merchant/reports')
-  for (const period of ['Day', 'Week', 'Month']) {
-    await page.getByRole('button', { name: period, exact: true }).click()
-    await expect(page).toHaveURL(new RegExp(`period=${period.toLowerCase()}`))
+  for (const [name, period] of [['Day', 'today'], ['Week', 'week'], ['Month', 'month']]) {
+    await page.getByRole('button', { name, exact: true }).click()
+    await expect.poll(() => state.calls.at(-1)?.period).toBe(period)
     await expect(page.getByRole('button', { name: 'Export CSV report' })).toBeEnabled()
   }
   await page.getByRole('button', { name: 'Custom', exact: true }).click()
@@ -91,20 +106,16 @@ test('day week month and valid custom dates update URL and server filters', asyn
   await page.getByLabel('To date', { exact: true }).fill('2026-10-07')
   await page.getByRole('button', { name: 'Apply', exact: true }).click()
   await expect(page).toHaveURL(/from=2026-10-01&to=2026-10-07/)
+  await expect.poll(() => state.calls.at(-1)?.from).toBe('2026-10-01')
   await page.reload()
   await expect(page.getByLabel('From date', { exact: true })).toHaveValue('2026-10-01')
-  await expect(page.getByRole('button', { name: 'Custom', exact: true })).toHaveAttribute('aria-pressed', 'true')
-  await page.goBack()
-  await expect(page.getByRole('button', { name: 'Month', exact: true })).toHaveAttribute('aria-pressed', 'true')
-  await page.getByRole('button', { name: 'Custom', exact: true }).click()
   await page.getByRole('button', { name: 'Clear date range', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Month', exact: true })).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByLabel('From date', { exact: true })).toHaveCount(0)
 })
 
-test('invalid custom ranges cannot fetch and failed reads cannot export partial or zero data', async ({ page }) => {
+test('invalid ranges do not fetch; failed reports cannot export and retry recovers', async ({ page }) => {
   const state = await setup(page)
-  await page.goto('/merchant/reports?period=custom&from=2026-11-01&to=2026-11-07')
+  await page.goto(url)
   await expect(page.getByRole('button', { name: 'Export CSV report' })).toBeEnabled()
   const before = state.calls.length
   await page.getByLabel('From date', { exact: true }).fill('2020-01-01')
@@ -113,22 +124,41 @@ test('invalid custom ranges cannot fetch and failed reads cannot export partial 
   expect(state.calls.length).toBe(before)
   state.fail = true
   await page.getByRole('button', { name: 'Refresh', exact: true }).click()
-  await expect(page.getByRole('alert')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Export CSV report' })).toBeDisabled()
-  await expect(page.getByRole('region', { name: 'Total orders', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Income after commission', exact: true })).toHaveCount(0)
   state.fail = false
-  state.zero = true
   await page.getByRole('button', { name: 'Try again', exact: true }).click()
-  await expect(page.getByRole('region', { name: 'Total orders', exact: true })).toContainText('0%')
+  await expect(page.getByRole('region', { name: 'Income after commission', exact: true })).toBeVisible()
 })
 
-test('mobile dark report stays within viewport and the reports nav entry is enabled', async ({ page }) => {
+test('missing commission withholds income and export; zero eligible on-time sample stays unavailable', async ({ page }) => {
+  const state = await setup(page)
+  state.missing = true; state.noRate = true
+  await page.goto(url)
+  const income = page.getByRole('region', { name: 'Income after commission', exact: true })
+  await expect(income).toContainText('Awaiting reconciliation')
+  await expect(income).not.toContainText('800,000')
+  await expect(page.getByRole('region', { name: 'On-time laundry completion', exact: true })).not.toContainText('0/0 eligible orders')
+  await expect(page.getByRole('button', { name: 'Export CSV report' })).toBeDisabled()
+  expect(state.exports).toHaveLength(0)
+})
+
+test('negative revenue and export failure do not become zero or a successful download', async ({ page }) => {
+  const state = await setup(page)
+  state.negative = true; state.exportFail = true
+  await page.goto(url)
+  await expect(page.getByRole('region', { name: 'Income after commission', exact: true })).toContainText(/-.*320,000/)
+  await page.getByRole('button', { name: 'Export CSV report' }).click()
+  await expect(page.getByRole('alert')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Export CSV report' })).toBeEnabled()
+  expect(state.exports).toHaveLength(1)
+})
+
+test('mobile dark charts scroll internally without page overflow', async ({ page }) => {
   await setup(page, { dark: true })
   await page.setViewportSize({ width: 375, height: 812 })
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await page.goto('/merchant/reports?period=custom&from=2026-11-01&to=2026-11-07')
+  await page.goto(url)
   await expect(page.getByRole('button', { name: 'Export CSV report' })).toBeEnabled()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  await page.getByRole('button', { name: 'Open Merchant navigation', exact: true }).click()
-  await expect(page.getByRole('navigation').getByRole('link', { name: 'Reports', exact: true })).toHaveAttribute('aria-current', 'page')
 })

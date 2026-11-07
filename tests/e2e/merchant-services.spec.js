@@ -20,8 +20,8 @@ test('service tabs navigate and the detail modal displays returned photos', asyn
 async function setup(page, options = {}) {
   await merchantSession(page, options)
 
-  const service = { id, code: 'SVC-TEST', name: 'Everyday service', description: 'Care for everyday clothes', imageUrls: options.images ? ['/uploads/mock/service.svg'] : [], unitPrice: 50000, pricePerKg: 15000, pricePerItem: null, serviceType: 1, unit: 'kg', estimatedDurationHours: 24, isActive: true, approvalStatus: 2 }
-  const state = { service, lists: [], writes: [], failWrite: false, failRead: false, proposal: { id: proposalId, serviceId: id, requestType: 2, status: 3, proposed: { ...service, name: 'Revised service', unitPrice: 60000, imageUrls: [] }, current: { ...service, imageUrls: [] }, rejectionReason: 'Please revise the price', reason: 'Customer request', createdAt: '2026-11-07T01:00:00Z' } }
+  const service = { id, version: 'version-1', canProposeUpdate: true, hasPendingProposal: false, code: 'SVC-TEST', name: 'Everyday service', description: 'Care for everyday clothes', imageUrls: options.images ? ['/uploads/mock/service.svg'] : [], unitPrice: 50000, pricePerKg: 15000, pricePerItem: null, serviceType: 1, unit: 'kg', estimatedDurationHours: 24, isActive: true, approvalStatus: 2 }
+  const state = { service, lists: [], writes: [], failWrite: false, failRead: false, summaryError: false, summaryCalls: 0, conflict: false, proposal: { id: proposalId, serviceId: id, requestType: 2, status: 3, proposed: { ...service, name: 'Revised service', unitPrice: 60000, imageUrls: [] }, current: { ...service, imageUrls: [] }, rejectionReason: 'Please revise the price', reason: 'Customer request', createdAt: '2026-11-07T01:00:00Z' } }
   await page.route('**/api/**', async (route) => {
     const req = route.request()
     const path = new URL(req.url()).pathname.replace(/^\/api/, '')
@@ -44,16 +44,19 @@ async function setup(page, options = {}) {
     if (path === '/files/images') {
       return ok({ url: '/uploads/mock/service.png' })
     }
+    if (path === '/merchant-service/summary') {
+      state.summaryCalls++
+      if (state.summaryError) {
+        return fail()
+      }
+      return ok({ totalServices: 10, activeServices: 8, inactiveServices: 2, pendingProposals: 3, approvedProposals: 4, rejectedProposals: 1 })
+    }
+    if (path === `/merchant-service/${id}`) {
+      return state.failRead ? fail() : ok(state.service)
+    }
     if (['/merchant-service/filter', '/service-proposal/filter'].includes(path)) {
       const body = req.postDataJSON()
       expect(body).not.toHaveProperty('merchantId')
-      expect(body).not.toHaveProperty('sortBy')
-      if (path === '/service-proposal/filter') {
-        expect(body).not.toHaveProperty('keyword')
-      }
-      if (body.take === 1) {
-        return route.fulfill({ json: { succeeded: true, total: path === '/merchant-service/filter' ? body.isActive === false ? 2 : body.isActive === true ? 8 : 10 : { 1: 3, 2: 4, 3: 1 }[body.status], list: [] } })
-      }
       if (state.failRead) {
         return fail()
       }
@@ -69,6 +72,9 @@ async function setup(page, options = {}) {
       expect(body).not.toHaveProperty('isActive')
       expect(body).not.toHaveProperty('approvalStatus')
       state.writes.push({ path, body })
+      if (state.conflict) {
+        return route.fulfill({ status: 409, json: { succeeded: false, meta: { code: 'StaleVersion' } } })
+      }
       if (state.failWrite) {
         return fail()
       }
@@ -143,7 +149,7 @@ test('update proposals keep unit/category and show the before/after snapshot', a
   await expect(page.getByRole('tab', { name: 'My proposals', exact: true })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('table')).toContainText('Everyday service')
   expect(state.writes).toHaveLength(1)
-  expect(state.writes[0]).toMatchObject({ path: `/merchant-service/${id}/proposals`, body: { unitPrice: 65000, unit: 'kg', serviceType: 1, imageUrls: [] } })
+  expect(state.writes[0]).toMatchObject({ path: `/merchant-service/${id}/proposals`, body: { unitPrice: 65000, unit: 'kg', serviceType: 1, imageUrls: null, expectedVersion: 'version-1', clientRequestId: expect.any(String) } })
   expect(state.service.unitPrice).toBe(50000)
   await action(page, 'Proposal details')
   await expect(page.getByRole('heading', { name: 'Snapshot when submitted' })).toBeVisible()
@@ -156,7 +162,8 @@ test('unknown submission locks repeat writes and stale service data never posts'
   const dialog = await newDraft(page)
   await dialog.getByRole('button', { name: 'Submit proposal' }).click()
   await expect(dialog.getByRole('alert')).toContainText('submission outcome is unknown')
-  await expect(dialog.getByRole('button', { name: 'Submit proposal' })).toBeDisabled()
+  await expect(dialog.getByRole('button', { name: 'Retry the same proposal' })).toBeEnabled()
+  await expect(dialog.getByLabel('Service name', { exact: false })).toBeDisabled()
   expect(state.writes).toHaveLength(1)
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
   state.failWrite = false
@@ -172,7 +179,7 @@ test('proposal status/type filters and rejected reasons use the owned proposal A
   await page.goto('/merchant/services?tab=proposals&state=3&type=2&page=2')
   await expect(page.getByRole('table')).toContainText('Please revise the price')
   expect(state.lists.at(-1)).toMatchObject({ path: '/service-proposal/filter', body: { status: 3, requestType: 2, page: 2 } })
-  await expect(page.getByRole('searchbox')).toHaveCount(0)
+  await expect(page.getByRole('searchbox', { name: 'Search services' })).toBeVisible()
   await page.getByRole('combobox', { name: 'Proposal type', exact: true }).click()
   await expect(page.getByRole('option', { name: 'Delete', exact: true })).toHaveCount(0)
   await expect(page.getByRole('option', { name: 'New service', exact: true })).toBeVisible()
@@ -197,4 +204,85 @@ test('mobile dark forms and failed service reads remain usable without page over
   await action(page, 'Service details')
   await expect(page.getByRole('dialog').getByRole('alert')).toBeVisible()
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Propose changes' })).toHaveCount(0)
+})
+
+
+test('sorting and proposal search/filtering are server-side and summary stays global', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto('/merchant/services')
+  await page.getByRole('combobox', { name: 'Sort services', exact: true }).click()
+  await page.getByRole('option', { name: 'Price: high to low', exact: true }).click()
+  await expect.poll(() => state.lists.at(-1)?.body.sortBy).toEqual([{ field: 'UnitPrice', isDescending: true }])
+  await expect(page).toHaveURL(/sort=priceDesc/)
+  expect(state.summaryCalls).toBe(1)
+  await action(page, 'My proposals for this service')
+  await expect.poll(() => state.lists.at(-1)?.body.serviceId).toBe(id)
+  await page.getByRole('searchbox', { name: 'Search services' }).fill('Revised')
+  await page.getByRole('searchbox', { name: 'Search services' }).press('Enter')
+  await expect.poll(() => state.lists.at(-1)?.body.keyword).toBe('Revised')
+  await page.reload()
+  await expect(page.getByRole('table')).toBeVisible()
+  expect(state.lists.at(-1).body).toMatchObject({ keyword: 'Revised', serviceId: id, page: 1 })
+})
+
+test('pending proposal prevents another edit and shows a readable reason', async ({ page }) => {
+  const state = await setup(page)
+  state.service.canProposeUpdate = false
+  state.service.hasPendingProposal = true
+  state.service.proposeBlockedCode = 'PendingProposal'
+  await page.goto('/merchant/services')
+  await page.getByRole('button', { name: 'Actions for Everyday service', exact: true }).click()
+  await expect(page.getByRole('menuitem', { name: 'Propose changes', exact: true })).toHaveAttribute('aria-disabled', 'true')
+  await page.getByRole('menuitem', { name: 'Service details', exact: true }).click()
+  await expect(page.getByRole('dialog')).toContainText('This service has a pending proposal')
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Propose changes', exact: true })).toBeDisabled()
+  expect(state.writes).toHaveLength(0)
+})
+
+test('editing can remove all current photos without uploading them again', async ({ page }) => {
+  const state = await setup(page, { images: true })
+  await page.goto('/merchant/services')
+  await action(page, 'Propose changes')
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('img', { name: 'Service photo 1' })).toHaveAttribute('src', /service.svg$/)
+  await dialog.getByRole('button', { name: 'Remove service photo', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Submit proposal', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes[0].body).toMatchObject({ imageUrls: [], expectedVersion: 'version-1' })
+  expect(state.service.imageUrls).toEqual(['/uploads/mock/service.svg'])
+})
+
+test('lost response retries frozen payload and key explicitly, conflict locks editing', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto('/merchant/services')
+  state.failWrite = true
+  let dialog = await newDraft(page)
+  await dialog.getByRole('button', { name: 'Submit proposal', exact: true }).click()
+  await expect(dialog.getByRole('button', { name: 'Retry the same proposal' })).toBeEnabled()
+  state.failWrite = false
+  await dialog.getByRole('button', { name: 'Retry the same proposal' }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes[1]).toEqual(state.writes[0])
+  expect(state.writes[0].body.clientRequestId).toMatch(/^[0-9a-f-]{36}$/)
+  await page.getByRole('tab', { name: 'Service catalog', exact: true }).click()
+  await action(page, 'Propose changes')
+  dialog = page.getByRole('dialog')
+  state.conflict = true
+  await dialog.getByRole('button', { name: 'Submit proposal', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toContainText('service has changed')
+  await expect(dialog.getByRole('button', { name: 'Submit proposal', exact: true })).toBeDisabled()
+  expect(state.writes).toHaveLength(3)
+})
+
+test('summary failure has its own retry without using page totals', async ({ page }) => {
+  const state = await setup(page)
+  state.summaryError = true
+  await page.goto('/merchant/services')
+  await expect(page.getByRole('table')).toBeVisible()
+  const summary = page.getByRole('region', { name: 'Shared catalog and my proposal statistics' })
+  await expect(summary.getByRole('alert')).toBeVisible()
+  await expect(summary.getByRole('heading')).toHaveCount(0)
+  state.summaryError = false
+  await summary.getByRole('button', { name: 'Try again' }).click()
+  await expect(summary.getByRole('heading', { name: 'Shared services', exact: true })).toBeVisible()
 })

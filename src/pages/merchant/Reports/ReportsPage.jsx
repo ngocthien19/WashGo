@@ -1,16 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChartNoAxesCombined, Download, RefreshCw, CalendarDays, Images, Trophy } from 'lucide-react'
+import { ChartNoAxesCombined, Download, RefreshCw, CalendarDays } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import Reveal from '~/components/motion/Reveal'
 import DateRangeFilter from '~/components/DateRangeFilter/DateRangeFilter'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantReportApi } from '~/apis/merchant/merchantReportApi'
-import { readReportQuery, vietnamToday, validReportRange, previousRange, downloadReport } from './reportModel'
+import { readReportQuery, vietnamToday, validReportRange, downloadReport } from './reportModel'
 import ReportStats from './components/ReportStats'
-import ReportCharts, { ReportPending } from './components/ReportCharts'
+import ReportFinance from './components/ReportFinance'
+import ReportTopServices from './components/ReportTopServices'
+import { notify } from '~/utils/notifications'
+import { getApiError } from '~/utils/apiError'
+import ReportCharts from './components/ReportCharts'
 
 export default function ReportsPage() {
   const { t } = useTranslation()
@@ -22,7 +26,22 @@ export default function ReportsPage() {
   const [invalid, setInvalid] = useState(false)
   const load = useCallback((signal) => merchantReportApi.load(range, signal), [range])
   const resource = useCatalogResource(load)
-  const previous = previousRange(range)
+  const [exporting, setExporting] = useState(false)
+  const exportReport = async () => {
+    if (exporting || !resource.data || resource.loading) {
+      return
+    }
+    setExporting(true)
+    try {
+      downloadReport(await merchantReportApi.export(resource.data), resource.data)
+      notify.success('merchant.reportSync.exported')
+    } catch (error) {
+      notify.error(getApiError(error))
+    } finally {
+      setExporting(false)
+    }
+  }
+  const shown = !resource.loading && !resource.error ? resource.data : null
   useEffect(() => {
     document.title = `${t('merchant.reports.title')} | WashGo`
   }, [t])
@@ -59,11 +78,11 @@ export default function ReportsPage() {
           </Button>
           <Button
             className="h-11 px-4 text-base"
-            disabled={!resource.data || resource.loading || !!resource.error}
-            onClick={() => downloadReport(resource.data, t)}
+            disabled={!resource.data || resource.loading || !!resource.error || exporting || resource.data.kpis.ordersWithoutCommissionSnapshot > 0}
+            onClick={exportReport}
           >
             <Download size={17} />
-            {t('merchant.reports.export')}
+            {t(exporting ? 'merchant.reportSync.exporting' : 'merchant.reports.export')}
           </Button>
         </div>
       </header>
@@ -96,9 +115,9 @@ export default function ReportsPage() {
         </div>
         {custom && (
           <DateRangeFilter
-            key={`${range.from}-${range.to}`}
-            from={range.from}
-            to={range.to}
+            key={`${shown?.current.fromLocalDate || '?'}-${shown?.current.toLocalDate || '?'}`}
+            from={shown?.current.fromLocalDate || '?'}
+            to={shown?.current.toLocalDate || '?'}
             label="merchant.reports.customRange"
             className="grid gap-3 border-t border-border pt-4 font-semibold [&_input]:font-semibold [&_label]:font-semibold [&_p]:font-semibold"
             onApply={({ from, to }) => {
@@ -127,10 +146,10 @@ export default function ReportsPage() {
               :
               {' '}
             </strong>
-            {range.from}
+            {shown?.current.fromLocalDate || '—'}
             {' '}
             →
-            {range.to}
+            {shown?.current.toLocalDate || '—'}
           </p>
           <p>
             <strong className="font-semibold">
@@ -138,16 +157,13 @@ export default function ReportsPage() {
               :
               {' '}
             </strong>
-            {previous.from}
+            {shown?.previous.fromLocalDate || '—'}
             {' '}
             →
-            {previous.to}
+            {shown?.previous.toLocalDate || '—'}
           </p>
         </div>
       </section>
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        {t('merchant.reports.scope')}
-      </p>
       {resource.loading || resource.error || !resource.data ? (
         <ResourceFeedback
           {...resource}
@@ -156,25 +172,11 @@ export default function ReportsPage() {
       ) : (
         <>
           <ReportStats data={resource.data} />
-          <ReportCharts buckets={resource.data.buckets} />
+          <ReportFinance data={resource.data} />
+          <ReportCharts report={resource.data} />
+          <ReportTopServices services={resource.data.topServices} />
         </>
       )}
-      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <h2 className="flex items-center gap-2 border-b border-border p-5 text-lg font-bold">
-          <Trophy
-            className="text-amber-500"
-            size={21}
-          />
-          {t('merchant.reports.bestServices')}
-        </h2>
-        <ReportPending
-          message="merchant.reports.servicesPending"
-          icon={Images}
-        />
-      </section>
-      <p className="text-sm text-muted-foreground">
-        {t('merchant.reports.exportHint')}
-      </p>
     </Reveal>
   )
 }

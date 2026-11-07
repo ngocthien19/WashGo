@@ -67,8 +67,8 @@ export default function LockerUsage({ locker }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {resource.data.list.map((row, index) => (
-                <TableRow key={`${row.orderId}-${row.usageType}-${row.boxNumber}-${index}`}>
+              {resource.data.list.map((row) => (
+                <TableRow key={row.usageId}>
                   <TableCell>
                     <Link
                       to={`${MERCHANT_ROUTES.ORDERS}/${row.orderId}`}

@@ -49,28 +49,35 @@ export default function LockerDialog({ id, initialTab = 'details', onClose }) {
           />
         ) : (
           <div className="mt-5 grid gap-5">
-            <div className="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-card p-5">
-              <div className="min-w-0">
-                <p className="mb-2 flex items-center gap-1 text-sm text-muted-foreground">
-                  <Hash size={15} />
-                  {locker.code}
-                </p>
-                <h2 className="break-words text-2xl font-bold">
-                  {locker.name}
-                </h2>
-                <p className="mt-2 flex items-start gap-2 text-base text-muted-foreground">
-                  <MapPin
-                    size={18}
-                    className="mt-1 shrink-0 text-primary"
-                  />
-                  <span>
-                    {formatLockerAddress(locker)}
-                  </span>
-                </p>
+            <div className="flex items-start gap-4 rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-card p-4 sm:p-5">
+              <ResourceGallery
+                urls={locker.imageUrls}
+                imageLabel="merchant.lockers.image"
+                compact
+              />
+              <div className="flex min-w-0 flex-1 flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 flex-1 basis-64">
+                  <p className="mb-2 flex items-center gap-1 text-sm text-muted-foreground">
+                    <Hash size={15} />
+                    {locker.code}
+                  </p>
+                  <h2 className="break-words text-2xl font-bold">
+                    {locker.name}
+                  </h2>
+                  <p className="mt-2 flex items-start gap-2 text-base text-muted-foreground">
+                    <MapPin
+                      size={18}
+                      className="mt-1 shrink-0 text-primary"
+                    />
+                    <span>
+                      {formatLockerAddress(locker)}
+                    </span>
+                  </p>
+                </div>
+                <span className={`rounded-full px-3 py-1.5 text-sm font-semibold ${lockerStateClass(locker.status)}`}>
+                  {t(`merchant.lockers.statuses.${locker.status}`, { defaultValue: '—' })}
+                </span>
               </div>
-              <span className={`rounded-full px-3 py-1.5 text-sm font-semibold ${lockerStateClass(locker.status)}`}>
-                {t(`merchant.lockers.statuses.${locker.status}`, { defaultValue: '—' })}
-              </span>
             </div>
             <Tabs.Root
               value={tab}
@@ -109,10 +116,6 @@ export default function LockerDialog({ id, initialTab = 'details', onClose }) {
                 value="details"
                 className="grid gap-5 outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <ResourceGallery
-                  urls={locker.imageUrls}
-                  imageLabel="merchant.lockers.image"
-                />
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[[1, DoorOpen], [2, Package], [3, Clock], [4, Wrench]].map(([status, Icon]) => (
                     <div
@@ -168,7 +171,7 @@ export default function LockerDialog({ id, initialTab = 'details', onClose }) {
                           variant={boxFilter === status ? 'default' : 'secondary'}
                           aria-pressed={boxFilter === status}
                           onClick={() => setBoxFilter(status)}
-                          className="h-9 px-3"
+                          className="h-11 px-4 text-base font-semibold"
                         >
                           {status ? t(`merchant.lockers.boxStates.${status}`) : t('common.all')}
                         </Button>

@@ -15,6 +15,7 @@ export default function ServiceInfo({ value }) {
       <ResourceGallery
         urls={value.imageUrls}
         imageLabel="merchant.services.image"
+        thumbnails
       />
       <dl className="grid gap-3 sm:grid-cols-2">
         {[

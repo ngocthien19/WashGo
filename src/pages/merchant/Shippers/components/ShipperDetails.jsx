@@ -1,3 +1,4 @@
+import ShipperHistory from './ShipperHistory'
 import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pencil, UserRound, Phone, Mail, CalendarDays, CreditCard, Bike, Hash, Star, PackageCheck, ClipboardList, ShieldCheck } from 'lucide-react'
@@ -49,6 +50,12 @@ export default function ShipperDetails({ id, onClose, onEdit, editImmediately = 
           />
         ) : (
           <div className="mt-5 grid gap-5">
+            {shipper.accountActive === false && (
+              <p className="rounded-xl bg-amber-500/10 p-3 text-sm font-semibold text-amber-800 dark:text-amber-200">
+                {t('merchant.shipperSync.locked')}
+                {shipper.lockReason ? ` · ${shipper.lockReason}` : ''}
+              </p>
+            )}
             <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-card p-5">
               <UserAvatar
                 avatar={shipper.avatar}
@@ -89,10 +96,12 @@ export default function ShipperDetails({ id, onClose, onEdit, editImmediately = 
                     className={`mb-2 ${iconColor}`}
                   />
                   <p className="text-2xl font-bold">
-                    <AnimatedNumber
-                      value={shipper[key]}
-                      decimals={key === 'rating' ? 1 : 0}
-                    />
+                    {key === 'rating' && shipper.hasRating === false ? '—' : (
+                      <AnimatedNumber
+                        value={shipper[key]}
+                        decimals={key === 'rating' ? 1 : 0}
+                      />
+                    )}
                   </p>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">
                     {t(`merchant.shippers.${key}`)}
@@ -148,7 +157,7 @@ export default function ShipperDetails({ id, onClose, onEdit, editImmediately = 
                     >
                       <img
                         src={getImageUrl(url)}
-                        alt={t('merchant.shippers.photo', { number: index + 1 })}
+                        alt={shipper.identityImageSides === 'FrontBack' ? t(`merchant.shippers.${index === 0 ? 'front' : 'back'}`) : t('merchant.shippers.photo', { number: index + 1 })}
                         className="h-32 w-44 rounded-xl border border-border bg-background p-2 object-contain transition-colors hover:border-primary"
                       />
                     </a>
@@ -156,6 +165,17 @@ export default function ShipperDetails({ id, onClose, onEdit, editImmediately = 
                 </div>
               </div>
             )}
+            {shipper.identityImageSides === 'Unspecified' && (
+              <p className="text-sm text-muted-foreground">
+                {t('merchant.shipperSync.legacyImages')}
+              </p>
+            )}
+            {Number.isInteger(shipper.credentialDelivery) && (
+              <p className="text-sm text-muted-foreground">
+                {t(`merchant.shipperSync.delivery.${shipper.credentialDelivery}`)}
+              </p>
+            )}
+            <ShipperHistory id={id} />
             <div className="flex justify-end gap-3 border-t border-border pt-4">
               <Button
                 variant="secondary"

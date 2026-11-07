@@ -1,26 +1,25 @@
 import { beforeEach, expect, it, vi } from 'vitest'
 import authorizedAxios from '~/utils/authorizedAxios'
 import { merchantDashboardApi } from './merchantDashboardApi'
-import { MERCHANT_DASHBOARD } from '~/utils/constants'
 vi.mock('~/utils/authorizedAxios', () => ({ default: { post: vi.fn(), get: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
-it('counts the complete server-scoped result rather than the visible page and never sends merchant identity', async () => {
-  authorizedAxios.post.mockImplementation(async (path, body) => ({ data: { succeeded: true, total: body.status ? body.status : 100, list: body.status ? [] : [{ id: 'a', orderCode: 'WG1', status: 4 }] } }))
-  const data = await merchantDashboardApi.orders()
-  expect(data.total).toBe(100)
-  expect(data.recent).toHaveLength(1)
+it('loads all dashboard totals, orders and settlements from one scoped endpoint', async () => {
+  const keys = ['pending', 'deposited', 'collected', 'washing', 'drying', 'ironing', 'folding', 'awaitingPayment', 'paid', 'readyToReturn', 'returned', 'completed', 'movedToStorage', 'cancelled']
+  const statusCounts = Object.fromEntries(keys.map((key, index) => [key, index === 11 ? 12 : 0]))
+  authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: { totalOrders: 12, statusCounts, latestOrders: [{ id: 'a', orderCode: 'WG1', status: 4 }], recentSettlements: [{ id: 's', payoutAmount: 100 }], generatedAt: '2026-11-07T10:00:00' } } })
+  const signal = new AbortController().signal
+  const data = await merchantDashboardApi.orders(signal)
+  expect(data.total).toBe(12)
   expect(data.counts[12]).toBe(12)
-  expect(authorizedAxios.post).toHaveBeenCalledTimes(MERCHANT_DASHBOARD.STATUSES.length + 1)
-  for (const [path, body] of authorizedAxios.post.mock.calls) {
-    expect(path).toBe('/wash-order/filter')
-    expect(body).not.toHaveProperty('merchantId')
-    expect(body).not.toHaveProperty('customerId')
-  }
+  expect(data.recent).toHaveLength(1)
+  expect(data.settlements).toHaveLength(1)
+  expect(authorizedAxios.get).toHaveBeenCalledExactlyOnceWith('/merchant/dashboard', { params: { period: 'all' }, signal })
+  expect(authorizedAxios.post).not.toHaveBeenCalled()
 })
-it('rejects malformed aggregation and does not turn an API failure into zero orders', async () => {
-  authorizedAxios.post.mockResolvedValue({ data: { succeeded: false, list: [], total: 0 } })
+it('rejects incomplete dashboard snapshots and surfaces service errors', async () => {
+  authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: { totalOrders: 0, statusCounts: {}, latestOrders: [], recentSettlements: [] } } })
   await expect(merchantDashboardApi.orders()).rejects.toThrow('merchant.invalidResponse')
-  authorizedAxios.post.mockRejectedValue(new Error('offline'))
+  authorizedAxios.get.mockRejectedValue(new Error('offline'))
   await expect(merchantDashboardApi.orders()).rejects.toThrow('offline')
 })
 it('reads settlements only through the Merchant-authorized endpoint', async () => {

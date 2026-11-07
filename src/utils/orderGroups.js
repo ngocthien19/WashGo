@@ -8,3 +8,12 @@ export const ORDER_GROUPS = [
   { key: 'cancelled', statuses: [99], color: '#f43f5e' }
 ]
 export const groupOrders = (counts) => ORDER_GROUPS.map((group) => ({ ...group, value: group.statuses.reduce((sum, status) => sum + (counts[status] || 0), 0) }))
+
+export const orderStatusCounts = (value) => Object.fromEntries([
+  'pending', 'deposited', 'collected', 'washing', 'drying', 'ironing', 'folding', 'awaitingPayment', 'paid', 'readyToReturn', 'returned', 'completed', 'movedToStorage', 'cancelled'
+].map((key, index) => {
+  if (!Number.isInteger(value?.[key]) || value[key] < 0) {
+    throw new Error('merchant.invalidResponse')
+  }
+  return [index === 13 ? 99 : index + 1, value[key]]
+}))

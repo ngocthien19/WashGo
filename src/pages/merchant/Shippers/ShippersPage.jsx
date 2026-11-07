@@ -5,7 +5,7 @@ import { Truck, Plus, RefreshCw, Eye, RotateCcw, Pencil, Trash2, LockKeyhole, Lo
 import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '~/components/ui/dropdown-menu'
 import { Checkbox } from '~/components/ui/checkbox'
-import { notify } from '~/utils/notifications'
+import ShipperAccountAction from './components/ShipperAccountAction'
 import ShipperAssignment from './components/ShipperAssignment'
 import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
@@ -33,12 +33,15 @@ export default function ShippersPage() {
   const { data, loading, error } = resource
   const [selected, setSelected] = useState(null)
   const [editor, setEditor] = useState(null)
+  const [accountAction, setAccountAction] = useState(null)
   const [assigning, setAssigning] = useState(false)
   const [selection, setSelection] = useState({ source: null, ids: [] })
   const ids = selection.source === data ? selection.ids : []
   const rows = data?.list || []
+  const selectedRows = rows.filter((row) => ids.includes(row.id))
+  const lockable = selectedRows.filter((row) => row.accountActive === true)
+  const unlockable = selectedRows.filter((row) => row.accountActive === false)
   const toggle = (id, checked) => setSelection({ source: data, ids: checked ? [...new Set([...ids, id])] : ids.filter((value) => value !== id) })
-  const unavailable = () => notify.info('merchant.shippers.unavailable')
   useEffect(() => {
     document.title = `${t('merchant.nav.shippers')} | WashGo`
   }, [t])
@@ -125,6 +128,7 @@ export default function ShippersPage() {
             />
           </div>
         ))}
+
       </section>
       {ids.length > 0 && (
         <div
@@ -136,19 +140,29 @@ export default function ShippersPage() {
             {t('merchant.shippers.selected', { count: ids.length })}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="secondary"
-              aria-disabled="true"
-              onClick={unavailable}
-              className="h-10 bg-amber-500/10 px-4 text-amber-700 dark:text-amber-300"
-            >
-              <LockKeyhole size={17} />
-              {t('merchant.shippers.bulkLock')}
-            </Button>
+            {lockable.length > 0 && (
+              <Button
+                variant="secondary"
+                onClick={() => setAccountAction({ action: 'lock', bulk: true, shippers: lockable })}
+                className="h-11 bg-amber-500/10 px-4 text-base font-semibold text-amber-700 dark:text-amber-300"
+              >
+                <LockKeyhole size={17} />
+                {t('merchant.shippers.bulkLock')}
+              </Button>
+            )}
+            {unlockable.length > 0 && (
+              <Button
+                variant="secondary"
+                onClick={() => setAccountAction({ action: 'unlock', bulk: true, shippers: unlockable })}
+                className="h-11 bg-emerald-500/10 px-4 text-base font-semibold text-emerald-700 dark:text-emerald-300"
+              >
+                <LockKeyholeOpen size={17} />
+                {t('merchant.shipperSync.bulkUnlock')}
+              </Button>
+            )}
             <Button
               variant="destructive"
-              aria-disabled="true"
-              onClick={unavailable}
+              onClick={() => setAccountAction({ action: 'delete', bulk: true, shippers: selectedRows })}
               className="h-10 px-4"
             >
               <Trash2 size={17} />
@@ -163,16 +177,13 @@ export default function ShippersPage() {
               <X size={18} />
             </Button>
           </div>
-          <p className="w-full text-sm text-muted-foreground">
-            {t('merchant.shippers.unavailable')}
-          </p>
         </div>
       )}
       <section
         className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
         aria-busy={loading}
       >
-        <div className="flex items-center justify-between gap-4 border-b border-border p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border p-5">
           <p className="text-base text-muted-foreground">
             {!loading && !error && data && (
               <strong className="mr-2 text-2xl text-foreground">
@@ -181,16 +192,26 @@ export default function ShippersPage() {
             )}
             {t('merchant.shippers.results')}
           </p>
-          {(query.keyword || query.status || query.isActive) && (
-            <Button
-              variant="ghost"
-              onClick={() => setParams({})}
-              className="h-11 text-base"
-            >
-              <RotateCcw size={17} />
-              {t('merchant.orders.clear')}
-            </Button>
-          )}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="w-56">
+              <SelectField
+                label={t('merchant.shipperSync.sortRating')}
+                value={query.ratingSort}
+                onValueChange={(ratingSort) => update({ ratingSort })}
+                options={['', 'desc', 'asc'].map((value) => ({ value, label: t(`merchant.shipperSync.sort.${value || 'default'}`) }))}
+              />
+            </div>
+            {(query.keyword || query.status || query.isActive || query.ratingSort) && (
+              <Button
+                variant="ghost"
+                onClick={() => setParams({})}
+                className="h-11 text-base"
+              >
+                <RotateCcw size={17} />
+                {t('merchant.orders.clear')}
+              </Button>
+            )}
+          </div>
         </div>
         {loading || error || !data?.list.length ? (
           <ResourceFeedback
@@ -202,7 +223,7 @@ export default function ShippersPage() {
           <>
             <Table
               aria-label={t('merchant.nav.shippers')}
-              className="min-w-[1050px] text-base"
+              className="min-w-[1250px] border-separate border-spacing-0 text-base"
             >
               <TableHeader>
                 <TableRow>
@@ -217,7 +238,7 @@ export default function ShippersPage() {
                   {['fullName', 'vehicleType', 'workState', 'status', 'activeTaskCount', 'totalDeliveries', 'rating', 'actions'].map((key) => (
                     <TableHead
                       key={key}
-                      className={key === 'actions' ? 'sticky right-0 z-10 border-l border-border bg-card' : ''}
+                      className={key === 'actions' ? 'sticky right-0 z-20 w-32 min-w-32 border-l border-border bg-[color-mix(in_srgb,var(--primary)_8%,var(--card))] text-center shadow-[-1px_0_0_var(--border)] dark:bg-[color-mix(in_srgb,var(--primary)_12%,var(--card))]' : key === 'rating' ? 'min-w-28' : ''}
                     >
                       {t(`merchant.shippers.${key}`)}
                     </TableHead>
@@ -248,6 +269,11 @@ export default function ShippersPage() {
                           <p className="font-bold">
                             {shipper.fullName}
                           </p>
+                          {shipper.accountActive === false && (
+                            <span className="mt-1 inline-block rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                              {t('merchant.shipperSync.locked')}
+                            </span>
+                          )}
                           <p className="mt-1 text-sm text-muted-foreground">
                             {shipper.phone || '—'}
                           </p>
@@ -281,14 +307,14 @@ export default function ShippersPage() {
                     <TableCell className="font-semibold">
                       {shipper.totalDeliveries ?? '—'}
                     </TableCell>
-                    <TableCell className="whitespace-nowrap font-semibold text-amber-600 dark:text-amber-300">
+                    <TableCell className="min-w-28 whitespace-nowrap font-semibold text-amber-600 dark:text-amber-300">
                       <Star
                         className="mr-1.5 inline-block size-4 fill-current align-[-2px]"
                         aria-hidden="true"
                       />
-                      {shipper.rating ?? '—'}
+                      {shipper.hasRating === false ? '—' : shipper.rating ?? '—'}
                     </TableCell>
-                    <TableCell className="sticky right-0 z-10 border-l border-border bg-card">
+                    <TableCell className="sticky right-0 z-10 w-32 min-w-32 border-l border-border bg-card text-center shadow-[-1px_0_0_var(--border)] dark:bg-card">
                       <DropdownMenu>
                         <DropdownMenuTrigger render={(
                           <Button
@@ -325,7 +351,8 @@ export default function ShippersPage() {
                           </DropdownMenuItem>
                           <div className="my-1 border-t border-border" />
                           <DropdownMenuItem
-                            disabled
+                            disabled={shipper.accountActive !== false}
+                            onClick={() => setAccountAction({ action: 'unlock', shippers: [shipper] })}
                             aria-label={t('merchant.shippers.unlockNamed', { name: shipper.fullName })}
                             className="text-emerald-700 data-disabled:opacity-100 dark:text-emerald-300"
                           >
@@ -333,7 +360,8 @@ export default function ShippersPage() {
                             {t('merchant.shippers.unlock')}
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            disabled
+                            disabled={shipper.accountActive !== true}
+                            onClick={() => setAccountAction({ action: 'lock', shippers: [shipper] })}
                             aria-label={t('merchant.shippers.lockNamed', { name: shipper.fullName })}
                             className="text-amber-700 data-disabled:opacity-100 dark:text-amber-300"
                           >
@@ -341,16 +369,13 @@ export default function ShippersPage() {
                             {t('merchant.shippers.lock')}
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            disabled
+                            onClick={() => setAccountAction({ action: 'delete', shippers: [shipper] })}
                             aria-label={t('merchant.shippers.deleteNamed', { name: shipper.fullName })}
                             className="text-destructive data-disabled:opacity-100"
                           >
                             <Trash2 size={17} />
                             {t('merchant.shippers.delete')}
                           </DropdownMenuItem>
-                          <p className="px-3 py-2 text-xs leading-relaxed text-muted-foreground">
-                            {t('merchant.shippers.unavailable')}
-                          </p>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -368,6 +393,14 @@ export default function ShippersPage() {
           </>
         )}
       </section>
+      {accountAction && (
+        <ShipperAccountAction
+          {...accountAction}
+          onClose={() => {
+            setAccountAction(null); setSelection({ source: null, ids: [] }); resource.retry(); summary.retry()
+          }}
+        />
+      )}
       {selected && (
         <ShipperDetails
           id={selected}

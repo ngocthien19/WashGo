@@ -7,17 +7,17 @@ import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantServiceApi } from '~/apis/merchant/merchantServiceApi'
 import { formatDateTime } from '~/utils/formats'
-import { approvalClass } from '../serviceModel'
+import { approvalClass, proposalBlockedMessage } from '../serviceModel'
 import ServiceInfo from './ServiceInfo'
 
 export default function ServiceDialog({ selected, onClose, onEdit }) {
   const { t } = useTranslation()
   const proposal = selected.kind === 'proposal'
-  const load = useCallback((signal) => proposal ? merchantServiceApi.proposal(selected.id, signal) : merchantServiceApi.service(selected.id, selected.code, signal), [proposal, selected.id, selected.code])
+  const load = useCallback((signal) => proposal ? merchantServiceApi.proposal(selected.id, signal) : merchantServiceApi.service(selected.id, signal), [proposal, selected.id])
   const resource = useCatalogResource(load)
   const value = resource.data
   useEffect(() => {
-    if (selected.kind === 'edit' && value) {
+    if (selected.kind === 'edit' && value?.canProposeUpdate === true && value.version) {
       onEdit(value)
     }
   }, [selected.kind, value, onEdit])
@@ -113,6 +113,11 @@ export default function ServiceDialog({ selected, onClose, onEdit }) {
                   {value.code}
                 </p>
                 <ServiceInfo value={value} />
+                {value.canProposeUpdate !== true && (
+                  <p className="rounded-xl bg-amber-500/10 p-3 text-sm font-medium text-amber-700 dark:text-amber-300">
+                    {t(proposalBlockedMessage(value))}
+                  </p>
+                )}
                 <span className={`w-fit rounded-full px-3 py-1.5 text-sm font-semibold ${value.isActive ? approvalClass(2) : 'bg-muted text-muted-foreground'}`}>
                   {t(`merchant.services.activity.${value.isActive}`)}
                 </span>
@@ -122,14 +127,15 @@ export default function ServiceDialog({ selected, onClose, onEdit }) {
               <Button
                 variant="secondary"
                 onClick={onClose}
-                className="h-11 px-5 text-base"
+                className="h-11 px-5 text-base font-semibold"
               >
                 {t('common.close')}
               </Button>
               {!proposal && (
                 <Button
+                  disabled={value.canProposeUpdate !== true || !value.version}
                   onClick={() => onEdit(value)}
-                  className="h-11 px-5 text-base"
+                  className="h-11 px-5 text-base font-semibold"
                 >
                   <Pencil size={17} />
                   {t('merchant.services.proposeEdit')}

@@ -9,14 +9,15 @@ const pageResult = (data, page, take, validate) => {
   return { ...data, currentPage: page, totalPages: Math.ceil(data.total / take) }
 }
 const validProposal = (item) => item?.id && [1, 2, 3].includes(item.status) && item.proposed && typeof item.proposed.name === 'string'
+const validService = (item) => item?.id && item.code && typeof item.name === 'string' && typeof item.isActive === 'boolean'
 export const merchantServiceApi = {
   catalog: async (filter, signal) => {
-    const body = pick(filter, ['keyword', 'serviceType', 'isActive', 'page', 'take'])
+    const body = pick(filter, ['keyword', 'serviceType', 'isActive', 'page', 'take', 'sortBy'])
     const { data } = await authorizedAxios.post('/merchant-service/filter', body, { signal })
-    return pageResult(data, filter.page, filter.take, (item) => item.id && item.code && typeof item.name === 'string' && typeof item.isActive === 'boolean')
+    return pageResult(data, filter.page, filter.take, validService)
   },
   proposals: async (filter, signal) => {
-    const { data } = await authorizedAxios.post('/service-proposal/filter', pick(filter, ['status', 'requestType', 'page', 'take']), { signal })
+    const { data } = await authorizedAxios.post('/service-proposal/filter', pick(filter, ['keyword', 'serviceId', 'status', 'requestType', 'page', 'take']), { signal })
     return pageResult(data, filter.page, filter.take, validProposal)
   },
   proposal: async (id, signal) => {
@@ -26,25 +27,29 @@ export const merchantServiceApi = {
     }
     return data.data
   },
-  service: async (id, code, signal) => {
-    const page = await merchantServiceApi.catalog({ keyword: code, page: 1, take: 100 }, signal)
-    const item = page.list.find((row) => row.id === id)
-    if (!item) {
+  service: async (id, signal) => {
+    const { data } = await authorizedAxios.get(`/merchant-service/${encodeURIComponent(id)}`, { signal })
+    if (data?.succeeded !== true || data.data?.id !== id || !validService(data.data)) {
       throw invalid()
     }
-    return item
+    return data.data
   },
   summary: async (signal) => {
-    const requests = [
-      ['total', 'catalog', {}], ['active', 'catalog', { isActive: true }], ['inactive', 'catalog', { isActive: false }],
-      ['pending', 'proposals', { status: 1 }], ['approved', 'proposals', { status: 2 }], ['rejected', 'proposals', { status: 3 }]
-    ]
-    return Object.fromEntries(await Promise.all(requests.map(async ([key, source, filter]) => [key, (await merchantServiceApi[source]({ page: 1, take: 1, ...filter }, signal)).total])))
+    const { data } = await authorizedAxios.get('/merchant-service/summary', { signal })
+    const value = data?.data
+    const keys = { total: 'totalServices', active: 'activeServices', inactive: 'inactiveServices', pending: 'pendingProposals', approved: 'approvedProposals', rejected: 'rejectedProposals' }
+    if (data?.succeeded !== true || Object.values(keys).some((key) => !Number.isSafeInteger(value?.[key]) || value[key] < 0) || value.totalServices !== value.activeServices + value.inactiveServices) {
+      throw invalid()
+    }
+    return Object.fromEntries(Object.entries(keys).map(([key, field]) => [key, value[field]]))
   },
   submit: async (serviceId, value) => {
+    if (!value.clientRequestId || serviceId && !value.expectedVersion) {
+      throw new Error('merchant.services.changed')
+    }
     const path = serviceId ? `/merchant-service/${encodeURIComponent(serviceId)}/proposals` : '/merchant-service/proposals'
-    const { data } = await authorizedAxios.post(path, pick(value, ['name', 'description', 'unitPrice', 'pricePerKg', 'pricePerItem', 'estimatedDurationHours', 'serviceType', 'unit', 'imageUrls', 'reason']))
-    if (data?.succeeded !== true || !validProposal(data.data) || data.data.status !== 1 || (serviceId && data.data.serviceId !== serviceId)) {
+    const { data } = await authorizedAxios.post(path, pick(value, ['name', 'description', 'unitPrice', 'pricePerKg', 'pricePerItem', 'estimatedDurationHours', 'serviceType', 'unit', 'imageUrls', 'reason', 'expectedVersion', 'clientRequestId']))
+    if (data?.succeeded !== true || !validProposal(data.data) || data.data.requestType !== (serviceId ? 2 : 1) || data.data.status !== 1 && data.meta?.replayed !== true || serviceId && data.data.serviceId !== serviceId) {
       const error = invalid()
       error.uncertain = true
       throw error

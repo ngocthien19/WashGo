@@ -4,7 +4,7 @@ import { ChartNoAxesCombined } from 'lucide-react'
 import { formatNumber } from '~/utils/formats'
 import { groupOrders } from '../dashboardModel'
 
-export default function OrderCharts({ counts }) {
+export default function OrderCharts({ counts, aside }) {
   const { t } = useTranslation()
   const [active, setActive] = useState(null)
   const groups = groupOrders(counts)
@@ -13,25 +13,25 @@ export default function OrderCharts({ counts }) {
   const selected = groups.find((group) => group.key === active)
   if (!total) {
     return (
-      <div className="grid min-h-64 place-items-center rounded-2xl border border-border bg-card p-8 text-center text-muted-foreground">
-        <div>
-          <ChartNoAxesCombined className="mx-auto mb-3 size-10 text-primary/50" />
-          <p>
-            {t('merchant.emptyChart')}
-          </p>
+      <div className="grid items-stretch gap-5 xl:grid-cols-[1.2fr_1fr]">
+        <div className="grid min-h-64 place-items-center rounded-2xl border border-border bg-card p-8 text-center text-muted-foreground">
+          <div>
+            <ChartNoAxesCombined className="mx-auto mb-3 size-10 text-primary/50" />
+            <p>
+              {t('merchant.emptyChart')}
+            </p>
+          </div>
         </div>
+        {aside}
       </div>
     )
   }
   return (
-    <div className="grid gap-5 xl:grid-cols-[1.2fr_1fr]">
-      <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+    <div className="grid items-stretch gap-5 xl:grid-cols-[1.2fr_1fr]">
+      <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
         <h2 className="border-b border-primary/15 pb-4 text-lg font-bold text-foreground">
           {t('merchant.statusDistribution')}
         </h2>
-        <p className="mt-3 text-sm text-muted-foreground">
-          {t('merchant.allTime')}
-        </p>
         <div
           className="mt-6 space-y-5"
           role="img"
@@ -57,6 +57,7 @@ export default function OrderCharts({ counts }) {
           ))}
         </div>
       </section>
+      {aside}
       <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
         <h2 className="border-b border-violet-500/15 pb-4 text-lg font-bold text-foreground">
           {t('merchant.orderComposition')}

@@ -16,7 +16,7 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantServiceApi } from '~/apis/merchant/merchantServiceApi'
 import { SERVICE_TYPES } from '~/utils/constants'
 import { formatCurrency, formatDateTime } from '~/utils/formats'
-import { readServiceQuery, serviceFilter, approvalClass } from './serviceModel'
+import { readServiceQuery, serviceFilter, approvalClass, serviceSortOptions } from './serviceModel'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 import ServiceSummary from './components/ServiceSummary'
 import ServiceDialog from './components/ServiceDialog'
@@ -39,7 +39,7 @@ export default function ServicesPage() {
   }, [t])
   const update = (patch) => {
     const next = { ...query, ...patch, page: patch.page || 1 }
-    setParams(Object.fromEntries(Object.entries(next).filter(([key, value]) => value !== '' && !(key === 'page' && value === 1) && !(key === 'tab' && value === 'catalog')).map(([key, value]) => [key, String(value)])))
+    setParams(Object.fromEntries(Object.entries(next).filter(([key, value]) => value !== '' && !(key === 'page' && value === 1) && !(key === 'tab' && value === 'catalog') && !(key === 'sort' && value === 'name')).map(([key, value]) => [key, String(value)])))
   }
   const closeEditor = () => {
     setEditor(null); resource.retry(); summary.retry()
@@ -84,7 +84,7 @@ export default function ServicesPage() {
       <ServiceSummary resource={summary} />
       <Tabs.Root
         value={query.tab}
-        onValueChange={(tab) => update({ tab, keyword: '', state: '', type: '' })}
+        onValueChange={(tab) => update({ tab, keyword: '', state: '', type: '', sort: 'name', serviceId: '' })}
         className="grid gap-6"
       >
         <Tabs.List
@@ -107,22 +107,20 @@ export default function ServicesPage() {
           value={query.tab}
           className="grid gap-6 outline-none"
         >
-          <section className={`grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold ${catalog ? 'sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]' : 'sm:grid-cols-2'}`}>
-            {catalog && (
-              <div className="grid gap-2">
-                <p className="text-sm text-muted-foreground">
-                  {t('merchant.services.search')}
-                </p>
-                <CatalogToolbar
-                  embedded
-                  keyword={query.keyword}
-                  label={t('merchant.services.search')}
-                  placeholder={t('merchant.services.searchHint')}
-                  onSearch={(keyword) => update({ keyword })}
-                  formClassName="h-11 rounded-xl p-1 pl-3 [&_input]:h-8 [&_button]:size-8"
-                />
-              </div>
-            )}
+          <section className="grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
+            <div className="grid gap-2">
+              <p className="text-sm text-muted-foreground">
+                {t('merchant.services.search')}
+              </p>
+              <CatalogToolbar
+                embedded
+                keyword={query.keyword}
+                label={t('merchant.services.search')}
+                placeholder={t('merchant.services.searchHint')}
+                onSearch={(keyword) => update({ keyword })}
+                formClassName="h-11 rounded-xl p-1 pl-3 [&_input]:h-8 [&_button]:size-8"
+              />
+            </div>
             <div className="grid gap-2">
               <label
                 htmlFor="service-type-filter"
@@ -167,16 +165,32 @@ export default function ServicesPage() {
                 )}
                 {t(catalog ? 'merchant.services.results' : 'merchant.services.proposalResults')}
               </p>
-              {(query.keyword || query.state || query.type) && (
-                <Button
-                  variant="ghost"
-                  onClick={() => update({ keyword: '', state: '', type: '' })}
-                  className="h-11 text-base"
-                >
-                  <RotateCcw size={17} />
-                  {t('merchant.orders.clear')}
-                </Button>
-              )}
+              <div className="flex flex-wrap items-center gap-3">
+                {catalog && (
+                  <SelectField
+                    label={t('merchant.serviceSync.sortLabel')}
+                    className="w-52 font-semibold"
+                    value={query.sort}
+                    onValueChange={(sort) => update({ sort })}
+                    options={Object.keys(serviceSortOptions).map((value) => ({ value, label: t(`merchant.serviceSync.sort.${value}`) }))}
+                  />
+                )}
+                {query.serviceId && (
+                  <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+                    {t('merchant.serviceSync.filteredService')}
+                  </span>
+                )}
+                {(query.keyword || query.state || query.type || query.serviceId || query.sort !== 'name') && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => update({ keyword: '', state: '', type: '', sort: 'name', serviceId: '' })}
+                    className="h-11 text-base"
+                  >
+                    <RotateCcw size={17} />
+                    {t('merchant.orders.clear')}
+                  </Button>
+                )}
+              </div>
             </div>
             {loading || error || !data?.list.length ? (
               <ResourceFeedback
@@ -216,9 +230,16 @@ export default function ServicesPage() {
                                   {service.name}
                                 </p>
                                 {catalog && (
-                                  <p className="mt-1 text-sm text-muted-foreground">
-                                    {row.code}
-                                  </p>
+                                  <div className="mt-1 grid gap-1">
+                                    <p className="text-sm text-muted-foreground">
+                                      {row.code}
+                                    </p>
+                                    {row.hasPendingProposal && (
+                                      <span className="w-fit rounded-full bg-amber-500/10 px-2 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                                        {t('merchant.serviceSync.pending')}
+                                      </span>
+                                    )}
+                                  </div>
                                 )}
                                 {!catalog && row.rejectionReason && (
                                   <p className="mt-1 line-clamp-2 max-w-64 text-sm text-red-700 dark:text-red-300">
@@ -268,7 +289,19 @@ export default function ServicesPage() {
                                   {t(catalog ? 'merchant.services.details' : 'merchant.services.proposalDetails')}
                                 </DropdownMenuItem>
                                 {catalog && (
-                                  <DropdownMenuItem onClick={() => setSelected({ kind: 'edit', id: row.id, code: row.code })}>
+                                  <DropdownMenuItem onClick={() => update({ tab: 'proposals', serviceId: row.id, keyword: '', state: '', type: '', sort: 'name' })}>
+                                    <FileText
+                                      size={17}
+                                      className="text-primary"
+                                    />
+                                    {t('merchant.serviceSync.myServiceProposals')}
+                                  </DropdownMenuItem>
+                                )}
+                                {catalog && (
+                                  <DropdownMenuItem
+                                    disabled={row.canProposeUpdate !== true || !row.version}
+                                    onClick={() => setSelected({ kind: 'edit', id: row.id, code: row.code })}
+                                  >
                                     <FilePenLine
                                       size={17}
                                       className="text-amber-600"
@@ -308,7 +341,7 @@ export default function ServicesPage() {
           service={editor.id ? editor : null}
           onClose={closeEditor}
           onSaved={() => {
-            closeEditor(); update({ tab: 'proposals', keyword: '', state: '', type: '' })
+            closeEditor(); update({ tab: 'proposals', keyword: '', state: '', type: '', sort: 'name', serviceId: '' })
           }}
         />
       )}

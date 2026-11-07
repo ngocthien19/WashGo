@@ -13,6 +13,7 @@ import { MERCHANT_ROUTES } from '~/utils/constants'
 import { formatCurrency, formatDateTime, formatNumber } from '~/utils/formats'
 import { processingSteps, canWeigh, assignmentTask, statusLabel } from './orderModel'
 import OrderActionDialog from './components/OrderActionDialog'
+import OrderCommission from '~/components/merchant/OrderCommission'
 
 function Panel({ icon: Icon, title, children }) {
   return (
@@ -224,7 +225,7 @@ export default function OrderDetailPage() {
                       {t(assignmentTask(order) === 1 ? 'merchant.orders.assignCollect' : 'merchant.orders.assignReturn')}
                     </Button>
                   )}
-                  {order.includedWeightKg > 0 && order.actualWeightKg == null && order.status === 3 && (
+                  {order.allowedActions?.statusOptions?.some((option) => option.reasonCode === 'WeightRequired') && (
                     <p className="rounded-xl bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
                       {t('merchant.orders.weightRequired')}
                     </p>
@@ -234,12 +235,46 @@ export default function OrderDetailPage() {
                       {t('merchant.orders.noActions')}
                     </p>
                   )}
+                  {!order.allowedActions && (
+                    <p className="text-sm text-amber-700 dark:text-amber-300">
+                      {t('merchant.orderSync.missingActions')}
+                    </p>
+                  )}
+                  {[...new Set([order.allowedActions?.updateWeightReasonCode, order.allowedActions?.assignShipperReasonCode].filter((code) => ['LegacyPricing', 'NoWeightService', 'NoMerchant', 'RoleNotAllowed'].includes(code)))].map((code) => (
+                    <p
+                      key={code}
+                      className="text-sm text-muted-foreground"
+                    >
+                      {t(`merchant.orderSync.reasons.${code}`)}
+                    </p>
+                  ))}
                 </div>
               </Panel>
               <Panel
                 icon={ReceiptText}
                 title={t('merchant.orders.payment')}
               >
+                <OrderCommission order={order} />
+                <dl className="my-5 space-y-3">
+                  {[['paymentDeadline', order.paymentDeadline], ['pickupDeadline', order.pickupDeadline]].filter(([, value]) => value).map(([key, value]) => (
+                    <div key={key}>
+                      <dt className="text-sm text-muted-foreground">
+                        {t(`merchant.orderSync.${key}`)}
+                      </dt>
+                      <dd className="mt-1 font-semibold">
+                        {formatDateTime(value)}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                {order.overdueTypes?.filter((type) => ['DepositExpired', 'PaymentOverdue', 'PickupOverdue'].includes(type)).map((type) => (
+                  <p
+                    key={type}
+                    className="mb-3 rounded-xl bg-amber-500/10 p-3 text-sm font-semibold text-amber-800 dark:text-amber-200"
+                  >
+                    {t(`merchant.orderSync.overdue.${type}`)}
+                  </p>
+                ))}
                 <p className={`mb-5 inline-block rounded-full px-3 py-2 text-sm font-semibold ${order.paymentStatus === 2 ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/10 text-amber-800 dark:text-amber-200'}`}>
                   {t(`customer.orders.paymentStatus.${order.paymentStatus}`, { defaultValue: '—' })}
                 </p>

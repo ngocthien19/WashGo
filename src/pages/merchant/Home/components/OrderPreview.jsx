@@ -9,6 +9,7 @@ import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantDashboardApi } from '~/apis/merchant/merchantDashboardApi'
 import { formatCurrency, formatDateTime } from '~/utils/formats'
+import OrderCommission from '~/components/merchant/OrderCommission'
 
 export default function OrderPreview({ id, onClose }) {
   const { t } = useTranslation()
@@ -94,6 +95,7 @@ export default function OrderPreview({ id, onClose }) {
                 {formatCurrency(order.finalAmount)}
               </strong>
             </div>
+            <OrderCommission order={order} />
           </div>
         )}
       </DialogContent>

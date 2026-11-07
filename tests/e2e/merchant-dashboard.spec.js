@@ -42,12 +42,35 @@ async function setup(page, options = {}) {
     if (path === '/merchant-profile/update-requests') {
       state.updates++
       const body = request.postDataJSON()
-      expect(Object.keys(body).sort()).toEqual(['address', 'businessName', 'imageUrls', 'openingHours', 'phone'])
+      expect(Object.keys(body).filter((key) => !['latitude', 'longitude'].includes(key)).sort()).toEqual(['address', 'businessName', 'city', 'imageUrls', 'openingHours', 'phone'])
       if (state.updateError) {
         return fail()
       }
       state.submitted = { id: orderId, status: 1, proposed: body }
       return data(state.submitted)
+    }
+    if (path === '/merchant/dashboard') {
+      state.dashboardQuery = Object.fromEntries(new URL(request.url()).searchParams)
+      if (state.ordersError || state.settlementError) {
+        return fail()
+      }
+      const keys = ['pending', 'deposited', 'collected', 'washing', 'drying', 'ironing', 'folding', 'awaitingPayment', 'paid', 'readyToReturn', 'returned', 'completed', 'movedToStorage', 'cancelled']
+      const statuses = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 99]
+      return data({ totalOrders: state.empty ? 0 : 28, statusCounts: Object.fromEntries(keys.map((key, i) => [key, state.empty ? 0 : counts[statuses[i]] || 0])), latestOrders: state.empty ? [] : [{ id: orderId, orderCode: 'WG-MERCHANT-123', merchantOrderCode: 'BT-001', status: 4, serviceNames: ['Everyday wash'], lockerName: 'Ben Thanh Locker', createdOn: 1794009600 }], recentSettlements: state.empty ? [] : [{ id: 'settlement-1', payoutAmount: 400000, status: 2, periodFrom: '2026-10-01T00:00:00Z', periodTo: '2026-10-31T23:59:59Z' }], generatedAt: '2026-11-07T19:00:00' })
+    }
+    if (path === '/merchant-reports/overview') {
+      state.revenueQuery = Object.fromEntries(new URL(request.url()).searchParams)
+      if (state.revenueError) {
+        return fail()
+      }
+      const kpi = (current) => ({ current, previous: 0, changePercent: null, isNew: true })
+      return data({ currency: 'VND', period: 'month', kpis: { grossLaundryRevenue: kpi(1000000), refunds: kpi(100000), netRevenue: kpi(900000), commission: kpi(180000), merchantPayout: kpi(720000), ordersWithoutCommissionSnapshot: state.missingCommission ? 1 : 0 }, series: [{ index: 0, label: '01/11', netRevenue: 900000, computed: true }, { index: 1, label: '30/11', netRevenue: 0, computed: false }] })
+    }
+    if (path === '/merchant/sla-alerts') {
+      if (state.alertsError) {
+        return fail()
+      }
+      return data({ totalAlerts: state.empty ? 0 : 1, collectionAlertsCount: state.empty ? 0 : 1, processingAlertsCount: 0, returnAlertsCount: 0, serverNow: '2026-11-07T19:00:00', priorityOrders: state.empty ? [] : [{ orderId, orderCode: 'WG-MERCHANT-123', status: 2, alertType: 1, actionType: 1, overdueMinutes: 35, deadline: '2026-11-07T18:25:00', lockerName: 'Ben Thanh Locker', boxNumber: '3' }] })
     }
     if (path === '/wash-order/filter') {
       const body = request.postDataJSON()
@@ -81,7 +104,7 @@ test('merchant dashboard uses scoped server totals, charts, order preview and st
   await page.setViewportSize({ width: 1440, height: 1000 })
   const state = await setup(page)
   await page.goto('/merchant')
-  await expect(page.getByRole('heading', { name: 'Store overview', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Store overview', exact: true })).toBeVisible({ timeout: 15000 })
   await expect(page.getByText('WashGo Ben Thanh', { exact: true })).toBeVisible()
   await expect(page.getByRole('img', { name: 'Orders by status group' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Processing: 3', exact: true })).toBeVisible()
@@ -103,12 +126,14 @@ test('merchant dashboard uses scoped server totals, charts, order preview and st
   await expect(profile.getByText('Total revenue', { exact: true })).toBeVisible()
   await expect(profile.getByText('Ho Chi Minh City', { exact: true })).toBeVisible()
   await expect(profile.getByText('Date joined', { exact: true }).locator('..')).toContainText('Not updated')
-  await expect(profile.getByText('Not updated', { exact: true })).toHaveCount(4)
+  await expect(profile.getByText('Not updated', { exact: true })).toHaveCount(3)
   const address = await profile.getByText('Business address', { exact: true }).boundingBox()
   const city = await profile.getByText('City / Province', { exact: true }).boundingBox()
   expect(city.x).toBeGreaterThan(address.x)
   expect(Math.abs(city.y - address.y)).toBeLessThan(2)
-  expect(state.calls.some((path) => path.includes('revenue-report'))).toBe(false)
+  expect(state.calls).toContain('/merchant/dashboard')
+  expect(state.calls).not.toContain('/wash-order/filter')
+  expect(state.calls).not.toContain('/finance/settlements/filter')
 })
 
 test('mobile header, theme, language and notifications remain within Merchant routes', async ({ page }) => {
@@ -254,7 +279,7 @@ test('uncertain submission locks resubmission until the profile is checked again
   await expect.poll(() => state.calls.filter((path) => path === '/merchant-profile').length).toBeGreaterThan(reads)
 })
 
-test('city is required and unsupported city changes never silently drop data or upload files', async ({ page }) => {
+test('city is required and address changes need a confirmed map location before submission', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/merchant/profile')
   await page.getByRole('button', { name: 'Edit store profile', exact: true }).click()
@@ -266,14 +291,13 @@ test('city is required and unsupported city changes never silently drop data or 
   expect(state.updates).toBe(0)
   await city.fill('Another city')
   await dialog.getByRole('button', { name: 'Submit for approval', exact: true }).click()
-  await expect(dialog.getByRole('alert')).toContainText('City / Province changes cannot be submitted for approval yet.')
-  await expect(city).toHaveValue('Another city')
+  await expect(dialog.getByRole('alert')).toContainText('Choose the location on the map')
   expect(state.updates).toBe(0)
   expect(state.calls).not.toContain('/files/images')
 })
 
 test('merchant map previews and cancels without saving, then applies address and city to the edit draft', async ({ page }) => {
-  const state = await setup(page, { profile: { city: 'Thành phố Hồ Chí Minh' } })
+  const state = await setup(page, { profile: { city: 'Old city' } })
   await page.route('https://tile.openstreetmap.de/**', (route) => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><path fill="#e6edf4" d="M0 0h256v256H0z"/></svg>' }))
   const requests = []
   await page.route('**/reverse?**', (route) => {
@@ -302,5 +326,87 @@ test('merchant map previews and cancels without saving, then applies address and
   expect(requests[0].headers().authorization).toBeUndefined()
   await edit.getByRole('button', { name: 'Submit for approval', exact: true }).click()
   await expect(edit).toHaveCount(0)
+  expect(state.submitted.proposed.city).toBeDefined()
+  expect(state.submitted.proposed.city).toBe('Thành phố Hồ Chí Minh')
+  expect(Number.isFinite(state.submitted.proposed.latitude)).toBe(true)
+  expect(Number.isFinite(state.submitted.proposed.longitude)).toBe(true)
   expect(state.submitted.proposed.address).toBe('123 Lê Lợi, Phường Bến Thành')
+})
+
+test('dashboard shows transaction revenue and server SLA actions, isolates failures and refreshes', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto('/merchant')
+  const revenue = page.getByRole('heading', { name: 'Revenue for this period', exact: true }).locator('..')
+  await expect(revenue.getByText('720,000', { exact: true }).first()).toBeVisible()
+  await expect(revenue.getByRole('img', { name: 'Daily net revenue' })).toBeVisible()
+  await revenue.getByText('View chart data', { exact: true }).click()
+  await expect(revenue.getByRole('table')).toContainText('900,000')
+  await expect(revenue.getByRole('table')).not.toContainText('30/11')
+  await expect(page.getByText('35 minutes overdue', { exact: false })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Assign collection', exact: true })).toHaveAttribute('href', `/merchant/orders/${orderId}`)
+  state.missingCommission = true
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click()
+  await expect(revenue).toContainText('no confirmed historical commission rate')
+  const payout = revenue.getByText('Payout after commission', { exact: true }).locator('..')
+  await expect(payout).toContainText('—')
+  state.revenueError = true
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click()
+  await expect(revenue.getByRole('alert')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Assign collection', exact: true })).toBeVisible()
+  state.revenueError = false
+  await revenue.getByRole('button', { name: 'Try again', exact: true }).click()
+  await expect(revenue.getByRole('alert')).toHaveCount(0)
+})
+
+test('profile distinguishes no public ratings and shows the backend membership date', async ({ page }) => {
+  await setup(page, { profile: { rating: 5, publicRatingCount: 0, joinedAt: '2024-03-15T00:00:00Z' } })
+  await page.goto('/merchant/profile')
+  await expect(page.getByText('No public reviews yet', { exact: true })).toBeVisible()
+  const rating = page.getByRole('heading', { name: 'Store rating', exact: true }).locator('..')
+  await expect(rating).toContainText('—')
+  await expect(rating).not.toContainText('/ 5')
+  await expect(page.getByText('Date joined', { exact: true }).locator('..')).toContainText('Mar 15, 2024')
+})
+
+
+test('dashboard period filters keep matching server ranges and survive reload', async ({ page }) => {
+  const state = await setup(page)
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.goto('/merchant')
+  await page.getByRole('button', { name: 'Day', exact: true }).click()
+  await expect(page).toHaveURL(/period=day/)
+  await expect.poll(() => state.revenueQuery?.from === state.revenueQuery?.to).toBe(true)
+  await expect.poll(() => Number(state.dashboardQuery?.toDate) - Number(state.dashboardQuery?.fromDate)).toBe(86399)
+  await page.getByRole('button', { name: 'Week', exact: true }).click()
+  await expect.poll(() => Number(state.dashboardQuery?.toDate) - Number(state.dashboardQuery?.fromDate)).toBe(7 * 86400 - 1)
+  await page.getByRole('button', { name: 'Custom', exact: true }).click()
+  const trigger = await page.getByRole('button', { name: 'Custom', exact: true }).boundingBox()
+  const popup = await page.getByRole('dialog', { name: 'Choose date range', exact: true }).boundingBox()
+  expect(popup.y).toBeGreaterThanOrEqual(trigger.y + trigger.height)
+  await page.getByLabel('From date', { exact: true }).fill('2026-10-01')
+  await page.getByLabel('To date', { exact: true }).fill('2026-10-15')
+  await page.getByRole('button', { name: 'Apply', exact: true }).click()
+  await expect(page).toHaveURL(/period=custom/)
+  await expect.poll(() => state.revenueQuery?.from).toBe('2026-10-01')
+  await expect.poll(() => state.revenueQuery?.to).toBe('2026-10-15')
+  expect(Number(state.dashboardQuery.fromDate)).toBe(Date.parse('2026-10-01T00:00:00+07:00') / 1000)
+  await page.reload()
+  await expect(page.getByRole('dialog', { name: 'Choose date range', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Custom', exact: true }).click()
+  await expect(page.getByLabel('From date', { exact: true })).toHaveValue('2026-10-01')
+  await page.keyboard.press('Escape')
+  await expect(page.getByText('35 minutes overdue', { exact: false })).toBeVisible()
+  const chart = await page.getByRole('heading', { name: 'Orders by status group', exact: true }).locator('..').boundingBox()
+  const alerts = await page.getByRole('heading', { name: /Orders needing attention/ }).locator('..').boundingBox()
+  expect(alerts.x).toBeGreaterThan(chart.x)
+  expect(Math.abs(alerts.y - chart.y)).toBeLessThan(2)
+  expect(Math.abs(alerts.height - chart.height)).toBeLessThan(2)
+  state.empty = true
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click()
+  const empty = page.getByText('No orders are available for this chart yet.', { exact: true })
+  await expect(empty).toBeVisible()
+  const emptyChart = await empty.locator('..').locator('..').boundingBox()
+  const emptyAlerts = await page.getByRole('heading', { name: /Orders needing attention/ }).locator('..').boundingBox()
+  expect(Math.abs(emptyChart.height - emptyAlerts.height)).toBeLessThan(2)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })

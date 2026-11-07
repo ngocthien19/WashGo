@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Shirt, CircleCheck, Power, Clock, BadgeCheck, CircleX } from 'lucide-react'
-import AnimatedNumber from '~/components/motion/AnimatedNumber'
+import StatCard from '~/components/merchant/StatCard'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 
 const cards = [['total', Shirt, 'primary'], ['active', CircleCheck, 'emerald'], ['inactive', Power, 'slate'], ['pending', Clock, 'amber'], ['approved', BadgeCheck, 'cyan'], ['rejected', CircleX, 'red']]
@@ -24,20 +24,14 @@ export default function ServiceSummary({ resource }) {
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
           {cards.map(([key, Icon, color]) => (
-            <div
+            <StatCard
               key={key}
-              className={`rounded-2xl border border-border border-l-4 bg-card p-4 shadow-sm ${colors[color]}`}
-            >
-              <span className="mb-3 grid size-10 place-items-center rounded-xl bg-muted/40">
-                <Icon size={21} />
-              </span>
-              <h2 className="text-sm text-muted-foreground">
-                {t(`merchant.services.summary.${key}`)}
-              </h2>
-              <p className="mt-2 text-3xl font-bold">
-                <AnimatedNumber value={resource.data[key]} />
-              </p>
-            </div>
+              icon={Icon}
+              label={t(`merchant.services.summary.${key}`)}
+              value={resource.data[key]}
+              className={colors[color]}
+              iconClassName="bg-muted/40"
+            />
           ))}
         </div>
       )}

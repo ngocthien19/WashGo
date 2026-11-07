@@ -1,49 +1,58 @@
-import { merchantOrderApi } from './merchantOrderApi'
-import { ORDER_STATUSES } from '~/utils/constants'
-import { dateRangeFilter } from '~/utils/dateRange'
-import { previousRange, reportBuckets, REPORT_LIMITS, validReportRange } from '~/pages/merchant/Reports/reportModel'
+import authorizedAxios from '~/utils/authorizedAxios'
+import { reportParams, validReportRange } from '~/pages/merchant/Reports/reportModel'
+import { validDay } from '~/utils/dateRange'
 
-// Counts are scoped by the backend JWT. No order rows, PINs or customer data leave this adapter.
+const invalid = () => new Error('merchant.invalidResponse')
+const count = (value) => Number.isSafeInteger(value) && value >= 0
+const instant = (value) => typeof value === 'string' && Number.isFinite(Date.parse(value))
+const metric = (value) => value && Number.isFinite(value.current) && Number.isFinite(value.previous) && (value.changePercent === null || Number.isFinite(value.changePercent)) && typeof value.isNew === 'boolean'
+const validRange = (value) => value && instant(value.from) && instant(value.toExclusive) && Date.parse(value.from) < Date.parse(value.toExclusive) && validDay(value.fromLocalDate) && validDay(value.toLocalDate)
+const validRate = (rate) => {
+  if (!rate || !['numerator', 'denominator', 'previousNumerator', 'previousDenominator'].every((key) => count(rate[key]))) {
+    return false
+  }
+  return rate.numerator <= rate.denominator && rate.previousNumerator <= rate.previousDenominator &&
+    ['rate', 'previousRate'].every((key) => rate[key] === null || Number.isFinite(rate[key]) && rate[key] >= 0 && rate[key] <= 100) &&
+    (rate.denominator === 0) === (rate.rate === null) && (rate.previousDenominator === 0) === (rate.previousRate === null) &&
+    (rate.changePoints === null || Number.isFinite(rate.changePoints))
+}
+const validSeries = (items) => Array.isArray(items) && items.length <= 400 && new Set(items.map((item) => item.index)).size === items.length && items.every((item) =>
+  count(item.index) && typeof item.label === 'string' && typeof item.computed === 'boolean' &&
+  ['start', 'end', 'previousStart', 'previousEnd'].every((key) => instant(item[key])) && Date.parse(item.start) < Date.parse(item.end) &&
+  Number.isFinite(item.netRevenue) && Number.isFinite(item.previousNetRevenue) && count(item.ordersCreated) && count(item.ordersCompleted))
+const validServices = (items) => Array.isArray(items) && items.length <= 20 && items.every((item) =>
+  item.serviceId && typeof item.name === 'string' && count(item.rank) && count(item.orderCount) && count(item.previousOrderCount) &&
+  Number.isFinite(item.listValue) && (item.orderCountChangePercent === null || Number.isFinite(item.orderCountChangePercent)) && Array.isArray(item.imageUrls))
+const validKpis = (kpis) => kpis && ['grossLaundryRevenue', 'refunds', 'netRevenue', 'commission', 'merchantPayout', 'feesCollected', 'ordersCreated', 'ordersCompleted', 'ordersCancelled'].every((key) => metric(kpis[key])) &&
+  ['ordersCreated', 'ordersCompleted', 'ordersCancelled'].every((key) => count(kpis[key].current) && count(kpis[key].previous)) && count(kpis.ordersWithoutCommissionSnapshot) && validRate(kpis.onTimeRate)
+const validReport = (report) => report?.currency === 'VND' && report.timezone === 'Asia/Ho_Chi_Minh' && ['hour', 'day', 'week', 'month'].includes(report.granularity) &&
+  validRange(report.current) && validRange(report.previous) && instant(report.asOf) && instant(report.generatedAt) &&
+  Date.parse(report.asOf) >= Date.parse(report.current.from) && Date.parse(report.asOf) <= Date.parse(report.current.toExclusive) &&
+  typeof report.incomplete === 'boolean' && validKpis(report.kpis) && validSeries(report.series) && validServices(report.topServices)
+
 export const merchantReportApi = {
   load: async (range, signal) => {
     if (!validReportRange(range.from, range.to)) {
       throw new Error('merchant.reports.invalidRange')
     }
-    const previous = previousRange(range)
-    const buckets = reportBuckets(range)
-    const jobs = new Map()
-    const count = (filter) => {
-      const key = JSON.stringify(filter)
-      if (!jobs.has(key)) {
-        jobs.set(key, { filter })
-      }
-      return key
+    const { data } = await authorizedAxios.get('/merchant-reports/overview', { params: reportParams(range), signal })
+    const report = data?.data
+    if (data?.succeeded !== true || !validReport(report)) {
+      throw invalid()
     }
-    const summary = (period) => ({ total: count(dateRangeFilter(period)), completed: count({ ...dateRangeFilter(period), status: ORDER_STATUSES.COMPLETED }) })
-    const currentKeys = summary(range), previousKeys = summary(previous)
-    const bucketKeys = buckets.map((bucket) => ({ ...bucket, current: count(bucket.current), previous: count(bucket.previous) }))
-    const queue = [...jobs.values()]
-    let cursor = 0
-    let failed = false
-    const worker = async () => {
-      while (cursor < queue.length && !failed && !signal?.aborted) {
-        const job = queue[cursor++]
-        try {
-          job.total = (await merchantOrderApi.list({ ...job.filter, page: 1, take: 1 }, signal)).total
-        } catch (error) {
-          failed = true; throw error
-        }
-      }
+    if (range.mode === 'custom' && (report.current.fromLocalDate !== range.from || report.current.toLocalDate !== range.to)) {
+      throw invalid()
     }
-    const results = await Promise.allSettled(Array.from({ length: Math.min(REPORT_LIMITS.CONCURRENCY, queue.length) }, worker))
-    const rejection = results.find((result) => result.status === 'rejected')
-    if (rejection) {
-      throw rejection.reason
+    return report
+  },
+  export: async (report) => {
+    if (report.kpis.ordersWithoutCommissionSnapshot > 0) {
+      throw new Error('merchant.reportSync.exportBlocked')
     }
-    if (signal?.aborted) {
-      throw new DOMException('Aborted', 'AbortError')
+    const { data, headers } = await authorizedAxios.get('/merchant-reports/export', { params: { period: 'custom', from: report.current.fromLocalDate, to: report.current.toLocalDate, granularity: report.granularity, top: 5 }, responseType: 'blob' })
+    if (!(data instanceof Blob) || !data.size || !String(headers?.['content-type'] || data.type).toLowerCase().startsWith('text/csv')) {
+      throw invalid()
     }
-    const read = (keys) => Object.fromEntries(Object.entries(keys).map(([key, id]) => [key, jobs.get(id).total]))
-    return { range: { ...range }, previousRange: previous, current: read(currentKeys), previous: read(previousKeys), buckets: bucketKeys.map((bucket) => ({ key: bucket.key, label: bucket.label, current: jobs.get(bucket.current).total, previous: jobs.get(bucket.previous).total })) }
+    return data
   }
 }
