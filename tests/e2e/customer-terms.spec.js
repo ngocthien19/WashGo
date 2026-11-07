@@ -11,8 +11,19 @@ async function setup(page, dark = false) {
       }))
     }
   }, { user, dark })
+  const state = { accepted: false, version: 'v1', writes: [] }
   await page.route('**/api/**', (route) => {
     const path = new URL(route.request().url()).pathname.replace(/^\/api/, '')
+    if (path === '/policy/customer' || path === '/policy/customer/acknowledge') {
+      if (route.request().method() === 'POST') {
+        state.writes.push(route.request().postDataJSON())
+        state.accepted = true
+      }
+      return route.fulfill({ json: { succeeded: true, data: { terms: { version: state.version, title: 'Terms of service', content: 'Server policy content', effectiveFrom: '2026-11-01T00:00:00Z' }, rules: { depositWindowMinutes: 45 }, accepted: state.accepted, requiresAcceptance: !state.accepted, acceptedVersion: state.accepted ? state.version : null } } })
+    }
+    if (path === '/notification/filter') {
+      return route.fulfill({ json: { succeeded: true, data: { items: [], total: 0, page: 1, take: 12, unreadTotal: 0, counts: [] } } })
+    }
     if (path === '/auth/me') {
       return route.fulfill({ json: { succeeded: true, data: user } })
     }
@@ -31,45 +42,44 @@ async function setup(page, dark = false) {
     return route.fulfill({ status: 404, json: { succeeded: false } })
   })
   await page.goto('/customer/notifications')
+  return state
 }
 
-test('first session shows terms, a later visit skips them and footer reopens the same dialog', async ({ page }) => {
-  await setup(page)
+test('server acceptance survives reload; closing does not accept and a new version opens again', async ({ page }) => {
+  const state = await setup(page)
   const dialog = page.getByRole('dialog', { name: 'Terms of service', exact: true })
   await expect(dialog).toBeVisible()
-  await expect(dialog.getByRole('heading', { name: /Cancellation eligibility/ })).toBeVisible()
-  await expect(dialog.getByText('No cancellation fee.', { exact: true })).toBeVisible()
-  await dialog.getByRole('button', { name: 'I understand', exact: true }).click()
+  await expect(dialog.getByText('Server policy content')).toBeVisible()
+  await page.keyboard.press('Escape')
+  expect(state.writes).toEqual([])
+  await page.reload()
+  await expect(dialog).toBeVisible()
+  const agree = dialog.getByRole('button', { name: 'I agree to the terms' })
+  await expect(agree).toBeDisabled()
+  await dialog.getByRole('checkbox').check()
+  await expect(agree).toBeEnabled()
+  await agree.click()
   await expect(dialog).toHaveCount(0)
+  expect(state.writes).toEqual([{ version: 'v1' }])
   await page.reload()
   await expect(page.getByRole('heading', { name: 'All notifications', exact: true }).first()).toBeVisible()
   await expect(dialog).toHaveCount(0)
-  await page.getByRole('button', { name: 'Open account menu', exact: true }).click()
-  await page.getByRole('menuitem', { name: 'Sign out', exact: true }).click()
-  await expect(page).toHaveURL('/login')
-  await page.getByLabel('Email', { exact: true }).fill('terms@example.test')
-  await page.getByLabel('Password', { exact: true }).fill('TestPassword123')
-  await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click()
-  await expect(page).toHaveURL('/customer')
-  await expect(page.getByRole('button', { name: 'Open account menu', exact: true })).toBeVisible()
-  await expect(dialog).toHaveCount(0)
   await page.locator('footer').getByRole('button', { name: 'Terms of service', exact: true }).click()
   await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'I agree to the terms' })).toHaveCount(0)
   await page.keyboard.press('Escape')
-  await expect(dialog).toHaveCount(0)
-  const seen = await page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem('persist:root')).preferences).serviceTermsSeen)
-  expect(seen).toEqual({ 'terms-customer': true })
+  state.version = 'v2'; state.accepted = false
+  await page.reload()
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByText('Version v2')).toHaveCount(0)
+  await expect(dialog.getByRole('checkbox')).not.toBeChecked()
+  await expect(dialog.getByRole('button', { name: 'I agree to the terms' })).toBeDisabled()
 })
-
-test('mobile dark terms keep controls reachable and footer can reopen', async ({ page }) => {
+test('mobile dark terms show server policy without horizontal overflow', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
   await setup(page, true)
   const dialog = page.getByRole('dialog', { name: 'Terms of service', exact: true })
   await expect(dialog).toBeVisible()
-  await dialog.getByRole('heading', { name: /Incident reports/ }).scrollIntoViewIfNeeded()
-  await expect(dialog.getByRole('button', { name: 'I understand' })).toBeInViewport()
+  await expect(dialog.getByRole('button', { name: 'I agree to the terms' })).toBeInViewport()
   expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
-  await dialog.getByRole('button', { name: 'I understand' }).click()
-  await page.locator('footer').getByRole('button', { name: 'Terms', exact: true }).click()
-  await expect(dialog).toBeVisible()
 })
