@@ -27,6 +27,10 @@ async function setup(page, options = {}) {
   state.incidentCalls = []
   state.incidentFailure = 0
   state.incidentListFailure = false
+  state.eligibility = null
+  state.messages = []
+  state.videoUploadCalls = 0
+  state.feeCalls = []
   if (!options.guest) {
     await page.addInitScript(() => localStorage.setItem('persist:root', JSON.stringify({
       auth: JSON.stringify({ user: { id: 'customer-test', fullName: 'Alex Nguyen', role: 'Customer' }, accessToken: 'test-access', refreshToken: 'test-refresh', expiresAt: '2099-01-01T00:00:00Z' }),
@@ -39,11 +43,51 @@ async function setup(page, options = {}) {
     if (path === '/auth/me') {
       return route.fulfill({ json: envelope({ id: 'customer-test', fullName: 'Alex Nguyen', role: 'Customer' }) })
     }
-    if (path === '/incident/mine') {
-      const params = new URL(request.url()).searchParams
-      expect([...params.keys()].sort()).toEqual(['page', 'take'])
-      const pageNumber = Number(params.get('page'))
-      const take = Number(params.get('take'))
+    if (path === '/policy/customer') {
+      return route.fulfill({ json: envelope({ terms: { version: 'v1', content: 'Server terms' }, rules: {}, accepted: true, requiresAcceptance: false }) })
+    }
+    if (['/payment/cancellation-fee/create-url', '/payment/overdue-fee/create-url'].includes(path)) {
+      state.feeCalls.push({ path, body: request.postDataJSON() })
+      return route.fulfill({ json: envelope({ orderId: id, paymentMethod: request.postDataJSON().paymentMethod, amount: 20000, paymentUrl: 'https://gateway.example.test/fees' }) })
+    }
+    if (path === '/files/videos') {
+      state.videoUploadCalls += 1
+      return route.fulfill({ json: envelope({ url: '/uploads/customer-test/evidence.mp4' }) })
+    }
+    if (path === `/incident/eligibility/${id}`) {
+      const event = state.order.timeline?.find((item) => item.status === 12)
+      const completedAt = event ? new Date(event.timestamp * 1000) : new Date()
+      const expired = Date.now() > completedAt.getTime() + 3 * 86400000
+      const pending = state.incidents.find((item) => item.status === 1)
+      return route.fulfill({ json: envelope(state.eligibility || { orderId: id, canReport: state.order.status === 12 && !expired && !pending, reason: expired ? 'customer.incidents.expired' : 'customer.incidents.notAllowed', reportDeadline: new Date(completedAt.getTime() + 3 * 86400000).toISOString(), pendingIncidentId: pending?.id }) })
+    }
+    if (path.startsWith('/incident/mine/request/')) {
+      const found = state.incidents.find((item) => path.endsWith(item.clientRequestId))
+      return route.fulfill({ status: found ? 200 : 404, json: envelope(found) })
+    }
+    if (path.endsWith('/messages') && path.startsWith('/incident/')) {
+      const incidentId = path.split('/')[2]
+      if (request.method() === 'POST') {
+        const item = { ...request.postDataJSON(), id: 'message-1', incidentId, isMine: true, senderName: 'Alex', senderRole: 'Customer', createdAt: new Date().toISOString() }
+        state.messages.push(item)
+        return route.fulfill({ json: envelope(item) })
+      }
+      return route.fulfill({ json: envelope(state.messages) })
+    }
+    if (path === `/wash-order/${id}/receipt`) {
+      if (state.order.paymentStatus !== 2) {
+        return route.fulfill({ status: 400, json: { succeeded: false, message: 'customer.orders.receipt.unavailable' } })
+      }
+      return route.fulfill({ json: envelope({ receiptNumber: 'WG-RC-0001', issuedAt: '2026-11-06T10:00:00Z', orderId: id, orderCode: state.order.orderCode, seller: { name: 'WashGo Store' }, buyer: { name: 'Alex Nguyen' }, lines: state.order.items.map((item) => ({ description: item.serviceName, quantity: item.quantity, amount: item.subTotal })), fees: [], payments: [{ method: 2, purpose: 1, amount: 80000, paidAt: '2026-11-06T10:00:00Z' }], servicesAmount: 80000, discountAmount: 0, weightSurchargeAmount: 0, totalPaid: 80000, note: 'This is not an electronic or tax invoice.' }) })
+    }
+    if (path === `/wash-order/${id}/receipt/pdf`) {
+      return route.fulfill({ contentType: 'application/pdf', body: '%PDF-1.4 test fixture' })
+    }
+    if (path === '/incident/mine/filter') {
+      const body = request.postDataJSON()
+      expect(body).not.toHaveProperty('customerId')
+      const pageNumber = body.page
+      const take = body.take
       return route.fulfill({ status: state.incidentListFailure ? 500 : 200, json: state.incidentListFailure ? { succeeded: false, message: 'customer.incidents.invalidResponse' } : {
         succeeded: true, list: state.incidents.slice((pageNumber - 1) * take, pageNumber * take), total: state.incidents.length,
         currentPage: pageNumber, pageSize: take, totalPages: Math.ceil(state.incidents.length / take)
@@ -52,13 +96,23 @@ async function setup(page, options = {}) {
     if (path === '/incident' && request.method() === 'POST') {
       const body = request.postDataJSON()
       state.incidentCalls.push(body)
-      const incident = { ...body, id: `22222222-2222-4222-8222-${String(state.incidentCalls.length).padStart(12, '0')}`, orderCode: state.order.orderCode, createdOn: Math.floor(Date.now() / 1000), status: 1, compensationStatus: 0, compensationAmount: 0 }
+      const incident = { ...body, id: `22222222-2222-4222-8222-${String(state.incidentCalls.length).padStart(12, '0')}`, orderCode: state.order.orderCode, createdOn: Math.floor(Date.now() / 1000), status: 1, canEdit: true, compensationStatus: 0, compensationAmount: 0 }
       if (!state.incidentFailure || state.incidentFailure >= 500) {
         state.incidents.unshift(incident)
       }
       return route.fulfill({ status: state.incidentFailure || 201, json: state.incidentFailure ? { succeeded: false, message: 'customer.incidents.invalidResponse' } : envelope(incident) })
     }
     if (path.startsWith('/incident/')) {
+      const found = state.incidents.find((item) => path === `/incident/${item.id}` || path === `/incident/${item.id}/withdraw`)
+      if (found && request.method() === 'PUT') {
+        Object.assign(found, request.postDataJSON())
+      }
+      if (found && path.endsWith('/withdraw')) {
+        Object.assign(found, { status: 4, canEdit: false, withdrawReason: request.postDataJSON().reason })
+      }
+      if (found) {
+        return route.fulfill({ json: envelope(found) })
+      }
       const incident = state.incidents.find((item) => path === `/incident/${item.id}`)
       return route.fulfill({ status: incident ? 200 : 404, json: incident ? envelope(incident) : { succeeded: false, message: 'customer.incidents.invalidResponse' } })
     }
@@ -96,7 +150,7 @@ async function setup(page, options = {}) {
       }
       if (path.endsWith('/confirm-pickup')) {
         expect(body).toEqual({ pickupSessionToken: 'mock-pickup-session-token' })
-        state.order = { ...state.order, status: 12 }
+        state.order = state.order.status === 99 ? { ...state.order, cancelledGoodsStatus: 4 } : { ...state.order, status: 12 }
         return route.fulfill({ json: envelope(state.order) })
       }
       const deposit = path.endsWith('/deposit')
@@ -108,6 +162,11 @@ async function setup(page, options = {}) {
         return route.fulfill({ json: envelope(state.order) })
       }
       return route.fulfill({ json: envelope({ orderId: id, pickupSessionToken: 'mock-pickup-session-token', expiresAt: new Date(Date.now() + state.pickupSessionMilliseconds).toISOString(), returnLockerName: 'Return Locker Riverside', returnBoxNumber: 'B-09' }) })
+    }
+    if (path === `/wash-order/${id}/pickup-storage`) {
+      state.lockerCalls.push({ path, body: request.postDataJSON() })
+      state.order = { ...state.order, status: 12 }
+      return route.fulfill({ json: envelope(state.order) })
     }
     if (path === `/wash-order/${id}/cancellation-quote`) {
       return route.fulfill({ json: envelope({ orderId: id, canCancel: state.canCancel, reason: 'customer.orders.cancel.notAllowed', feeAmount: 24000, refundAmount: 0, feeOutstanding: 24000, feePercent: 30 }) })
@@ -420,7 +479,7 @@ test('pickup uses a private two-step session, then unlocks a safe printable rece
   await page.getByRole('button', { name: 'Print receipt', exact: true }).click()
   expect(await page.evaluate(() => window.__printCalls)).toBe(1)
   await page.emulateMedia({ media: 'print' })
-  await expect(page.locator('header')).toBeHidden()
+  await expect(page.locator('header').first()).toBeHidden()
   await expect(page.locator('footer')).toBeHidden()
   await expect(page.locator('[data-receipt-print] article')).toBeVisible()
   await expect(page.locator('[data-receipt-print]')).not.toContainText('654321')
@@ -564,7 +623,7 @@ test('completed orders can submit a rating with optional criteria and uploaded p
   await expect(dialog.getByText('Thank you! Your rating has been saved.', { exact: true })).toBeVisible()
   expect(state.uploadCalls).toBe(1)
   expect(state.ratingCalls).toHaveLength(1)
-  expect(state.ratingCalls[0]).toEqual({ orderId: id, overallStars: 5, qualityStars: 4, speedStars: null, attitudeStars: null, packagingStars: null, comment: 'Clean and carefully packed', imageUrls: ['/uploads/customer-test/rating.png'] })
+  expect(state.ratingCalls[0]).toEqual({ orderId: id, overallStars: 5, qualityStars: 4, speedStars: null, attitudeStars: null, packagingStars: null, comment: 'Clean and carefully packed', imageUrls: ['/uploads/customer-test/rating.png'], videoUrls: [] })
   await expect(dialog.getByRole('button', { name: 'Submit rating', exact: true })).toHaveCount(0)
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
   await page.reload()
@@ -673,7 +732,7 @@ test('customer incident report validates evidence, submits allowed fields and op
   await expect(page).toHaveURL(/\/customer\/complaints\/22222222-/)
   await expect(page.getByRole('heading', { name: 'Complaint details', exact: true })).toBeVisible()
   await expect(page).toHaveTitle(/Complaint details - WG2611061234/)
-  expect(state.incidentCalls).toEqual([{ orderId: id, type: 1, severity: 3, description: 'My shirt was damaged.', imageUrls: ['/uploads/customer-test/rating.png'] }])
+  expect(state.incidentCalls).toEqual([{ orderId: id, type: 1, severity: 3, description: 'My shirt was damaged.', imageUrls: ['/uploads/customer-test/rating.png'], videoUrls: [], clientRequestId: expect.any(String) }])
   expect(state.uploadCalls).toBe(1)
   await expect(page.getByText('My shirt was damaged.', { exact: true })).toBeVisible()
   await expect(page.getByText('Pending review', { exact: true })).toBeVisible()
@@ -691,7 +750,8 @@ test('customer complaint list uses real pagination, shows resolution and payout,
   await page.getByRole('button', { name: 'Previous page', exact: true }).click()
   await expect(page).toHaveURL('/customer/complaints')
   await expect(page.getByText('WG-ISSUE-1', { exact: true })).toBeVisible()
-  await page.getByRole('button', { name: 'Details', exact: true }).first().click()
+  await page.getByRole('button', { name: 'Complaint actions', exact: true }).first().click()
+  await page.getByRole('menuitem', { name: 'View details', exact: true }).click()
   await expect(page.getByText('Compensation approved.', { exact: true })).toBeVisible()
   await expect(page.getByText('Paid out', { exact: true })).toBeVisible()
   await expect(page.getByText('BANK-123', { exact: true })).toBeVisible()
@@ -704,6 +764,9 @@ test('customer complaint list uses real pagination, shows resolution and payout,
   await page.goto('/customer/complaints')
   await expect(page.getByRole('alert')).toBeVisible()
   state.incidentListFailure = false
+  state.eligibility = null
+  state.messages = []
+  state.videoUploadCalls = 0
   await page.getByRole('button', { name: 'Try again', exact: true }).click()
   await expect(page.getByText('WG-ISSUE-1', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Open account menu', exact: true }).click()
@@ -755,9 +818,8 @@ test('customer incident modal supports mobile, languages and expiration without 
   await page.reload()
   await page.getByRole('button', { name: 'Change language', exact: true }).click()
   await page.getByRole('menuitem', { name: 'Tiếng Việt', exact: true }).click()
-  await page.getByRole('button', { name: 'Báo cáo sự cố', exact: true }).click()
-  await expect(dialog.getByRole('button', { name: 'Gửi báo cáo', exact: true })).toBeDisabled()
-  await expect(dialog.getByText('Đơn hàng đã quá thời hạn báo cáo 3 ngày kể từ khi nhận đồ.', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Báo cáo sự cố', exact: true })).toBeDisabled()
+  await expect(page.getByText('Đơn hàng đã quá thời hạn báo cáo 3 ngày kể từ khi nhận đồ.', { exact: true })).toBeVisible()
   expect(state.incidentCalls).toHaveLength(0)
 })
 
@@ -782,7 +844,8 @@ test('customer complaint rejected outcomes stay readable on mobile in both langu
   await page.goto('/customer/complaints')
   await expect(page.getByText('Rejected', { exact: true })).toBeVisible()
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  await page.getByRole('button', { name: 'Details', exact: true }).click()
+  await page.getByRole('button', { name: 'Complaint actions', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'View details', exact: true }).click()
   await expect(page.getByText('Supporting photo does not match the reported item.', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Switch to dark mode', exact: true }).click()
   await page.getByRole('button', { name: 'Change language', exact: true }).click()
@@ -803,10 +866,8 @@ test('complaints table stacks evidence, opens all photos, and places detail acti
   const table = page.getByRole('table', { name: 'My complaints', exact: true })
   await expect(table).toBeVisible()
   await expect(table.getByRole('columnheader')).toHaveCount(7)
-  const detailAction = table.getByRole('button', { name: 'Details', exact: true })
+  const detailAction = table.getByRole('button', { name: 'Complaint actions', exact: true })
   await expect(detailAction).toHaveText('')
-  await detailAction.hover()
-  await expect(page.getByRole('tooltip')).toHaveText('Details')
   const images = table.getByRole('button', { name: 'View 4 photos', exact: true })
   await expect(images).toHaveText('2+')
   await expect(images.locator('img')).toHaveCount(2)
@@ -814,7 +875,8 @@ test('complaints table stacks evidence, opens all photos, and places detail acti
   const gallery = page.getByRole('dialog', { name: 'Attached photos', exact: true })
   await expect(gallery.getByRole('img')).toHaveCount(4)
   await gallery.getByRole('button', { name: 'Close', exact: true }).last().click()
-  await table.getByRole('button', { name: 'Details', exact: true }).click()
+  await table.getByRole('button', { name: 'Complaint actions', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'View details', exact: true }).click()
   const back = page.getByRole('button', { name: 'Back to complaints', exact: true })
   const refresh = page.getByRole('button', { name: 'Refresh', exact: true })
   await expect(back).toBeVisible()
@@ -866,4 +928,180 @@ test('result counts are prominent and hot toasts keep localized text, theme and 
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await toaster.getByRole('button', { name: 'Đóng thông báo', exact: true }).click()
   await expect(vietnamese).toHaveCount(0)
+})
+
+test('server deadline expires despite device date; workflow, prediction and return map use server fields', async ({ page }) => {
+  const state = await setup(page)
+  state.order = { ...initialOrder, progressPercent: 35, serverNow: '2026-11-01T10:00:00Z', depositDeadline: '2026-11-01T10:00:02Z', depositWindowMinutes: 45, predictionStatus: 'predicted', predictedFinishAt: '2026-11-08T10:00:00Z', returnLockerName: 'Riverside pickup', returnLockerAddress: '12 Riverside', returnLockerLatitude: 10.77, returnLockerLongitude: 106.7 }
+  await page.goto(`/customer/orders/${id}`)
+  await expect(page.getByText('35%', { exact: true }).first()).toBeVisible()
+  await expect(page.getByText('Estimated from historical processing data and store workload.')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Open Google Maps' })).toHaveAttribute('href', /10.77/)
+  await page.getByRole('button', { name: 'Drop off at locker', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByText('The deposit deadline has passed.', { exact: false })).toBeVisible()
+  await dialog.getByLabel('PIN digit 1', { exact: true }).fill('123456')
+  await expect(dialog.getByRole('button', { name: 'I have placed my items and closed the door' })).toBeDisabled()
+  expect(state.lockerCalls).toHaveLength(0)
+})
+
+test('pending complaint keeps evidence while editing, sends video messages, and can be withdrawn', async ({ page }) => {
+  const state = await setup(page)
+  const incidentId = '22222222-2222-4222-8222-000000000001'
+  state.incidents = [{ id: incidentId, orderId: id, orderCode: initialOrder.orderCode, status: 1, canEdit: true, type: 1, severity: 1, description: 'Damaged shirt', imageUrls: ['/uploads/customer-test/rating.png'], videoUrls: [], createdOn: 1793923200, compensationAmount: 0, compensationStatus: 0 }]
+  await page.goto(`/customer/complaints/${incidentId}`)
+  await page.getByRole('button', { name: 'Edit complaint', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Edit complaint', exact: true })
+  await dialog.getByLabel('Describe the issue', { exact: true }).fill('Updated damaged shirt description')
+  await dialog.getByRole('button', { name: 'Save changes' }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.incidents[0].imageUrls).toEqual(['/uploads/customer-test/rating.png'])
+  const message = page.getByLabel('Message', { exact: true })
+  await message.fill('Please check the video evidence')
+  await page.locator('input[type="file"][accept*=".mp4"]').setInputFiles({ name: 'evidence.mp4', mimeType: 'video/mp4', buffer: Buffer.from('video fixture') })
+  await page.getByRole('button', { name: 'Send message', exact: true }).click()
+  await expect.poll(() => state.messages.length).toBe(1)
+  await expect(page.getByText('Please check the video evidence', { exact: true })).toBeVisible()
+  expect(state.messages[0].videoUrls).toEqual(['/uploads/customer-test/evidence.mp4'])
+  expect(state.videoUploadCalls).toBe(1)
+  await page.getByRole('button', { name: 'Withdraw complaint', exact: true }).click()
+  await page.getByRole('button', { name: 'Confirm withdrawal', exact: true }).click()
+  await expect(page.getByText('Withdrawn', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Edit complaint', exact: true })).toHaveCount(0)
+})
+
+test('cancelled locker pickup preserves cancellation, and storage pickup requires explicit confirmation', async ({ page }) => {
+  const state = await setup(page)
+  state.order = { ...initialOrder, status: 99, cancelledGoodsStatus: 1, cancelFeeAmount: 20000, cancelFeePaidAmount: 20000 }
+  await page.goto(`/customer/orders/${id}`)
+  await page.getByRole('button', { name: 'Collect from locker', exact: true }).click()
+  let dialog = page.getByRole('dialog')
+  await dialog.getByLabel('PIN digit 1', { exact: true }).fill('654321')
+  await dialog.getByRole('button', { name: 'Open pickup compartment', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Collected items and closed door', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.order.status).toBe(99)
+  expect(state.order.cancelledGoodsStatus).toBe(4)
+  state.order = { ...initialOrder, status: 13, paymentStatus: 2, storageLocation: 'Warehouse Q1', storageReference: 'STORE-01', overdueFeeTotal: 20000, storageFeeTotal: 20000 }
+  await page.reload()
+  await expect(page.getByText('Warehouse Q1', { exact: true })).toBeVisible()
+  const before = state.lockerCalls.length
+  await page.getByRole('button', { name: 'I have collected my items at storage' }).click()
+  expect(state.lockerCalls).toHaveLength(before)
+  dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'I have collected my items at storage' }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.order.status).toBe(12)
+})
+
+test('rating uploads and displays a video, and server receipt PDF downloads without locker secrets', async ({ page }) => {
+  const state = await setup(page)
+  state.order = { ...initialOrder, status: 12, paymentStatus: 2 }
+  await page.goto(`/customer/orders/${id}`)
+  await page.getByRole('button', { name: 'Rate service', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('group', { name: 'Overall rating', exact: true }).getByRole('button', { name: 'Overall rating: 5/5 stars', exact: true }).click()
+  await dialog.locator('input[type="file"][accept*=".mp4"]').setInputFiles({ name: 'review.webm', mimeType: 'video/webm', buffer: Buffer.from('video fixture') })
+  await dialog.getByRole('button', { name: 'Submit rating', exact: true }).click()
+  await expect.poll(() => state.ratingCalls.length).toBe(1)
+  expect(state.ratingCalls[0].videoUrls).toEqual(['/uploads/customer-test/evidence.mp4'])
+  await expect(dialog.locator('video')).toHaveCount(1)
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await page.getByRole('button', { name: 'Payment printout', exact: true }).click()
+  const receipt = page.getByRole('dialog', { name: 'Payment printout', exact: true })
+  await expect(receipt.getByText('WG-RC-0001')).toBeVisible()
+  const downloaded = page.waitForEvent('download')
+  await receipt.getByRole('button', { name: 'Download PDF' }).click()
+  const file = await downloaded
+  expect(file.suggestedFilename()).toBe(`washgo-receipt-${id}.pdf`)
+  await expect(receipt).not.toContainText('123456')
+  await expect(receipt).not.toContainText('654321')
+})
+
+test('cancellation fee uses its scoped endpoint and gateway return never claims laundry payment succeeded', async ({ page }) => {
+  const state = await setup(page)
+  state.order = { ...initialOrder, status: 99, cancelledGoodsStatus: 1, cancelFeeAmount: 20000, cancelFeePaidAmount: 0, cancellationFeeOutstanding: 20000 }
+  await page.route('https://gateway.example.test/**', (route) => route.fulfill({ contentType: 'text/html', body: '<h1>Mock fee gateway</h1>' }))
+  await page.goto(`/customer/orders/${id}`)
+  await expect(page.getByRole('button', { name: 'Collect from locker' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Pay cancellation fee', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Continue to payment' }).click()
+  await expect(page).toHaveURL('https://gateway.example.test/fees')
+  expect(state.feeCalls).toEqual([{ path: '/payment/cancellation-fee/create-url', body: { orderId: id, paymentMethod: 2 } }])
+  await page.goto(`/payment/return?vnp_TxnRef=WG-CANCEL-${initialOrder.orderCode}-${'a'.repeat(32)}&vnp_ResponseCode=00`)
+  await expect(page.getByRole('heading', { name: 'Check fee payment' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Payment confirmed' })).toHaveCount(0)
+})
+
+test('server complaint eligibility remains authoritative when the device clock is years ahead', async ({ page }) => {
+  const state = await setup(page)
+  state.order = completedForIncident()
+  await page.addInitScript(() => {
+    Date.now = () => 2051222400000
+  })
+  await page.goto(`/customer/orders/${id}`)
+  await page.getByRole('button', { name: 'Report an issue', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('textbox', { name: 'Describe the issue', exact: true }).fill('Damaged shirt with a valid server deadline')
+  await dialog.getByLabel('Add photos', { exact: true }).setInputFiles(incidentPhoto())
+  await dialog.getByRole('button', { name: 'Submit report', exact: true }).click()
+  await expect.poll(() => state.incidentCalls.length).toBe(1)
+  await expect(page.getByRole('heading', { name: 'Complaint details', exact: true })).toBeVisible()
+})
+
+test('complaint row menu edits and withdraws pending reports and detail cards align', async ({ page }) => {
+  const state = await setup(page)
+  const incidentId = '22222222-2222-4222-8222-000000000001'
+  state.incidents = [{ id: incidentId, orderId: id, orderCode: initialOrder.orderCode, status: 1, canEdit: true, type: 1, severity: 1, description: 'Damaged shirt', imageUrls: ['/uploads/customer-test/rating.png'], videoUrls: [], createdOn: 1793923200, compensationAmount: 0, compensationStatus: 0 }]
+  await page.goto('/customer/complaints')
+  await page.getByRole('button', { name: 'Complaint actions', exact: true }).click()
+  await expect(page.getByRole('menuitem')).toHaveCount(3)
+  await page.getByRole('menuitem', { name: 'Edit complaint', exact: true }).click()
+  const edit = page.getByRole('dialog', { name: 'Edit complaint', exact: true })
+  await expect(edit.getByLabel('Describe the issue')).toHaveValue('Damaged shirt')
+  await edit.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await page.getByRole('button', { name: 'Complaint actions', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'View details', exact: true }).click()
+  const compensation = page.getByRole('heading', { name: 'Compensation', exact: true }).locator('..')
+  const resolution = page.getByRole('heading', { name: 'Resolution', exact: true }).locator('..')
+  const main = page.getByRole('heading', { name: 'Damaged items', exact: true }).locator('../..')
+  const a = await compensation.boundingBox(), b = await resolution.boundingBox(), c = await main.boundingBox()
+  expect(b.y).toBeGreaterThanOrEqual(a.y + a.height)
+  expect(b.x).toBe(a.x)
+  expect(Math.abs(c.y - a.y)).toBeLessThan(2)
+  await page.getByRole('button', { name: 'Back to complaints' }).click()
+  await page.getByRole('button', { name: 'Complaint actions', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'Withdraw complaint', exact: true }).click()
+  await page.getByRole('button', { name: 'Confirm withdrawal' }).click()
+  await expect(page.getByText('Withdrawn', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Complaint actions', exact: true }).click()
+  await expect(page.getByRole('menuitem', { name: 'Edit complaint', exact: true })).toBeDisabled()
+  await expect(page.getByRole('menuitem', { name: 'Withdraw complaint', exact: true })).toBeDisabled()
+})
+
+test('order cards load detail ETA in the background and refresh it without exposing locker credentials', async ({ page }) => {
+  const state = await setup(page)
+  state.order = { ...initialOrder, status: 4, predictionStatus: 'predicted', predictedFinishAt: '2026-11-08T10:00:00Z', predictionUpdatedAt: '2026-11-07T10:00:00Z' }
+  let release
+  const ready = new Promise((resolve) => {
+    release = resolve
+  })
+  await page.route('**/api/wash-order/mine', (route) => route.fulfill({ json: { succeeded: true, list: [{ ...initialOrder, status: 4 }], currentPage: 1, total: 1, totalPages: 1 } }))
+  await page.route(`**/api/wash-order/${id}`, async (route) => {
+    await ready; await route.fulfill({ json: envelope(state.order) })
+  })
+  await page.goto('/customer/orders')
+  const card = page.getByRole('article').filter({ has: page.getByRole('heading', { name: initialOrder.orderCode, exact: true }) })
+  await expect(card).toBeVisible()
+  await expect(card.getByText('Based on standard processing time')).toBeVisible()
+  release()
+  await expect(card.getByText('Estimated from processing history')).toBeVisible()
+  await expect(card).toContainText('Nov 8, 2026')
+  await expect(card).not.toContainText('123456')
+  state.order = { ...state.order, predictedFinishAt: '2026-11-09T10:00:00Z' }
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click()
+  await expect(card).toContainText('Nov 9, 2026')
+  await page.setViewportSize({ width: 375, height: 812 })
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
