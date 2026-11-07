@@ -63,7 +63,7 @@ export default function OrdersPage() {
         </Button>
       </header>
       <OrderSummary resource={summary} />
-      <section className="grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
+      <section className="grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
         <div className="grid gap-2">
           <p
             className="text-sm text-muted-foreground"
@@ -136,7 +136,7 @@ export default function OrdersPage() {
               value={query.sort}
               options={ORDER_SORT_OPTIONS.map((item) => ({ value: item.value, label: t(item.label) }))}
               onValueChange={(sort) => update({ sort })}
-              className="w-44"
+              className="w-44 font-semibold"
             />
           </div>
         </div>
