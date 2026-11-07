@@ -67,7 +67,7 @@ export default function MerchantLayout() {
         aria-label={t('merchant.navigation')}
         className="space-y-1"
       >
-        {navigation.map(([key, Icon]) => ['overview', 'orders', 'shippers', 'lockers'].includes(key) ? (
+        {navigation.map(([key, Icon]) => ['overview', 'orders', 'shippers', 'lockers', 'services'].includes(key) ? (
           <NavTooltip
             key={key}
             content={t(`merchant.nav.${key}`)}
