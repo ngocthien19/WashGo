@@ -1,3 +1,7 @@
+import OrderEstimate from './components/OrderEstimate'
+import ReturnLockerInfo from './components/ReturnLockerInfo'
+import StoragePickup from './components/StoragePickup'
+import FeePaymentAction from '~/components/customer/payments/FeePaymentAction'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
@@ -73,6 +77,10 @@ export default function OrderDetailPage() {
                   onUpdated={resource.retry}
                 />
                 <OrderReceiptAction order={order} />
+                <FeePaymentAction
+                  key={`${order.id}-fees`}
+                  order={order}
+                />
                 <Button
                   variant="outline"
                   className="h-11 rounded-xl px-4"
@@ -84,10 +92,15 @@ export default function OrderDetailPage() {
               </div>
             </div>
             {order.status === ORDER_STATUSES.PENDING && (
-              <DepositDeadlineNotice />
+              <DepositDeadlineNotice order={order} />
             )}
             <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
               <div className="min-w-0 space-y-6">
+                <ReturnLockerInfo order={order} />
+                <StoragePickup
+                  order={order}
+                  onUpdated={resource.retry}
+                />
                 <Reveal>
                   <DetailPanel
                     icon={History}
@@ -251,9 +264,7 @@ export default function OrderDetailPage() {
                   icon={Clock3}
                   title={t('customer.orders.estimatedFinish')}
                 >
-                  <p className="text-lg font-semibold">
-                    {t('customer.orders.etaPending')}
-                  </p>
+                  <OrderEstimate order={order} />
                   <OrderProgress order={order} />
                   {order.pickupDeadline && (
                     <p className="text-sm text-muted-foreground">

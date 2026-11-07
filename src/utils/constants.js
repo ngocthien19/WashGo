@@ -70,7 +70,7 @@ export const INCIDENT_CONFIG = { ENDPOINT: '/incident', PAGE_SIZE: 6, DESCRIPTIO
 export const NOTIFICATION_CONFIG = { ENDPOINT: '/notification', HUB: '/hubs/notifications', EVENT: 'notification', PAGE_SIZE: 10, RETRY_MS: 30000, TOAST_HISTORY_LIMIT: 200 }
 export const INCIDENT_TYPES = [1, 2, 3]
 export const INCIDENT_SEVERITIES = [1, 2, 3]
-export const INCIDENT_STATUS_COLORS = { 1: 'amber', 2: 'emerald', 3: 'red' }
+export const INCIDENT_STATUS_COLORS = { 1: 'amber', 2: 'emerald', 3: 'red', 4: 'slate' }
 export const ORDER_PAYMENT_METHODS = { CASH: 1, VNPAY: 2, MOMO: 3 }
 export const ORDER_STATUSES = {
   PENDING: 1, DEPOSITED: 2, COLLECTED: 3, WASHING: 4, DRYING: 5, IRONING: 6, FOLDING: 7,

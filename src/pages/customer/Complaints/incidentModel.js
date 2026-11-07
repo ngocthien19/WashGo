@@ -1,5 +1,13 @@
 import * as yup from 'yup'
 import { INCIDENT_CONFIG, INCIDENT_TYPES, INCIDENT_SEVERITIES, ORDER_STATUSES } from '~/utils/constants'
+import { validDay, validRange, dateRangeFilter } from '~/utils/dateRange'
+
+export const incidentListFilter = (params) => {
+  const status = Number(params.get('status')), type = Number(params.get('type'))
+  const from = validDay(params.get('from') || '') ? params.get('from') : ''
+  const to = validDay(params.get('to') || '') ? params.get('to') : ''
+  return { page: readIncidentPage(params), take: INCIDENT_CONFIG.PAGE_SIZE, keyword: (params.get('keyword') || '').trim().slice(0, 200), statuses: [1, 2, 3, 4].includes(status) ? [status] : undefined, types: INCIDENT_TYPES.includes(type) ? [type] : undefined, sort: ['newest', 'oldest', 'status'].includes(params.get('sort')) ? params.get('sort') : 'newest', ...(validRange(from, to) ? dateRangeFilter({ from, to }) : {}) }
+}
 
 export const incidentSchema = yup.object({
   type: yup.number().oneOf(INCIDENT_TYPES, 'customer.incidents.chooseType').required('customer.incidents.chooseType'),

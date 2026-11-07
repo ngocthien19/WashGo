@@ -11,6 +11,19 @@ export async function setupNotifications(page, { role = 'Customer', dark = false
     const url = new URL(request.url())
     const path = url.pathname.replace(/^\/api/, '')
     const ok = (data) => route.fulfill({ json: { succeeded: true, data } })
+    if (path === '/policy/customer') {
+      return ok({ terms: { version: 'v1', content: 'Server terms' }, rules: {}, accepted: true, requiresAcceptance: false })
+    }
+    if (path === '/notification/filter') {
+      if (state.fail) {
+        return route.fulfill({ status: 500, json: { succeeded: false } })
+      }
+      const body = request.postDataJSON()
+      const items = state.items.filter((item) => (!body.unreadOnly || !item.isRead) && (!body.keyword || item.title.includes(body.keyword)))
+      return ok({ items: items.slice((body.page - 1) * body.take, body.page * body.take), total: items.length, page: body.page, take: body.take, unreadTotal: state.items.filter((item) => !item.isRead).length, counts: ['order', 'payment', 'promotion', 'feedback', 'system'].map((group) => {
+        const items = state.items.filter((item) => (item.group || 'order') === group); return { group, total: items.length, unread: items.filter((item) => !item.isRead).length }
+      }) })
+    }
     if (path === '/auth/me') {
       return ok({ id: 'notification-customer', fullName: 'Alex', role })
     }

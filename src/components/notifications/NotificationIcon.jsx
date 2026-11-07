@@ -8,6 +8,7 @@ const types = {
   7: [CircleX, 'rose'], 8: [DoorOpen, 'teal'], 9: [CircleCheck, 'emerald'],
   10: [Ban, 'rose'], 11: [Warehouse, 'amber'], 12: [MessageSquareWarning, 'violet'],
   13: [Clock, 'amber'], 14: [Clock, 'teal'], 15: [ReceiptText, 'rose'],
+  16: [Clock, 'rose'], 17: [MessageSquareWarning, 'violet'],
   20: [PackagePlus, 'blue'], 21: [Clock, 'amber'], 22: [Clock, 'rose'],
   23: [Warehouse, 'amber'], 24: [ReceiptText, 'blue'], 25: [CircleDollarSign, 'emerald'],
   26: [CircleCheck, 'violet'], 27: [CircleCheck, 'violet'], 29: [Bell, 'amber'],

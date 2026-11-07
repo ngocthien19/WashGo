@@ -17,6 +17,12 @@ const validOrder = (order) => {
 }
 
 export const customerPaymentApi = {
+  createFeeUrl: (orderId, paymentMethod, kind) => {
+    if (!['cancellation', 'overdue'].includes(kind)) {
+      throw new Error('customer.payment.invalidResponse')
+    }
+    return authorizedAxios.post(`/payment/${kind}-fee/create-url`, { orderId, paymentMethod }).then(unwrap)
+  },
   getOrder: (id, signal) => customerOrderApi.get(id, signal).then(validOrder),
   findReturnedOrder: async (code, signal) => {
     if (!code) {

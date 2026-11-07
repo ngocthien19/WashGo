@@ -1,37 +1,50 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Provider } from 'react-redux'
-import { configureStore } from '@reduxjs/toolkit'
-import { expect, it } from 'vitest'
-import preferences from '~/redux/preferences/preferencesSlice'
-import { Button } from '~/components/ui/button'
+import { beforeEach, expect, it, vi } from 'vitest'
+import i18n from '~/i18n'
+import { customerPolicyApi } from '~/apis/customer/customerPolicyApi'
 import ServiceTerms from './ServiceTerms'
 
-it('shows once per account and can reopen without clearing the saved preference', async () => {
+vi.mock('~/apis/customer/customerPolicyApi', () => ({ customerPolicyApi: { get: vi.fn(), acknowledge: vi.fn() } }))
+const policy = (accepted = false, version = 'v1') => ({ terms: { version, title: 'Terms', content: 'Server policy content', effectiveFrom: '2026-11-01T00:00:00Z' }, rules: { depositWindowMinutes: 45, cancelLatePendingPercent: 20, cancelDepositedPercent: 30, cancelCollectedPercent: 50 }, accepted, requiresAcceptance: !accepted, acceptedVersion: accepted ? version : null })
+const content = (id = 'a') => (
+  <ServiceTerms key={id}>
+    {(open) => <button onClick={open}>Footer terms</button>}
+  </ServiceTerms>
+)
+beforeEach(async () => {
+  vi.clearAllMocks(); await i18n.changeLanguage('en')
+})
+it('closing does not acknowledge; explicit acceptance posts the displayed version and survives another mount', async () => {
   const user = userEvent.setup()
-  const store = configureStore({ reducer: { preferences } })
-  const content = (id) => (
-    <Provider store={store}>
-      <ServiceTerms
-        key={id}
-        userId={id}
-      >
-        {(open) => <Button onClick={open}>Footer terms</Button>}
-      </ServiceTerms>
-    </Provider>
-  )
-  const view = render(content('first'))
-  expect(screen.getByRole('dialog', { name: 'Điều khoản dịch vụ' })).toBeVisible()
-  expect(screen.getByRole('heading', { name: '5. Báo cáo sự cố và khiếu nại', exact: true })).toBeInTheDocument()
-  await user.click(screen.getByRole('button', { name: 'Tôi đã hiểu' }))
+  let accepted = false
+  customerPolicyApi.get.mockImplementation(async () => policy(accepted))
+  customerPolicyApi.acknowledge.mockImplementation(async () => {
+    accepted = true; return policy(true)
+  })
+  const view = render(content())
+  await screen.findByRole('dialog', { name: 'Terms', exact: true })
+  expect(screen.getByText('Server policy content')).toBeVisible()
+  await user.click(screen.getAllByRole('button', { name: 'Close', exact: true }).at(-1))
+  expect(customerPolicyApi.acknowledge).not.toHaveBeenCalled()
+  view.rerender(content('b'))
+  await screen.findByRole('dialog', { name: 'Terms', exact: true })
+  expect(screen.getByRole('button', { name: 'I agree to the terms' })).toBeDisabled()
+  await user.click(screen.getByRole('checkbox'))
+  await user.click(screen.getByRole('button', { name: 'I agree to the terms' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-  expect(store.getState().preferences.serviceTermsSeen).toEqual({ first: true })
-  view.rerender(content('second'))
-  expect(screen.getByRole('dialog')).toBeVisible()
-  await user.click(screen.getByRole('button', { name: 'Đóng', exact: true }))
-  view.rerender(content('first'))
-  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  expect(customerPolicyApi.acknowledge).toHaveBeenCalledExactlyOnceWith('v1')
+  view.rerender(content('c'))
   await user.click(screen.getByRole('button', { name: 'Footer terms' }))
-  expect(screen.getByRole('dialog')).toBeVisible()
-  expect(store.getState().preferences.serviceTermsSeen).toEqual({ first: true, second: true })
+  await screen.findByText('Server policy content')
+  expect(screen.queryByRole('button', { name: 'I agree to the terms' })).not.toBeInTheDocument()
+})
+it('an acknowledgement failure keeps the version available for checking, without accepting locally', async () => {
+  customerPolicyApi.get.mockResolvedValue(policy())
+  customerPolicyApi.acknowledge.mockRejectedValue(new Error('Server unavailable'))
+  render(content())
+  await userEvent.click(await screen.findByRole('checkbox'))
+  await userEvent.click(screen.getByRole('button', { name: 'I agree to the terms' }))
+  await screen.findByRole('alert')
+  await waitFor(() => expect(screen.getByRole('button', { name: 'I agree to the terms' })).toBeEnabled())
 })

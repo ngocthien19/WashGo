@@ -1,4 +1,207 @@
 {
+  "notificationMessages": {
+    "orderCreated": {
+      "customer": {
+        "title": "Order created",
+        "content": "Order #{{orderCode}} was created. Deposit your items at {{lockerName}}, compartment {{boxNumber}}, within {{depositMinutes}} minutes."
+      }
+    },
+    "deposited": {
+      "customer": {
+        "title": "Items deposited",
+        "content": "Your items for order #{{orderCode}} have been deposited."
+      }
+    },
+    "collected": {
+      "customer": {
+        "title": "Order accepted",
+        "content": "Order #{{orderCode}} has been accepted for processing."
+      }
+    },
+    "processing": {
+      "awaitingPayment": {
+        "customer": {
+          "title": "Payment reminder",
+          "content": "Order #{{orderCode}} has finished processing. Pay {{amount}} to collect your items."
+        }
+      },
+      "step": {
+        "customer": {
+          "title": "Order status updated",
+          "content": "Order #{{orderCode}}: {{step}}."
+        }
+      }
+    },
+    "paymentSucceeded": {
+      "customer": {
+        "title": "Payment succeeded",
+        "content": "Payment for order #{{orderCode}} succeeded. Your items will be returned to the locker."
+      },
+      "storage": {
+        "customer": {
+          "title": "Payment succeeded",
+          "content": "Order #{{orderCode}} is at {{storageLocation}}, reference {{storageReference}}. Check storage fees before collection."
+        }
+      }
+    },
+    "paymentFailed": {
+      "customer": {
+        "title": "Payment failed",
+        "content": "Payment for order #{{orderCode}} failed. Please try again."
+      }
+    },
+    "returnedToLocker": {
+      "customer": {
+        "title": "Ready for pickup",
+        "content": "Your items for order #{{orderCode}} are ready at {{place}}. Collect them before {{pickupDeadline}}."
+      },
+      "cancelled": {
+        "customer": {
+          "title": "Cancelled items returned to locker",
+          "content": "Items from cancelled order #{{orderCode}} are at {{place}}. Check cancellation fees before collection."
+        }
+      }
+    },
+    "pickedUp": {
+      "customer": {
+        "title": "Pickup completed",
+        "content": "You collected your items for order #{{orderCode}}. Thank you for using WashGo."
+      }
+    },
+    "cancelled": {
+      "customer": {
+        "title": "Order cancelled",
+        "content": "Order #{{orderCode}} was cancelled. Reason: {{reason}}."
+      }
+    },
+    "cancelledGoodsReturned": {
+      "customer": {
+        "title": "Cancelled items collected",
+        "content": "You collected the items from cancelled order #{{orderCode}}."
+      }
+    },
+    "unpaidMovedToStorage": {
+      "customer": {
+        "title": "Items moved to storage",
+        "content": "Order #{{orderCode}} is at {{storageLocation}}, reference {{storageReference}}. Check laundry and storage charges before collection."
+      }
+    },
+    "movedToStorage": {
+      "customer": {
+        "title": "Items moved to storage",
+        "content": "Items for order #{{orderCode}} were moved to storage. Please contact support to collect them."
+      }
+    },
+    "depositExpired": {
+      "customer": {
+        "title": "Deposit deadline expired",
+        "content": "The deposit deadline for order #{{orderCode}} has passed. Check cancellation fees and create a new order if needed."
+      }
+    },
+    "depositReminder": {
+      "customer": {
+        "title": "Deposit reminder",
+        "content": "Deposit your items for order #{{orderCode}} at {{lockerName}}, compartment {{boxNumber}}, before the deadline."
+      }
+    },
+    "paymentReminder": {
+      "customer": {
+        "title": "Payment reminder",
+        "content": "Please check the payment deadline for order #{{orderCode}}."
+      }
+    },
+    "pickupReminder": {
+      "customer": {
+        "title": "Pickup reminder",
+        "content": "Items for order #{{orderCode}} are at {{place}}. Collect them before {{pickupDeadline}} to avoid overdue charges."
+      }
+    },
+    "overdueFee": {
+      "firstDay": {
+        "customer": {
+          "title": "Pickup overdue",
+          "content": "Pickup at {{place}} is overdue. The current fee for order #{{orderCode}} is {{fee}}."
+        }
+      },
+      "customer": {
+        "title": "Overdue fee",
+        "content": "The overdue fee for order #{{orderCode}} is {{fee}}. Please pay and collect your items."
+      }
+    },
+    "incidentProcessed": {
+      "rejected": {
+        "title": "Complaint outcome",
+        "content": "Your complaint about order #{{orderCode}} was rejected. View the details for the reason."
+      },
+      "resolved": {
+        "title": "Complaint resolved",
+        "content": "Your complaint about order #{{orderCode}} has been resolved."
+      },
+      "compensated": {
+        "title": "Complaint compensation",
+        "content": "Your complaint about order #{{orderCode}} was resolved with compensation of {{compensationAmount}}. View the details for payout status."
+      }
+    },
+    "incidentMessage": {
+      "customer": {
+        "title": "Complaint reply",
+        "content": "WashGo replied to your complaint about order #{{orderCode}}."
+      }
+    }
+  },
+  "notification": {
+    "orderCreated": {
+      "title": "Order created"
+    },
+    "deposited": {
+      "title": "Items deposited"
+    },
+    "orderAccepted": {
+      "title": "Order accepted"
+    },
+    "orderProcessing": {
+      "title": "Processing"
+    },
+    "awaitingPayment": {
+      "title": "Awaiting payment"
+    },
+    "paymentSucceeded": {
+      "title": "Payment succeeded"
+    },
+    "paymentFailed": {
+      "title": "Payment failed"
+    },
+    "readyForPickup": {
+      "title": "Ready for pickup"
+    },
+    "pickedUp": {
+      "title": "Items picked up"
+    },
+    "orderCancelled": {
+      "title": "Order cancelled"
+    },
+    "movedToStorage": {
+      "title": "Moved to storage"
+    },
+    "incidentProcessed": {
+      "title": "Complaint processed"
+    },
+    "depositReminder": {
+      "title": "Deposit reminder"
+    },
+    "pickupReminder": {
+      "title": "Pickup reminder"
+    },
+    "overdueFeeApplied": {
+      "title": "Overdue fee"
+    },
+    "depositExpired": {
+      "title": "Deposit expired"
+    },
+    "incidentMessage": {
+      "title": "Complaint message"
+    }
+  },
   "common": {
     "photos": "Photos",
     "noPhotos": "No photos available",
@@ -271,6 +474,170 @@
     "revenueNote": "Settlements show finalized payouts, not today's revenue. Daily revenue charts will become available when reporting data is provided."
   },
   "customer": {
+    "sync": {
+      "invalidResponse": "The response is invalid. Please reload.",
+      "policyDescription": "Please review the terms for ordering, payment and using WashGo services before confirming your agreement.",
+      "confirmTerms": "I have read and agree to the WashGo terms of service.",
+      "termSections": {
+        "booking": "Booking and drop-off",
+        "payment": "Service pricing and payment",
+        "cancellation": "Cancellation conditions and fees",
+        "pickup": "Pickup and storage",
+        "incident": "Incident reports and compensation"
+      },
+      "version": "Version {{version}}",
+      "effectiveFrom": "Effective from {{date}}",
+      "currentRules": "Current rules",
+      "quoteSource": "Actual cancellation fees and refunds are confirmed in each order's cancellation quote.",
+      "acceptedAt": "Accepted at {{date}}",
+      "acceptTerms": "I agree to the terms",
+      "saving": "Saving...",
+      "storageTitle": "Pickup at storage",
+      "payCancellationFee": "Pay cancellation fee",
+      "payStorageFee": "Pay overdue / storage fee",
+      "feeServerAmount": "The server calculates the outstanding fee when you continue. Review the final amount at the payment gateway before paying.",
+      "feeReturnTitle": "Check fee payment",
+      "feeReturnHint": "The gateway return does not prove a successful payment. Open the order details to check the recorded fees and pickup eligibility; refresh if the callback is still processing.",
+      "storageUnknown": "Contact support for the storage location.",
+      "storageFees": "Fees recorded: {{due}} · Paid: {{paid}}. Fees may increase until collection.",
+      "storageHint": "Pay all outstanding fees before collection. The server checks the final amount when you confirm.",
+      "storageConfirm": "I have collected my items at storage",
+      "storageConfirmHint": "Confirm only after you have received your items from storage staff. This completes the order.",
+      "storageChanged": "The order has changed. Close and refresh before confirming.",
+      "optionalNote": "Note (optional)",
+      "saveIncident": "Save changes",
+      "editIncidentHint": "You can edit a pending complaint. Existing evidence is kept unless you remove it.",
+      "rules": {
+        "depositWindowMinutes": "Deposit window: <strong>{{value}}</strong> minutes.",
+        "cancelLatePendingPercent": "Cancellation fee after the deposit deadline: <strong>{{value}}</strong>%.",
+        "cancelDepositedPercent": "Cancellation fee after deposit: <strong>{{value}}</strong>%.",
+        "cancelCollectedPercent": "Cancellation fee after collection: <strong>{{value}}</strong>%.",
+        "freePickupHours": "Free pickup window: <strong>{{value}}</strong> hours.",
+        "overdueFeeDay1": "Overdue fee, day 1: <strong>{{value}}</strong>.",
+        "overdueFeeDay2": "Overdue fee, day 2: <strong>{{value}}</strong>.",
+        "overdueFeeDay3": "Overdue fee, day 3: <strong>{{value}}</strong>.",
+        "storageFeePerDay": "Storage fee per day: <strong>{{value}}</strong>.",
+        "storageTransferAfterHours": "Storage transfer threshold: <strong>{{value}}</strong> hours.",
+        "unpaidStorageAfterDays": "Unpaid storage threshold: <strong>{{value}}</strong> days.",
+        "compensationLightPercent": "Compensation for light damage: <strong>{{value}}</strong>%.",
+        "compensationMediumPercent": "Compensation for medium damage: <strong>{{value}}</strong>%.",
+        "compensationSeverePercent": "Compensation for severe damage: <strong>{{value}}</strong>%.",
+        "compensationLostPercent": "Compensation for lost items: <strong>{{value}}</strong>%."
+      },
+      "depositExpired": "The deposit deadline has passed. Check cancellation fees and create a new order if needed.",
+      "depositRemaining": "{{time}} remaining to deposit your items. Deadline: {{date}}.",
+      "depositWindow": "Deposit window applied to this order: {{minutes}} minutes.",
+      "prediction": {
+        "predicted": "Estimated from historical processing data and store workload.",
+        "rule": "Estimated using standard processing time; historical data is insufficient.",
+        "done": "The actual processing completion time has been recorded.",
+        "notApplicable": "An estimate does not apply to the current status."
+      },
+      "updatedAt": "Updated at {{date}}",
+      "etaLoading": "Loading estimated time…",
+      "etaUnavailable": "Estimated time unavailable",
+      "cardEstimatedAt": "Estimated: {{date}}",
+      "cardDepositExpired": "Drop-off deadline passed",
+      "cardStatus": {
+        "1": { "title": "Drop-off deadline", "fallback": "Please deposit your items" },
+        "2": { "title": "Deposited · Awaiting collection" },
+        "3": { "title": "Collected · Awaiting processing" },
+        "4": { "title": "Your items are being washed" },
+        "5": { "title": "Your items are being dried" },
+        "6": { "title": "Your items are being ironed" },
+        "7": { "title": "Your items are being folded" },
+        "8": { "title": "Laundry finished · Payment deadline", "fallback": "Please pay for your order" },
+        "9": { "title": "Payment recorded at", "fallback": "Awaiting return to locker" },
+        "10": { "title": "Ready at locker · Pickup deadline", "fallback": "Your items are ready for pickup" },
+        "11": { "title": "Items collected at", "fallback": "Collection recorded" },
+        "12": { "title": "Order completed at", "fallback": "Order completed" },
+        "13": { "title": "Moved to storage at", "fallback": "Please collect your items at storage" },
+        "99": { "title": "Cancellation reason" }
+      },
+      "estimateLabels": {
+        "predicted": "Estimated from processing history",
+        "rule": "Based on standard processing time",
+        "done": "Processing completed"
+      },
+      "returnLocker": "Pickup locker",
+      "openMap": "Open Google Maps",
+      "issuedAt": "Issued at: {{date}}",
+      "seller": "Service provider",
+      "buyer": "Customer",
+      "taxCode": "Tax code",
+      "service": "Service / fee",
+      "quantity": "Quantity",
+      "amount": "Amount",
+      "totalPaid": "Total paid",
+      "payments": "Recorded payments",
+      "downloadPdf": "Download PDF",
+      "videos": "Evidence videos (optional)",
+      "videoHelp": "Up to 2 MP4, WEBM or MOV videos, at most 50 MB each.",
+      "videoType": "Only MP4, WEBM or MOV videos are accepted.",
+      "videoSize": "Videos must be larger than 0 and no more than 50 MB.",
+      "videoLimit": "You can select up to 2 videos.",
+      "videoNumber": "Evidence video {{number}}",
+      "removeVideo": "Remove video {{number}}",
+      "videoCount": "{{count}} videos",
+      "searchNotifications": "Search notification titles or content...",
+      "notificationType": "Notification type",
+      "notificationDates": "Notification date",
+      "sort": "Sort",
+      "sorts": {
+        "newest": "Newest",
+        "oldest": "Oldest",
+        "unreadFirst": "Unread first",
+        "status": "Pending first"
+      },
+      "groups": {
+        "order": "Orders",
+        "payment": "Payments",
+        "promotion": "Promotions",
+        "feedback": "Feedback",
+        "system": "System"
+      },
+      "notificationTypes": {
+        "1": "Order created",
+        "2": "Items deposited",
+        "3": "Order accepted",
+        "4": "Processing",
+        "5": "Awaiting payment",
+        "6": "Payment succeeded",
+        "7": "Payment failed",
+        "8": "Ready for pickup",
+        "9": "Items picked up",
+        "10": "Order cancelled",
+        "11": "Moved to storage",
+        "12": "Complaint processed",
+        "13": "Deposit reminder",
+        "14": "Pickup reminder",
+        "15": "Overdue fee",
+        "16": "Deposit expired",
+        "17": "Complaint message"
+      },
+      "editIncident": "Edit complaint",
+      "withdrawIncident": "Withdraw complaint",
+      "confirmWithdraw": "Confirm withdrawal",
+      "withdrawHint": "You can withdraw a pending complaint. The support team will be notified.",
+      "withdrawn": "Withdrawn",
+      "reason": "Reason",
+      "optionalReason": "Enter an optional reason...",
+      "incidentChanged": "This complaint has changed. Close and reload it before editing.",
+      "notEligible": "This order is not eligible for reporting an incident.",
+      "checkRequest": "Check submitted request",
+      "requestNotFound": "This request was not found yet. Check again before closing and sending a different request.",
+      "uncertainMutation": "The outcome is unknown. Reload to check before sending again.",
+      "messages": "Messages and additional evidence",
+      "incidentActions": "Complaint actions",
+      "messagesHint": "Reply to the support team or add information, photos and videos during review. Messages are kept as a conversation history. To change the original report, choose Edit complaint.",
+      "refreshMessages": "Refresh messages",
+      "messageContent": "Message",
+      "messageHint": "Add more information, up to 2,000 characters...",
+      "noMessages": "No messages yet.",
+      "sendMessage": "Send message",
+      "searchIncidents": "Search complaints by order code...",
+      "incidentDates": "Complaint submission date"
+    },
     "serviceTerms": {
       "title": "Terms of service",
       "description": "What to know about placing orders, drop-off, payment and cancellation at WashGo.",

@@ -1,4 +1,207 @@
 {
+  "notificationMessages": {
+    "orderCreated": {
+      "customer": {
+        "title": "Đơn hàng đã được tạo",
+        "content": "Đơn #{{orderCode}} đã được tạo. Vui lòng gửi đồ tại {{lockerName}}, ô {{boxNumber}} trong {{depositMinutes}} phút."
+      }
+    },
+    "deposited": {
+      "customer": {
+        "title": "Đã gửi đồ thành công",
+        "content": "Bạn đã gửi đồ cho đơn #{{orderCode}}."
+      }
+    },
+    "collected": {
+      "customer": {
+        "title": "Đơn hàng đã được tiếp nhận",
+        "content": "Đơn #{{orderCode}} đã được tiếp nhận xử lý."
+      }
+    },
+    "processing": {
+      "awaitingPayment": {
+        "customer": {
+          "title": "Nhắc nhở thanh toán",
+          "content": "Đơn #{{orderCode}} đã giặt xong. Vui lòng thanh toán {{amount}} để nhận đồ."
+        }
+      },
+      "step": {
+        "customer": {
+          "title": "Cập nhật trạng thái đơn",
+          "content": "Đơn #{{orderCode}}: {{step}}."
+        }
+      }
+    },
+    "paymentSucceeded": {
+      "customer": {
+        "title": "Thanh toán thành công",
+        "content": "Đơn #{{orderCode}} đã thanh toán và sẽ được trả về locker."
+      },
+      "storage": {
+        "customer": {
+          "title": "Thanh toán thành công",
+          "content": "Đơn #{{orderCode}} đang ở {{storageLocation}}, mã {{storageReference}}. Vui lòng kiểm tra phí lưu kho và đến nhận."
+        }
+      }
+    },
+    "paymentFailed": {
+      "customer": {
+        "title": "Thanh toán thất bại",
+        "content": "Thanh toán cho đơn #{{orderCode}} chưa thành công. Vui lòng thử lại."
+      }
+    },
+    "returnedToLocker": {
+      "customer": {
+        "title": "Đồ đã sẵn sàng",
+        "content": "Đồ của đơn #{{orderCode}} đã sẵn sàng tại {{place}}. Vui lòng đến nhận trước {{pickupDeadline}}."
+      },
+      "cancelled": {
+        "customer": {
+          "title": "Đồ đã được trả về locker",
+          "content": "Đồ của đơn đã hủy #{{orderCode}} đã được đưa về {{place}}. Vui lòng kiểm tra phí hủy và đến nhận lại."
+        }
+      }
+    },
+    "pickedUp": {
+      "customer": {
+        "title": "Lấy đồ thành công",
+        "content": "Bạn đã lấy đồ đơn #{{orderCode}}. Cảm ơn bạn đã sử dụng WashGo."
+      }
+    },
+    "cancelled": {
+      "customer": {
+        "title": "Đơn hàng đã bị hủy",
+        "content": "Đơn #{{orderCode}} đã bị hủy. Lý do: {{reason}}."
+      }
+    },
+    "cancelledGoodsReturned": {
+      "customer": {
+        "title": "Đã nhận lại đồ",
+        "content": "Bạn đã nhận lại đồ của đơn đã hủy #{{orderCode}}."
+      }
+    },
+    "unpaidMovedToStorage": {
+      "customer": {
+        "title": "Thông báo chuyển kho",
+        "content": "Đơn #{{orderCode}} đã chuyển tới {{storageLocation}}, mã {{storageReference}}. Vui lòng kiểm tra tiền giặt và phí lưu kho trước khi nhận."
+      }
+    },
+    "movedToStorage": {
+      "customer": {
+        "title": "Thông báo chuyển kho",
+        "content": "Đồ của đơn #{{orderCode}} đã được chuyển về kho. Vui lòng liên hệ để nhận."
+      }
+    },
+    "depositExpired": {
+      "customer": {
+        "title": "Đơn hàng đã quá hạn gửi đồ",
+        "content": "Đơn #{{orderCode}} đã quá hạn gửi đồ. Vui lòng kiểm tra phí hủy và tạo đơn mới nếu cần."
+      }
+    },
+    "depositReminder": {
+      "customer": {
+        "title": "Nhắc nhở gửi đồ",
+        "content": "Vui lòng gửi đồ cho đơn #{{orderCode}} tại {{lockerName}}, ô {{boxNumber}} trước hạn gửi."
+      }
+    },
+    "paymentReminder": {
+      "customer": {
+        "title": "Nhắc nhở thanh toán",
+        "content": "Vui lòng kiểm tra hạn thanh toán của đơn #{{orderCode}}."
+      }
+    },
+    "pickupReminder": {
+      "customer": {
+        "title": "Nhắc nhở nhận đồ",
+        "content": "Đồ của đơn #{{orderCode}} đang ở {{place}}. Vui lòng nhận trước {{pickupDeadline}} để tránh phí quá hạn."
+      }
+    },
+    "overdueFee": {
+      "firstDay": {
+        "customer": {
+          "title": "Đồ đã quá hạn lấy",
+          "content": "Đồ tại {{place}} đã quá hạn lấy. Phí hiện tại của đơn #{{orderCode}}: {{fee}}."
+        }
+      },
+      "customer": {
+        "title": "Thông báo phí quá hạn",
+        "content": "Phí quá hạn của đơn #{{orderCode}}: {{fee}}. Vui lòng thanh toán và nhận đồ."
+      }
+    },
+    "incidentProcessed": {
+      "rejected": {
+        "title": "Kết quả khiếu nại",
+        "content": "Khiếu nại về đơn #{{orderCode}} đã bị từ chối. Xem chi tiết để biết lý do."
+      },
+      "resolved": {
+        "title": "Khiếu nại đã được xử lý",
+        "content": "Khiếu nại về đơn #{{orderCode}} đã được xử lý."
+      },
+      "compensated": {
+        "title": "Khiếu nại được bồi thường",
+        "content": "Khiếu nại về đơn #{{orderCode}} đã được xử lý, mức bồi thường {{compensationAmount}}. Xem chi tiết để theo dõi chi trả."
+      }
+    },
+    "incidentMessage": {
+      "customer": {
+        "title": "Phản hồi khiếu nại",
+        "content": "WashGo đã phản hồi khiếu nại của bạn về đơn #{{orderCode}}."
+      }
+    }
+  },
+  "notification": {
+    "orderCreated": {
+      "title": "Đơn được tạo"
+    },
+    "deposited": {
+      "title": "Đã gửi đồ"
+    },
+    "orderAccepted": {
+      "title": "Đơn được tiếp nhận"
+    },
+    "orderProcessing": {
+      "title": "Đang xử lý"
+    },
+    "awaitingPayment": {
+      "title": "Chờ thanh toán"
+    },
+    "paymentSucceeded": {
+      "title": "Thanh toán thành công"
+    },
+    "paymentFailed": {
+      "title": "Thanh toán thất bại"
+    },
+    "readyForPickup": {
+      "title": "Sẵn sàng nhận đồ"
+    },
+    "pickedUp": {
+      "title": "Đã nhận đồ"
+    },
+    "orderCancelled": {
+      "title": "Hủy đơn"
+    },
+    "movedToStorage": {
+      "title": "Chuyển kho"
+    },
+    "incidentProcessed": {
+      "title": "Kết quả khiếu nại"
+    },
+    "depositReminder": {
+      "title": "Nhắc gửi đồ"
+    },
+    "pickupReminder": {
+      "title": "Nhắc nhận đồ"
+    },
+    "overdueFeeApplied": {
+      "title": "Phí quá hạn"
+    },
+    "depositExpired": {
+      "title": "Hết hạn gửi đồ"
+    },
+    "incidentMessage": {
+      "title": "Trao đổi khiếu nại"
+    }
+  },
   "common": {
     "photos": "Hình ảnh",
     "noPhotos": "Chưa có ảnh hiển thị",
@@ -271,6 +474,170 @@
     "revenueNote": "Kỳ đối soát thể hiện số tiền đã được chốt, không phải doanh thu trong ngày. Biểu đồ doanh thu theo ngày sẽ hiển thị khi có dữ liệu báo cáo."
   },
   "customer": {
+    "sync": {
+      "invalidResponse": "Dữ liệu phản hồi không hợp lệ. Vui lòng tải lại.",
+      "policyDescription": "Vui lòng đọc kỹ các điều khoản về đặt đơn, thanh toán và sử dụng dịch vụ WashGo trước khi xác nhận đồng ý.",
+      "confirmTerms": "Tôi đã đọc và đồng ý với điều khoản sử dụng dịch vụ WashGo.",
+      "termSections": {
+        "booking": "Đặt đơn và gửi đồ",
+        "payment": "Giá dịch vụ và thanh toán",
+        "cancellation": "Điều kiện và phí hủy đơn",
+        "pickup": "Nhận đồ và lưu kho",
+        "incident": "Báo cáo sự cố và bồi thường"
+      },
+      "version": "Phiên bản {{version}}",
+      "effectiveFrom": "Hiệu lực từ {{date}}",
+      "currentRules": "Quy định đang áp dụng",
+      "quoteSource": "Phí thực tế và khoản hoàn được xác nhận ở báo phí hủy của từng đơn.",
+      "acceptedAt": "Đã đồng ý lúc {{date}}",
+      "acceptTerms": "Tôi đồng ý điều khoản",
+      "saving": "Đang lưu...",
+      "storageTitle": "Nhận đồ tại kho",
+      "payCancellationFee": "Thanh toán phí hủy",
+      "payStorageFee": "Thanh toán phí quá hạn / lưu kho",
+      "feeServerAmount": "Hệ thống tính phí còn thiếu khi bạn tiếp tục. Vui lòng kiểm tra số tiền cuối cùng trên cổng thanh toán trước khi trả tiền.",
+      "feeReturnTitle": "Kiểm tra thanh toán phí",
+      "feeReturnHint": "Việc quay lại từ cổng thanh toán chưa xác nhận đã trả phí thành công. Mở chi tiết đơn để kiểm tra phí đã ghi nhận và điều kiện nhận đồ; tải lại nếu hệ thống còn đang cập nhật.",
+      "storageUnknown": "Vui lòng liên hệ hỗ trợ để biết địa điểm nhận đồ.",
+      "storageFees": "Phí đã ghi nhận: {{due}} · Đã thanh toán: {{paid}}. Phí có thể tăng đến khi nhận đồ.",
+      "storageHint": "Vui lòng thanh toán đủ các khoản phí trước khi nhận đồ. Hệ thống kiểm tra số tiền cuối cùng khi xác nhận.",
+      "storageConfirm": "Tôi đã nhận đồ tại kho",
+      "storageConfirmHint": "Chỉ xác nhận sau khi bạn đã nhận đủ đồ từ nhân viên kho. Thao tác này hoàn tất đơn hàng.",
+      "storageChanged": "Đơn hàng đã thay đổi. Vui lòng đóng và tải lại trước khi xác nhận.",
+      "optionalNote": "Ghi chú (không bắt buộc)",
+      "saveIncident": "Lưu thay đổi",
+      "editIncidentHint": "Bạn có thể chỉnh sửa khiếu nại đang chờ xử lý. Minh chứng hiện có được giữ lại trừ khi bạn xóa.",
+      "rules": {
+        "depositWindowMinutes": "Thời hạn gửi đồ: <strong>{{value}}</strong> phút.",
+        "cancelLatePendingPercent": "Phí hủy đơn chờ gửi đã quá hạn: <strong>{{value}}</strong>%.",
+        "cancelDepositedPercent": "Phí hủy sau khi đã gửi đồ: <strong>{{value}}</strong>%.",
+        "cancelCollectedPercent": "Phí hủy sau khi thu gom: <strong>{{value}}</strong>%.",
+        "freePickupHours": "Thời gian nhận đồ miễn phí: <strong>{{value}}</strong> giờ.",
+        "overdueFeeDay1": "Phí quá hạn ngày thứ nhất: <strong>{{value}}</strong>.",
+        "overdueFeeDay2": "Phí quá hạn ngày thứ hai: <strong>{{value}}</strong>.",
+        "overdueFeeDay3": "Phí quá hạn ngày thứ ba: <strong>{{value}}</strong>.",
+        "storageFeePerDay": "Phí lưu kho mỗi ngày: <strong>{{value}}</strong>.",
+        "storageTransferAfterHours": "Ngưỡng chuyển lưu kho: <strong>{{value}}</strong> giờ.",
+        "unpaidStorageAfterDays": "Ngưỡng lưu kho khi chưa thanh toán: <strong>{{value}}</strong> ngày.",
+        "compensationLightPercent": "Tỷ lệ bồi thường hư hại nhẹ: <strong>{{value}}</strong>%.",
+        "compensationMediumPercent": "Tỷ lệ bồi thường hư hại vừa: <strong>{{value}}</strong>%.",
+        "compensationSeverePercent": "Tỷ lệ bồi thường hư hại nặng: <strong>{{value}}</strong>%.",
+        "compensationLostPercent": "Tỷ lệ bồi thường mất đồ: <strong>{{value}}</strong>%."
+      },
+      "depositExpired": "Đơn đã hết hạn gửi đồ. Vui lòng kiểm tra phí hủy và tạo đơn mới nếu cần.",
+      "depositRemaining": "Còn {{time}} để gửi đồ. Hạn gửi: {{date}}.",
+      "depositWindow": "Thời hạn được áp dụng cho đơn này: {{minutes}} phút.",
+      "prediction": {
+        "predicted": "Dự kiến dựa trên dữ liệu xử lý trước đây và tải cửa hàng.",
+        "rule": "Dự kiến theo thời gian xử lý tiêu chuẩn; chưa đủ dữ liệu lịch sử.",
+        "done": "Thời điểm hoàn tất xử lý đã được ghi nhận.",
+        "notApplicable": "Không áp dụng dự kiến cho trạng thái hiện tại."
+      },
+      "updatedAt": "Cập nhật lúc {{date}}",
+      "etaLoading": "Đang tải thời gian dự kiến…",
+      "etaUnavailable": "Chưa có thời gian dự kiến",
+      "cardEstimatedAt": "Dự kiến: {{date}}",
+      "cardDepositExpired": "Đã quá hạn gửi đồ",
+      "cardStatus": {
+        "1": { "title": "Hạn gửi đồ", "fallback": "Vui lòng gửi đồ vào tủ" },
+        "2": { "title": "Đã gửi đồ · Chờ thu gom" },
+        "3": { "title": "Đã thu gom · Chờ xử lý" },
+        "4": { "title": "Đồ đang được giặt" },
+        "5": { "title": "Đồ đang được sấy" },
+        "6": { "title": "Đồ đang được ủi" },
+        "7": { "title": "Đồ đang được gấp" },
+        "8": { "title": "Giặt xong · Hạn thanh toán", "fallback": "Vui lòng thanh toán đơn hàng" },
+        "9": { "title": "Đã thanh toán vào", "fallback": "Đang chờ trả đồ về tủ" },
+        "10": { "title": "Đã sẵn sàng tại tủ · Hạn nhận", "fallback": "Bạn có thể đến nhận đồ" },
+        "11": { "title": "Đã nhận đồ vào", "fallback": "Đã ghi nhận nhận đồ" },
+        "12": { "title": "Hoàn thành vào", "fallback": "Đã hoàn tất đơn hàng" },
+        "13": { "title": "Chuyển về kho vào", "fallback": "Vui lòng nhận đồ tại kho" },
+        "99": { "title": "Lý do hủy đơn" }
+      },
+      "estimateLabels": {
+        "predicted": "Dự đoán từ dữ liệu xử lý",
+        "rule": "Dự kiến theo thời gian tiêu chuẩn",
+        "done": "Đã hoàn tất xử lý"
+      },
+      "returnLocker": "Locker nhận đồ",
+      "openMap": "Mở Google Maps",
+      "issuedAt": "Ngày phát hành: {{date}}",
+      "seller": "Bên cung cấp dịch vụ",
+      "buyer": "Khách hàng",
+      "taxCode": "Mã số thuế",
+      "service": "Dịch vụ / khoản phí",
+      "quantity": "Số lượng",
+      "amount": "Thành tiền",
+      "totalPaid": "Tổng đã thanh toán",
+      "payments": "Các khoản thanh toán đã ghi nhận",
+      "downloadPdf": "Tải PDF",
+      "videos": "Video minh chứng (không bắt buộc)",
+      "videoHelp": "Tối đa 2 video MP4, WEBM hoặc MOV, tối đa 50 MB mỗi video.",
+      "videoType": "Chỉ chấp nhận video MP4, WEBM hoặc MOV.",
+      "videoSize": "Video phải lớn hơn 0 và không quá 50 MB.",
+      "videoLimit": "Chỉ được chọn tối đa 2 video.",
+      "videoNumber": "Video minh chứng {{number}}",
+      "removeVideo": "Xóa video {{number}}",
+      "videoCount": "{{count}} video",
+      "searchNotifications": "Tìm tiêu đề hoặc nội dung thông báo...",
+      "notificationType": "Loại thông báo",
+      "notificationDates": "Ngày nhận thông báo",
+      "sort": "Sắp xếp",
+      "sorts": {
+        "newest": "Mới nhất",
+        "oldest": "Cũ nhất",
+        "unreadFirst": "Chưa đọc trước",
+        "status": "Chờ xử lý trước"
+      },
+      "groups": {
+        "order": "Đơn hàng",
+        "payment": "Thanh toán",
+        "promotion": "Khuyến mãi",
+        "feedback": "Phản hồi",
+        "system": "Hệ thống"
+      },
+      "notificationTypes": {
+        "1": "Đơn được tạo",
+        "2": "Đã gửi đồ",
+        "3": "Đơn được tiếp nhận",
+        "4": "Đang xử lý",
+        "5": "Chờ thanh toán",
+        "6": "Thanh toán thành công",
+        "7": "Thanh toán thất bại",
+        "8": "Sẵn sàng nhận đồ",
+        "9": "Đã nhận đồ",
+        "10": "Hủy đơn",
+        "11": "Chuyển kho",
+        "12": "Kết quả khiếu nại",
+        "13": "Nhắc gửi đồ",
+        "14": "Nhắc nhận đồ",
+        "15": "Phí quá hạn",
+        "16": "Hết hạn gửi đồ",
+        "17": "Trao đổi khiếu nại"
+      },
+      "editIncident": "Chỉnh sửa khiếu nại",
+      "withdrawIncident": "Rút khiếu nại",
+      "confirmWithdraw": "Xác nhận rút",
+      "withdrawHint": "Bạn có thể rút khiếu nại đang chờ xử lý. Thao tác này sẽ được thông báo cho bộ phận hỗ trợ.",
+      "withdrawn": "Đã rút",
+      "reason": "Lý do",
+      "optionalReason": "Nhập lý do nếu muốn...",
+      "incidentChanged": "Khiếu nại đã thay đổi. Vui lòng đóng và tải lại trước khi chỉnh sửa.",
+      "notEligible": "Đơn hiện không đủ điều kiện báo cáo sự cố.",
+      "checkRequest": "Kiểm tra yêu cầu đã gửi",
+      "requestNotFound": "Chưa tìm thấy yêu cầu này. Vui lòng kiểm tra lại trước khi đóng và gửi yêu cầu khác.",
+      "uncertainMutation": "Chưa xác định được kết quả. Vui lòng tải lại để kiểm tra trước khi gửi tiếp.",
+      "messages": "Trao đổi và bổ sung minh chứng",
+      "incidentActions": "Thao tác khiếu nại",
+      "messagesHint": "Dùng để trả lời quản trị viên hoặc bổ sung thông tin, ảnh và video trong quá trình xử lý. Các tin nhắn được lưu thành lịch sử trao đổi; để sửa báo cáo ban đầu, chọn Chỉnh sửa khiếu nại.",
+      "refreshMessages": "Tải lại trao đổi",
+      "messageContent": "Nội dung trao đổi",
+      "messageHint": "Mô tả thông tin cần bổ sung, tối đa 2.000 ký tự...",
+      "noMessages": "Chưa có trao đổi nào.",
+      "sendMessage": "Gửi trao đổi",
+      "searchIncidents": "Tìm khiếu nại theo mã đơn...",
+      "incidentDates": "Ngày gửi khiếu nại"
+    },
     "serviceTerms": {
       "title": "Điều khoản dịch vụ",
       "description": "Những quy định cần biết khi đặt đơn, gửi đồ, thanh toán và hủy đơn tại WashGo.",

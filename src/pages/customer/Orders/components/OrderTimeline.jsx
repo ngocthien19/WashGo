@@ -7,7 +7,14 @@ import { cn } from '~/lib/utils'
 export default function OrderTimeline({ order }) {
   const { t } = useTranslation()
   const events = [...(order.timeline || [])].sort((a, b) => a.timestamp - b.timestamp)
-  const steps = [...ORDER_WORKFLOW]
+  const workflow = Array.isArray(order.workflowSteps) ? order.workflowSteps.filter((step) => step.isApplicable) : []
+  const currentStatus = workflow.find((step) => step.isCurrent)?.status ?? order.status
+  const steps = workflow.length ? workflow.map((step) => ORDER_STATUS_OPTIONS.find((option) => Number(option.value) === step.status) || { value: String(step.status), label: 'customer.orders.unknown' }) : [...ORDER_WORKFLOW]
+  for (const step of workflow) {
+    if ((step.isCompleted || step.isCurrent) && !events.some((event) => event.status === step.status)) {
+      events.push({ id: `workflow-${step.status}`, status: step.status, timestamp: step.timestamp })
+    }
+  }
   for (const status of new Set([...events.map((event) => event.status), order.status])) {
     if (!steps.some((step) => Number(step.value) === status)) {
       steps.push(ORDER_STATUS_OPTIONS.find((step) => Number(step.value) === status) || { value: String(status), label: 'customer.orders.unknown' })
@@ -18,7 +25,7 @@ export default function OrderTimeline({ order }) {
     return (recorded.length ? recorded : [null]).map((event, index) => ({
       step,
       event,
-      current: Number(step.value) === order.status && index === Math.max(0, recorded.length - 1),
+      current: Number(step.value) === currentStatus && index === Math.max(0, recorded.length - 1),
       key: event?.id || `${step.value}-${index}`
     }))
   })

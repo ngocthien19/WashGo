@@ -7,6 +7,8 @@ import { NOTIFICATION_CONFIG } from '~/utils/constants'
 import { NotificationContext } from './NotificationContext'
 import NotificationIcon from './NotificationIcon'
 import { notify } from '~/utils/notifications'
+import i18n from '~/i18n'
+import { notificationText } from './notificationModel'
 
 export default function NotificationProvider({ children, listHref, resolveHref }) {
   const store = useStore()
@@ -64,7 +66,7 @@ function NotificationSession({ children, store, listHref, resolveHref }) {
           if (announced.current.size > NOTIFICATION_CONFIG.TOAST_HISTORY_LIMIT) {
             announced.current.delete(announced.current.values().next().value)
           }
-          notify.info('customer.notification.incoming', { title: item.title }, {
+          notify.info('customer.notification.incoming', { title: notificationText(item, i18n.t.bind(i18n)).title }, {
             id: `notification-${item.id}`,
             icon: createElement(NotificationIcon, { type: item.type, className: 'size-9' })
           })
@@ -72,6 +74,12 @@ function NotificationSession({ children, store, listHref, resolveHref }) {
       }
     }
     connection.on(NOTIFICATION_CONFIG.EVENT, received)
+    const stateChanged = (state) => {
+      if (!disposed && ['read', 'readAll', 'deleted', 'deletedAll'].includes(state?.action) && Number.isInteger(state.unreadCount) && state.unreadCount >= 0) {
+        refresh()
+      }
+    }
+    connection.on('notificationState', stateChanged)
     const start = async () => {
       if (disposed) {
         return
@@ -113,6 +121,7 @@ function NotificationSession({ children, store, listHref, resolveHref }) {
       clearTimeout(retryTimer)
       window.removeEventListener('focus', focus)
       connection.off(NOTIFICATION_CONFIG.EVENT, received)
+      connection.off('notificationState', stateChanged)
       connection.stop().catch(() => {})
     }
   }, [store, refresh])

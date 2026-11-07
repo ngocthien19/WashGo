@@ -49,7 +49,7 @@ async function setup(page, options = {}) {
         await route.fulfill({ status: 409, json: { succeeded: false, message: 'Ô này vừa được đặt. Vui lòng chọn ô khác.' } })
         return
       }
-      data = envelope({ id: 'created-order', orderCode: 'WG2611051234', lockerName: locker.name, boxNumber: state.creates.at(-1).boxId === slots[0].id ? 1 : 2, finalAmount: 49000, includedWeightKg: 5, depositPinCode: '654321', qrCodeString: 'WASHGO:DEPOSIT:WG2611051234:654321' })
+      data = envelope({ id: 'created-order', orderCode: 'WG2611051234', lockerName: locker.name, boxNumber: state.creates.at(-1).boxId === slots[0].id ? 1 : 2, finalAmount: 49000, includedWeightKg: 5, depositPinCode: '654321', qrCodeString: 'WASHGO:DEPOSIT:WG2611051234:654321', serverNow: new Date().toISOString(), depositDeadline: new Date(Date.now() + 45 * 60000).toISOString(), depositWindowMinutes: 45, isDepositExpired: false })
     } else {
       await route.fulfill({ status: 404, json: { succeeded: false } })
       return
@@ -108,7 +108,7 @@ test('mixed services, server voucher and confirmation work with language switchi
   const success = page.locator('section[aria-labelledby="order-success-title"]')
   await expect(success.getByRole('img', { name: 'Mã QR gửi đồ', exact: true })).toBeVisible()
   await expect(page.getByRole('status').filter({ hasText: 'Tạo đơn thành công!' })).toHaveCount(0)
-  await expect(success.getByText('Vui lòng gửi đồ trong vòng 30 phút kể từ khi tạo đơn thành công.')).toBeVisible()
+  await expect(success.getByText('Thời hạn được áp dụng cho đơn này: 45 phút.')).toBeVisible()
   const actions = await Promise.all(['Đơn hàng của tôi', 'Xem thông tin thanh toán', 'Trang chủ'].map((name) => success.getByRole('button', { name, exact: true }).boundingBox()))
   expect(new Set(actions.map((rect) => Math.round(rect.y))).size).toBe(1)
   await expect(success.locator('..')).toHaveCSS('opacity', '1')

@@ -21,7 +21,7 @@ export const onlinePaymentMethod = (value) => [ORDER_PAYMENT_METHODS.VNPAY, ORDE
 // Gateway references locate an order only. They never prove that a payment succeeded.
 export const returnedOrderCode = (params) => {
   const reference = params.get('vnp_TxnRef') || params.get('orderId') || ''
-  return /^WG-PAY-([A-Za-z0-9]+)-[a-f0-9]{16}(?:[a-f0-9]{16})?$/i.exec(reference)?.[1] || ''
+  return /^WG-(?:PAY|FEE|CANCEL)-([A-Za-z0-9]+)-[a-f0-9]{16}(?:[a-f0-9]{16})?$/i.exec(reference)?.[1] || ''
 }
 
 export const paymentRedirectUrl = (value) => {
@@ -33,4 +33,9 @@ export const paymentRedirectUrl = (value) => {
     }
   } catch { /* Invalid gateway responses must not trigger navigation. */ }
   throw new Error('customer.payment.invalidResponse')
+}
+
+export const returnedFee = (params) => {
+  const reference = params.get('vnp_TxnRef') || params.get('orderId') || ''
+  return !!returnedOrderCode(params) && /^WG-(?:FEE|CANCEL)-/.test(reference)
 }

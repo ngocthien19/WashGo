@@ -13,7 +13,7 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import { CUSTOMER_ROUTES, ORDER_PAYMENT_METHODS, PAYMENT_STATUSES } from '~/utils/constants'
 import { formatCurrency } from '~/utils/formats'
 import { getApiError } from '~/utils/apiError'
-import { onlinePaymentMethod, paymentBlockReason, paymentRedirectUrl, returnedOrderCode } from './paymentModel'
+import { onlinePaymentMethod, paymentBlockReason, paymentRedirectUrl, returnedOrderCode, returnedFee } from './paymentModel'
 
 export default function PaymentPage() {
   const { t } = useTranslation()
@@ -24,6 +24,7 @@ export default function PaymentPage() {
   const [params] = useSearchParams()
   const pendingRequests = useRef(new Set())
   const code = returnedOrderCode(params)
+  const feeReturn = !orderId && returnedFee(params)
   const load = useCallback((signal) => orderId
     ? customerPaymentApi.getOrder(orderId, signal) : customerPaymentApi.findReturnedOrder(code, signal), [orderId, code])
   const resource = useCatalogResource(load)
@@ -38,6 +39,30 @@ export default function PaymentPage() {
             {...resource}
             loadingText="customer.payment.loading"
           />
+        ) : feeReturn ? (
+          <section className="grid gap-5 rounded-2xl border border-border bg-card p-6">
+            <h1 className="text-2xl font-bold">
+              {t('customer.sync.feeReturnTitle')}
+            </h1>
+            <p className="font-semibold text-primary">
+              {order.orderCode}
+            </p>
+            <p className="leading-7 text-muted-foreground">
+              {t('customer.sync.feeReturnHint')}
+            </p>
+            <Button
+              variant="outline"
+              onClick={resource.retry}
+            >
+              {t('customer.payment.refresh')}
+            </Button>
+            <Button
+              render={<Link to={CUSTOMER_ROUTES.ORDER_DETAIL.replace(':orderId', order.id)} />}
+              nativeButton={false}
+            >
+              {t('customer.orders.details')}
+            </Button>
+          </section>
         ) : (
           <PaymentCheckout
             key={`${order.id}:${order.paymentStatus}:${order.status}`}

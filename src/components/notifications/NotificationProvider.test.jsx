@@ -75,6 +75,9 @@ it('reconciles counts on realtime events and reconnect, uses current token and c
   act(() => mock.handlers.notification({ ...incoming, id: 'already-read', isRead: true }))
   expect(notify.info).toHaveBeenCalledTimes(1)
   mock.unread.mockResolvedValue(0)
+  act(() => mock.handlers.notificationState({ action: 'readAll', ids: [], unreadCount: 0 }))
+  await screen.findByText('true:0')
+  expect(notify.info).toHaveBeenCalledTimes(1)
   act(() => mock.reconnected())
   await screen.findByText('true:0')
   act(() => mock.handlers.notification(incoming))
@@ -82,6 +85,7 @@ it('reconciles counts on realtime events and reconnect, uses current token and c
   view.unmount()
   await waitFor(() => expect(mock.stop).toHaveBeenCalled())
   expect(mock.handlers.notification).toBeUndefined()
+  expect(mock.handlers.notificationState).toBeUndefined()
 })
 it('routes only supported internal targets with valid identifiers', () => {
   const id = '11111111-1111-4111-8111-111111111111'

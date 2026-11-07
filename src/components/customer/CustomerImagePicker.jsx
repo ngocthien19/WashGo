@@ -1,3 +1,4 @@
+import { getImageUrl } from '~/utils/formats'
 import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ImagePlus, Trash2 } from 'lucide-react'
@@ -57,7 +58,7 @@ export default function CustomerImagePicker({ selection, disabled, help }) {
               className="relative"
             >
               <img
-                src={image.url}
+                src={getImageUrl(image.url)}
                 alt={t('customer.imageUpload.alt', { count: index + 1 })}
                 className="aspect-square w-full rounded-xl border border-border object-cover"
               />

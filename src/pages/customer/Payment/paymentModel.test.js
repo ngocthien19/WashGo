@@ -20,6 +20,7 @@ describe('customer payment rules', () => {
     for (const length of [16, 32]) {
       expect(returnedOrderCode(new URLSearchParams({ [key]: `WG-PAY-WG2611059288-${'a'.repeat(length)}`, vnp_ResponseCode: '00', resultCode: '0' }))).toBe('WG2611059288')
     }
+    expect(returnedOrderCode(new URLSearchParams({ vnp_TxnRef: `WG-FEE-WG123-${'a'.repeat(32)}` }))).toBe('WG123')
     expect(returnedOrderCode(new URLSearchParams({ resultCode: '0', orderId: 'arbitrary-id' }))).toBe('')
   })
 

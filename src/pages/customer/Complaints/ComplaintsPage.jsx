@@ -1,7 +1,9 @@
-import { useCallback, useEffect } from 'react'
+import IncidentFilters from './components/IncidentFilters'
+import { IncidentActions } from './components/IncidentSelfService'
+import { useCallback, useEffect, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { MessageSquareWarning, Eye, RefreshCw, Plus } from 'lucide-react'
+import { MessageSquareWarning, RefreshCw, Plus } from 'lucide-react'
 import Breadcrumb from '~/components/Breadcrumb/Breadcrumb'
 import SectionHeading from '~/components/customer/SectionHeading/SectionHeading'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
@@ -16,13 +18,24 @@ import { customerIncidentApi } from '~/apis/customer/customerIncidentApi'
 import { CUSTOMER_ROUTES, INCIDENT_CONFIG, TEXT_LINK_STYLES } from '~/utils/constants'
 import { formatCurrency, formatDateTime } from '~/utils/formats'
 import IncidentStatusBadge from './components/IncidentStatusBadge'
-import { readIncidentPage } from './incidentModel'
+import { incidentListFilter } from './incidentModel'
 
 export default function ComplaintsPage() {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
-  const page = readIncidentPage(params)
-  const load = useCallback((signal) => customerIncidentApi.list(page, signal), [page])
+  const query = useMemo(() => incidentListFilter(params), [params])
+  const change = (patch) => {
+    const next = new URLSearchParams(params); next.delete('page')
+    for (const [key, value] of Object.entries(patch)) {
+      if (value !== '' && value != null) {
+        next.set(key, String(value))
+      } else {
+        next.delete(key)
+      }
+    }
+    setParams(next)
+  }
+  const load = useCallback((signal) => customerIncidentApi.filter(query, signal), [query])
   const resource = useCatalogResource(load)
   const { data, loading, error, retry } = resource
   useEffect(() => {
@@ -50,6 +63,10 @@ export default function ComplaintsPage() {
             {t('customer.incidents.reportFromOrder')}
           </Button>
         </div>
+        <IncidentFilters
+          params={params}
+          change={change}
+        />
         <CatalogResultSummary
           icon={MessageSquareWarning}
           count={!loading && !error ? data?.total || 0 : undefined}
@@ -120,6 +137,11 @@ export default function ComplaintsPage() {
                     </TableCell>
                     <TableCell>
                       <CustomerImageStack urls={incident.imageUrls} />
+                      {!!incident.videoUrls?.length && (
+                        <p className="mt-2 text-xs text-primary">
+                          {t('customer.sync.videoCount', { count: incident.videoUrls.length })}
+                        </p>
+                      )}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       {incident.compensationAmount > 0 ? (
@@ -134,16 +156,11 @@ export default function ComplaintsPage() {
                       ) : <span className="text-muted-foreground">—</span>}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="size-10 rounded-xl"
-                        aria-label={t('customer.orders.details')}
-                        render={<Link to={CUSTOMER_ROUTES.COMPLAINT_DETAIL.replace(':incidentId', incident.id)} />}
-                        nativeButton={false}
-                      >
-                        <Eye size={18} />
-                      </Button>
+                      <IncidentActions
+                        incident={incident}
+                        onSaved={retry}
+                        menu
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -155,7 +172,7 @@ export default function ComplaintsPage() {
           <Pagination
             currentPage={data.currentPage}
             totalPages={data.totalPages}
-            onPageChange={(next) => setParams(next > 1 ? { page: String(next) } : {})}
+            onPageChange={(next) => change({ page: next > 1 ? next : '' })}
           />
         )}
       </div>

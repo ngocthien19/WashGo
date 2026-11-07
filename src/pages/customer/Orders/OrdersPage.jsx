@@ -12,6 +12,7 @@ import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
 import { customerOrderApi } from '~/apis/customer/customerOrderApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
+import useOrderEstimates from '~/hooks/customer/useOrderEstimates'
 import { CUSTOMER_ROUTES, ORDER_LIST, ORDER_SORT_OPTIONS, ORDER_STATUS_OPTIONS, PAYMENT_STATUSES } from '~/utils/constants'
 import OrderCard from './components/OrderCard'
 import { buildOrdersFilter, initialOrdersQuery, readOrdersQuery, writeOrdersQuery } from './ordersQuery'
@@ -23,6 +24,7 @@ export default function OrdersPage() {
   const load = useCallback((signal) => customerOrderApi.list(buildOrdersFilter(query), signal), [query])
   const resource = useCatalogResource(load)
   const { data, loading, error, retry } = resource
+  const estimates = useOrderEstimates(data?.list)
   const results = useRef(null)
   const setQuery = (patch) => setParams(writeOrdersQuery({ ...query, ...patch, page: patch.page || 1 }))
   useEffect(() => {
@@ -133,6 +135,7 @@ export default function OrdersPage() {
             <OrderCard
               key={order.id}
               order={order}
+              estimate={estimates[order.id]}
             />
           ))}
           {!loading && !error && data?.totalPages > 0 && (

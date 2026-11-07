@@ -1,3 +1,6 @@
+import ReturnLockerInfo from './ReturnLockerInfo'
+import useDepositDeadline from '~/hooks/customer/useDepositDeadline'
+import { isCancelledLockerPickup } from '~/components/customer/orders/orderWorkflow'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DoorOpen, ShieldCheck, LockKeyhole, HandHeart, Timer, PackageCheck } from 'lucide-react'
@@ -18,6 +21,7 @@ import { formatCountdown, formatDateTime } from '~/utils/formats'
 export default function LockerActionDialog({ order, deposit, onClose, onUpdated }) {
   const { t } = useTranslation()
   const reducedMotion = useReducedMotion()
+  const depositDeadline = useDepositDeadline(order)
   const [mode, setMode] = useState('pin')
   const [pin, setPin] = useState('')
   const [qr, setQr] = useState('')
@@ -27,7 +31,7 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
   const [session, setSession] = useState(null)
   const [expired, setExpired] = useState(false)
   const [remainingSeconds, setRemainingSeconds] = useState(0)
-  const boxNumber = deposit ? order.boxNumber : session?.returnBoxNumber || order.returnBoxNumber
+  const boxNumber = deposit ? order.boxNumber : session?.returnBoxNumber || order.returnBoxNumber || (order.cancelledGoodsStatus === 1 ? order.boxNumber : null)
   const credentialsReady = mode === 'pin' ? /^[0-9]{6}$/.test(pin) : !!qr
   const lock = useRef(false)
   const active = useRef(false)
@@ -61,6 +65,9 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
   }
   const submit = async (event) => {
     event.preventDefault()
+    if (deposit && depositDeadline.expired) {
+      setError('customer.sync.depositExpired'); return
+    }
     if (lock.current || unknown || expired) {
       return
     }
@@ -80,7 +87,8 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
       if (deposit || session) {
         const result = deposit ? await customerOrderApi.deposit(order.id, credentials)
           : await customerOrderApi.confirmPickup(order.id, session.pickupSessionToken)
-        if (result.id !== order.id || result.status !== (deposit ? ORDER_STATUSES.DEPOSITED : ORDER_STATUSES.COMPLETED)) {
+        const validStatus = deposit ? result.status === ORDER_STATUSES.DEPOSITED : isCancelledLockerPickup(order) ? result.status === ORDER_STATUSES.CANCELLED && result.cancelledGoodsStatus === 4 : result.status === ORDER_STATUSES.COMPLETED
+        if (result.id !== order.id || !validStatus) {
           throw new Error('customer.orders.scan.unknownOutcome')
         }
         if (active.current) {
@@ -170,7 +178,7 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
             </DialogDescription>
             {deposit && (
               <div className="mt-4">
-                <DepositDeadlineNotice />
+                <DepositDeadlineNotice order={order} />
               </div>
             )}
             {deposit && (
@@ -215,6 +223,7 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
               noValidate
               className="mt-5 space-y-5"
             >
+              {!deposit && !session && <ReturnLockerInfo order={order} />}
               {!deposit && !session && (
                 <div className="space-y-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 dark:border-sky-400/20 dark:bg-sky-400/10">
                   <p className="flex items-center gap-2 font-semibold text-sky-800 dark:text-sky-200">
@@ -348,7 +357,7 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
                     <Button
                       type="submit"
                       className="h-auto min-h-11 min-w-0 flex-1 whitespace-normal bg-emerald-600 py-3 text-center text-white hover:bg-emerald-700 focus-visible:ring-emerald-500/40"
-                      disabled={busy || unknown || (!session && !credentialsReady)}
+                      disabled={busy || unknown || (deposit && depositDeadline.expired) || (!session && !credentialsReady)}
                     >
                       <ShieldCheck size={16} />
                       {t(busy ? 'customer.orders.scan.submitting' : session ? 'customer.orders.scan.confirm' : deposit ? 'customer.orders.scan.depositConfirm' : 'customer.orders.scan.open')}
