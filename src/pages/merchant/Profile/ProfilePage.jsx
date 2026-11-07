@@ -69,8 +69,8 @@ export default function ProfilePage() {
         <div className="mt-6 space-y-5">
           <div className="grid gap-4 sm:grid-cols-3">
             {Number.isFinite(shop.rating) && (
-              <section className="flex items-center gap-4 rounded-2xl border border-border border-l-4 border-l-amber-500 bg-card p-5 shadow-sm">
-                <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-300">
+              <section className="flex items-center gap-3 rounded-2xl border border-border border-l-4 border-l-amber-500 bg-card p-4 shadow-sm">
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-300">
                   <Star
                     className="fill-current"
                     size={22}
@@ -81,18 +81,25 @@ export default function ProfilePage() {
                     {t('merchant.shop.rating')}
                   </h2>
                   <p className="mt-1 text-2xl font-bold">
-                    <AnimatedNumber
-                      value={shop.rating}
-                      decimals={1}
-                    />
-                    <span className="ml-1 text-sm font-normal text-muted-foreground">/ 5</span>
+                    {shop.publicRatingCount === 0 ? '—' : (
+                      <AnimatedNumber
+                        value={shop.rating}
+                        decimals={1}
+                      />
+                    )}
+                    {shop.publicRatingCount !== 0 && <span className="ml-1 text-sm font-normal text-muted-foreground">/ 5</span>}
                   </p>
+                  {Number.isInteger(shop.publicRatingCount) && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {t(shop.publicRatingCount === 0 ? 'merchant.sync.noRatings' : 'merchant.sync.ratingCount', { count: shop.publicRatingCount })}
+                    </p>
+                  )}
                 </div>
               </section>
             )}
             {Number.isFinite(shop.totalOrders) && (
-              <section className="flex items-center gap-4 rounded-2xl border border-border border-l-4 border-l-primary bg-card p-5 shadow-sm">
-                <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+              <section className="flex items-center gap-3 rounded-2xl border border-border border-l-4 border-l-primary bg-card p-4 shadow-sm">
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
                   <Layers size={22} />
                 </span>
                 <div>
@@ -105,8 +112,8 @@ export default function ProfilePage() {
                 </div>
               </section>
             )}
-            <section className="flex items-center gap-4 rounded-2xl border border-border border-l-4 border-l-emerald-500 bg-card p-5 shadow-sm">
-              <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+            <section className="flex items-center gap-3 rounded-2xl border border-border border-l-4 border-l-emerald-500 bg-card p-4 shadow-sm">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
                 <Wallet size={22} />
               </span>
               <div>
@@ -115,7 +122,7 @@ export default function ProfilePage() {
                 </h2>
                 <p className="mt-1 text-2xl font-bold">—</p>
                 <p className="text-sm text-muted-foreground">
-                  {t('merchant.shop.notUpdated')}
+                  {t('merchant.sync.totalRevenuePending')}
                 </p>
               </div>
             </section>

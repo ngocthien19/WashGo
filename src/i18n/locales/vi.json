@@ -490,7 +490,7 @@
     "collapseNavigation": "Thu gọn thanh điều hướng", "expandNavigation": "Mở rộng thanh điều hướng",
     "shop": {
       "cityRequired": "Vui lòng nhập Tỉnh/Thành phố, tối đa 100 ký tự.",
-      "city": "Tỉnh / Thành phố", "joinedAt": "Ngày tham gia", "location": "Địa chỉ cửa hàng", "cityUpdateNote": "Tỉnh/Thành phố là bắt buộc. Khi đổi tỉnh/thành phố, cần quản trị viên cập nhật trước khi gửi hồ sơ.", "cityUpdateUnavailable": "Chưa thể gửi thay đổi Tỉnh/Thành phố để duyệt. Vui lòng liên hệ quản trị viên cập nhật trường này; thông tin bạn nhập vẫn được giữ tại đây.",
+      "city": "Tỉnh / Thành phố", "joinedAt": "Ngày tham gia", "location": "Địa chỉ cửa hàng",
       "rating": "Điểm cửa hàng", "details": "Chi tiết thông tin", "businessName": "Tên cửa hàng", "taxCode": "Mã số thuế", "address": "Địa chỉ kinh doanh", "phone": "Số điện thoại", "email": "Email liên hệ", "openingHours": "Giờ mở cửa", "active": "Đang hoạt động", "inactive": "Ngừng hoạt động", "suspended": "Tạm đình chỉ",
       "businessLicense": "Giấy phép kinh doanh", "revenue": "Tổng doanh thu", "notUpdated": "Chưa cập nhật", "noImage": "Chưa có ảnh cửa hàng", "images": "Ảnh cửa hàng", "addImages": "Thêm ảnh", "removeImage": "Xóa ảnh cửa hàng", "imagesHint": "Tối đa 5 ảnh JPG, PNG hoặc WEBP, mỗi ảnh tối đa 5 MB.",
       "edit": "Chỉnh sửa hồ sơ", "approvalNote": "Thay đổi chỉ được áp dụng sau khi Admin phê duyệt. Thông tin hiện tại vẫn được giữ trong thời gian chờ duyệt.", "pending": "Hồ sơ đang chờ Admin phê duyệt. Bạn có thể gửi yêu cầu mới sau khi yêu cầu này được xử lý.", "submit": "Gửi hồ sơ duyệt", "sending": "Đang gửi hồ sơ…", "submitted": "Đã gửi hồ sơ. Vui lòng chờ phê duyệt.", "hoursPlaceholder": "Ví dụ: 07:00 - 22:00 hằng ngày",

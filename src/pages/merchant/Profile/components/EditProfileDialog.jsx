@@ -40,11 +40,13 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
       setError('merchant.shop.invalidFields')
       return
     }
-    if (payload.city !== (shop.city || '').trim()) {
-      setError('merchant.shop.cityUpdateUnavailable')
+    const locationChanged = payload.address !== (shop.address || '').trim() || payload.city !== (shop.city || '').trim()
+    if (locationChanged && !hasCoordinates(mapCenter)) {
+      setError('merchant.sync.chooseLocation')
       return
     }
-    const changed = Object.keys(payload).some((key) => payload[key] !== (key === 'openingHours' ? displayOpeningHours(shop[key]) : shop[key] || '').trim()) || images.images.length || JSON.stringify(existing) !== JSON.stringify(shop.imageUrls || [])
+    const coordinatesChanged = hasCoordinates(mapCenter) && (mapCenter.latitude !== shop.latitude || mapCenter.longitude !== shop.longitude)
+    const changed = coordinatesChanged || Object.keys(payload).some((key) => payload[key] !== (key === 'openingHours' ? displayOpeningHours(shop[key]) : shop[key] || '').trim()) || images.images.length || JSON.stringify(existing) !== JSON.stringify(shop.imageUrls || [])
     if (!changed) {
       setError('merchant.shop.noChanges'); return
     }
@@ -55,7 +57,7 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
     try {
       const urls = await images.upload()
       submitting = true
-      const request = await merchantProfileApi.requestUpdate({ ...payload, openingHours: payload.openingHours || null, imageUrls: [...existing, ...urls] })
+      const request = await merchantProfileApi.requestUpdate({ ...payload, ...(hasCoordinates(mapCenter) ? mapCenter : {}), openingHours: payload.openingHours || null, imageUrls: [...existing, ...urls] })
       notify.success('merchant.shop.submitted')
       onSubmitted(request)
     } catch (failure) {
@@ -138,7 +140,7 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
                         id="merchant-profile-city-note"
                         className="block text-sm font-normal text-muted-foreground"
                       >
-                        {t('merchant.shop.cityUpdateNote')}
+                        {t('merchant.sync.locationApproval')}
                       </span>
                     )}
                   </label>

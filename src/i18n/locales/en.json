@@ -490,7 +490,7 @@
     "collapseNavigation": "Collapse navigation", "expandNavigation": "Expand navigation",
     "shop": {
       "cityRequired": "Enter a city / province, up to 100 characters.",
-      "city": "City / Province", "joinedAt": "Date joined", "location": "Store address", "cityUpdateNote": "City / Province is required. An administrator must update a different city before you submit your profile.", "cityUpdateUnavailable": "City / Province changes cannot be submitted for approval yet. Contact an administrator to update this field. Your edits are still available here.",
+      "city": "City / Province", "joinedAt": "Date joined", "location": "Store address",
       "rating": "Store rating", "details": "Store information", "businessName": "Business name", "taxCode": "Tax code", "address": "Business address", "phone": "Phone number", "email": "Contact email", "openingHours": "Opening hours", "active": "Active", "inactive": "Inactive", "suspended": "Suspended",
       "businessLicense": "Business license", "revenue": "Total revenue", "notUpdated": "Not updated", "noImage": "No store photos yet", "images": "Store photos", "addImages": "Add photos", "removeImage": "Remove store photo", "imagesHint": "Up to 5 JPG, PNG or WEBP photos, at most 5 MB each.",
       "edit": "Edit store profile", "approvalNote": "Changes take effect after Admin approval. Your current information stays in place while the request is reviewed.", "pending": "Your profile update is awaiting Admin approval. You can submit another request after it has been reviewed.", "submit": "Submit for approval", "sending": "Submitting…", "submitted": "Profile submitted. Please wait for approval.", "hoursPlaceholder": "For example: 07:00 - 22:00 daily",
