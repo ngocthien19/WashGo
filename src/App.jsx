@@ -28,6 +28,7 @@ const CustomerLayout = lazy(() => import('~/layouts/customer/CustomerLayout'))
 const CustomerNotificationsPage = lazy(() => import('~/pages/customer/Notifications/NotificationsPage'))
 const AdminHomePage = lazy(() => import('~/pages/admin/Home/HomePage'))
 const MerchantHomePage = lazy(() => import('~/pages/merchant/Home/HomePage'))
+const MerchantProfilePage = lazy(() => import('~/pages/merchant/Profile/ProfilePage'))
 const MerchantLayout = lazy(() => import('~/layouts/merchant/MerchantLayout'))
 const MerchantNotificationsPage = lazy(() => import('~/pages/merchant/Notifications/NotificationsPage'))
 const ShipperHomePage = lazy(() => import('~/pages/shipper/Home/HomePage'))
@@ -99,6 +100,10 @@ export default function App() {
               <Route
                 path={MERCHANT_ROUTES.HOME}
                 element={<MerchantHomePage />}
+              />
+              <Route
+                path={MERCHANT_ROUTES.PROFILE}
+                element={<MerchantProfilePage />}
               />
               <Route
                 path={MERCHANT_ROUTES.NOTIFICATIONS}
