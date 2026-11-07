@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { LOCKER_MAP } from '~/utils/constants'
 
-export default function useCustomerLocation() {
+export default function useGeolocation() {
   const [position, setPosition] = useState(null)
   const [locating, setLocating] = useState(false)
   const [locationError, setLocationError] = useState('')

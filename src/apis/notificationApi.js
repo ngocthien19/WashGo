@@ -16,7 +16,7 @@ const count = (value) => {
   }
   return value
 }
-export const customerNotificationApi = {
+export const notificationApi = {
   list: (page, unreadOnly, signal) => authorizedAxios.get(endpoint, { params: { page, take: NOTIFICATION_CONFIG.PAGE_SIZE, unreadOnly }, signal }).then(({ data }) => {
     if (data?.succeeded !== true || !Array.isArray(data.list) || !data.list.every(isNotification)
       || !Number.isInteger(data.total) || !Number.isInteger(data.currentPage) || !Number.isInteger(data.totalPages)) {

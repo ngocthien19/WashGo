@@ -7,7 +7,15 @@ const types = {
   4: [WashingMachine, 'sky'], 5: [CreditCard, 'amber'], 6: [CircleDollarSign, 'emerald'],
   7: [CircleX, 'rose'], 8: [DoorOpen, 'teal'], 9: [CircleCheck, 'emerald'],
   10: [Ban, 'rose'], 11: [Warehouse, 'amber'], 12: [MessageSquareWarning, 'violet'],
-  13: [Clock, 'amber'], 14: [Clock, 'teal'], 15: [ReceiptText, 'rose']
+  13: [Clock, 'amber'], 14: [Clock, 'teal'], 15: [ReceiptText, 'rose'],
+  20: [PackagePlus, 'blue'], 21: [Clock, 'amber'], 22: [Clock, 'rose'],
+  23: [Warehouse, 'amber'], 24: [ReceiptText, 'blue'], 25: [CircleDollarSign, 'emerald'],
+  26: [CircleCheck, 'violet'], 27: [CircleCheck, 'violet'], 29: [Bell, 'amber'],
+  30: [Truck, 'blue'], 31: [Truck, 'teal'], 32: [Truck, 'emerald'],
+  33: [Clock, 'amber'], 34: [Clock, 'amber'], 40: [MessageSquareWarning, 'rose'],
+  41: [CircleDollarSign, 'amber'], 42: [CircleCheck, 'violet'],
+  43: [PackageCheck, 'teal'], 44: [CircleCheck, 'emerald'], 45: [Clock, 'rose'],
+  46: [ReceiptText, 'violet'], 47: [Bell, 'blue']
 }
 const colors = {
   blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-300',

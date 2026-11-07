@@ -5,7 +5,7 @@ import { MapPin, Banknote, TicketPercent, RefreshCw, X, PackageCheck, Shirt, Pan
 import { Button } from '~/components/ui/button'
 import FormField from '~/components/ui/FormField'
 import FormError from '~/components/ui/FormError'
-import CatalogFeedback from '~/components/customer/catalog/CatalogFeedback'
+import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { formatCurrency, formatLockerAddress } from '~/utils/formats'
 import { LOCKER_SLOT_SIZES, ORDER_LIMITS, ORDER_PANEL_HEADER_STYLES } from '~/utils/constants'
 

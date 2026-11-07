@@ -4,15 +4,15 @@ import { Check, LoaderCircle, MapPinned } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
-import LocationButton from '~/components/customer/lockers/LocationButton'
-import useCustomerLocation from '~/hooks/customer/useCustomerLocation'
-import { customerAddressApi } from '~/apis/customer/customerAddressApi'
+import LocationButton from '~/components/maps/LocationButton'
+import useGeolocation from '~/hooks/useGeolocation'
+import { addressApi } from '~/apis/addressApi'
 import { ADDRESS_MAP, TEXT_LINK_STYLES } from '~/utils/constants'
 import AddressMap from './AddressMap'
 
 export default function AddressPickerDialog({ initialCenter, onApply, onClose }) {
   const { t } = useTranslation()
-  const { position, locating, locationError, requestLocation } = useCustomerLocation()
+  const { position, locating, locationError, requestLocation } = useGeolocation()
   const [selection, setSelection] = useState(null)
   const [focus, setFocus] = useState(null)
   const active = useRef(false)
@@ -36,7 +36,7 @@ export default function AddressPickerDialog({ initialCenter, onApply, onClose })
     setSelection({ point, loading: true, error: '', address: null })
     const timer = setTimeout(async () => {
       try {
-        const address = await customerAddressApi.reverse(point, controller.signal)
+        const address = await addressApi.reverse(point, controller.signal)
         if (active.current && !controller.signal.aborted) {
           setSelection({ point, address, loading: false, error: '' })
         }

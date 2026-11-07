@@ -4,8 +4,8 @@ import { ArrowUpRight, Check, DoorOpen, Hash, Info, MapPin, PanelsTopLeft } from
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
-import useCatalogResource from '~/hooks/customer/useCatalogResource'
-import CatalogFeedback from '~/components/customer/catalog/CatalogFeedback'
+import useCatalogResource from '~/hooks/useCatalogResource'
+import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { formatLockerAddress, getLockerMapLink } from '~/utils/formats'
 import { LOCKER_SLOT_SIZES } from '~/utils/constants'
 

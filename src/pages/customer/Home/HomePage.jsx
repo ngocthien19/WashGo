@@ -9,7 +9,7 @@ import HowItWorks from './components/HowItWorks'
 import NearbyLockers from './components/NearbyLockers'
 import hero from '~/assets/customer/locker-hero.jpg'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
-import useCatalogResource from '~/hooks/customer/useCatalogResource'
+import useCatalogResource from '~/hooks/useCatalogResource'
 import { CUSTOMER_CATALOG, HERO_MOTION, UI_MOTION } from '~/utils/constants'
 
 const loadFeaturedServices = (signal) => customerCatalogApi.getServices({

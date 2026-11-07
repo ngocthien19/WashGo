@@ -3,10 +3,10 @@ import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Bell, List, Mail, Inbox } from 'lucide-react'
 import { Button } from '~/components/ui/button'
-import { useNotifications } from '~/components/customer/notifications/NotificationContext'
+import { useNotifications } from '~/components/notifications/NotificationContext'
 import Breadcrumb from '~/components/Breadcrumb/Breadcrumb'
 import SectionHeading from '~/components/customer/SectionHeading/SectionHeading'
-import NotificationInbox from '~/components/customer/notifications/NotificationInbox'
+import NotificationInbox from '~/components/notifications/NotificationInbox'
 import { CUSTOMER_ROUTES } from '~/utils/constants'
 
 export default function NotificationsPage() {
