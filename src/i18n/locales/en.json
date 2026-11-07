@@ -1,5 +1,8 @@
 {
   "common": {
+    "photos": "Photos",
+    "noPhotos": "No photos available",
+    "photoUnavailable": "Unable to load photo",
     "close": "Close",
     "breadcrumb": "Breadcrumb",
     "loadingWashgo": "Loading WashGo...",

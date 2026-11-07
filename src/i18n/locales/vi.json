@@ -1,5 +1,8 @@
 {
   "common": {
+    "photos": "Hình ảnh",
+    "noPhotos": "Chưa có ảnh hiển thị",
+    "photoUnavailable": "Không tải được ảnh",
     "close": "Đóng",
     "breadcrumb": "Điều hướng đường dẫn",
     "loadingWashgo": "Đang tải WashGo...",
