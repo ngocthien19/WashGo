@@ -175,6 +175,13 @@
     "forgotPasswordTitle": "Quên mật khẩu?"
   },
   "merchant": {
+    "lockers": {
+      "description": "Theo dõi các trạm locker được phân công và tình trạng từng ô tủ.", "statistics": "Thống kê toàn bộ locker phụ trách", "summary": { "total": "Tổng locker", "active": "Đang hoạt động", "maintenance": "Đang bảo trì", "inactive": "Ngừng hoạt động" },
+      "search": "Tìm kiếm locker", "searchHint": "Nhập mã, tên hoặc địa chỉ locker…", "status": "Trạng thái locker", "results": "locker tìm thấy", "empty": "Chưa có locker phù hợp hoặc chưa được phân công.", "name": "Trạm locker", "address": "Địa chỉ", "type": "Loại tủ", "totalBoxes": "Tổng ô tủ", "emptyBoxes": "Ô trống", "actions": "Thao tác", "actionsNamed": "Thao tác với {{name}}",
+      "statuses": { "1": "Đang hoạt động", "2": "Bảo trì", "3": "Ngừng hoạt động" }, "types": { "1": "Thông thường", "2": "Tủ lạnh" }, "sort": { "code": "Mã locker A–Z", "name": "Tên A–Z", "nameDesc": "Tên Z–A" },
+      "details": "Chi tiết locker", "detailsHint": "Thông tin trạm và trạng thái các ô tủ hiện tại.", "history": "Lịch sử sử dụng", "views": "Nội dung locker", "area": "Khu vực phục vụ", "openMap": "Mở Google Maps", "image": "Ảnh locker {{number}}", "boxes": "Danh sách ô tủ ({{count}})", "boxStates": { "1": "Trống", "2": "Đang có đồ", "3": "Đang giữ chỗ", "4": "Bảo trì" }, "sizes": { "1": "Nhỏ", "2": "Tiêu chuẩn", "3": "Lớn" }, "noBoxes": "Không có ô tủ thuộc trạng thái này.",
+      "filterBox": "Lọc theo ô tủ", "usageRange": "Thời gian đặt đồ vào ô", "noHistory": "Chưa có lượt sử dụng phù hợp.", "usageCount": "{{count}} lượt sử dụng", "order": "Đơn hàng", "box": "Ô tủ", "usageType": "Loại sử dụng", "putInAt": "Đặt đồ vào", "takenOutAt": "Lấy đồ ra", "orderStatus": "Trạng thái đơn", "usageTypes": { "1": "Khách gửi đồ", "2": "Trả đồ đã giặt" }
+    },
     "shippers": {
       "statistics": "Thống kê toàn bộ đội ngũ shipper", "summary": { "total": "Tổng shipper", "working": "Đang làm việc", "onLeave": "Tạm nghỉ", "available": "Sẵn sàng", "busy": "Đang bận", "offline": "Offline" },
       "profileInfo": "Thông tin shipper",

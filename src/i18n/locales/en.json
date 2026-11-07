@@ -175,6 +175,13 @@
     "forgotPasswordTitle": "Forgot password?"
   },
   "merchant": {
+    "lockers": {
+      "description": "Monitor assigned locker stations and the status of each compartment.", "statistics": "Statistics for all assigned lockers", "summary": { "total": "Total lockers", "active": "Active lockers", "maintenance": "Under maintenance", "inactive": "Inactive lockers" },
+      "search": "Search lockers", "searchHint": "Locker code, name or address…", "status": "Locker status", "results": "lockers found", "empty": "No lockers match your search or have been assigned yet.", "name": "Locker station", "address": "Address", "type": "Locker type", "totalBoxes": "Total compartments", "emptyBoxes": "Empty compartments", "actions": "Actions", "actionsNamed": "Actions for {{name}}",
+      "statuses": { "1": "Active", "2": "Maintenance", "3": "Inactive" }, "types": { "1": "Standard", "2": "Refrigerated" }, "sort": { "code": "Locker code A–Z", "name": "Name A–Z", "nameDesc": "Name Z–A" },
+      "details": "Locker details", "detailsHint": "Station information and current compartment states.", "history": "Usage history", "views": "Locker content", "area": "Service area", "openMap": "Open Google Maps", "image": "Locker photo {{number}}", "boxes": "Compartments ({{count}})", "boxStates": { "1": "Empty", "2": "Contains items", "3": "Reserved", "4": "Maintenance" }, "sizes": { "1": "Small", "2": "Standard", "3": "Large" }, "noBoxes": "No compartments have this status.",
+      "filterBox": "Filter by compartment", "usageRange": "Time items were placed in the compartment", "noHistory": "No matching usage records.", "usageCount": "{{count}} usage records", "order": "Order", "box": "Compartment", "usageType": "Usage type", "putInAt": "Placed in", "takenOutAt": "Taken out", "orderStatus": "Order status", "usageTypes": { "1": "Customer drop-off", "2": "Clean laundry return" }
+    },
     "shippers": {
       "statistics": "Statistics for the entire shipper team", "summary": { "total": "Total shippers", "working": "Working", "onLeave": "On leave", "available": "Available", "busy": "Busy", "offline": "Offline" },
       "profileInfo": "Shipper information",

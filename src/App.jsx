@@ -29,6 +29,7 @@ const CustomerNotificationsPage = lazy(() => import('~/pages/customer/Notificati
 const AdminHomePage = lazy(() => import('~/pages/admin/Home/HomePage'))
 const MerchantHomePage = lazy(() => import('~/pages/merchant/Home/HomePage'))
 const MerchantShippersPage = lazy(() => import('~/pages/merchant/Shippers/ShippersPage'))
+const MerchantLockersPage = lazy(() => import('~/pages/merchant/Lockers/LockersPage'))
 const MerchantOrdersPage = lazy(() => import('~/pages/merchant/Orders/OrdersPage'))
 const MerchantOrderDetailPage = lazy(() => import('~/pages/merchant/Orders/OrderDetailPage'))
 const MerchantProfilePage = lazy(() => import('~/pages/merchant/Profile/ProfilePage'))
@@ -107,6 +108,10 @@ export default function App() {
               <Route
                 path={MERCHANT_ROUTES.SHIPPERS}
                 element={<MerchantShippersPage />}
+              />
+              <Route
+                path={MERCHANT_ROUTES.LOCKERS}
+                element={<MerchantLockersPage />}
               />
               <Route
                 path={MERCHANT_ROUTES.ORDERS}
