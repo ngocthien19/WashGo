@@ -1,28 +1,34 @@
 import Reveal from '~/components/motion/Reveal'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useOutletContext, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Package, WashingMachine, DoorOpen, CircleCheck, RefreshCw, Store, ArrowUpRight, CircleDollarSign } from 'lucide-react'
+import { Package, WashingMachine, DoorOpen, CircleCheck, RefreshCw, ArrowUpRight, CircleDollarSign } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantDashboardApi } from '~/apis/merchant/merchantDashboardApi'
 import { formatCurrency, formatDateTime } from '~/utils/formats'
-import AnimatedNumber from '~/components/motion/AnimatedNumber'
+import StatCard from '~/components/merchant/StatCard'
 import OrderCharts from './components/OrderCharts'
 import OrderPreview from './components/OrderPreview'
+import MonthlyRevenue from '~/components/merchant/MonthlyRevenue'
+import SlaAlerts from './components/SlaAlerts'
+import DashboardFilters from './components/DashboardFilters'
+import { dashboardRange, dashboardFilter } from './dashboardQuery'
 
 const statuses = { 1: 'PENDING', 2: 'DEPOSITED', 3: 'COLLECTED', 4: 'WASHING', 5: 'DRYING', 6: 'IRONING', 7: 'FOLDING', 8: 'AWAITING_PAYMENT', 9: 'PAID', 10: 'READY_TO_RETURN', 11: 'RETURNED', 12: 'COMPLETED', 13: 'MOVED_TO_STORAGE', 99: 'CANCELLED' }
 export default function HomePage() {
   const { t } = useTranslation()
   const { profile } = useOutletContext()
+  const [revision, setRevision] = useState(0)
   const [params, setParams] = useSearchParams()
+  const range = dashboardRange(params)
+  const { from, to } = range
   const orderId = params.get('order')
   const validId = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(orderId || '')
-  const loadOrders = useCallback((signal) => merchantDashboardApi.orders(signal), [])
-  const loadSettlements = useCallback((signal) => merchantDashboardApi.settlements(signal), [])
+  const loadOrders = useCallback((signal) => merchantDashboardApi.orders(signal, dashboardFilter({ from, to })), [from, to])
   const orders = useCatalogResource(loadOrders)
-  const settlements = useCatalogResource(loadSettlements)
+  const settlements = { ...orders, data: orders.data ? { list: orders.data.settlements } : null }
   useEffect(() => {
     if (!orderId) {
       document.title = `${t('merchant.overview')} | WashGo`
@@ -45,17 +51,35 @@ export default function HomePage() {
             {profile.data?.businessName || t('merchant.welcome')}
           </p>
         </div>
-        <Button
-          variant="outline"
-          className="h-11 rounded-xl px-4"
-          disabled={orders.loading || settlements.loading || profile.loading}
-          onClick={() => {
-            orders.retry(); settlements.retry(); profile.retry()
-          }}
-        >
-          <RefreshCw size={17} />
-          {t('customer.orders.refresh')}
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <DashboardFilters
+            key={range.mode}
+            range={range}
+            onChange={(next) => setParams((current) => {
+              const query = new URLSearchParams(current)
+              query.set('period', next.mode)
+              for (const key of ['from', 'to']) {
+                if (next.mode === 'custom') {
+                  query.set(key, next[key])
+                } else {
+                  query.delete(key)
+                }
+              }
+              return query
+            })}
+          />
+          <Button
+            variant="outline"
+            className="h-11 rounded-xl px-4"
+            disabled={orders.loading || settlements.loading || profile.loading}
+            onClick={() => {
+              orders.retry(); profile.retry(); setRevision((value) => value + 1)
+            }}
+          >
+            <RefreshCw size={17} />
+            {t('customer.orders.refresh')}
+          </Button>
+        </div>
       </div>
       {profile.error && (
         <ResourceFeedback
@@ -63,37 +87,40 @@ export default function HomePage() {
           retry={profile.retry}
         />
       )}
-      {orders.loading || orders.error ? (
-        <ResourceFeedback
-          {...orders}
-          loadingText="merchant.loading"
-        />
-      ) : (
+      {orders.loading || orders.error ? null : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {stats?.map(([key, value, Icon, color, edge]) => (
-              <section
+              <StatCard
                 key={key}
-                className={`rounded-2xl border border-border border-l-4 bg-card p-5 shadow-sm ${edge}`}
-              >
-                <span className={`mb-4 grid size-12 place-items-center rounded-2xl ${color}`}>
-                  <Icon size={23} />
-                </span>
-                <h2 className="text-sm text-muted-foreground">
-                  {t(`merchant.${key}`)}
-                </h2>
-                <p className="mt-2 text-3xl font-bold tabular-nums">
-                  <AnimatedNumber value={value} />
-                </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {t('merchant.allTime')}
-                </p>
-              </section>
+                icon={Icon}
+                label={t(`merchant.${key}`)}
+                value={value}
+                className={edge}
+                iconClassName={color}
+              />
             ))}
           </div>
-          {orders.data && <OrderCharts counts={orders.data.counts} />}
         </>
       )}
+      {orders.data ? (
+        <OrderCharts
+          counts={orders.data.counts}
+          aside={<SlaAlerts revision={revision} />}
+        />
+      ) : (
+        <div className="grid items-start gap-5 xl:grid-cols-[1.2fr_1fr]">
+          <ResourceFeedback
+            {...orders}
+            loadingText="merchant.loading"
+          />
+          <SlaAlerts revision={revision} />
+        </div>
+      )}
+      <MonthlyRevenue
+        revision={revision}
+        range={range}
+      />
       <div className="grid gap-5 xl:grid-cols-[1.2fr_1fr]">
         <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
           <h2 className="flex items-center gap-3 border-b border-primary/10 bg-primary/5 p-5 text-lg font-bold text-foreground">
@@ -132,7 +159,9 @@ export default function HomePage() {
                       variant="secondary"
                       size="icon"
                       aria-label={t('merchant.viewOrder', { code: order.orderCode })}
-                      onClick={() => setParams({ order: order.id })}
+                      onClick={() => setParams((current) => {
+                        const query = new URLSearchParams(current); query.set('order', order.id); return query
+                      })}
                     >
                       <ArrowUpRight size={17} />
                     </Button>
@@ -184,16 +213,12 @@ export default function HomePage() {
           )}
         </section>
       </div>
-      <div className="flex items-start gap-3 rounded-xl border border-primary/15 bg-primary/5 p-4 text-sm leading-6 text-muted-foreground">
-        <Store className="mt-0.5 size-5 shrink-0 text-primary" />
-        <p>
-          {t('merchant.revenueNote')}
-        </p>
-      </div>
       {validId && (
         <OrderPreview
           id={orderId}
-          onClose={() => setParams({})}
+          onClose={() => setParams((current) => {
+            const query = new URLSearchParams(current); query.delete('order'); return query
+          })}
         />
       )}
     </Reveal>
