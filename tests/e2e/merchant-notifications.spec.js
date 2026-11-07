@@ -1,0 +1,48 @@
+import { test, expect } from '@playwright/test'
+import { setupNotifications, orderId } from './helpers/notificationSession'
+
+test('merchant shares customer inbox/sidebar and keeps unread actions synchronized', async ({ page }) => {
+  const state = await setupNotifications(page, { role: 'Merchant' })
+  await page.goto('/merchant/notifications')
+  await expect(page.getByRole('heading', { name: 'Your laundry is ready', exact: true })).toBeVisible({ timeout: 20000 })
+  const filters = page.getByRole('navigation', { name: 'Filter notifications', exact: true })
+  await expect(filters.getByRole('button', { name: 'Unread', exact: true })).toContainText('1')
+  await filters.getByRole('button', { name: 'Unread', exact: true }).click()
+  await expect(page).toHaveURL(/unread=true/)
+  await page.getByRole('button', { name: 'Mark as read', exact: true }).click()
+  await expect(page.getByText('There are no notifications in this list.')).toBeVisible()
+  await expect(filters.getByRole('button', { name: 'Unread', exact: true })).toContainText('0')
+  await filters.getByRole('button', { name: 'All', exact: true }).click()
+  await page.getByRole('button', { name: 'Notifications', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('link', { name: 'All notifications', exact: true })).toHaveAttribute('href', '/merchant/notifications')
+  await page.keyboard.press('Escape')
+  expect(state.writes).toHaveLength(1)
+})
+
+test('merchant notification paging survives reload and details stay in merchant routes', async ({ page }) => {
+  const state = await setupNotifications(page, { role: 'Merchant' })
+  state.items = Array.from({ length: 11 }, (_, index) => ({ ...state.items[0], id: `notification-${index}`, title: `Update ${index + 1}`, isRead: true }))
+  await page.goto('/merchant/notifications?page=2')
+  await expect(page.getByRole('heading', { name: 'Update 11', exact: true })).toBeVisible({ timeout: 20000 })
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Update 11', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'View details', exact: true }).click()
+  await expect(page).toHaveURL((url) => url.pathname === '/merchant' && url.searchParams.get('order') === orderId)
+  expect(state.writes).toHaveLength(0)
+})
+
+test('mobile dark merchant inbox supports read all and confirmed deletion without overflow', async ({ page }) => {
+  const state = await setupNotifications(page, { role: 'Merchant', dark: true })
+  await page.setViewportSize({ width: 375, height: 812 })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/merchant/notifications')
+  await expect(page.getByRole('heading', { name: 'Your laundry is ready', exact: true })).toBeVisible({ timeout: 20000 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.getByRole('button', { name: 'Read all', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Mark as read', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Delete all', exact: true }).click()
+  expect(state.writes).not.toContain('delete-all')
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete all', exact: true }).click()
+  await expect(page.getByText('There are no notifications in this list.')).toBeVisible()
+  expect(state.writes).toEqual(['/notification/read-all', 'delete-all'])
+})
