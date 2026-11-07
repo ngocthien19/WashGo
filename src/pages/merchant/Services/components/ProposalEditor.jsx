@@ -13,19 +13,22 @@ import { merchantServiceApi } from '~/apis/merchant/merchantServiceApi'
 import { notify } from '~/utils/notifications'
 import { getApiError } from '~/utils/apiError'
 import { resolveMessage } from '~/i18n/messages'
-import { proposalSchema, serviceSnapshot } from '../serviceModel'
+import { getImageUrl } from '~/utils/formats'
+import { proposalSchema, serviceSnapshot, proposalBlockedMessage } from '../serviceModel'
 
 export default function ProposalEditor({ service, onClose, onSaved }) {
   const { t } = useTranslation()
   const edit = Boolean(service)
   const { register, control, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(proposalSchema), defaultValues: { name: service?.name || '', description: service?.description || '', unitPrice: service?.unitPrice ?? '', pricePerKg: service?.pricePerKg ?? '', pricePerItem: service?.pricePerItem ?? '', estimatedDurationHours: service?.estimatedDurationHours ?? 24, serviceType: service?.serviceType || 1, unit: service?.unit || 'kg', reason: '' } })
-  const images = useImages(5)
+  const images = useImages(5, service?.imageUrls || [])
   const [pending, setPending] = useState(false)
   const [uncertain, setUncertain] = useState(false)
+  const [canRetry, setCanRetry] = useState(false)
+  const intent = useRef(null)
   const [error, setError] = useState('')
   const lock = useRef(false)
   const submit = async (values) => {
-    if (lock.current || uncertain) {
+    if (lock.current || uncertain && !canRetry) {
       return
     }
     lock.current = true
@@ -33,21 +36,35 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
     setError('')
     let writing = false
     try {
-      if (edit) {
-        const latest = await merchantServiceApi.service(service.id, service.code)
-        if (serviceSnapshot(latest) !== serviceSnapshot(service)) {
+      if (edit && !intent.current) {
+        const latest = await merchantServiceApi.service(service.id)
+        if (!service.version || serviceSnapshot(latest) !== serviceSnapshot(service)) {
           setUncertain(true); setError('merchant.services.changed'); return
         }
+        if (latest.canProposeUpdate !== true) {
+          setUncertain(true); setError(proposalBlockedMessage(latest)); return
+        }
       }
-      const imageUrls = edit ? [] : await images.upload()
+      if (!intent.current) {
+        const unchangedImages = edit && JSON.stringify(images.images.map((item) => item.url)) === JSON.stringify(service.imageUrls || [])
+        const imageUrls = unchangedImages ? null : await images.upload()
+        intent.current = { ...values, description: values.description || null, reason: values.reason || null, imageUrls, expectedVersion: edit ? service.version : undefined, clientRequestId: crypto.randomUUID() }
+      }
       writing = true
-      await merchantServiceApi.submit(service?.id, { ...values, description: values.description || null, reason: values.reason || null, imageUrls })
-      notify.success('merchant.services.submitted')
+      const result = await merchantServiceApi.submit(service?.id, intent.current)
+      notify.success(result.status === 1 ? 'merchant.services.submitted' : 'merchant.serviceSync.recovered')
       onSaved()
     } catch (failure) {
       const unknown = writing && (failure.uncertain || !failure.response || failure.response.status >= 500)
-      setUncertain(Boolean(unknown))
-      setError(unknown ? 'merchant.services.uncertain' : getApiError(failure))
+      const code = failure.response?.data?.meta?.code
+      const blocked = failure.response?.status === 409 || code === 'PendingProposal'
+      setUncertain(Boolean(unknown || blocked))
+      setCanRetry(Boolean(unknown))
+      if (!unknown && !blocked) {
+        intent.current = null
+      }
+      const knownCode = ['DuplicateName', 'PendingProposal', 'StaleVersion', 'InvalidPrice', 'MerchantInactive', 'ClientRequestIdReused'].includes(code)
+      setError(knownCode ? `merchant.serviceSync.errors.${code}` : unknown ? 'merchant.serviceSync.uncertain' : getApiError(failure))
     } finally {
       lock.current = false
       setPending(false)
@@ -111,7 +128,7 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
                     role="alert"
                     className="mt-1 text-sm text-destructive"
                   >
-                    {t(`merchant.services.invalid.${key}`)}
+                    {t(['unitPrice', 'pricePerKg', 'pricePerItem'].includes(key) ? 'merchant.serviceSync.errors.InvalidPrice' : `merchant.services.invalid.${key}`)}
                   </p>
                 )}
               </div>
@@ -169,69 +186,63 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
                 )}
               </div>
             ))}
-            {edit ? (
-              <p className="rounded-xl bg-muted/40 p-4 text-sm leading-relaxed text-muted-foreground sm:col-span-2">
-                {t('merchant.services.editRestrictions')}
-              </p>
-            ) : (
-              <div className="grid gap-3 rounded-2xl border border-border bg-muted/20 p-4 sm:col-span-2">
-                <label
-                  htmlFor="service-images"
-                  className="flex items-center gap-2 font-semibold"
-                >
-                  <ImagePlus
-                    size={19}
-                    className="text-primary"
-                  />
-                  {t('merchant.services.images')}
-                </label>
-                <p className="text-sm text-muted-foreground">
-                  {t('merchant.shop.imagesHint')}
-                </p>
-                <Input
-                  id="service-images"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  multiple
-                  className="h-auto py-2 text-base"
-                  onChange={(event) => {
-                    images.addFiles(Array.from(event.target.files || [])); event.target.value = ''
-                  }}
+            <div className="grid gap-3 rounded-2xl border border-border bg-muted/20 p-4 sm:col-span-2">
+              <label
+                htmlFor="service-images"
+                className="flex items-center gap-2 font-semibold"
+              >
+                <ImagePlus
+                  size={19}
+                  className="text-primary"
                 />
-                <div className="flex flex-wrap gap-3">
-                  {images.images.map((image, index) => (
-                    <div
-                      key={image.url}
-                      className="relative"
-                    >
-                      <img
-                        src={image.url}
-                        alt={t('merchant.services.image', { number: index + 1 })}
-                        className="size-20 rounded-xl object-cover"
-                      />
-                      <Button
-                        type="button"
-                        size="icon-xs"
-                        variant="destructive"
-                        aria-label={t('merchant.services.removeImage')}
-                        className="absolute -right-2 -top-2"
-                        onClick={() => images.removeImage(image)}
-                      >
-                        <X size={14} />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-                {images.error && (
-                  <p
-                    role="alert"
-                    className="text-sm text-destructive"
+                {t('merchant.services.images')}
+              </label>
+              <p className="text-sm text-muted-foreground">
+                {t('merchant.shop.imagesHint')}
+              </p>
+              <Input
+                id="service-images"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                className="h-auto py-2 text-base"
+                onChange={(event) => {
+                  images.addFiles(Array.from(event.target.files || [])); event.target.value = ''
+                }}
+              />
+              <div className="flex flex-wrap gap-3">
+                {images.images.map((image, index) => (
+                  <div
+                    key={image.url}
+                    className="relative"
                   >
-                    {t(images.error)}
-                  </p>
-                )}
+                    <img
+                      src={getImageUrl(image.url)}
+                      alt={t('merchant.services.image', { number: index + 1 })}
+                      className="size-20 rounded-xl object-cover"
+                    />
+                    <Button
+                      type="button"
+                      size="icon-xs"
+                      variant="destructive"
+                      aria-label={t('merchant.services.removeImage')}
+                      className="absolute -right-2 -top-2"
+                      onClick={() => images.removeImage(image)}
+                    >
+                      <X size={14} />
+                    </Button>
+                  </div>
+                ))}
               </div>
-            )}
+              {images.error && (
+                <p
+                  role="alert"
+                  className="text-sm text-destructive"
+                >
+                  {t(images.error)}
+                </p>
+              )}
+            </div>
           </fieldset>
           {error && (
             <p
@@ -247,17 +258,17 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
               variant="secondary"
               disabled={pending}
               onClick={onClose}
-              className="h-11 px-5 text-base"
+              className="h-11 px-5 text-base font-semibold"
             >
               {t('common.close')}
             </Button>
             <Button
               type="submit"
-              disabled={pending || uncertain}
-              className="h-11 px-5 text-base"
+              disabled={pending || uncertain && !canRetry}
+              className="h-11 px-5 text-base font-semibold"
             >
               <Send size={17} />
-              {t(pending ? 'merchant.services.sending' : 'merchant.services.send')}
+              {t(pending ? 'merchant.services.sending' : canRetry ? 'merchant.serviceSync.retry' : 'merchant.services.send')}
             </Button>
           </footer>
         </form>

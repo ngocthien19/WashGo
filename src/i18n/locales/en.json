@@ -378,6 +378,25 @@
     "forgotPasswordTitle": "Forgot password?"
   },
   "merchant": {
+    "serviceSync": {
+      "sortLabel": "Sort services",
+      "sort": { "name": "Name A–Z", "nameDesc": "Name Z–A", "price": "Price: low to high", "priceDesc": "Price: high to low", "duration": "Shortest duration", "durationDesc": "Longest duration", "newest": "Newest first" },
+      "pending": "Proposal pending",
+      "blocked": "Changes cannot be proposed for this service right now.",
+      "myServiceProposals": "My proposals for this service",
+      "filteredService": "Filtered by selected service",
+      "retry": "Retry the same proposal",
+      "uncertain": "The submission outcome is unknown. Retry the same proposal below, or close and check My proposals.",
+      "recovered": "Your earlier proposal was found. Check its status in My proposals.",
+      "errors": {
+        "DuplicateName": "This service name already exists or has a pending proposal.",
+        "PendingProposal": "This service has a pending proposal. Wait for a decision before submitting another.",
+        "StaleVersion": "The service has changed. Close and reopen it to review before proposing changes.",
+        "InvalidPrice": "Each price must be positive, at most 100 million VND, with up to 2 decimal places.",
+        "MerchantInactive": "Your store account is inactive and cannot submit proposals.",
+        "ClientRequestIdReused": "This request code belongs to another proposal. Check My proposals."
+      }
+    },
     "shipperSync": {
       "bulkUnlock": "Unlock selected",
       "batchToast": "Succeeded: {{succeeded}} · Failed: {{failed}}. {{details}}",

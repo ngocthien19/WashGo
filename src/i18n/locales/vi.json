@@ -378,6 +378,25 @@
     "forgotPasswordTitle": "Quên mật khẩu?"
   },
   "merchant": {
+    "serviceSync": {
+      "sortLabel": "Sắp xếp dịch vụ",
+      "sort": { "name": "Tên A–Z", "nameDesc": "Tên Z–A", "price": "Giá tăng dần", "priceDesc": "Giá giảm dần", "duration": "Thời gian ngắn nhất", "durationDesc": "Thời gian dài nhất", "newest": "Mới nhất" },
+      "pending": "Có đề xuất chờ duyệt",
+      "blocked": "Hiện chưa thể đề xuất chỉnh sửa dịch vụ này.",
+      "myServiceProposals": "Đề xuất của tôi cho dịch vụ này",
+      "filteredService": "Đang lọc theo dịch vụ đã chọn",
+      "retry": "Gửi lại đúng đề xuất này",
+      "uncertain": "Chưa xác định được kết quả gửi. Có thể gửi lại đúng đề xuất này bằng nút bên dưới hoặc đóng để kiểm tra Đề xuất của tôi.",
+      "recovered": "Đã tìm thấy đề xuất đã gửi. Xem trạng thái tại Đề xuất của tôi.",
+      "errors": {
+        "DuplicateName": "Tên dịch vụ đã tồn tại hoặc đang có đề xuất trùng tên.",
+        "PendingProposal": "Dịch vụ đang có đề xuất chờ duyệt. Vui lòng đợi kết quả trước khi gửi thêm.",
+        "StaleVersion": "Dịch vụ đã thay đổi. Đóng và mở lại để kiểm tra trước khi đề xuất.",
+        "InvalidPrice": "Mỗi mức giá phải lớn hơn 0, tối đa 100.000.000đ và tối đa 2 chữ số thập phân.",
+        "MerchantInactive": "Tài khoản cửa hàng chưa hoạt động nên chưa thể gửi đề xuất.",
+        "ClientRequestIdReused": "Mã yêu cầu đã được dùng cho đề xuất khác. Vui lòng kiểm tra Đề xuất của tôi."
+      }
+    },
     "shipperSync": {
       "bulkUnlock": "Mở khóa đã chọn",
       "batchToast": "Thành công: {{succeeded}} · Thất bại: {{failed}}. {{details}}",
