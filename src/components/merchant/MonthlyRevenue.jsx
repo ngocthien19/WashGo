@@ -7,6 +7,14 @@ import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import AnimatedNumber from '~/components/motion/AnimatedNumber'
 import { formatCurrency } from '~/utils/formats'
 
+const revenueCardStyles = {
+  grossLaundryRevenue: 'border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200',
+  refunds: 'border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200',
+  netRevenue: 'border-violet-200 bg-violet-50 text-violet-900 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-200',
+  commission: 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200',
+  merchantPayout: 'border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200'
+}
+
 export default function MonthlyRevenue({ compact = false, revision, range }) {
   const { t } = useTranslation()
   const from = range?.from, to = range?.to
@@ -38,12 +46,12 @@ export default function MonthlyRevenue({ compact = false, revision, range }) {
             {keys.map((key) => (
               <div
                 key={key}
-                className="min-w-0 rounded-xl bg-muted/35 px-4 py-3"
+                className={`min-w-0 rounded-xl border px-4 py-3 ${revenueCardStyles[key]}`}
               >
-                <dt className={compact ? 'sr-only' : 'text-sm text-muted-foreground'}>
+                <dt className={compact ? 'sr-only' : 'text-sm font-semibold'}>
                   {t(`merchant.sync.finance.${key}`)}
                 </dt>
-                <dd className="mt-1 break-words text-lg font-bold tabular-nums">
+                <dd className="mt-2 break-words text-xl font-bold tabular-nums">
                   {missing && ['commission', 'merchantPayout'].includes(key) ? '—' : (
                     <>
                       <AnimatedNumber value={report.kpis[key].current} />

@@ -3,17 +3,22 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { QRCodeSVG } from 'qrcode.react'
-import { ArrowLeft, RefreshCw, Package, Scale, Truck, WashingMachine, MapPin, ReceiptText, History } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Package, Scale, Truck, WashingMachine, MapPin, ReceiptText, History, UserRound } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import OrderStatus from '~/components/orders/OrderStatus'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantOrderApi } from '~/apis/merchant/merchantOrderApi'
 import { MERCHANT_ROUTES } from '~/utils/constants'
-import { formatCurrency, formatDateTime, formatNumber } from '~/utils/formats'
+import { formatCurrency, formatDateTime } from '~/utils/formats'
 import { processingSteps, canWeigh, assignmentTask, statusLabel } from './orderModel'
 import OrderActionDialog from './components/OrderActionDialog'
 import OrderCommission from '~/components/merchant/OrderCommission'
+import PaymentStatus from '~/components/orders/PaymentStatus'
+import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
+import DeliveryInfo from './components/DeliveryInfo'
+import ShipperInfo from './components/ShipperInfo'
+import useOrderMedia, { mediaKey } from './useOrderMedia'
 
 function Panel({ icon: Icon, title, children }) {
   return (
@@ -36,6 +41,9 @@ export default function OrderDetailPage() {
   const load = useCallback((signal) => /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(orderId || '') ? merchantOrderApi.detail(orderId, signal) : Promise.reject(new Error('merchant.invalidResponse')), [orderId])
   const resource = useCatalogResource(load)
   const order = resource.data
+  const media = useOrderMedia(order)
+  const depositImages = order?.lockerImageUrls || media[mediaKey('locker', order?.lockerId)] || []
+  const returnImages = order?.returnLockerImageUrls || (!order?.returnLockerId || order.returnLockerId === order?.lockerId ? depositImages : media[mediaKey('locker', order?.returnLockerId)]) || []
   useEffect(() => {
     document.title = `${t('customer.order.orderDetails')}${order ? ` ${order.orderCode}` : ''} | WashGo`
   }, [order, t])
@@ -73,7 +81,7 @@ export default function OrderDetailPage() {
         <>
           <header className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold">
+              <h1 className="text-3xl font-bold text-primary">
                 {order.orderCode}
               </h1>
               <p className="mt-2 text-base text-muted-foreground">
@@ -81,75 +89,83 @@ export default function OrderDetailPage() {
                 {formatDateTime(order.createdOn)}
               </p>
             </div>
-            <OrderStatus status={order.status} />
+            <div className="flex flex-wrap items-center gap-3">
+              <OrderStatus status={order.status} />
+              {' '}
+              {canWeigh(order) && (
+                <Button
+                  className="h-11 gap-2 px-4 text-base"
+                  variant="outline-violet"
+                  onClick={() => setAction('weigh')}
+                >
+                  <Scale size={18} />
+                  {t('merchant.orders.weigh')}
+                </Button>
+              )}
+              {processingSteps(order).length > 0 && (
+                <Button
+                  className="h-11 gap-2 px-4 text-base"
+                  onClick={() => setAction('process')}
+                >
+                  <WashingMachine size={18} />
+                  {t('merchant.orders.process')}
+                </Button>
+              )}
+              {assignmentTask(order) && (
+                <Button
+                  variant="outline"
+                  className="h-11 gap-2 border-teal-200 bg-teal-50 px-4 text-base text-teal-700 hover:bg-teal-100 hover:text-teal-800 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-300 dark:hover:bg-teal-900/50"
+                  onClick={() => setAction('assign')}
+                >
+                  <Truck size={18} />
+                  {t(assignmentTask(order) === 1 ? 'merchant.orders.assignCollect' : 'merchant.orders.assignReturn')}
+                </Button>
+              )}
+            </div>
           </header>
+          <div className="space-y-3">
+            {' '}
+            {order.allowedActions?.statusOptions?.some((option) => option.reasonCode === 'WeightRequired') && (
+              <p className="rounded-xl bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
+                {t('merchant.orders.weightRequired')}
+              </p>
+            )}
+            {!canWeigh(order) && !processingSteps(order).length && !assignmentTask(order) && (
+              <p className="text-base leading-relaxed text-muted-foreground">
+                {t('merchant.orders.noActions')}
+              </p>
+            )}
+            {!order.allowedActions && (
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                {t('merchant.orderSync.missingActions')}
+              </p>
+            )}
+            {[...new Set([order.allowedActions?.updateWeightReasonCode, order.allowedActions?.assignShipperReasonCode].filter((code) => ['LegacyPricing', 'NoWeightService', 'NoMerchant', 'RoleNotAllowed'].includes(code)))].map((code) => (
+              <p
+                key={code}
+                className="text-sm text-muted-foreground"
+              >
+                {t(`merchant.orderSync.reasons.${code}`)}
+              </p>
+            ))}
+          </div>
           <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
             <div className="min-w-0 space-y-6">
               <Panel
-                icon={Package}
-                title={t('customer.orders.orderInformation', { defaultValue: t('merchant.orders.services') })}
+                icon={Truck}
+                title={t('merchant.orderView.shipperInfo')}
               >
-                <ul className="divide-y divide-border">
-                  {order.items.map((item, index) => (
-                    <li
-                      key={item.id || index}
-                      className="flex flex-wrap items-start justify-between gap-3 py-4 first:pt-0"
-                    >
-                      <div>
-                        <p className="text-base font-semibold">
-                          {item.serviceName}
-                        </p>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          {t('customer.orders.quantity', { count: item.quantity })}
-                          {' '}
-                          ·
-                          {' '}
-                          {formatCurrency(item.unitPrice)}
-                        </p>
-                        {item.note && (
-                          <p className="mt-2 break-words text-sm text-muted-foreground">
-                            {item.note}
-                          </p>
-                        )}
-                      </div>
-                      <strong className="text-base">
-                        {formatCurrency(item.subTotal)}
-                      </strong>
-                    </li>
-                  ))}
-                </ul>
+                <ShipperInfo order={order} />
               </Panel>
               <Panel
                 icon={MapPin}
                 title={t('merchant.orders.delivery')}
               >
-                <dl className="grid gap-5 sm:grid-cols-2">
-                  {[['locker', order.lockerName], ['box', order.boxNumber], ['returnBox', order.returnBoxNumber], ['shipper', order.shipperName || t('merchant.orders.unassigned')], ['weight', order.actualWeightKg == null ? t('customer.orders.notWeighed') : `${formatNumber(order.actualWeightKg)} kg`], ['eta', order.estimatedFinishAt ? formatDateTime(order.estimatedFinishAt) : t('merchant.orders.noEta')]].map(([key, value]) => (
-                    <div key={key}>
-                      <dt className="text-sm text-muted-foreground">
-                        {t(`merchant.orders.${key}`)}
-                      </dt>
-                      <dd className="mt-2 break-words text-base font-semibold">
-                        {value || '—'}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                {order.shipperNote && (
-                  <p className="mt-5 rounded-xl bg-muted p-4 text-base">
-                    {order.shipperNote}
-                  </p>
-                )}
-                {order.storageLocation && (
-                  <p className="mt-4 text-base">
-                    {t('merchant.orders.storage')}
-                    :
-                    {' '}
-                    <strong>
-                      {order.storageLocation}
-                    </strong>
-                  </p>
-                )}
+                <DeliveryInfo
+                  order={order}
+                  depositImages={depositImages}
+                  returnImages={returnImages}
+                />
               </Panel>
               <Panel
                 icon={History}
@@ -175,12 +191,13 @@ export default function OrderDetailPage() {
                           </span>
                         </div>
                         {entry.actorName && (
-                          <p className="mt-1 text-sm text-muted-foreground">
+                          <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
+                            <UserRound size={13} />
                             {entry.actorName}
-                          </p>
+                          </span>
                         )}
                         {entry.note && (
-                          <p className="mt-2 break-words text-base leading-relaxed">
+                          <p className="mt-2 break-words text-sm font-normal leading-relaxed text-muted-foreground">
                             {entry.note}
                           </p>
                         )}
@@ -192,63 +209,44 @@ export default function OrderDetailPage() {
             </div>
             <div className="min-w-0 space-y-6">
               <Panel
-                icon={WashingMachine}
-                title={t('merchant.orders.processing')}
+                icon={Package}
+                title={t('merchant.orders.services')}
               >
-                <div className="space-y-3">
-                  {canWeigh(order) && (
-                    <Button
-                      className="h-12 w-full justify-start gap-3 px-4 text-base"
-                      variant="outline-violet"
-                      onClick={() => setAction('weigh')}
+                <ul className="divide-y divide-border">
+                  {order.items.map((item, index) => (
+                    <li
+                      key={item.id || index}
+                      className="flex flex-wrap items-start justify-between gap-3 py-4 first:pt-0"
                     >
-                      <Scale size={18} />
-                      {t('merchant.orders.weigh')}
-                    </Button>
-                  )}
-                  {processingSteps(order).length > 0 && (
-                    <Button
-                      className="h-12 w-full justify-start gap-3 px-4 text-base"
-                      onClick={() => setAction('process')}
-                    >
-                      <WashingMachine size={18} />
-                      {t('merchant.orders.process')}
-                    </Button>
-                  )}
-                  {assignmentTask(order) && (
-                    <Button
-                      variant="outline"
-                      className="h-12 w-full justify-start gap-3 px-4 text-base"
-                      onClick={() => setAction('assign')}
-                    >
-                      <Truck size={18} />
-                      {t(assignmentTask(order) === 1 ? 'merchant.orders.assignCollect' : 'merchant.orders.assignReturn')}
-                    </Button>
-                  )}
-                  {order.allowedActions?.statusOptions?.some((option) => option.reasonCode === 'WeightRequired') && (
-                    <p className="rounded-xl bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
-                      {t('merchant.orders.weightRequired')}
-                    </p>
-                  )}
-                  {!canWeigh(order) && !processingSteps(order).length && !assignmentTask(order) && (
-                    <p className="text-base leading-relaxed text-muted-foreground">
-                      {t('merchant.orders.noActions')}
-                    </p>
-                  )}
-                  {!order.allowedActions && (
-                    <p className="text-sm text-amber-700 dark:text-amber-300">
-                      {t('merchant.orderSync.missingActions')}
-                    </p>
-                  )}
-                  {[...new Set([order.allowedActions?.updateWeightReasonCode, order.allowedActions?.assignShipperReasonCode].filter((code) => ['LegacyPricing', 'NoWeightService', 'NoMerchant', 'RoleNotAllowed'].includes(code)))].map((code) => (
-                    <p
-                      key={code}
-                      className="text-sm text-muted-foreground"
-                    >
-                      {t(`merchant.orderSync.reasons.${code}`)}
-                    </p>
+                      <div className="flex min-w-0 flex-1 items-start gap-3">
+                        <ResourceThumbnail
+                          urls={item.serviceImageUrls || media[mediaKey('service', item.serviceId)] || []}
+                          name={item.serviceName}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-base font-semibold">
+                            {item.serviceName}
+                          </p>
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            {t('customer.orders.quantity', { count: item.quantity })}
+                            {' '}
+                            ·
+                            {' '}
+                            {formatCurrency(item.unitPrice)}
+                          </p>
+                          {item.note && (
+                            <p className="mt-2 break-words text-sm text-muted-foreground">
+                              {item.note}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <strong className="text-base font-semibold">
+                        {formatCurrency(item.subTotal)}
+                      </strong>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </Panel>
               <Panel
                 icon={ReceiptText}
@@ -275,9 +273,9 @@ export default function OrderDetailPage() {
                     {t(`merchant.orderSync.overdue.${type}`)}
                   </p>
                 ))}
-                <p className={`mb-5 inline-block rounded-full px-3 py-2 text-sm font-semibold ${order.paymentStatus === 2 ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/10 text-amber-800 dark:text-amber-200'}`}>
-                  {t(`customer.orders.paymentStatus.${order.paymentStatus}`, { defaultValue: '—' })}
-                </p>
+                <div className="mb-5">
+                  <PaymentStatus status={order.paymentStatus} />
+                </div>
                 <dl className="space-y-4">
                   {[['baseAmount', order.totalAmount], ['discount', order.discountAmount], ['surcharge', order.weightSurchargeAmount]].map(([key, value]) => (
                     <div

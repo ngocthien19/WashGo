@@ -1,6 +1,6 @@
 import { lazy, Suspense, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Send, ImagePlus, X, PencilLine, Store, MapPin, Phone, Clock, ShieldCheck, Building2, MapPinned } from 'lucide-react'
+import { Send, ImagePlus, X, PencilLine, Store, MapPin, Phone, Clock, ShieldCheck, Building2, MapPinned, Hash, FileCheck } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -160,6 +160,50 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
                 </div>
               )
             })}
+            <section
+              aria-labelledby="merchant-profile-legal-title"
+              className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:col-span-2 sm:grid-cols-2"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2 sm:col-span-2">
+                <h3
+                  id="merchant-profile-legal-title"
+                  className="flex items-center gap-2 font-semibold"
+                >
+                  <ShieldCheck size={18} />
+                  {t('merchant.shop.legalInfo')}
+                </h3>
+                <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+                  {t('merchant.shop.legalReadOnly')}
+                </span>
+              </div>
+              {[['taxCode', Hash], ['businessLicense', FileCheck]].map(([key, Icon]) => (
+                <label
+                  key={key}
+                  className="flex min-w-0 flex-col gap-3 text-base font-medium"
+                >
+                  <span className="flex items-center gap-2">
+                    <Icon
+                      size={16}
+                      className="text-primary"
+                    />
+                    {t(`merchant.shop.${key}`)}
+                  </span>
+                  <Input
+                    readOnly
+                    value={shop[key] || ''}
+                    aria-describedby="merchant-profile-legal-note"
+                    placeholder={t(key === 'taxCode' ? 'merchant.shop.notUpdated' : 'merchant.shop.licenseUnavailable')}
+                    className="h-12 rounded-xl bg-muted/40 text-base shadow-none"
+                  />
+                </label>
+              ))}
+              <p
+                id="merchant-profile-legal-note"
+                className="text-sm leading-relaxed text-muted-foreground sm:col-span-2"
+              >
+                {t('merchant.shop.restricted')}
+              </p>
+            </section>
             <div className="space-y-3 rounded-xl border border-primary/15 bg-card p-4 sm:col-span-2">
               <p className="flex items-center gap-2 font-semibold text-foreground">
                 <ImagePlus size={18} />
@@ -216,15 +260,6 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
               )}
             </div>
           </fieldset>
-          <p className="flex items-start gap-3 rounded-xl border border-primary/10 bg-primary/5 p-4 text-sm leading-relaxed text-muted-foreground">
-            <ShieldCheck
-              size={19}
-              className="mt-0.5 shrink-0 text-primary"
-            />
-            <span>
-              {t('merchant.shop.restricted')}
-            </span>
-          </p>
           {error && (
             <p
               role="alert"

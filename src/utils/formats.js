@@ -7,6 +7,16 @@ const getLocale = () => LANGUAGE_OPTIONS.find((option) => option.value === i18n.
 export const formatNumber = (value) => Number.isFinite(value)
   ? new Intl.NumberFormat(getLocale()).format(value) : '—'
 
+export const formatDurationMinutes = (value) => {
+  if (!Number.isFinite(value) || value < 0) {
+    return '—'
+  }
+  const minutes = Math.floor(value)
+  const parts = [['day', Math.floor(minutes / 1440)], ['hour', Math.floor(minutes % 1440 / 60)], ['minute', minutes % 60]]
+  return parts.filter(([unit, count]) => count > 0 || unit === 'minute' && minutes === 0)
+    .map(([unit, count]) => new Intl.NumberFormat(getLocale(), { style: 'unit', unit, unitDisplay: 'long', useGrouping: false }).format(count)).join(' ')
+}
+
 export const formatDateTime = (value) => {
   if (!value) {
     return '—'

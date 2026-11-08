@@ -1,8 +1,8 @@
 import Reveal from '~/components/motion/Reveal'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ClipboardList, RefreshCw, Eye, RotateCcw } from 'lucide-react'
+import { ClipboardList, RefreshCw, Eye, RotateCcw, MoreHorizontal, Truck } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '~/components/ui/table'
@@ -11,6 +11,11 @@ import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import AnimatedNumber from '~/components/motion/AnimatedNumber'
 import OrderStatus from '~/components/orders/OrderStatus'
+import PaymentStatus from '~/components/orders/PaymentStatus'
+import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
+import UserAvatar from '~/components/UserAvatar/UserAvatar'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '~/components/ui/dropdown-menu'
+import { merchantOrderMediaApi } from '~/apis/merchant/merchantOrderMediaApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantOrderApi } from '~/apis/merchant/merchantOrderApi'
 import { initialOrdersQuery } from '~/utils/ordersQuery'
@@ -19,7 +24,12 @@ import OrderDateFilter from './components/OrderDateFilter'
 import OrderSummary from './components/OrderSummary'
 import { MERCHANT_ROUTES, ORDER_STATUS_OPTIONS, ORDER_SORT_OPTIONS, PAYMENT_STATUSES } from '~/utils/constants'
 import { formatCurrency, formatDateTime } from '~/utils/formats'
-import { PAGE_SIZE } from './orderModel'
+import { PAGE_SIZE, assignmentTask } from './orderModel'
+import OrderActionDialog from './components/OrderActionDialog'
+import { notify } from '~/utils/notifications'
+import { getApiError } from '~/utils/apiError'
+
+const headerBg = 'bg-[color-mix(in_srgb,var(--primary)_8%,var(--muted))] dark:bg-[color-mix(in_srgb,var(--primary)_12%,var(--muted))]'
 
 export default function OrdersPage() {
   const { t } = useTranslation()
@@ -29,6 +39,28 @@ export default function OrdersPage() {
   const loadSummary = useCallback((signal) => merchantOrderApi.summary(orderScopeFilter({ keyword: query.keyword, paymentStatus: query.paymentStatus, from: query.from, to: query.to }), signal), [query.keyword, query.paymentStatus, query.from, query.to])
   const summary = useCatalogResource(loadSummary)
   const resource = useCatalogResource(load)
+  const lockerPhotos = useCatalogResource(merchantOrderMediaApi.lockers)
+  const [assignment, setAssignment] = useState(null)
+  const [openingAssignment, setOpeningAssignment] = useState(false)
+  const openAssignment = async (id) => {
+    if (openingAssignment) {
+      return
+    }
+    setOpeningAssignment(true)
+    try {
+      const latest = await merchantOrderApi.detail(id)
+      if (assignmentTask(latest) !== 1) {
+        notify.error('merchant.orders.changed')
+        resource.retry()
+        return
+      }
+      setAssignment(latest)
+    } catch (error) {
+      notify.error(getApiError(error))
+    } finally {
+      setOpeningAssignment(false)
+    }
+  }
   const { data, loading, error } = resource
   const update = (patch) => setParams(writeMerchantOrdersQuery({ ...query, ...patch, page: patch.page || 1 }))
   useEffect(() => {
@@ -55,7 +87,7 @@ export default function OrdersPage() {
           className="h-11 px-4 text-base"
           disabled={loading || summary.loading}
           onClick={() => {
-            resource.retry(); summary.retry()
+            resource.retry(); summary.retry(); lockerPhotos.retry()
           }}
         >
           <RefreshCw size={17} />
@@ -63,7 +95,7 @@ export default function OrdersPage() {
         </Button>
       </header>
       <OrderSummary resource={summary} />
-      <section className="grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
+      <section className="grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
         <div className="grid gap-2">
           <p
             className="text-sm text-muted-foreground"
@@ -150,12 +182,15 @@ export default function OrdersPage() {
           <>
             <Table
               aria-label={t('merchant.nav.orders')}
-              className="min-w-[1150px] text-base"
+              className="min-w-[1500px] text-base"
             >
               <TableHeader>
                 <TableRow>
                   {['code', 'services', 'locker', 'state', 'weight', 'total', 'shipper', 'actions'].map((key) => (
-                    <TableHead key={key}>
+                    <TableHead
+                      key={key}
+                      className={`${headerBg} ${key === 'locker' ? 'min-w-[340px]' : key === 'actions' ? 'sticky right-0 z-20 w-24 border-l border-border text-center' : ''}`}
+                    >
                       {t(`merchant.orders.${key}`)}
                     </TableHead>
                   ))}
@@ -188,25 +223,45 @@ export default function OrdersPage() {
                         {formatDateTime(order.createdOn)}
                       </p>
                     </TableCell>
-                    <TableCell className="max-w-60">
-                      <p className="line-clamp-3">
-                        {order.serviceNames?.join(', ') || '—'}
-                      </p>
+                    <TableCell className="min-w-[280px] max-w-96">
+                      <div className="space-y-3">
+                        {(order.services?.length ? order.services : (order.serviceNames || []).map(serviceName => ({ serviceName }))).map((service, index) => (
+                          <div
+                            key={service.serviceId || index}
+                            className="flex items-center gap-3"
+                          >
+                            <ResourceThumbnail
+                              urls={service.serviceThumbnailUrl ? [service.serviceThumbnailUrl] : service.serviceImageUrls || []}
+                              name={service.serviceName}
+                            />
+                            <span className="font-semibold">
+                              {service.serviceName}
+                            </span>
+                          </div>
+                        ))}
+                        {!order.services?.length && !order.serviceNames?.length && '—'}
+                      </div>
                     </TableCell>
-                    <TableCell>
-                      <p>
-                        {order.lockerName || '—'}
-                      </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {t('customer.order.box', { number: order.boxNumber || '—' })}
-                      </p>
+                    <TableCell className="min-w-[340px]">
+                      <div className="flex items-center gap-3">
+                        <ResourceThumbnail
+                          urls={order.lockerImageUrls || lockerPhotos.data?.[order.lockerId] || []}
+                          name={order.lockerName}
+                        />
+                        <div>
+                          <p className="font-semibold">
+                            {order.lockerName || '—'}
+                          </p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {t('customer.order.box', { number: order.boxNumber || '—' })}
+                          </p>
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col items-start gap-2">
                         <OrderStatus status={order.status} />
-                        <span className={`text-sm ${order.paymentStatus === 2 ? 'text-emerald-700 dark:text-emerald-300' : 'text-muted-foreground'}`}>
-                          {t(`customer.orders.paymentStatus.${order.paymentStatus}`, { defaultValue: '—' })}
-                        </span>
+                        <PaymentStatus status={order.paymentStatus} />
                       </div>
                     </TableCell>
                     <TableCell className="whitespace-nowrap font-semibold">
@@ -216,18 +271,47 @@ export default function OrdersPage() {
                       {formatCurrency(order.finalAmount)}
                     </TableCell>
                     <TableCell>
-                      {order.shipperName || t('merchant.orders.unassigned')}
+                      <div className="flex min-w-48 items-center gap-3">
+                        <UserAvatar
+                          avatar={order.shipperAvatarUrl}
+                          fullName={order.shipperName}
+                          className="size-11"
+                        />
+                        <span className="font-semibold">
+                          {order.shipperName || t('merchant.orders.unassigned')}
+                        </span>
+                      </div>
                     </TableCell>
-                    <TableCell>
-                      <Button
-                        render={<Link to={`${MERCHANT_ROUTES.ORDERS}/${order.id}`} />}
-                        nativeButton={false}
-                        variant="secondary"
-                        size="icon"
-                        aria-label={t('merchant.viewOrder', { code: order.orderCode })}
-                      >
-                        <Eye size={18} />
-                      </Button>
+                    <TableCell className="sticky right-0 z-10 border-l border-border bg-card text-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger render={(
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="size-10 rounded-xl"
+                            aria-label={t('merchant.viewOrder', { code: order.orderCode })}
+                          />
+                        )}
+                        >
+                          <MoreHorizontal size={18} />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem render={<Link to={`${MERCHANT_ROUTES.ORDERS}/${order.id}`} />}>
+                            <Eye size={16} />
+                            {t('admin.merchants.details')}
+                          </DropdownMenuItem>
+                          {(order.allowedActions ? assignmentTask(order) === 1 : order.status === 2) && (
+                            <DropdownMenuItem
+                              disabled={openingAssignment}
+                              onClick={() => openAssignment(order.id)}
+                              className="text-teal-700 dark:text-teal-300"
+                            >
+                              <Truck size={16} />
+                              {t('merchant.orders.assignCollect')}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -246,6 +330,17 @@ export default function OrdersPage() {
           </>
         )}
       </section>
+      {assignment && (
+        <OrderActionDialog
+          key={assignment.id}
+          action="assign"
+          order={assignment}
+          onClose={() => setAssignment(null)}
+          onSaved={() => {
+            setAssignment(null); resource.retry(); summary.retry()
+          }}
+        />
+      )}
     </Reveal>
   )
 }

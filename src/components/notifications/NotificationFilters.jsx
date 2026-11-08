@@ -2,8 +2,9 @@ import { useTranslation } from 'react-i18next'
 import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
 import { SelectField } from '~/components/ui/select'
 import DateRangeFilter from '~/components/DateRangeFilter/DateRangeFilter'
+import { CUSTOMER_NOTIFICATION_TYPES } from './notificationModel'
 
-export default function NotificationFilters({ params, change }) {
+export default function NotificationFilters({ params, change, types = CUSTOMER_NOTIFICATION_TYPES }) {
   const { t } = useTranslation()
   return (
     <div className="grid gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm">
@@ -27,7 +28,7 @@ export default function NotificationFilters({ params, change }) {
           label={t('customer.sync.notificationType')}
           value={params.get('type') || ''}
           onValueChange={(type) => change({ type })}
-          options={[{ value: '', label: t('common.all') }, ...Array.from({ length: 17 }, (_, index) => ({ value: String(index + 1), label: t(`customer.sync.notificationTypes.${index + 1}`) }))]}
+          options={[{ value: '', label: t('common.all') }, ...types.map((value) => ({ value: String(value), label: t(`customer.sync.notificationTypes.${value}`) }))]}
         />
       </div>
       <DateRangeFilter

@@ -1,4 +1,4 @@
-import { AUTH_ROUTES, CUSTOMER_ROUTES, MERCHANT_ROUTES, ROLE_HOME_ROUTES, USER_ROLES } from '~/utils/constants'
+import { AUTH_ROUTES, CUSTOMER_ROUTES, MERCHANT_ROUTES, ADMIN_ROUTES, ROLE_HOME_ROUTES, USER_ROLES } from '~/utils/constants'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import LoadingScreen from '~/components/LoadingScreen/LoadingScreen'
@@ -27,6 +27,12 @@ const CustomerComplaintDetailPage = lazy(() => import('~/pages/customer/Complain
 const CustomerLayout = lazy(() => import('~/layouts/customer/CustomerLayout'))
 const CustomerNotificationsPage = lazy(() => import('~/pages/customer/Notifications/NotificationsPage'))
 const AdminHomePage = lazy(() => import('~/pages/admin/Home/HomePage'))
+const AdminMerchantsPage = lazy(() => import('~/pages/admin/Merchants/MerchantsPage'))
+const AdminOrdersPage = lazy(() => import('~/pages/admin/Orders/OrdersPage'))
+const AdminOrderDetailPage = lazy(() => import('~/pages/admin/Orders/OrderDetailPage'))
+const AdminLayout = lazy(() => import('~/layouts/admin/AdminLayout'))
+const AdminProfilePage = lazy(() => import('~/pages/admin/Profile/ProfilePage'))
+const AdminNotificationsPage = lazy(() => import('~/pages/admin/Notifications/NotificationsPage'))
 const MerchantHomePage = lazy(() => import('~/pages/merchant/Home/HomePage'))
 const MerchantShippersPage = lazy(() => import('~/pages/merchant/Shippers/ShippersPage'))
 const MerchantLockersPage = lazy(() => import('~/pages/merchant/Lockers/LockersPage'))
@@ -141,13 +147,35 @@ export default function App() {
               />
             </Route>
           </Route>
-          <Route element={<StandaloneThemeLayout />}>
-            <Route element={<ProtectedRoleRoute role={USER_ROLES.ADMIN} />}>
+          <Route element={<ProtectedRoleRoute role={USER_ROLES.ADMIN} />}>
+            <Route element={<AdminLayout />}>
               <Route
-                path={ROLE_HOME_ROUTES[USER_ROLES.ADMIN]}
+                path={ADMIN_ROUTES.HOME}
                 element={<AdminHomePage />}
               />
+              <Route
+                path={ADMIN_ROUTES.PROFILE}
+                element={<AdminProfilePage />}
+              />
+              <Route
+                path={ADMIN_ROUTES.MERCHANTS}
+                element={<AdminMerchantsPage />}
+              />
+              <Route
+                path={ADMIN_ROUTES.ORDERS}
+                element={<AdminOrdersPage />}
+              />
+              <Route
+                path={`${ADMIN_ROUTES.ORDERS}/:orderId`}
+                element={<AdminOrderDetailPage />}
+              />
+              <Route
+                path={ADMIN_ROUTES.NOTIFICATIONS}
+                element={<AdminNotificationsPage />}
+              />
             </Route>
+          </Route>
+          <Route element={<StandaloneThemeLayout />}>
             <Route element={<ProtectedRoleRoute role={USER_ROLES.SHIPPER} />}>
               <Route
                 path={ROLE_HOME_ROUTES[USER_ROLES.SHIPPER]}

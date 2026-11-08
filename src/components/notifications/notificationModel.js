@@ -98,10 +98,11 @@ export function notificationHref(item) {
 }
 
 export const NOTIFICATION_GROUPS = ['order', 'payment', 'promotion', 'feedback', 'system']
-export function notificationFilters(params) {
+export const CUSTOMER_NOTIFICATION_TYPES = Array.from({ length: 17 }, (_, index) => index + 1)
+export function notificationFilters(params, types = CUSTOMER_NOTIFICATION_TYPES) {
   const group = NOTIFICATION_GROUPS.includes(params.get('group')) ? params.get('group') : ''
   const type = Number(params.get('type'))
   const from = validDay(params.get('from') || '') ? params.get('from') : ''
   const to = validDay(params.get('to') || '') ? params.get('to') : ''
-  return { keyword: (params.get('keyword') || '').trim().slice(0, 200), groups: group ? [group] : undefined, types: type >= 1 && type <= 17 && Number.isInteger(type) ? [type] : undefined, sort: ['newest', 'oldest', 'unreadFirst'].includes(params.get('sort')) ? params.get('sort') : 'newest', ...(validRange(from, to) ? dateRangeFilter({ from, to }) : {}) }
+  return { keyword: (params.get('keyword') || '').trim().slice(0, 100), groups: group ? [group] : undefined, types: types.includes(type) ? [type] : undefined, sort: ['newest', 'oldest', 'unreadFirst'].includes(params.get('sort')) ? params.get('sort') : 'newest', ...(validRange(from, to) ? dateRangeFilter({ from, to }) : {}) }
 }
