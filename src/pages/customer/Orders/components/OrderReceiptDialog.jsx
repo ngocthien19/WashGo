@@ -52,7 +52,7 @@ export default function OrderReceiptDialog({ orderId, onClose }) {
               <ReceiptText className="size-5 text-primary" />
               {t('customer.orders.receipt.action')}
             </DialogTitle>
-            <DialogDescription className="mt-1 text-sm font-semibold text-muted-foreground">
+            <DialogDescription className="mt-1 text-sm font-semibold">
               {order?.orderCode || t('customer.orders.loadingDetail')}
             </DialogDescription>
           </div>

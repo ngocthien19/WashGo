@@ -7,7 +7,7 @@ export default function OrderCommission({ order }) {
   const available = Number.isFinite(order.commissionRateApplied) && order.commissionRateApplied > 0 && order.commissionRateApplied <= 100
   return (
     <section className="mt-5 rounded-xl border border-primary/15 bg-primary/5 p-4">
-      <h3 className="font-bold">
+      <h3 className="border-b border-border pb-3 font-semibold">
         {t('merchant.sync.commissionTitle')}
       </h3>
       {!available ? (
