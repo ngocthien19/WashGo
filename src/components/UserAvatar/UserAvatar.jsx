@@ -23,7 +23,7 @@ export default function UserAvatar({ avatar, fullName, className, alt = '' }) {
       aria-hidden={alt ? undefined : true}
       className={cn('grid size-8 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary', className)}
     >
-      {getInitials(fullName)}
+      {getInitials(fullName || '')}
     </span>
   )
 }
