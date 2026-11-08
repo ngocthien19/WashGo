@@ -33,6 +33,9 @@ async function setup(page, options = {}) {
     if (path === '/notification') {
       return list([{ id: 'notice-1', type: 20, title: 'New order assigned', content: 'An order has been assigned to your store.', createdOn: 1794009600, isRead: true, linkType: 'order', linkId: orderId }])
     }
+    if (path === '/notification/filter') {
+      return data({ items: [{ id: 'notice-1', type: 20, title: 'New order assigned', content: 'An order has been assigned to your store.', createdOn: 1794009600, isRead: true, linkType: 'order', linkId: orderId }], total: 1, page: 1, take: 10, unreadTotal: 0, counts: [{ group: 'order', total: 1, unread: 0 }] })
+    }
     if (path === '/merchant-profile') {
       return state.profileError ? fail() : data({ id: 'merchant-test', businessName: 'WashGo Ben Thanh', address: '123 Test Street', city: 'Ho Chi Minh City', phone: '0901234567', email: 'shop@example.test', openingHours: '08:00–20:00', rating: 4.8, totalOrders: 28, status: 1, contractStartDate: '2023-03-15T00:00:00Z', pendingRequest: state.submitted, ...options.profile })
     }
@@ -153,9 +156,8 @@ test('mobile header, theme, language and notifications remain within Merchant ro
   await popup.getByRole('link', { name: 'Tất cả thông báo', exact: true }).click()
   await expect(page).toHaveURL('/merchant/notifications')
   await page.getByRole('button', { name: 'Xem chi tiết', exact: true }).click()
-  await expect(page).toHaveURL(new RegExp(`/merchant\\?order=${orderId}$`))
-  await expect(page.getByRole('dialog', { name: 'WG-MERCHANT-123' })).toBeVisible()
-  await page.keyboard.press('Escape')
+  await expect(page).toHaveURL(new RegExp(`/merchant/orders/${orderId}$`))
+  await expect(page.getByRole('heading', { name: 'WG-MERCHANT-123', exact: true })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
 
@@ -234,11 +236,15 @@ test('Customer role is redirected without querying Merchant data', async ({ page
 })
 
 test('profile edit uploads photos and submits a pending request without replacing approved information', async ({ page }) => {
-  const state = await setup(page)
+  const state = await setup(page, { profile: { taxCode: '0312345678' } })
   await page.goto('/merchant/profile')
   await expect(page).toHaveTitle('Store profile | WashGo')
   await page.getByRole('button', { name: 'Edit store profile', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Edit store profile', exact: true })
+  await expect(dialog.getByLabel('Tax code', { exact: true })).toHaveValue('0312345678')
+  await expect(dialog.getByLabel('Tax code', { exact: true })).not.toBeEditable()
+  await expect(dialog.getByLabel('Business license', { exact: true })).not.toBeEditable()
+  await expect(dialog.getByLabel('Business license', { exact: true })).toHaveAttribute('placeholder', 'Not provided by the system')
   await expect(dialog.getByLabel('City / Province', { exact: true })).toHaveValue('Ho Chi Minh City')
   await expect(dialog.getByLabel('City / Province', { exact: true })).toBeEditable()
   await expect(dialog.getByLabel('City / Province', { exact: true })).toHaveAttribute('required', '')
