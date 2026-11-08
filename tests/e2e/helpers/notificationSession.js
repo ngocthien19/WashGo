@@ -1,7 +1,7 @@
 export const orderId = '11111111-1111-4111-8111-111111111111'
 export const notificationId = '22222222-2222-4222-8222-222222222222'
 export async function setupNotifications(page, { role = 'Customer', dark = false } = {}) {
-  const state = { items: [{ id: notificationId, title: 'Your laundry is ready', content: 'Collect your items from Ben Thanh Locker.', isRead: false, linkType: 'order', linkId: orderId, createdOn: 1793923200 }], fail: false, writes: [] }
+  const state = { items: [{ id: notificationId, title: 'Your laundry is ready', content: 'Collect your items from Ben Thanh Locker.', isRead: false, linkType: 'order', linkId: orderId, createdOn: 1793923200 }], fail: false, writes: [], filters: [] }
   await page.addInitScript(({ role, dark }) => localStorage.setItem('persist:root', JSON.stringify({
     auth: JSON.stringify({ user: { id: 'notification-customer', fullName: 'Alex', role }, accessToken: 'test', refreshToken: 'test', expiresAt: '2099-01-01T00:00:00Z' }),
     preferences: JSON.stringify({ language: 'en', serviceTermsSeen: { 'notification-customer': true } }), theme: JSON.stringify({ mode: dark ? 'dark' : 'light' }), _persist: JSON.stringify({ version: 1, rehydrated: true })
@@ -19,13 +19,20 @@ export async function setupNotifications(page, { role = 'Customer', dark = false
         return route.fulfill({ status: 500, json: { succeeded: false } })
       }
       const body = request.postDataJSON()
-      const items = state.items.filter((item) => (!body.unreadOnly || !item.isRead) && (!body.keyword || item.title.includes(body.keyword)))
+      state.filters.push(body)
+      const items = state.items.filter((item) => (!body.unreadOnly || !item.isRead)
+        && (!body.keyword || `${item.title} ${item.content}`.toLowerCase().includes(body.keyword.toLowerCase()))
+        && (!body.groups?.length || body.groups.includes(item.group || 'order'))
+        && (!body.types?.length || body.types.includes(item.type))
+        && (body.fromDate == null || item.createdOn >= body.fromDate)
+        && (body.toDate == null || item.createdOn <= body.toDate))
+      items.sort((a, b) => body.sort === 'oldest' ? a.createdOn - b.createdOn : body.sort === 'unreadFirst' ? Number(a.isRead) - Number(b.isRead) || b.createdOn - a.createdOn : b.createdOn - a.createdOn)
       return ok({ items: items.slice((body.page - 1) * body.take, body.page * body.take), total: items.length, page: body.page, take: body.take, unreadTotal: state.items.filter((item) => !item.isRead).length, counts: ['order', 'payment', 'promotion', 'feedback', 'system'].map((group) => {
         const items = state.items.filter((item) => (item.group || 'order') === group); return { group, total: items.length, unread: items.filter((item) => !item.isRead).length }
       }) })
     }
     if (path === '/auth/me') {
-      return ok({ id: 'notification-customer', fullName: 'Alex', role })
+      return ok({ id: 'notification-customer', fullName: 'Alex', role, email: 'alex@example.test' })
     }
     if (path === '/merchant-profile') {
       return ok({ id: 'notification-customer', businessName: 'Store name', status: 1 })

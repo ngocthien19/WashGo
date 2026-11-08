@@ -1,5 +1,5 @@
 import NotificationFilters from './NotificationFilters'
-import { notificationFilters, NOTIFICATION_GROUPS } from './notificationModel'
+import { notificationFilters, NOTIFICATION_GROUPS, CUSTOMER_NOTIFICATION_TYPES } from './notificationModel'
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -8,7 +8,7 @@ import { Button } from '~/components/ui/button'
 import { useNotifications } from './NotificationContext'
 import NotificationInbox from './NotificationInbox'
 
-export default function NotificationCenter({ stickyClassName = 'lg:top-24', advanced = false }) {
+export default function NotificationCenter({ stickyClassName = 'lg:top-24', advanced = false, types = CUSTOMER_NOTIFICATION_TYPES, descriptionKey = 'customer.notification.description' }) {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
   const rawPage = Number(params.get('page') || 1)
@@ -17,7 +17,7 @@ export default function NotificationCenter({ stickyClassName = 'lg:top-24', adva
   const { unread } = useNotifications()
   const [counts, setCounts] = useState([])
   const total = counts.length ? counts.reduce((sum, item) => sum + item.total, 0) : null
-  const filters = useMemo(() => advanced ? notificationFilters(params) : undefined, [advanced, params])
+  const filters = useMemo(() => advanced ? notificationFilters(params, types) : undefined, [advanced, params, types])
   const updateFilters = (patch) => {
     const next = new URLSearchParams(params)
     next.delete('page')
@@ -104,7 +104,7 @@ export default function NotificationCenter({ stickyClassName = 'lg:top-24', adva
             size={24}
           />
           <p className="text-sm leading-6 text-muted-foreground">
-            {t('customer.notification.description')}
+            {t(descriptionKey)}
           </p>
         </div>
       </aside>
@@ -113,6 +113,7 @@ export default function NotificationCenter({ stickyClassName = 'lg:top-24', adva
           <NotificationFilters
             params={params}
             change={updateFilters}
+            types={types}
           />
         )}
         <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">

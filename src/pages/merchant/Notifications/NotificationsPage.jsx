@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Bell } from 'lucide-react'
 import Reveal from '~/components/motion/Reveal'
 import NotificationCenter from '~/components/notifications/NotificationCenter'
+import { MERCHANT_NOTIFICATION_TYPES } from './notificationModel'
 
 export default function NotificationsPage() {
   const { t } = useTranslation()
@@ -16,7 +17,10 @@ export default function NotificationsPage() {
           {t('customer.notification.description')}
         </p>
       </header>
-      <NotificationCenter />
+      <NotificationCenter
+        advanced
+        types={MERCHANT_NOTIFICATION_TYPES}
+      />
     </Reveal>
   )
 }
