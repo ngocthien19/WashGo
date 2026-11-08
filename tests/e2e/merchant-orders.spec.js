@@ -4,6 +4,30 @@ import { merchantSession } from './helpers/merchantSession'
 
 const id = '11111111-1111-4111-8111-111111111111'
 const shipperId = '22222222-2222-4222-8222-222222222222'
+
+test('Merchant list shows service thumbnails and opens collection assignment from its menu', async ({ page }) => {
+  const state = await setup(page, { status: 2 })
+  state.order.services = [{ serviceId: 'service-1', serviceName: 'Everyday wash', serviceThumbnailUrl: '/service-test.svg' }]
+  await page.route('**/service-test.svg', route => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="blue"/></svg>' }))
+  await page.goto('/merchant/orders')
+  await expect(page.getByRole('img', { name: 'Everyday wash', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'View order WG-ORDER-123' }).click()
+  await page.getByRole('menuitem', { name: 'Assign collection' }).click()
+  await expect(page.getByRole('dialog').getByText(/driver@example.test/)).toBeVisible()
+  expect(state.writes).toHaveLength(0)
+})
+
+test('Merchant list checks current permissions before opening collection assignment', async ({ page }) => {
+  const state = await setup(page, { status: 2 })
+  state.allowedActions = { canAssignShipper: false, allowedNextStatuses: [], statusOptions: [] }
+  await page.goto('/merchant/orders')
+  await page.getByRole('button', { name: 'View order WG-ORDER-123' }).click()
+  await page.getByRole('menuitem', { name: 'Assign collection' }).click()
+  await expect(page.getByRole('alert')).toBeVisible()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  expect(state.writes).toHaveLength(0)
+})
+
 async function setup(page, options = {}) {
   await merchantSession(page, options)
   const operations = new Map()
@@ -27,6 +51,18 @@ async function setup(page, options = {}) {
     }
     if (path === '/notification/unread-count') {
       return ok(0)
+    }
+    if (path === '/locker/filter') {
+      return route.fulfill({ json: { succeeded: true, list: [], total: 0, currentPage: 1 } })
+    }
+    if (path === `/shipper/${shipperId}`) {
+      return ok({ id: shipperId, fullName: 'Test Driver', email: 'driver@example.test', phone: '0901234567', vehicleType: 1, vehiclePlate: '59-ABC', isActive: true })
+    }
+    if (path === '/locker/33333333-3333-4333-8333-333333333333') {
+      return ok({ id: '33333333-3333-4333-8333-333333333333', imageUrls: [] })
+    }
+    if (path === '/merchant-service/44444444-4444-4444-8444-444444444444') {
+      return ok({ id: '44444444-4444-4444-8444-444444444444', imageUrls: [] })
     }
     if (path.startsWith('/hubs/notifications')) {
       return route.fulfill({ status: 404, json: {} })
@@ -66,7 +102,7 @@ async function setup(page, options = {}) {
       return ok({ ...state.order, allowedActions: state.allowedActions || mockOrderActions(state.order) })
     }
     if (path === `/wash-order/${id}/available-shippers`) {
-      return ok(state.shippers ? [{ id: shipperId, fullName: 'Test Driver', phone: '0901234567', taskType: options.status === 9 ? 2 : 1, vehiclePlate: '59-ABC' }] : [])
+      return ok(state.shippers ? [{ id: shipperId, fullName: 'Test Driver', phone: '0901234567', vehicleType: 1, taskType: options.status === 9 ? 2 : 1, vehiclePlate: '59-ABC' }] : [])
     }
     if (req.method() === 'PUT' && [`/wash-order/${id}/actual-weight`, '/wash-order/status', '/wash-order/assign-shipper'].includes(path)) {
       const body = req.postDataJSON()
@@ -117,6 +153,7 @@ test('merchant order table filters and pages on the server, preserves URL and op
   await page.getByRole('button', { name: 'Clear filters', exact: true }).click()
   await expect(page.getByRole('table')).toContainText('WG-ORDER-123')
   await page.getByRole('button', { name: 'View order WG-ORDER-123', exact: true }).click()
+  await page.getByRole('menuitem', { name: 'View details', exact: true }).click()
   await expect(page).toHaveURL(`/merchant/orders/${id}`)
   await expect(page.getByRole('heading', { name: 'WG-ORDER-123', exact: true })).toBeVisible()
   await expect(page.locator('main')).not.toContainText('PRIVATE_CUSTOMER')
@@ -306,5 +343,25 @@ test('server permissions and overdue metadata drive the detail view', async ({ p
   await expect(page.getByText('Payment deadline', { exact: true })).toBeVisible()
   await expect(page.getByText('Payment overdue', { exact: true })).toBeVisible()
   await expect(page.getByText('This legacy order has no package pricing data for weighing and repricing.', { exact: true })).toBeVisible()
+  expect(state.writes).toHaveLength(0)
+})
+
+test('Merchant detail mirrors the layout with contacts, drop-off/pickup and highlighted assignment code', async ({ page }) => {
+  const state = await setup(page, { status: 2 })
+  Object.assign(state.order, { shipperId, shipperName: 'Test Driver', lockerId: '33333333-3333-4333-8333-333333333333', lockerAddress: '123 Test Street' })
+  state.order.items[0].serviceId = '44444444-4444-4444-8444-444444444444'
+  await page.goto(`/merchant/orders/${id}`)
+  await expect(page.getByText('driver@example.test', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Drop-off', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Pickup', exact: true })).toBeVisible()
+  await expect(page.locator('main header').getByRole('button', { name: 'Assign collection', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Order processing', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Assign collection', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByText(/driver@example.test/)).toBeVisible()
+  await expect(dialog.getByText(/Motorbike/)).toBeVisible()
+  const code = dialog.getByText('WG-ORDER-123', { exact: true })
+  expect(await code.evaluate(el => getComputedStyle(el).fontWeight)).toBe('600')
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
   expect(state.writes).toHaveLength(0)
 })
