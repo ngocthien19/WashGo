@@ -39,6 +39,7 @@ export const CUSTOMER_ROUTES = {
 }
 
 export const MERCHANT_ROUTES = { HOME: '/merchant', ORDERS: '/merchant/orders', ORDER_DETAIL: '/merchant/orders/:orderId', SHIPPERS: '/merchant/shippers', LOCKERS: '/merchant/lockers', SERVICES: '/merchant/services', REPORTS: '/merchant/reports', PROFILE: '/merchant/profile', NOTIFICATIONS: '/merchant/notifications' }
+export const ADMIN_ROUTES = { HOME: '/admin', PROFILE: '/admin/profile', NOTIFICATIONS: '/admin/notifications', MERCHANTS: '/admin/merchants', ORDERS: '/admin/orders' }
 export const MERCHANT_API = { PROFILE: '/merchant-profile', ORDERS: '/wash-order/filter', SETTLEMENTS: '/finance/settlements/filter' }
 export const MERCHANT_DASHBOARD = { RECENT_TAKE: 5, SETTLEMENT_TAKE: 4, STATUSES: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 99] }
 
