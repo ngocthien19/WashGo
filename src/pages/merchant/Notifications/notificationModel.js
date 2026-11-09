@@ -1,9 +1,13 @@
 import { MERCHANT_ROUTES } from '~/utils/constants'
+import { notificationTypesFor } from '~/components/notifications/notificationCatalog'
 
 // Types currently published to Merchant accounts by the backend.
-export const MERCHANT_NOTIFICATION_TYPES = [6, 9, 10, 11, 12, 20, 21, 22, 23, 24, 25, 26, 27, 29, 32, 43]
+export const MERCHANT_NOTIFICATION_TYPES = notificationTypesFor('Merchant')
 
 export function merchantNotificationHref(item) {
+  if ([24, 25].includes(item.type)) {
+    return MERCHANT_ROUTES.REPORTS
+  }
   if (!/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(item.linkId || '')) {
     return null
   }

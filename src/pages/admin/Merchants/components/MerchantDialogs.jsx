@@ -182,7 +182,7 @@ function StatusDialog({ merchant, onClose, onSaved }) {
       }}
     >
       <DialogContent closeLabel="common.close">
-        <MerchantDialogHeader>
+        <MerchantDialogHeader tone={locking ? 'warning' : 'success'}>
           <DialogTitle className="flex items-center gap-3 pr-8 text-xl font-semibold">
             <span className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${locking ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'}`}>
               <Icon size={24} />

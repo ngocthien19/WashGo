@@ -8,7 +8,7 @@ import { SelectField } from '~/components/ui/select'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '~/components/ui/dropdown-menu'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '~/components/ui/table'
 import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
-import Pagination from '~/components/Pagination/Pagination'
+import TablePagination from '~/components/Pagination/TablePagination'
 import Reveal from '~/components/motion/Reveal'
 import AnimatedNumber from '~/components/motion/AnimatedNumber'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
@@ -16,7 +16,7 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantServiceApi } from '~/apis/merchant/merchantServiceApi'
 import { SERVICE_TYPES } from '~/utils/constants'
 import { formatCurrency, formatDateTime } from '~/utils/formats'
-import { readServiceQuery, serviceFilter, approvalClass, serviceSortOptions } from './serviceModel'
+import { SERVICE_TAKE, readServiceQuery, serviceFilter, approvalClass, serviceSortOptions } from './serviceModel'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 import ServiceSummary from './components/ServiceSummary'
 import ServiceDialog from './components/ServiceDialog'
@@ -107,7 +107,7 @@ export default function ServicesPage() {
           value={query.tab}
           className="grid gap-6 outline-none"
         >
-          <section className="grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
+          <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
             <div className="grid gap-2">
               <p className="text-sm text-muted-foreground">
                 {t('merchant.services.search')}
@@ -169,7 +169,7 @@ export default function ServicesPage() {
                 {catalog && (
                   <SelectField
                     label={t('merchant.serviceSync.sortLabel')}
-                    className="w-52 font-semibold"
+                    className="workspace-filters w-52 font-medium"
                     value={query.sort}
                     onValueChange={(sort) => update({ sort })}
                     options={Object.keys(serviceSortOptions).map((value) => ({ value, label: t(`merchant.serviceSync.sort.${value}`) }))}
@@ -317,13 +317,14 @@ export default function ServicesPage() {
                     })}
                   </TableBody>
                 </Table>
-                <div className="border-t border-border p-5">
-                  <Pagination
-                    currentPage={query.page}
-                    totalPages={data.totalPages}
-                    onPageChange={(page) => update({ page })}
-                  />
-                </div>
+                <TablePagination
+                  currentPage={query.page}
+                  totalPages={data.totalPages}
+                  onPageChange={(page) => update({ page })}
+                  total={data.total}
+                  pageSize={SERVICE_TAKE}
+                  rowCount={data.list.length}
+                />
               </>
             )}
           </section>

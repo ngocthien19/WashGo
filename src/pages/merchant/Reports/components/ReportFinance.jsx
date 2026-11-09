@@ -8,7 +8,7 @@ export default function ReportFinance({ data }) {
   const missing = data.kpis.ordersWithoutCommissionSnapshot
   return (
     <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-      <h2 className="flex items-center gap-2 text-lg font-bold">
+      <h2 className="flex items-center gap-2 border-b border-border pb-4 text-lg font-bold">
         <Wallet
           size={21}
           className="text-primary"
@@ -38,7 +38,7 @@ export default function ReportFinance({ data }) {
                 key={key}
                 className="flex flex-wrap items-center justify-between gap-3 py-4"
               >
-                <dt className="flex items-center gap-2 text-sm font-medium">
+                <dt className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <Icon
                     size={17}
                     className={key === 'refunds' ? 'text-red-500' : key === 'commission' ? 'text-amber-600' : 'text-primary'}

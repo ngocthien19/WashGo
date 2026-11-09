@@ -202,7 +202,7 @@ test('receipt appears only in details and rechecks payment eligibility before pr
   state.order = { ...state.order, paymentStatus: 1 }
   await action.click()
   const dialog = page.getByRole('dialog', { name: 'Payment printout', exact: true })
-  await expect(dialog.getByRole('status')).toBeVisible()
+  await expect(dialog.getByRole('alert')).toContainText('A printout is available only after the order is completed and paid.')
   await expect(dialog.getByRole('button', { name: 'Print receipt', exact: true })).toBeDisabled()
   await expect(page.locator('[data-receipt-print]')).toHaveCount(0)
   await expect(page).toHaveURL(`/customer/orders/${id}`)

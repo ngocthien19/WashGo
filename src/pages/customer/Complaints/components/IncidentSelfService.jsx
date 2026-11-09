@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '~/components/ui/dropdown-menu'
 import { CUSTOMER_ROUTES } from '~/utils/constants'
 import { notify } from '~/utils/notifications'
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
@@ -136,12 +136,14 @@ export function IncidentActions({ incident: summary, onSaved, menu = false }) {
             className="max-w-lg"
             closeLabel="common.close"
           >
-            <DialogTitle className="text-xl font-bold">
-              {t('customer.sync.withdrawIncident')}
-            </DialogTitle>
-            <DialogDescription className="mt-3 text-base text-muted-foreground">
-              {t('customer.sync.withdrawHint')}
-            </DialogDescription>
+            <DialogHeader tone="danger">
+              <DialogTitle className="text-xl font-bold">
+                {t('customer.sync.withdrawIncident')}
+              </DialogTitle>
+              <DialogDescription className="mt-3 text-base text-muted-foreground">
+                {t('customer.sync.withdrawHint')}
+              </DialogDescription>
+            </DialogHeader>
             <form
               className="mt-5 grid gap-4"
               onSubmit={async (event) => {

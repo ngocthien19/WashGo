@@ -6,7 +6,7 @@ import { adminDashboardApi } from '~/apis/admin/adminDashboardApi'
 import { ADMIN_ROUTES } from '~/utils/constants'
 import { adminNotificationHref } from '~/utils/adminNotifications'
 
-const navigation = [['overview', LayoutDashboard, ADMIN_ROUTES.HOME], ['merchants', Store, ADMIN_ROUTES.MERCHANTS], ['orders', Package, ADMIN_ROUTES.ORDERS], ...[['lockers', PanelsTopLeft], ['services', Shirt], ['promotions', Tags], ['complaints', MessageSquareWarning], ['finance', Wallet], ['settings', Settings]].map(([key, icon]) => [key, icon, `/admin/${key}`, false])]
+const navigation = [['overview', LayoutDashboard, ADMIN_ROUTES.HOME], ['merchants', Store, ADMIN_ROUTES.MERCHANTS], ['orders', Package, ADMIN_ROUTES.ORDERS], ['lockers', PanelsTopLeft, ADMIN_ROUTES.LOCKERS], ['services', Shirt, ADMIN_ROUTES.SERVICES], ['promotions', Tags, ADMIN_ROUTES.PROMOTIONS], ['complaints', MessageSquareWarning, ADMIN_ROUTES.COMPLAINTS], ['finance', Wallet, ADMIN_ROUTES.FINANCE], ['settings', Settings, ADMIN_ROUTES.SETTINGS]]
 export default function AdminLayout() {
   const load = useCallback((signal) => adminDashboardApi.profile(signal), [])
   const profile = useCatalogResource(load)

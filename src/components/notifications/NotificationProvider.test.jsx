@@ -5,11 +5,12 @@ import { expect, it, vi } from 'vitest'
 import NotificationProvider from './NotificationProvider'
 import { useNotifications } from './NotificationContext'
 import { notificationHref } from './notificationModel'
+import { NOTIFICATION_CONFIG } from '~/utils/constants'
 import { notify } from '~/utils/notifications'
 
 vi.mock('~/utils/notifications', () => ({ notify: { info: vi.fn() } }))
 
-const mock = vi.hoisted(() => ({ handlers: {}, unread: vi.fn(), stop: vi.fn(async () => {}), options: null, reconnected: null }))
+const mock = vi.hoisted(() => ({ handlers: {}, unread: vi.fn(), start: vi.fn(async () => {}), stop: vi.fn(async () => {}), options: null, reconnected: null }))
 vi.mock('~/apis/notificationApi', () => ({
   notificationApi: { unread: mock.unread },
   isNotification: (item) => Boolean(item?.id)
@@ -34,7 +35,7 @@ vi.mock('@microsoft/signalr', () => ({
         off: (name) => {
           delete mock.handlers[name]
         },
-        start: async () => {}, stop: mock.stop,
+        start: mock.start, stop: mock.stop,
         onreconnecting: () => {}, onclose: () => {},
         onreconnected: (callback) => {
           mock.reconnected = callback
@@ -93,4 +94,33 @@ it('routes only supported internal targets with valid identifiers', () => {
   expect(notificationHref({ linkType: 'incident', linkId: id })).toBe(`/customer/complaints/${id}`)
   expect(notificationHref({ linkType: 'https://example.com', linkId: id })).toBeNull()
   expect(notificationHref({ linkType: 'order', linkId: '../profile' })).toBeNull()
+})
+
+it('refreshes a visible Admin inbox when realtime is unavailable without announcing historical items', async () => {
+  vi.useFakeTimers()
+  notify.info.mockClear()
+  mock.start.mockRejectedValue(new Error('Hub unavailable'))
+  mock.unread.mockResolvedValue(1)
+  const store = configureStore({ reducer: { auth: (state = { user: { id: 'admin', role: 'Admin' }, accessToken: 'token' }) => state } })
+  let view
+  try {
+    view = render(<Provider store={store}>
+      <NotificationProvider>
+        <Status />
+      </NotificationProvider>
+    </Provider>)
+    await act(async () => {})
+    const before = mock.unread.mock.calls.length
+    mock.unread.mockResolvedValue(2)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(NOTIFICATION_CONFIG.RETRY_MS)
+    })
+    expect(mock.unread.mock.calls.length).toBeGreaterThan(before)
+    expect(screen.getByText('false:2')).toBeInTheDocument()
+    expect(notify.info).not.toHaveBeenCalled()
+  } finally {
+    view?.unmount()
+    mock.start.mockResolvedValue()
+    vi.useRealTimers()
+  }
 })

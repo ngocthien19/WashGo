@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { merchantShipperApi } from '~/apis/merchant/merchantShipperApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import Pagination from '~/components/Pagination/Pagination'
+import TablePagination from '~/components/Pagination/TablePagination'
 import { SelectField } from '~/components/ui/select'
 import { formatDateTime } from '~/utils/formats'
 import { MERCHANT_ROUTES } from '~/utils/constants'
@@ -18,7 +18,7 @@ function HistoryContent({ id, audit }) {
   return (
     <div className="mt-4 space-y-4">
       {!audit && (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="workspace-filters grid gap-3 sm:grid-cols-2">
           {['taskType', 'status'].map((key) => (
             <SelectField
               key={key}
@@ -99,10 +99,14 @@ function HistoryContent({ id, audit }) {
             ))}
           </ul>
           {!audit && (
-            <Pagination
+            <TablePagination
               currentPage={query.page}
               totalPages={resource.data.totalPages}
               onPageChange={(page) => setQuery({ ...query, page })}
+              className="border-0 p-0"
+              total={resource.data.total}
+              pageSize={6}
+              rowCount={resource.data.list.length}
             />
           )}
         </>

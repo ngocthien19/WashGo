@@ -17,12 +17,12 @@ export const formatDurationMinutes = (value) => {
     .map(([unit, count]) => new Intl.NumberFormat(getLocale(), { style: 'unit', unit, unitDisplay: 'long', useGrouping: false }).format(count)).join(' ')
 }
 
-export const formatDateTime = (value) => {
+export const formatDateTime = (value, timeZone) => {
   if (!value) {
     return '—'
   }
   const date = new Date(typeof value === 'number' ? value * 1000 : value)
-  return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat(getLocale(), { dateStyle: 'medium', timeStyle: 'short' }).format(date)
+  return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat(getLocale(), { dateStyle: 'medium', timeStyle: 'short', ...(typeof timeZone === 'string' ? { timeZone } : {}) }).format(date)
 }
 
 export const getImageUrl = (value) => {

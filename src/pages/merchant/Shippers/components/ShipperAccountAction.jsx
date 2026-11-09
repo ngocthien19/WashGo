@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LockKeyhole, LockKeyholeOpen, Trash2 } from 'lucide-react'
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { merchantShipperApi } from '~/apis/merchant/merchantShipperApi'
 import { getApiError } from '~/utils/apiError'
@@ -67,20 +67,22 @@ export default function ShipperAccountAction({ action, shippers, bulk, onClose }
         closeLabel="common.close"
         className="max-w-lg"
       >
-        <DialogTitle className="flex items-center gap-3 pr-8 text-xl font-bold">
-          <Icon
-            className={action === 'delete' ? 'text-destructive' : action === 'unlock' ? 'text-emerald-600' : 'text-amber-600'}
-            size={24}
-          />
-          {t(`merchant.shippers.${action}`)}
-        </DialogTitle>
-        <DialogDescription className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          {shippers.length === 1 ? shippers[0].fullName : t('merchant.shippers.selected', { count: shippers.length })}
-          {' '}
-          ·
-          {' '}
-          {t('merchant.shipperSync.accountHint')}
-        </DialogDescription>
+        <DialogHeader tone={action === 'delete' ? 'danger' : action === 'unlock' ? 'success' : 'warning'}>
+          <DialogTitle className="flex items-center gap-3 pr-8 text-xl font-bold">
+            <Icon
+              className={action === 'delete' ? 'text-destructive' : action === 'unlock' ? 'text-emerald-600' : 'text-amber-600'}
+              size={24}
+            />
+            {t(`merchant.shippers.${action}`)}
+          </DialogTitle>
+          <DialogDescription className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            {shippers.length === 1 ? shippers[0].fullName : t('merchant.shippers.selected', { count: shippers.length })}
+            {' '}
+            ·
+            {' '}
+            {t('merchant.shipperSync.accountHint')}
+          </DialogDescription>
+        </DialogHeader>
         <form
           onSubmit={submit}
           className="mt-5 space-y-4"

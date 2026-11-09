@@ -1,4 +1,4 @@
-import { AUTH_ROUTES, CUSTOMER_ROUTES, MERCHANT_ROUTES, ADMIN_ROUTES, ROLE_HOME_ROUTES, USER_ROLES } from '~/utils/constants'
+import { AUTH_ROUTES, CUSTOMER_ROUTES, MERCHANT_ROUTES, ADMIN_ROUTES, SHIPPER_ROUTES, ROLE_HOME_ROUTES, USER_ROLES } from '~/utils/constants'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import LoadingScreen from '~/components/LoadingScreen/LoadingScreen'
@@ -29,6 +29,13 @@ const CustomerNotificationsPage = lazy(() => import('~/pages/customer/Notificati
 const AdminHomePage = lazy(() => import('~/pages/admin/Home/HomePage'))
 const AdminMerchantsPage = lazy(() => import('~/pages/admin/Merchants/MerchantsPage'))
 const AdminOrdersPage = lazy(() => import('~/pages/admin/Orders/OrdersPage'))
+const AdminLockersPage = lazy(() => import('~/pages/admin/Lockers/LockersPage'))
+const AdminServicesPage = lazy(() => import('~/pages/admin/Services/ServicesPage'))
+const AdminPromotionsPage = lazy(() => import('~/pages/admin/Promotions/PromotionsPage'))
+const AdminComplaintsPage = lazy(() => import('~/pages/admin/Complaints/ComplaintsPage'))
+const AdminComplaintDetailPage = lazy(() => import('~/pages/admin/Complaints/ComplaintDetailPage'))
+const AdminFinancePage = lazy(() => import('~/pages/admin/Finance/FinancePage'))
+const AdminSystemSettingsPage = lazy(() => import('~/pages/admin/SystemSettings/SystemSettingsPage'))
 const AdminOrderDetailPage = lazy(() => import('~/pages/admin/Orders/OrderDetailPage'))
 const AdminLayout = lazy(() => import('~/layouts/admin/AdminLayout'))
 const AdminProfilePage = lazy(() => import('~/pages/admin/Profile/ProfilePage'))
@@ -44,6 +51,8 @@ const MerchantProfilePage = lazy(() => import('~/pages/merchant/Profile/ProfileP
 const MerchantLayout = lazy(() => import('~/layouts/merchant/MerchantLayout'))
 const MerchantNotificationsPage = lazy(() => import('~/pages/merchant/Notifications/NotificationsPage'))
 const ShipperHomePage = lazy(() => import('~/pages/shipper/Home/HomePage'))
+const ShipperLayout = lazy(() => import('~/layouts/shipper/ShipperLayout'))
+const ShipperNotificationsPage = lazy(() => import('~/pages/shipper/Notifications/NotificationsPage'))
 
 export default function App() {
 
@@ -166,6 +175,34 @@ export default function App() {
                 element={<AdminOrdersPage />}
               />
               <Route
+                path={ADMIN_ROUTES.LOCKERS}
+                element={<AdminLockersPage />}
+              />
+              <Route
+                path={ADMIN_ROUTES.SERVICES}
+                element={<AdminServicesPage />}
+              />
+              <Route
+                path={ADMIN_ROUTES.PROMOTIONS}
+                element={<AdminPromotionsPage />}
+              />
+              <Route
+                path={ADMIN_ROUTES.SETTINGS}
+                element={<AdminSystemSettingsPage />}
+              />
+              <Route
+                path={ADMIN_ROUTES.FINANCE}
+                element={<AdminFinancePage />}
+              />
+              <Route
+                path={ADMIN_ROUTES.COMPLAINTS}
+                element={<AdminComplaintsPage />}
+              />
+              <Route
+                path={`${ADMIN_ROUTES.COMPLAINTS}/:incidentId`}
+                element={<AdminComplaintDetailPage />}
+              />
+              <Route
                 path={`${ADMIN_ROUTES.ORDERS}/:orderId`}
                 element={<AdminOrderDetailPage />}
               />
@@ -177,10 +214,16 @@ export default function App() {
           </Route>
           <Route element={<StandaloneThemeLayout />}>
             <Route element={<ProtectedRoleRoute role={USER_ROLES.SHIPPER} />}>
-              <Route
-                path={ROLE_HOME_ROUTES[USER_ROLES.SHIPPER]}
-                element={<ShipperHomePage />}
-              />
+              <Route element={<ShipperLayout />}>
+                <Route
+                  path={SHIPPER_ROUTES.NOTIFICATIONS}
+                  element={<ShipperNotificationsPage />}
+                />
+                <Route
+                  path={ROLE_HOME_ROUTES[USER_ROLES.SHIPPER]}
+                  element={<ShipperHomePage />}
+                />
+              </Route>
             </Route>
             <Route element={<AuthLayout />}>
               <Route

@@ -19,12 +19,16 @@ const count = (value) => {
 export const notificationApi = {
   filter: async (filter, signal) => {
     const body = Object.fromEntries(['keyword', 'groups', 'types', 'unreadOnly', 'fromDate', 'toDate', 'sort', 'page', 'take'].filter((key) => filter[key] !== undefined).map((key) => [key, filter[key]]))
-    const { data } = await authorizedAxios.post(`${endpoint}/filter`, { ...body, take: NOTIFICATION_CONFIG.PAGE_SIZE }, { signal })
+    const { data } = await authorizedAxios.post(`${endpoint}/filter`, { ...body, take: filter.take === 1 ? 1 : NOTIFICATION_CONFIG.PAGE_SIZE }, { signal })
     const result = data?.data
     if (data?.succeeded !== true || !Array.isArray(result?.items) || !result.items.every(isNotification) || !Number.isInteger(result.total) || result.total < 0 || !Number.isInteger(result.page) || result.page < 1 || !Number.isInteger(result.take) || result.take <= 0 || !Number.isInteger(result.unreadTotal) || result.unreadTotal < 0 || !Array.isArray(result.counts) || result.counts.some((item) => typeof item.group !== 'string' || !Number.isInteger(item.total) || item.total < 0 || !Number.isInteger(item.unread) || item.unread < 0)) {
       throw invalid()
     }
     return { list: result.items, total: result.total, currentPage: result.page, totalPages: Math.ceil(result.total / result.take), counts: result.counts, unreadTotal: result.unreadTotal }
+  },
+  categoryCounts: async (categories, signal) => {
+    const results = await Promise.allSettled(categories.map(category => notificationApi.filter({ types: category.types, page: 1, take: 1 }, signal)))
+    return categories.map((category, index) => ({ id: category.id, total: results[index].status === 'fulfilled' ? results[index].value.total : null }))
   },
   list: (page, unreadOnly, signal) => authorizedAxios.get(endpoint, { params: { page, take: NOTIFICATION_CONFIG.PAGE_SIZE, unreadOnly }, signal }).then(({ data }) => {
     if (data?.succeeded !== true || !Array.isArray(data.list) || !data.list.every(isNotification)

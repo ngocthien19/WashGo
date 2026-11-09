@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import NotificationCenter from '~/components/notifications/NotificationCenter'
 import { Bell } from 'lucide-react'
+import { notificationTypesFor } from '~/components/notifications/notificationCatalog'
 
 // Notification types published to Admin accounts by the backend.
-const types = [17, 22, 23, 40, 41, 42, 43, 44, 45, 46, 47]
+const types = notificationTypesFor('Admin')
 
 export default function NotificationsPage() {
   const { t } = useTranslation()
@@ -19,6 +20,7 @@ export default function NotificationsPage() {
         </p>
       </header>
       <NotificationCenter
+        filterClassName="workspace-filters"
         advanced
         types={types}
         descriptionKey="admin.notificationDescription"

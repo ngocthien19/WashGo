@@ -32,7 +32,7 @@ export default function ServiceInfo({ value }) {
               className="mt-1 shrink-0 text-primary"
             />
             <div className="min-w-0">
-              <dt className="text-sm text-muted-foreground">
+              <dt className="text-sm font-medium text-foreground">
                 {t(`merchant.services.${key}`)}
               </dt>
               <dd className="mt-1 break-words text-base font-semibold">

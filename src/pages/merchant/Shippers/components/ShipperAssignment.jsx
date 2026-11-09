@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/compone
 import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
 import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
-import Pagination from '~/components/Pagination/Pagination'
+import TablePagination from '~/components/Pagination/TablePagination'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantOrderApi } from '~/apis/merchant/merchantOrderApi'
@@ -87,7 +87,7 @@ export default function ShipperAssignment({ onClose }) {
         <DialogDescription className="mt-2 text-base">
           {t('merchant.shippers.assignmentHint')}
         </DialogDescription>
-        <div className="mt-5 grid items-center gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-[2fr_1fr]">
+        <div className="workspace-filters mt-5 grid items-center gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-[2fr_1fr]">
           <CatalogToolbar
             embedded
             keyword={query.keyword}
@@ -131,10 +131,14 @@ export default function ShipperAssignment({ onClose }) {
                 />
               </Button>
             ))}
-            <Pagination
+            <TablePagination
               currentPage={query.page}
               totalPages={resource.data.totalPages}
               onPageChange={(page) => setQuery({ ...query, page })}
+              className="border-0 p-0"
+              total={resource.data.total}
+              pageSize={6}
+              rowCount={resource.data.list.length}
             />
           </div>
         )}

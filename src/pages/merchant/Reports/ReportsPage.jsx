@@ -86,7 +86,7 @@ export default function ReportsPage() {
           </Button>
         </div>
       </header>
-      <section className="grid gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <section className="workspace-filters grid gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="flex items-center gap-2 text-base font-semibold">
             <CalendarDays

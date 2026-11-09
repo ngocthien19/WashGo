@@ -4,7 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
@@ -54,7 +54,10 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled }) {
         closeLabel="common.close"
         className="p-0 sm:p-0"
       >
-        <div className="border-b border-border bg-red-500/5 p-6 pr-14">
+        <DialogHeader
+          tone="danger"
+          className="mx-0 mt-0 px-6 pr-14 sm:mx-0 sm:mt-0 sm:px-6"
+        >
           <DialogTitle className="flex items-center gap-3 text-xl font-bold">
             <AlertTriangle className="text-red-600 dark:text-red-400" />
             {t('customer.orders.cancel.title')}
@@ -62,7 +65,7 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled }) {
           <DialogDescription className="mt-3 text-sm leading-6 text-muted-foreground">
             {t('customer.orders.cancel.note')}
           </DialogDescription>
-        </div>
+        </DialogHeader>
         <form
           onSubmit={cancel}
           noValidate

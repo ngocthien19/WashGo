@@ -13,10 +13,10 @@ import { formatLockerAddress, getLockerMapLink, hasCoordinates } from '~/utils/f
 import { lockerStateClass, boxStateClass } from '../lockerModel'
 import LockerUsage from './LockerUsage'
 
-export default function LockerDialog({ id, initialTab = 'details', onClose }) {
+export default function LockerDialog({ id, initialTab = 'details', onClose, api = merchantLockerApi, orderBase, renderExtra, onBoxAction }) {
   const { t } = useTranslation()
   const [tab, setTab] = useState(initialTab)
-  const load = useCallback((signal) => merchantLockerApi.detail(id, signal), [id])
+  const load = useCallback((signal) => api.detail(id, signal), [api, id])
   const resource = useCatalogResource(load)
   const locker = resource.data
   const [boxFilter, setBoxFilter] = useState(0)
@@ -110,12 +110,15 @@ export default function LockerDialog({ id, initialTab = 'details', onClose }) {
                 <LockerUsage
                   key={id}
                   locker={locker}
+                  api={api}
+                  orderBase={orderBase}
                 />
               </Tabs.Panel>
               <Tabs.Panel
                 value="details"
                 className="grid gap-5 outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
+                {renderExtra?.(locker)}
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[[1, DoorOpen], [2, Package], [3, Clock], [4, Wrench]].map(([status, Icon]) => (
                     <div
@@ -156,7 +159,7 @@ export default function LockerDialog({ id, initialTab = 'details', onClose }) {
                   </p>
                 )}
                 <section className="grid gap-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
                     <h3 className="flex items-center gap-2 text-lg font-bold">
                       <PanelsTopLeft
                         size={20}
@@ -194,6 +197,15 @@ export default function LockerDialog({ id, initialTab = 'details', onClose }) {
                         <span className="text-xs font-medium">
                           {t(`merchant.lockers.boxStates.${box.status}`, { defaultValue: '—' })}
                         </span>
+                        {onBoxAction && [1, 4].includes(box.status) && (
+                          <Button
+                            variant="outline"
+                            className="mt-2 h-11 px-2 text-xs"
+                            onClick={() => onBoxAction(locker, box, resource.retry)}
+                          >
+                            {t(box.status === 1 ? 'admin.lockers.maintainBox' : 'admin.lockers.restoreBox')}
+                          </Button>
+                        )}
                       </div>
                     ))}
                   </div>

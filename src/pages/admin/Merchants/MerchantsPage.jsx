@@ -6,7 +6,7 @@ import StatCard from '~/components/workspace/StatCard'
 import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
-import Pagination from '~/components/Pagination/Pagination'
+import TablePagination from '~/components/Pagination/TablePagination'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '~/components/ui/table'
 import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
@@ -15,7 +15,7 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import Reveal from '~/components/motion/Reveal'
 import { adminMerchantApi } from '~/apis/admin/adminMerchantApi'
 import { formatDateTime, formatNumber } from '~/utils/formats'
-import { isId, readMerchantQuery, merchantFilter } from './merchantModel'
+import { MERCHANT_TAKE, isId, readMerchantQuery, merchantFilter } from './merchantModel'
 import MerchantEditor from './components/MerchantEditor'
 import MerchantRecordDialog, { MerchantStatus } from './components/MerchantDialogs'
 import ProfileRequestDialog from './components/ProfileRequestDialog'
@@ -189,7 +189,7 @@ export default function MerchantsPage() {
           </Button>
         ))}
       </div>
-      <section className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <section className="workspace-filters space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
         <div className={`grid items-end gap-4 ${merchants ? 'lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]' : ''}`}>
           {merchants && (
             <div className="flex min-w-0 flex-col gap-2">
@@ -371,11 +371,13 @@ export default function MerchantsPage() {
                 ))}
               </TableBody>
             </Table>
-            <Pagination
+            <TablePagination
               currentPage={query.page}
               totalPages={resource.data.totalPages}
               onPageChange={(page) => update({ page })}
-              className="border-t border-border p-5"
+              total={resource.data.total}
+              pageSize={MERCHANT_TAKE}
+              rowCount={resource.data.list.length}
             />
           </>
         )}

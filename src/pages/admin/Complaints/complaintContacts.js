@@ -1,0 +1,3 @@
+const contact = value => typeof value === 'string' && value.trim() && value !== '***' ? value : null
+export const customerContact = value => ({ name: value.customerName, email: contact(value.customerEmail), phone: contact(value.customerPhoneNumber) || contact(value.customerPhone), imageUrls: contact(value.customerAvatarUrl) ? [value.customerAvatarUrl] : [] })
+export const merchantContact = (value, lookup) => ({ name: value.merchantName || lookup?.name || '—', email: contact(value.merchantEmail) || contact(lookup?.email), phone: contact(value.merchantPhone) || contact(lookup?.phone), imageUrls: Array.isArray(value.merchantImageUrls) && value.merchantImageUrls.length ? value.merchantImageUrls : lookup?.imageUrls || [] })

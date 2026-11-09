@@ -59,7 +59,7 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
         closeLabel="common.close"
         className="max-w-4xl"
       >
-        <MerchantDialogHeader>
+        <MerchantDialogHeader tone={rejecting ? 'danger' : 'info'}>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
             <FileCheck className="text-primary" />
             {t('admin.merchants.requestDetails')}

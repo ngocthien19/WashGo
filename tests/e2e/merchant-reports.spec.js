@@ -162,3 +162,24 @@ test('mobile dark charts scroll internally without page overflow', async ({ page
   await expect(page.getByRole('button', { name: 'Export CSV report' })).toBeEnabled()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
+
+test('hourly charts use distinct hour labels, bold values and readable single-order columns', async ({ page }) => {
+  await setup(page)
+  await page.route('**/api/merchant-reports/overview**', route => {
+    const report = reportFixture({ period: 'today', granularity: 'hour' })
+    const base = report.series[0]
+    report.series = Array.from({ length: 24 }, (_, index) => ({ ...base, index, label: `08/11 ${String(index).padStart(2, '0')}:00`, ordersCreated: index === 6 ? 1 : 0, ordersCompleted: 0, netRevenue: index === 6 ? 30000 : 0, previousNetRevenue: 0 }))
+    return route.fulfill({ json: { succeeded: true, data: report } })
+  })
+  await page.goto('/merchant/reports?period=day')
+  const chart = page.getByRole('heading', { name: 'Order chart', exact: true }).locator('..')
+  await chart.getByRole('button', { name: /08\/11 06:00:/ }).focus()
+  await expect(chart.locator('[aria-live="polite"] strong').first()).toHaveText('1')
+  expect(Number(await chart.locator('[aria-live="polite"] strong').first().evaluate(el => getComputedStyle(el).fontWeight))).toBeGreaterThanOrEqual(700)
+  const labels = await chart.locator('[data-chart-axis="x"] span').allTextContents()
+  const visible = labels.filter(Boolean)
+  expect(visible).toContain('00:00')
+  expect(visible).toContain('23:00')
+  expect(visible.some(text => text.includes('/'))).toBe(false)
+  expect(new Set(visible).size).toBe(visible.length)
+})

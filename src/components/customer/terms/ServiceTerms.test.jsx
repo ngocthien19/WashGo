@@ -24,7 +24,7 @@ it('closing does not acknowledge; explicit acceptance posts the displayed versio
   })
   const view = render(content())
   await screen.findByRole('dialog', { name: 'Terms', exact: true })
-  expect(screen.getByText('Server policy content')).toBeVisible()
+  await waitFor(() => expect(screen.getByText('Server policy content')).toBeVisible())
   await user.click(screen.getAllByRole('button', { name: 'Close', exact: true }).at(-1))
   expect(customerPolicyApi.acknowledge).not.toHaveBeenCalled()
   view.rerender(content('b'))

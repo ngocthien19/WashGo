@@ -11,13 +11,13 @@ import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '~/components/ui/table'
 import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
-import Pagination from '~/components/Pagination/Pagination'
+import TablePagination from '~/components/Pagination/TablePagination'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import Reveal from '~/components/motion/Reveal'
 import AnimatedNumber from '~/components/motion/AnimatedNumber'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantShipperApi } from '~/apis/merchant/merchantShipperApi'
-import { readShipperQuery, shipperFilter } from './shipperModel'
+import { SHIPPER_TAKE, readShipperQuery, shipperFilter } from './shipperModel'
 import ShipperDetails from './components/ShipperDetails'
 import ShipperEditor from './components/ShipperEditor'
 import ShipperSummary from './components/ShipperSummary'
@@ -94,7 +94,7 @@ export default function ShippersPage() {
         </div>
       </header>
       <ShipperSummary resource={summary} />
-      <section className="grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
+      <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
         <div className="grid gap-2">
           <p className="text-sm text-muted-foreground">
             {t('merchant.shippers.search')}
@@ -193,7 +193,7 @@ export default function ShippersPage() {
             {t('merchant.shippers.results')}
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            <div className="w-56">
+            <div className="workspace-filters w-56">
               <SelectField
                 label={t('merchant.shipperSync.sortRating')}
                 value={query.ratingSort}
@@ -383,13 +383,14 @@ export default function ShippersPage() {
                 ))}
               </TableBody>
             </Table>
-            <div className="border-t border-border p-5">
-              <Pagination
-                currentPage={query.page}
-                totalPages={data.totalPages}
-                onPageChange={(page) => update({ page })}
-              />
-            </div>
+            <TablePagination
+              currentPage={query.page}
+              totalPages={data.totalPages}
+              onPageChange={(page) => update({ page })}
+              total={data.total}
+              pageSize={SHIPPER_TAKE}
+              rowCount={data.list.length}
+            />
           </>
         )}
       </section>

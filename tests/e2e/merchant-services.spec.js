@@ -11,6 +11,8 @@ test('service tabs navigate and the detail modal displays returned photos', asyn
   await page.getByRole('tab', { name: 'My proposals', exact: true }).click()
   await expect(page).toHaveURL(/tab=proposals/)
   await page.getByRole('tab', { name: 'Service catalog', exact: true }).click()
+  await expect(page).not.toHaveURL(/tab=proposals/)
+  await expect(page.getByRole('table')).toContainText('Everyday service')
   await action(page, 'Service details')
   const image = page.getByRole('dialog').getByRole('img', { name: 'Service photo 1' })
   await image.scrollIntoViewIfNeeded()
