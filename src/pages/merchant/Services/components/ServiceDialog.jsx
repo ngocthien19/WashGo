@@ -16,6 +16,7 @@ export default function ServiceDialog({ selected, onClose, onEdit }) {
   const load = useCallback((signal) => proposal ? merchantServiceApi.proposal(selected.id, signal) : merchantServiceApi.service(selected.id, signal), [proposal, selected.id])
   const resource = useCatalogResource(load)
   const value = resource.data
+  const handingOffToEditor = selected.kind === 'edit' && value?.canProposeUpdate === true && Boolean(value.version)
   useEffect(() => {
     if (selected.kind === 'edit' && value?.canProposeUpdate === true && value.version) {
       onEdit(value)
@@ -32,6 +33,7 @@ export default function ServiceDialog({ selected, onClose, onEdit }) {
       }}
     >
       <DialogContent
+        ready={!resource.loading && !handingOffToEditor}
         className={`${proposal ? 'max-w-5xl' : 'max-w-3xl'} border-primary/15`}
         closeLabel="common.close"
       >
