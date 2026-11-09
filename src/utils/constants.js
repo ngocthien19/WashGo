@@ -39,7 +39,8 @@ export const CUSTOMER_ROUTES = {
 }
 
 export const MERCHANT_ROUTES = { HOME: '/merchant', ORDERS: '/merchant/orders', ORDER_DETAIL: '/merchant/orders/:orderId', SHIPPERS: '/merchant/shippers', LOCKERS: '/merchant/lockers', SERVICES: '/merchant/services', REPORTS: '/merchant/reports', PROFILE: '/merchant/profile', NOTIFICATIONS: '/merchant/notifications' }
-export const ADMIN_ROUTES = { HOME: '/admin', PROFILE: '/admin/profile', NOTIFICATIONS: '/admin/notifications', MERCHANTS: '/admin/merchants', ORDERS: '/admin/orders' }
+export const SHIPPER_ROUTES = { HOME: '/shipper', NOTIFICATIONS: '/shipper/notifications' }
+export const ADMIN_ROUTES = { HOME: '/admin', PROFILE: '/admin/profile', NOTIFICATIONS: '/admin/notifications', MERCHANTS: '/admin/merchants', ORDERS: '/admin/orders', LOCKERS: '/admin/lockers', SERVICES: '/admin/services', PROMOTIONS: '/admin/promotions', COMPLAINTS: '/admin/complaints', FINANCE: '/admin/finance', SETTINGS: '/admin/settings' }
 export const MERCHANT_API = { PROFILE: '/merchant-profile', ORDERS: '/wash-order/filter', SETTLEMENTS: '/finance/settlements/filter' }
 export const MERCHANT_DASHBOARD = { RECENT_TAKE: 5, SETTLEMENT_TAKE: 4, STATUSES: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 99] }
 
@@ -95,6 +96,17 @@ export const ORDER_STATUS_COLORS = {
   red: 'bg-red-500/10 text-red-700 dark:text-red-300'
 }
 export const ORDER_WORKFLOW = ORDER_STATUS_OPTIONS.filter((option) => Number(option.value) <= ORDER_STATUSES.COMPLETED)
+export const ORDER_STATUS_BORDER_COLORS = {
+  slate: 'border-slate-700 dark:border-slate-300',
+  sky: 'border-sky-700 dark:border-sky-300',
+  cyan: 'border-cyan-700 dark:border-cyan-300',
+  blue: 'border-blue-700 dark:border-blue-300',
+  amber: 'border-amber-800 dark:border-amber-300',
+  emerald: 'border-emerald-700 dark:border-emerald-300',
+  violet: 'border-violet-700 dark:border-violet-300',
+  teal: 'border-teal-700 dark:border-teal-300',
+  red: 'border-red-700 dark:border-red-300'
+}
 export const QR_SCAN = { MAX_BYTES: 5 * 1024 * 1024, MAX_PIXELS: 16000000, MIME_TYPES: ['image/png', 'image/jpeg', 'image/webp'] }
 export const ORDER_LIST = { PAGE_SIZE: 6, REASON_MAX: 500 }
 export const ORDER_SORT_OPTIONS = [
@@ -182,6 +194,7 @@ export const SERVICE_PRICE_RANGES = [
 export const LOCKER_AREA_PAGE_SIZE = 100
 
 export const UI_MOTION = {
+  MODAL_DURATION: 0.15,
   DURATION: 0.35,
   STAGGER: 0.06,
   EASE: [0.22, 1, 0.36, 1],
