@@ -11,7 +11,7 @@ test('admin dashboard uses real scoped aggregates and a distinct shared workspac
   await expect(page.getByText(/Revenue uses payment\/refund dates/)).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Active merchants', exact: true }).locator('..')).toContainText('12')
   await expect(page.getByRole('heading', { name: 'Total customers', exact: true }).locator('..')).toContainText('—')
-  await expect(page.getByRole('img', { name: 'Revenue chart', exact: true })).toBeVisible()
+  await expect(page.getByRole('group', { name: 'Revenue chart', exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Merchant management', exact: true })).toHaveAttribute('href', '/admin/merchants')
   await page.getByRole('button', { name: 'Collapse navigation', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Expand navigation', exact: true })).toBeVisible()
