@@ -12,9 +12,9 @@ import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import Reveal from '~/components/motion/Reveal'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminOrderApi } from '~/apis/admin/adminOrderApi'
-import { ADMIN_ROUTES } from '~/utils/constants'
+import { ADMIN_ROUTES, ORDER_STATUS_OPTIONS, ORDER_STATUS_BORDER_COLORS } from '~/utils/constants'
 import { formatCurrency, formatDateTime, formatNumber } from '~/utils/formats'
-import { processingSteps, assignmentTask, statusLabel } from '~/utils/orderManagement'
+import { processingSteps, assignmentTask } from '~/utils/orderManagement'
 import { isId } from '../Merchants/merchantModel'
 import { canAssignMerchant, canStore } from './ordersModel'
 import MerchantAssignmentDialog from './components/MerchantAssignmentDialog'
@@ -280,12 +280,13 @@ export default function OrderDetailPage() {
                     {[...order.timeline].sort((a, b) => b.timestamp - a.timestamp).map((entry, index) => (
                       <li
                         key={entry.id || index}
-                        className="border-l-2 border-primary/30 pl-4"
+                        className={`border-l-2 pl-4 ${ORDER_STATUS_BORDER_COLORS[ORDER_STATUS_OPTIONS.find(option => Number(option.value) === entry.status)?.color || 'slate']}`}
                       >
                         <div className="flex flex-wrap justify-between gap-2">
-                          <p className="font-semibold">
-                            {t(statusLabel(entry.status))}
-                          </p>
+                          <OrderStatus
+                            status={entry.status}
+                            showDot={false}
+                          />
                           <time className="text-xs text-muted-foreground">
                             {formatDateTime(entry.timestamp)}
                           </time>
