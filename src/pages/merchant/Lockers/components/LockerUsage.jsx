@@ -5,7 +5,7 @@ import { ArrowDownToLine, ArrowUpFromLine } from 'lucide-react'
 import { SelectField } from '~/components/ui/select'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '~/components/ui/table'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import Pagination from '~/components/Pagination/Pagination'
+import TablePagination from '~/components/Pagination/TablePagination'
 import DateRangeFilter from '~/components/DateRangeFilter/DateRangeFilter'
 import OrderStatus from '~/components/orders/OrderStatus'
 import useCatalogResource from '~/hooks/useCatalogResource'
@@ -15,14 +15,14 @@ import { formatDateTime } from '~/utils/formats'
 import { MERCHANT_ROUTES } from '~/utils/constants'
 import { HISTORY_TAKE } from '../lockerModel'
 
-export default function LockerUsage({ locker }) {
+export default function LockerUsage({ locker, api = merchantLockerApi, orderBase = MERCHANT_ROUTES.ORDERS }) {
   const { t } = useTranslation()
   const [query, setQuery] = useState({ page: 1, boxId: '', from: '', to: '' })
-  const load = useCallback((signal) => merchantLockerApi.history(locker.id, { page: query.page, take: HISTORY_TAKE, boxId: query.boxId || undefined, ...dateRangeFilter(query) }, signal), [locker.id, query])
+  const load = useCallback((signal) => api.history(locker.id, { page: query.page, take: HISTORY_TAKE, boxId: query.boxId || undefined, ...dateRangeFilter(query) }, signal), [api, locker.id, query])
   const resource = useCatalogResource(load)
   return (
     <div className="grid gap-5">
-      <div className="grid gap-4 rounded-2xl border border-border bg-muted/20 p-4">
+      <div className="workspace-filters grid gap-4 rounded-2xl border border-border bg-muted/20 p-4">
         <label className="grid gap-2 text-sm text-muted-foreground">
           <span>
             {t('merchant.lockers.filterBox')}
@@ -71,7 +71,7 @@ export default function LockerUsage({ locker }) {
                 <TableRow key={row.usageId}>
                   <TableCell>
                     <Link
-                      to={`${MERCHANT_ROUTES.ORDERS}/${row.orderId}`}
+                      to={`${orderBase}/${row.orderId}`}
                       className="font-semibold text-primary hover:underline"
                     >
                       {row.orderCode}
@@ -109,10 +109,14 @@ export default function LockerUsage({ locker }) {
               ))}
             </TableBody>
           </Table>
-          <Pagination
+          <TablePagination
             currentPage={query.page}
             totalPages={resource.data.totalPages}
             onPageChange={(page) => setQuery({ ...query, page })}
+            className="border-0 p-0"
+            total={resource.data.total}
+            pageSize={HISTORY_TAKE}
+            rowCount={resource.data.list.length}
           />
         </>
       )}

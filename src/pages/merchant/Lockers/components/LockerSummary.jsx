@@ -18,11 +18,11 @@ const cards = [
   ['maintenance', Wrench, 'border-l-amber-500', 'bg-amber-500/10 text-amber-700 dark:text-amber-300'],
   ['inactive', Power, 'border-l-slate-400', 'bg-muted text-muted-foreground']
 ]
-export default function LockerSummary({ resource }) {
+export default function LockerSummary({ resource, titleKey = 'merchant.lockers.statistics' }) {
   const { t } = useTranslation()
   return (
     <section
-      aria-label={t('merchant.lockers.statistics')}
+      aria-label={t(titleKey)}
       aria-busy={resource.loading}
     >
       {resource.loading || resource.error || !resource.data ? (
@@ -57,7 +57,7 @@ export default function LockerSummary({ resource }) {
                   />
                 </span>
                 <div className="flex min-w-0 flex-col gap-1">
-                  <dt className="text-sm font-medium text-muted-foreground">
+                  <dt className="text-sm font-medium text-foreground">
                     {t(status ? `merchant.lockers.boxStates.${status}` : 'merchant.lockers.totalBoxes')}
                   </dt>
                   <dd className={`text-2xl font-bold leading-none tabular-nums ${color}`}>
