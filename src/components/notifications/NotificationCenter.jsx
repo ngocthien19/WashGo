@@ -1,23 +1,31 @@
 import NotificationFilters from './NotificationFilters'
-import { notificationFilters, NOTIFICATION_GROUPS, CUSTOMER_NOTIFICATION_TYPES } from './notificationModel'
-import { useEffect, useMemo, useState } from 'react'
+import { notificationFilters, CUSTOMER_NOTIFICATION_TYPES } from './notificationModel'
+import { NOTIFICATION_CATEGORIES } from './notificationCatalog'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { List, Mail, Inbox } from 'lucide-react'
+import { List, Mail, Inbox, Package, Wallet, MessageSquareWarning, Undo2, Star, Shirt, Store, Truck } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { useNotifications } from './NotificationContext'
 import NotificationInbox from './NotificationInbox'
+import useCatalogResource from '~/hooks/useCatalogResource'
+import { notificationApi } from '~/apis/notificationApi'
+const categoryIcons = { order: Package, payment: Wallet, feedback: MessageSquareWarning, refunds: Undo2, ratings: Star, services: Shirt, merchant: Store, tasks: Truck }
 
-export default function NotificationCenter({ stickyClassName = 'lg:top-24', advanced = false, types = CUSTOMER_NOTIFICATION_TYPES, descriptionKey = 'customer.notification.description' }) {
+export default function NotificationCenter({ stickyClassName = 'lg:top-24', advanced = false, types = CUSTOMER_NOTIFICATION_TYPES, descriptionKey = 'customer.notification.description', filterClassName }) {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
   const rawPage = Number(params.get('page') || 1)
   const page = Number.isSafeInteger(rawPage) && rawPage > 0 ? rawPage : 1
   const unreadOnly = params.get('unread') === 'true'
-  const { unread } = useNotifications()
+  const { unread, revision, categories = NOTIFICATION_CATEGORIES.Customer } = useNotifications()
+  const loadCounts = useCallback(signal => advanced ? notificationApi.categoryCounts(categories, signal) : Promise.resolve([]), [advanced, categories])
+  const categoryCounts = useCatalogResource(loadCounts, revision, true)
+  const activeCategory = categories.find(item => item.id === params.get('group'))
+  const activeTypes = activeCategory ? types.filter(type => activeCategory.types.includes(type)) : types
   const [counts, setCounts] = useState([])
   const total = counts.length ? counts.reduce((sum, item) => sum + item.total, 0) : null
-  const filters = useMemo(() => advanced ? notificationFilters(params, types) : undefined, [advanced, params, types])
+  const filters = useMemo(() => advanced ? notificationFilters(params, types, categories) : undefined, [advanced, params, types, categories])
   const updateFilters = (patch) => {
     const next = new URLSearchParams(params)
     next.delete('page')
@@ -41,7 +49,7 @@ export default function NotificationCenter({ stickyClassName = 'lg:top-24', adva
     document.title = `${t('customer.profile.allNotifications')} | WashGo`
   }, [t])
   return (
-    <div className="grid items-start gap-5 lg:grid-cols-[240px_minmax(0,1fr)]">
+    <div className="grid items-start gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
       <aside className={`space-y-4 lg:sticky ${stickyClassName}`}>
         <nav
           aria-label={t('customer.notification.filter')}
@@ -61,7 +69,7 @@ export default function NotificationCenter({ stickyClassName = 'lg:top-24', adva
                   className={`h-11 flex-1 justify-start rounded-xl border-l-[3px] px-3 text-base font-semibold lg:flex-none ${selected ? 'border-l-primary bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary' : 'border-l-transparent text-muted-foreground'}`}
                   aria-pressed={selected}
                   aria-label={t(value ? 'customer.notification.unread' : 'customer.notification.all')}
-                  onClick={() => advanced && !value ? updateFilters({ unread: '', group: '' }) : changeQuery({ page: 1, unreadOnly: value })}
+                  onClick={() => advanced && !value ? updateFilters({ unread: '', group: '', type: '' }) : changeQuery({ page: 1, unreadOnly: value })}
                 >
                   <Icon size={17} />
                   {t(value ? 'customer.notification.unread' : 'customer.notification.all')}
@@ -81,20 +89,40 @@ export default function NotificationCenter({ stickyClassName = 'lg:top-24', adva
           </div>
           {advanced && (
             <div className="mt-3 grid gap-2 border-t border-border pt-3">
-              {NOTIFICATION_GROUPS.map((group) => (
+              {categories.map(({ id: group, label }) => {
+                const Icon = categoryIcons[group] || Inbox
+                return (
+                  <Button
+                    key={group}
+                    variant="ghost"
+                    aria-label={t(label)}
+                    aria-pressed={params.get('group') === group}
+                    onClick={() => updateFilters({ group: params.get('group') === group ? '' : group, type: '' })}
+                    className={`h-auto min-h-11 w-full min-w-0 justify-between rounded-xl border-l-[3px] px-3 py-2 text-base font-semibold ${params.get('group') === group ? 'border-l-primary bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary' : 'border-l-transparent text-muted-foreground'}`}
+                  >
+                    <span className="flex min-w-0 items-center gap-2 whitespace-normal text-left leading-snug">
+                      <Icon
+                        size={17}
+                        className="shrink-0"
+                      />
+                      {t(label)}
+                    </span>
+                    <span className="ml-2 min-w-6 shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold tabular-nums text-primary">
+                      {categoryCounts.data?.find(item => item.id === group)?.total ?? '—'}
+                    </span>
+                  </Button>
+                )
+              })}
+              {categoryCounts.data?.some(item => item.total == null) && (
                 <Button
-                  key={group}
                   variant="ghost"
-                  aria-pressed={params.get('group') === group}
-                  onClick={() => updateFilters({ group: params.get('group') === group ? '' : group })}
-                  className={`h-11 justify-between rounded-xl border-l-[3px] px-3 text-base font-semibold ${params.get('group') === group ? 'border-l-primary bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary' : 'border-l-transparent text-muted-foreground'}`}
+                  className="h-auto whitespace-normal text-xs"
+                  onClick={categoryCounts.retry}
+                  disabled={categoryCounts.loading}
                 >
-                  {t(`customer.sync.groups.${group}`)}
-                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
-                    {counts.find((item) => item.group === group)?.total ?? '—'}
-                  </span>
+                  {t('notificationNav.reloadCounts')}
                 </Button>
-              ))}
+              )}
             </div>
           )}
         </nav>
@@ -113,7 +141,8 @@ export default function NotificationCenter({ stickyClassName = 'lg:top-24', adva
           <NotificationFilters
             params={params}
             change={updateFilters}
-            types={types}
+            types={activeTypes}
+            className={filterClassName}
           />
         )}
         <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">

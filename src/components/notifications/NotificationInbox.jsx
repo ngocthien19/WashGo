@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { motion, useReducedMotion } from 'framer-motion'
 import NotificationContent from './NotificationContent'
 import { CheckCheck, Check, Trash2, ArrowUpRight, RefreshCw } from 'lucide-react'
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import NotificationIcon from './NotificationIcon'
 import { Button } from '~/components/ui/button'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
@@ -41,7 +41,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
       onCounts(data.counts)
     }
   }, [data, onCounts])
-  const mutate = async (action, next) => {
+  const mutate = async (action, next, onFailure) => {
     if (lock.current) {
       return
     }
@@ -57,6 +57,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
       if (mounted.current) {
         notify.error(getApiError(error))
         refresh()
+        onFailure?.()
       }
     } finally {
       lock.current = false
@@ -75,7 +76,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
     if (item.isRead) {
       go()
     } else {
-      mutate(() => notificationApi.read(item.id), go)
+      mutate(() => notificationApi.read(item.id), go, go)
     }
   }
   return (
@@ -228,19 +229,27 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
       )}
       <Dialog
         open={confirmDelete}
-        onOpenChange={setConfirmDelete}
+        onOpenChange={open => {
+          if (!lock.current) {
+            setConfirmDelete(open)
+          }
+        }}
       >
         <DialogContent closeLabel="common.close">
-          <DialogTitle className="text-xl font-bold">
-            {t('customer.notification.deleteAll')}
-          </DialogTitle>
-          <DialogDescription className="mt-3 text-sm leading-6 text-muted-foreground">
-            {t('customer.notification.deleteAllDescription')}
-          </DialogDescription>
+          <DialogHeader tone="danger">
+            <DialogTitle className="flex items-center gap-3 pr-8 text-xl font-semibold">
+              <Trash2 />
+              {t('customer.notification.deleteAll')}
+            </DialogTitle>
+            <DialogDescription className="mt-3 text-sm leading-6 text-muted-foreground">
+              {t('customer.notification.deleteAllDescription')}
+            </DialogDescription>
+          </DialogHeader>
           <div className="mt-6 flex justify-end gap-2">
             <Button
               variant="secondary"
               className="h-11 px-4"
+              disabled={pending}
               onClick={() => setConfirmDelete(false)}
             >
               {t('common.close')}

@@ -18,6 +18,7 @@ export default function NotificationsPage() {
         </p>
       </header>
       <NotificationCenter
+        filterClassName="workspace-filters"
         advanced
         types={MERCHANT_NOTIFICATION_TYPES}
       />

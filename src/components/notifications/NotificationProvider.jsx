@@ -9,13 +9,16 @@ import NotificationIcon from './NotificationIcon'
 import { notify } from '~/utils/notifications'
 import i18n from '~/i18n'
 import { notificationText } from './notificationModel'
+import { NOTIFICATION_CATEGORIES } from './notificationCatalog'
 
 export default function NotificationProvider({ children, listHref, resolveHref }) {
   const store = useStore()
   const userId = useSelector((state) => state.auth.user?.id)
+  const role = useSelector((state) => state.auth.user?.role)
   return (
     <NotificationSession
-      key={userId || 'guest'}
+      key={`${userId || 'guest'}:${role || ''}`}
+      categories={NOTIFICATION_CATEGORIES[role] || NOTIFICATION_CATEGORIES.Customer}
       store={store}
       listHref={listHref}
       resolveHref={resolveHref}
@@ -25,13 +28,24 @@ export default function NotificationProvider({ children, listHref, resolveHref }
   )
 }
 
-function NotificationSession({ children, store, listHref, resolveHref }) {
+function NotificationSession({ children, store, listHref, resolveHref, categories }) {
   const [revision, setRevision] = useState(0)
   const [unread, setUnread] = useState(null)
   const [live, setLive] = useState(false)
   const generation = useRef(0)
   const announced = useRef(new Set())
   const refresh = useCallback(() => setRevision((value) => value + 1), [])
+  useEffect(() => {
+    if (live) {
+      return
+    }
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refresh()
+      }
+    }, NOTIFICATION_CONFIG.RETRY_MS)
+    return () => clearInterval(timer)
+  }, [live, refresh])
   useEffect(() => {
     const controller = new AbortController()
     const current = ++generation.current
@@ -92,7 +106,6 @@ function NotificationSession({ children, store, listHref, resolveHref }) {
       } catch {
         if (!disposed) {
           setLive(false)
-          refresh()
           retryTimer = setTimeout(start, NOTIFICATION_CONFIG.RETRY_MS)
         }
       }
@@ -126,7 +139,7 @@ function NotificationSession({ children, store, listHref, resolveHref }) {
     }
   }, [store, refresh])
   return (
-    <NotificationContext.Provider value={{ unread, live, revision, refresh, listHref, resolveHref }}>
+    <NotificationContext.Provider value={{ unread, live, revision, refresh, listHref, resolveHref, categories }}>
       {children}
     </NotificationContext.Provider>
   )

@@ -2,6 +2,7 @@ import i18n from '~/i18n'
 import { formatCurrency, formatDateTime } from '~/utils/formats'
 import { validDay, validRange, dateRangeFilter } from '~/utils/dateRange'
 import { CUSTOMER_ROUTES } from '~/utils/constants'
+import { NOTIFICATION_CATEGORIES, notificationTypesFor } from './notificationCatalog'
 
 export function notificationText(item, t) {
   if (!/^[a-zA-Z][a-zA-Z0-9]*(?:\.[a-zA-Z][a-zA-Z0-9]*){1,3}$/.test(item.messageKey || '')) {
@@ -98,11 +99,13 @@ export function notificationHref(item) {
 }
 
 export const NOTIFICATION_GROUPS = ['order', 'payment', 'promotion', 'feedback', 'system']
-export const CUSTOMER_NOTIFICATION_TYPES = Array.from({ length: 17 }, (_, index) => index + 1)
-export function notificationFilters(params, types = CUSTOMER_NOTIFICATION_TYPES) {
-  const group = NOTIFICATION_GROUPS.includes(params.get('group')) ? params.get('group') : ''
+export const CUSTOMER_NOTIFICATION_TYPES = notificationTypesFor('Customer')
+export function notificationFilters(params, types = CUSTOMER_NOTIFICATION_TYPES, categories = NOTIFICATION_CATEGORIES.Customer) {
+  const category = categories.find(item => item.id === params.get('group'))
+  const group = category?.group || (!category && NOTIFICATION_GROUPS.includes(params.get('group')) ? params.get('group') : '')
   const type = Number(params.get('type'))
   const from = validDay(params.get('from') || '') ? params.get('from') : ''
   const to = validDay(params.get('to') || '') ? params.get('to') : ''
-  return { keyword: (params.get('keyword') || '').trim().slice(0, 100), groups: group ? [group] : undefined, types: types.includes(type) ? [type] : undefined, sort: ['newest', 'oldest', 'unreadFirst'].includes(params.get('sort')) ? params.get('sort') : 'newest', ...(validRange(from, to) ? dateRangeFilter({ from, to }) : {}) }
+  const selected = types.includes(type) && (!category || category.types.includes(type)) ? [type] : category?.types
+  return { keyword: (params.get('keyword') || '').trim().slice(0, 100), groups: group ? [group] : undefined, types: selected, sort: ['newest', 'oldest', 'unreadFirst'].includes(params.get('sort')) ? params.get('sort') : 'newest', ...(validRange(from, to) ? dateRangeFilter({ from, to }) : {}) }
 }
