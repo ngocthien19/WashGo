@@ -8,13 +8,13 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '~/components/ui/table'
 import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import Pagination from '~/components/Pagination/Pagination'
+import TablePagination from '~/components/Pagination/TablePagination'
 import Reveal from '~/components/motion/Reveal'
 import AnimatedNumber from '~/components/motion/AnimatedNumber'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantLockerApi } from '~/apis/merchant/merchantLockerApi'
 import { formatLockerAddress } from '~/utils/formats'
-import { readLockerQuery, lockerFilter, lockerSortOptions, lockerStateClass } from './lockerModel'
+import { LOCKER_TAKE, readLockerQuery, lockerFilter, lockerSortOptions, lockerStateClass } from './lockerModel'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 import LockerSummary from './components/LockerSummary'
 import LockerDialog from './components/LockerDialog'
@@ -61,7 +61,7 @@ export default function LockersPage() {
         </Button>
       </header>
       <LockerSummary resource={summary} />
-      <section className="grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-[2fr_1fr]">
+      <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-[2fr_1fr]">
         <div className="grid gap-2">
           <p className="text-sm text-muted-foreground">
             {t('merchant.lockers.search')}
@@ -119,7 +119,7 @@ export default function LockersPage() {
               label={t('customer.orders.sort')}
               value={query.sort}
               onValueChange={(sort) => update({ sort })}
-              className="w-44 font-semibold"
+              className="workspace-filters w-44 font-medium"
               options={Object.keys(lockerSortOptions).map((value) => ({ value, label: t(`merchant.lockers.sort.${value}`) }))}
             />
           </div>
@@ -224,13 +224,14 @@ export default function LockersPage() {
                 ))}
               </TableBody>
             </Table>
-            <div className="border-t border-border p-5">
-              <Pagination
-                currentPage={query.page}
-                totalPages={data.totalPages}
-                onPageChange={(page) => update({ page })}
-              />
-            </div>
+            <TablePagination
+              currentPage={query.page}
+              totalPages={data.totalPages}
+              onPageChange={(page) => update({ page })}
+              total={data.total}
+              pageSize={LOCKER_TAKE}
+              rowCount={data.list.length}
+            />
           </>
         )}
       </section>

@@ -81,7 +81,7 @@ export default function DashboardFilters({ range, onChange }) {
               from={range.from}
               to={range.to}
               label="merchant.sync.dashboardPeriod"
-              className="mt-4 space-y-3 border-t border-border pt-4 [&>div]:sm:grid-cols-2"
+              className="workspace-filters mt-4 space-y-3 border-t border-border pt-4 [&>div]:sm:grid-cols-2"
               onApply={({ from, to }) => {
                 if (!from && !to) {
                   setCustom(false); setError(false); onChange({ mode: 'month' }); return

@@ -9,7 +9,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '~
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '~/components/ui/dropdown-menu'
 import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import Pagination from '~/components/Pagination/Pagination'
+import TablePagination from '~/components/Pagination/TablePagination'
 import DateRangeFilter from '~/components/DateRangeFilter/DateRangeFilter'
 import OrderStatus from '~/components/orders/OrderStatus'
 import PaymentStatus from '~/components/orders/PaymentStatus'
@@ -21,7 +21,7 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminOrderApi } from '~/apis/admin/adminOrderApi'
 import { ADMIN_ROUTES, ORDER_STATUS_OPTIONS, ORDER_SORT_OPTIONS, PAYMENT_STATUSES } from '~/utils/constants'
 import { formatCurrency, formatDateTime, formatDurationMinutes } from '~/utils/formats'
-import { readAdminOrdersQuery, writeAdminOrdersQuery, listFilter, scopeFilter, waitingFilter } from './ordersModel'
+import { TAKE, readAdminOrdersQuery, writeAdminOrdersQuery, listFilter, scopeFilter, waitingFilter } from './ordersModel'
 import MerchantAssignmentDialog from './components/MerchantAssignmentDialog'
 
 const headerBg = 'bg-[color-mix(in_srgb,var(--primary)_8%,var(--muted))] dark:bg-[color-mix(in_srgb,var(--primary)_12%,var(--muted))]'
@@ -137,7 +137,7 @@ export default function OrdersPage() {
           </Button>
         ))}
       </div>
-      <section className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <section className="workspace-filters space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
         {waiting ? (
           <label className="flex w-fit items-center gap-3 text-sm">
             <Checkbox
@@ -255,7 +255,7 @@ export default function OrdersPage() {
               value={query.sort}
               options={ORDER_SORT_OPTIONS.map(item => ({ value: item.value, label: t(item.label) }))}
               onValueChange={sort => update({ sort })}
-              className="w-44"
+              className="workspace-filters w-44"
             />
           )}
         </div>
@@ -447,11 +447,13 @@ export default function OrdersPage() {
                 ))}
               </TableBody>
             </Table>
-            <Pagination
+            <TablePagination
               currentPage={query.page}
               totalPages={resource.data.totalPages}
               onPageChange={page => update({ page })}
-              className="border-t border-border p-5"
+              total={resource.data.total}
+              pageSize={TAKE}
+              rowCount={resource.data.list.length}
             />
           </>
         )}

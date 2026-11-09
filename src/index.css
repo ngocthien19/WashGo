@@ -5,6 +5,24 @@
 
 @custom-variant dark (&:is(.dark *));
 
+.workspace-filters {
+  --workspace-filter-text: #25324a;
+  color: var(--workspace-filter-text);
+  font-weight: 500;
+}
+.dark .workspace-filters {
+  --workspace-filter-text: var(--foreground);
+}
+.workspace-filters :is(label, .text-muted-foreground, input, [role="combobox"]) {
+  color: var(--workspace-filter-text);
+  font-weight: 500;
+}
+.workspace-filters input::placeholder {
+  color: var(--workspace-filter-text);
+  font-weight: 500;
+  opacity: 1;
+}
+
 :root {
   --background: #f8fbff;
   --foreground: #25324a;

@@ -6,7 +6,7 @@ import { ClipboardList, RefreshCw, Eye, RotateCcw, MoreHorizontal, Truck } from 
 import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '~/components/ui/table'
-import Pagination from '~/components/Pagination/Pagination'
+import TablePagination from '~/components/Pagination/TablePagination'
 import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import AnimatedNumber from '~/components/motion/AnimatedNumber'
@@ -95,7 +95,7 @@ export default function OrdersPage() {
         </Button>
       </header>
       <OrderSummary resource={summary} />
-      <section className="grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
+      <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
         <div className="grid gap-2">
           <p
             className="text-sm text-muted-foreground"
@@ -168,7 +168,7 @@ export default function OrdersPage() {
               value={query.sort}
               options={ORDER_SORT_OPTIONS.map((item) => ({ value: item.value, label: t(item.label) }))}
               onValueChange={(sort) => update({ sort })}
-              className="w-44 font-semibold"
+              className="workspace-filters w-44 font-medium"
             />
           </div>
         </div>
@@ -317,16 +317,14 @@ export default function OrdersPage() {
                 ))}
               </TableBody>
             </Table>
-            <div className="space-y-4 border-t border-border p-5">
-              <p className="text-sm text-muted-foreground">
-                {t('customer.showing', { firstResult: (data.currentPage - 1) * PAGE_SIZE + 1, lastResult: (data.currentPage - 1) * PAGE_SIZE + data.list.length, total: data.total })}
-              </p>
-              <Pagination
-                currentPage={data.currentPage}
-                totalPages={data.totalPages}
-                onPageChange={(page) => update({ page })}
-              />
-            </div>
+            <TablePagination
+              currentPage={data.currentPage}
+              totalPages={data.totalPages}
+              onPageChange={(page) => update({ page })}
+              total={data.total}
+              pageSize={PAGE_SIZE}
+              rowCount={data.list.length}
+            />
           </>
         )}
       </section>

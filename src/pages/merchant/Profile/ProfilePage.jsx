@@ -77,7 +77,7 @@ export default function ProfilePage() {
                   />
                 </span>
                 <div>
-                  <h2 className="text-sm text-muted-foreground">
+                  <h2 className="text-sm font-medium text-foreground">
                     {t('merchant.shop.rating')}
                   </h2>
                   <p className="mt-1 text-2xl font-bold">
@@ -103,7 +103,7 @@ export default function ProfilePage() {
                   <Layers size={22} />
                 </span>
                 <div>
-                  <h2 className="text-sm text-muted-foreground">
+                  <h2 className="text-sm font-medium text-foreground">
                     {t('merchant.totalOrders')}
                   </h2>
                   <p className="mt-1 text-2xl font-bold">
@@ -117,7 +117,7 @@ export default function ProfilePage() {
                 <Wallet size={22} />
               </span>
               <div>
-                <h2 className="text-sm text-muted-foreground">
+                <h2 className="text-sm font-medium text-foreground">
                   {t('merchant.shop.revenue')}
                 </h2>
                 <p className="mt-1 text-2xl font-bold">—</p>

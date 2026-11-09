@@ -303,7 +303,7 @@ export default function HomePage() {
                   key={key}
                   className="flex justify-between gap-3 py-3 text-sm"
                 >
-                  <dt className="text-muted-foreground">
+                  <dt className="font-medium text-foreground">
                     {t(`admin.locker.${key}`)}
                   </dt>
                   <dd className="font-bold tabular-nums">
