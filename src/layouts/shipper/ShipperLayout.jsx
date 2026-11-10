@@ -4,7 +4,7 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import { shipperWorkspaceApi } from '~/apis/shipper/shipperWorkspaceApi'
 import { SHIPPER_ROUTES } from '~/utils/constants'
 
-const navigation = [['overview', LayoutDashboard, SHIPPER_ROUTES.HOME], ['tasks', Truck, SHIPPER_ROUTES.TASKS, false], ['history', History, SHIPPER_ROUTES.HISTORY, false]]
+const navigation = [['overview', LayoutDashboard, SHIPPER_ROUTES.HOME], ['tasks', Truck, SHIPPER_ROUTES.TASKS, false], ['history', History, SHIPPER_ROUTES.HISTORY]]
 export default function ShipperLayout() {
   const profile = useCatalogResource(shipperWorkspaceApi.profile)
   return (

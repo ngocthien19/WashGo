@@ -51,6 +51,7 @@ const MerchantProfilePage = lazy(() => import('~/pages/merchant/Profile/ProfileP
 const MerchantLayout = lazy(() => import('~/layouts/merchant/MerchantLayout'))
 const MerchantNotificationsPage = lazy(() => import('~/pages/merchant/Notifications/NotificationsPage'))
 const ShipperHomePage = lazy(() => import('~/pages/shipper/Home/HomePage'))
+const ShipperDeliveryHistoryPage = lazy(() => import('~/pages/shipper/DeliveryHistory/DeliveryHistoryPage'))
 const ShipperProfilePage = lazy(() => import('~/pages/shipper/Profile/ProfilePage'))
 const ShipperLayout = lazy(() => import('~/layouts/shipper/ShipperLayout'))
 const ShipperNotificationsPage = lazy(() => import('~/pages/shipper/Notifications/NotificationsPage'))
@@ -218,6 +219,10 @@ export default function App() {
               <Route
                 path={SHIPPER_ROUTES.HOME}
                 element={<ShipperHomePage />}
+              />
+              <Route
+                path={SHIPPER_ROUTES.HISTORY}
+                element={<ShipperDeliveryHistoryPage />}
               />
               <Route
                 path={SHIPPER_ROUTES.PROFILE}
