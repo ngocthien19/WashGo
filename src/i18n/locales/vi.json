@@ -1456,6 +1456,7 @@
         "3": "Phân công trả đồ"
       },
       "overdueMinutes": "Trễ {{count}} phút",
+      "overdueDuration": "Trễ {{duration}}",
       "deadline": "Hạn xử lý: {{date}}",
       "commissionTitle": "Hoa hồng theo đơn",
       "commissionRate": "Tỷ lệ áp dụng",
@@ -1875,7 +1876,7 @@
       "noChanges": "Bạn chưa thay đổi thông tin nào.",
       "uncertain": "Chưa xác định được kết quả gửi. Đóng cửa sổ và cập nhật hồ sơ để kiểm tra trước khi gửi lại."
     },
-    "workspace": "Không gian đối tác",
+    "workspace": "Không gian làm việc Merchant",
     "overview": "Tổng quan cửa hàng",
     "welcome": "Theo dõi hoạt động và đơn hàng của cửa hàng.",
     "navigation": "Điều hướng Merchant",

@@ -27,13 +27,13 @@ export default function OrderCharts({ counts, aside }) {
     )
   }
   return (
-    <div className="grid items-stretch gap-5 xl:grid-cols-[1.2fr_1fr]">
-      <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
-        <h2 className="border-b border-primary/15 pb-4 text-lg font-bold text-foreground">
+    <div className="grid items-start gap-5 xl:grid-cols-2">
+      <section className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        <h2 className="border-b border-primary/15 bg-primary/5 p-5 text-lg font-bold text-foreground">
           {t('merchant.statusDistribution')}
         </h2>
         <div
-          className="mt-6 space-y-5"
+          className="space-y-5 p-5"
           role="img"
           aria-label={t('merchant.statusDistribution')}
         >
@@ -57,9 +57,8 @@ export default function OrderCharts({ counts, aside }) {
           ))}
         </div>
       </section>
-      {aside}
-      <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
-        <h2 className="border-b border-violet-500/15 pb-4 text-lg font-bold text-foreground">
+      <section className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        <h2 className="border-b border-violet-500/15 bg-violet-500/5 p-5 text-lg font-bold text-foreground">
           {t('merchant.orderComposition')}
         </h2>
         <div className="relative mx-auto my-6 size-56">
@@ -98,7 +97,7 @@ export default function OrderCharts({ counts, aside }) {
           </div>
         </div>
         <div
-          className="grid gap-1 sm:grid-cols-2"
+          className="grid gap-1 px-5 pb-5 sm:grid-cols-2"
           onMouseLeave={() => setActive(null)}
         >
           {groups.map((group) => (
@@ -125,6 +124,9 @@ export default function OrderCharts({ counts, aside }) {
           ))}
         </div>
       </section>
+      <div className="min-w-0 xl:col-span-2">
+        {aside}
+      </div>
     </div>
   )
 }

@@ -1456,6 +1456,7 @@
         "3": "Assign return"
       },
       "overdueMinutes": "{{count}} minutes overdue",
+      "overdueDuration": "{{duration}} overdue",
       "deadline": "Deadline: {{date}}",
       "commissionTitle": "Order commission",
       "commissionRate": "Applied rate",
@@ -1875,7 +1876,7 @@
       "noChanges": "You have not changed any information.",
       "uncertain": "The submission outcome is unknown. Close this window and refresh your profile to check before submitting again."
     },
-    "workspace": "Partner workspace",
+    "workspace": "Merchant workspace",
     "overview": "Store overview",
     "welcome": "Track your store activity and assigned orders.",
     "navigation": "Merchant navigation",

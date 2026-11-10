@@ -6,11 +6,8 @@ function Chart({ title, Icon, points, series, line = false, hourly }) {
   const { t } = useTranslation()
   return (
     <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
-      <h2 className="mb-4 flex items-center gap-2 border-b border-border pb-4 text-lg font-bold">
-        <Icon
-          size={21}
-          className="text-primary"
-        />
+      <h2 className={`-mx-5 -mt-5 mb-4 flex items-center gap-2 rounded-t-2xl border-b p-5 text-lg font-bold ${line ? 'border-emerald-500/15 bg-emerald-500/5 [&>svg]:text-emerald-600 dark:[&>svg]:text-emerald-300' : 'border-primary/15 bg-primary/5 [&>svg]:text-primary'}`}>
+        <Icon size={21} />
         {t(title)}
       </h2>
       <MetricChart

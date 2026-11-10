@@ -17,14 +17,20 @@ import RevenueChart from './RevenueChart'
 import OrderStatus from '~/components/orders/OrderStatus'
 import { ADMIN_ROUTES } from '~/utils/constants'
 
-function Panel({ title, icon: Icon, resource, children, className = '' }) {
+const panelTones = {
+  blue: 'border-primary/15 bg-primary/5 [&>svg]:text-primary',
+  emerald: 'border-emerald-500/15 bg-emerald-500/5 [&>svg]:text-emerald-600 dark:[&>svg]:text-emerald-300',
+  violet: 'border-violet-500/15 bg-violet-500/5 [&>svg]:text-violet-600 dark:[&>svg]:text-violet-300',
+  amber: 'border-amber-500/15 bg-amber-500/5 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-300',
+  rose: 'border-rose-500/15 bg-rose-500/5 [&>svg]:text-rose-600 dark:[&>svg]:text-rose-300',
+  cyan: 'border-cyan-500/15 bg-cyan-500/5 [&>svg]:text-cyan-600 dark:[&>svg]:text-cyan-300'
+}
+
+function Panel({ title, icon: Icon, resource, children, className = '', tone = 'blue' }) {
   return (
     <section className={`min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm ${className}`}>
-      <h2 className="mb-5 flex items-center gap-2 border-b border-border pb-4 text-base font-bold">
-        <Icon
-          size={20}
-          className="text-primary"
-        />
+      <h2 className={`-mx-5 -mt-5 mb-5 flex items-center gap-2 rounded-t-2xl border-b p-5 text-base font-bold ${panelTones[tone]}`}>
+        <Icon size={20} />
         {title}
       </h2>
       {resource && (resource.loading || resource.error || !resource.data) ? (
@@ -159,6 +165,7 @@ export default function HomePage() {
       <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Panel
           title={t('admin.revenueChart')}
+          tone="emerald"
           icon={TrendingUp}
           resource={revenue}
         >
@@ -190,16 +197,17 @@ export default function HomePage() {
           title={t('admin.statusChart')}
           icon={ChartNoAxesColumn}
           resource={orders}
+          className="flex h-[32rem] flex-col self-start [&>h2]:shrink-0"
         >
           {orders.data && (
-            <div className="space-y-4">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">
               {groups.map((group) => (
                 <div key={group.key}>
                   <div className="mb-2 flex items-center justify-between gap-3 text-sm">
                     <span>
                       {t(`merchant.groups.${group.key}`)}
                     </span>
-                    <strong>
+                    <strong style={{ color: group.color }}>
                       {formatNumber(group.value)}
                     </strong>
                   </div>
@@ -218,6 +226,7 @@ export default function HomePage() {
       <div className="grid gap-5 xl:grid-cols-3">
         <Panel
           title={t('admin.merchantRevenue')}
+          tone="violet"
           icon={Store}
           resource={revenue}
         >
@@ -253,6 +262,7 @@ export default function HomePage() {
         </Panel>
         <Panel
           title={t('admin.waitingNow')}
+          tone="amber"
           icon={Clock}
           resource={waiting}
         >
@@ -293,6 +303,7 @@ export default function HomePage() {
         </Panel>
         <Panel
           title={t('admin.operations')}
+          tone="rose"
           icon={ShieldAlert}
           resource={lockers}
         >
@@ -306,7 +317,7 @@ export default function HomePage() {
                   <dt className="font-medium text-foreground">
                     {t(`admin.locker.${key}`)}
                   </dt>
-                  <dd className="font-bold tabular-nums">
+                  <dd className={`font-bold tabular-nums ${({ totalLockers: 'text-primary', maintenanceLockers: 'text-amber-700 dark:text-amber-300', availableBoxes: 'text-emerald-700 dark:text-emerald-300', occupiedBoxes: 'text-rose-700 dark:text-rose-300', reservedBoxes: 'text-violet-700 dark:text-violet-300' })[key]}`}>
                     {formatNumber(lockers.data[key])}
                   </dd>
                 </div>
@@ -320,6 +331,7 @@ export default function HomePage() {
       </div>
       <Panel
         title={t('admin.recentOrders')}
+        tone="cyan"
         icon={Package}
         resource={recent}
       >

@@ -7,7 +7,7 @@ import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import AnimatedNumber from '~/components/motion/AnimatedNumber'
 import { Button } from '~/components/ui/button'
 import { MERCHANT_ROUTES } from '~/utils/constants'
-import { formatDateTime } from '~/utils/formats'
+import { formatDateTime, formatDurationMinutes } from '~/utils/formats'
 
 export default function SlaAlerts({ revision }) {
   const { t } = useTranslation()
@@ -32,11 +32,11 @@ export default function SlaAlerts({ revision }) {
         />
       ) : (
         <div className="space-y-5 p-5">
-          <dl className="divide-y divide-border rounded-xl border border-border px-4">
+          <dl className="grid gap-3 sm:grid-cols-3">
             {['collectionAlertsCount', 'processingAlertsCount', 'returnAlertsCount'].map((key, index) => (
               <div
                 key={key}
-                className="flex items-center justify-between gap-4 py-3.5"
+                className="flex items-center justify-between gap-4 rounded-xl border border-border p-4"
               >
                 <dt className="flex items-center gap-3 text-sm font-medium">
                   <span className={`grid size-9 shrink-0 place-items-center rounded-full ${['bg-amber-500/10 text-amber-700 dark:text-amber-300', 'bg-rose-500/10 text-rose-700 dark:text-rose-300', 'bg-violet-500/10 text-violet-700 dark:text-violet-300'][index]}`}>
@@ -72,7 +72,7 @@ export default function SlaAlerts({ revision }) {
                       {' '}
                       ·
                       {' '}
-                      {t('merchant.sync.overdueMinutes', { count: item.overdueMinutes })}
+                      {t('merchant.sync.overdueDuration', { duration: formatDurationMinutes(item.overdueMinutes) })}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {t('merchant.sync.deadline', { date: formatDateTime(item.deadline) })}
