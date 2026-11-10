@@ -1,10 +1,13 @@
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { Clock } from 'lucide-react'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { formatDateTime } from '~/utils/formats'
 import ShipperPanel from '../components/ShipperPanel'
 import DeliveryLocker from '../components/DeliveryLocker'
 import { taskLocker } from '../components/deliveryLockerModel'
+import { Button } from '~/components/ui/button'
+import { SHIPPER_ROUTES } from '~/utils/constants'
 
 export default function TaskPreview({ resource, type, icon }) {
   const { t } = useTranslation()
@@ -53,6 +56,14 @@ export default function TaskPreview({ resource, type, icon }) {
                     {row.note}
                   </p>
                 )}
+                <Button
+                  variant="outline-primary"
+                  className="h-10 px-4"
+                  render={<Link to={SHIPPER_ROUTES.TASK_DETAIL.replace(':orderId', row.id)} />}
+                  nativeButton={false}
+                >
+                  {t('shipper.tasks.view')}
+                </Button>
               </li>
             ))}
           </ul>

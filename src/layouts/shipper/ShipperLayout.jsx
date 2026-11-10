@@ -3,8 +3,9 @@ import WorkspaceLayout from '~/components/workspace/WorkspaceLayout'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { shipperWorkspaceApi } from '~/apis/shipper/shipperWorkspaceApi'
 import { SHIPPER_ROUTES } from '~/utils/constants'
+import { shipperNotificationHref } from '~/utils/shipperNotifications'
 
-const navigation = [['overview', LayoutDashboard, SHIPPER_ROUTES.HOME], ['tasks', Truck, SHIPPER_ROUTES.TASKS, false], ['history', History, SHIPPER_ROUTES.HISTORY]]
+const navigation = [['overview', LayoutDashboard, SHIPPER_ROUTES.HOME], ['tasks', Truck, SHIPPER_ROUTES.TASKS], ['history', History, SHIPPER_ROUTES.HISTORY]]
 export default function ShipperLayout() {
   const profile = useCatalogResource(shipperWorkspaceApi.profile)
   return (
@@ -14,7 +15,7 @@ export default function ShipperLayout() {
       homeHref={SHIPPER_ROUTES.HOME}
       profileHref={SHIPPER_ROUTES.PROFILE}
       notificationsHref={SHIPPER_ROUTES.NOTIFICATIONS}
-      resolveNotificationHref={() => null}
+      resolveNotificationHref={shipperNotificationHref}
       context={{ profile }}
     />
   )
