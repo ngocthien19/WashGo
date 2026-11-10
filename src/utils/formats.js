@@ -117,6 +117,16 @@ export const getLockerMapLink = (locker) => hasCoordinates(locker)
   ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${locker.latitude},${locker.longitude}`)}`
   : null
 
+export const getLockerDirectionsLink = (locker, origin) => {
+  const destination = hasCoordinates(locker) ? `${locker.latitude},${locker.longitude}`
+    : locker?.address ? formatLockerAddress(locker) : null
+  if (!destination) {
+    return null
+  }
+  const from = hasCoordinates(origin) ? `&origin=${encodeURIComponent(`${origin.latitude},${origin.longitude}`)}` : ''
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}${from}&travelmode=driving`
+}
+
 export const formatCurrency = (value) => Number.isFinite(Number(value)) && value != null
   ? new Intl.NumberFormat(getLocale(), { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(Number(value))
   : i18n.t('common.priceUnavailable')
