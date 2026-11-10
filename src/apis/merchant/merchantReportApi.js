@@ -6,6 +6,14 @@ const invalid = () => new Error('merchant.invalidResponse')
 const count = (value) => Number.isSafeInteger(value) && value >= 0
 const instant = (value) => typeof value === 'string' && Number.isFinite(Date.parse(value))
 const metric = (value) => value && Number.isFinite(value.current) && Number.isFinite(value.previous) && (value.changePercent === null || Number.isFinite(value.changePercent)) && typeof value.isNew === 'boolean'
+const validCoverage = (kpis) => {
+  const coverage = kpis?.commissionCoverage
+  if (!coverage || !['current', 'previous'].every((period) => typeof coverage[`${period}Complete`] === 'boolean' && count(coverage[`${period}UncoveredOrders`]) && Number.isFinite(coverage[`${period}UncoveredNetAmount`]) && coverage[`${period}Complete`] === (coverage[`${period}UncoveredOrders`] === 0)) || kpis.ordersWithoutCommissionSnapshot !== coverage.currentUncoveredOrders) {
+    return false
+  }
+  const estimated = !coverage.currentComplete || !coverage.previousComplete
+  return ['commission', 'merchantPayout'].every((key) => kpis[key]?.isEstimated === estimated && (!estimated || kpis[key].changePercent === null))
+}
 const validRange = (value) => value && instant(value.from) && instant(value.toExclusive) && Date.parse(value.from) < Date.parse(value.toExclusive) && validDay(value.fromLocalDate) && validDay(value.toLocalDate)
 const validRate = (rate) => {
   if (!rate || !['numerator', 'denominator', 'previousNumerator', 'previousDenominator'].every((key) => count(rate[key]))) {
@@ -28,7 +36,7 @@ const validKpis = (kpis) => kpis && ['grossLaundryRevenue', 'refunds', 'netReven
 const validReport = (report) => report?.currency === 'VND' && report.timezone === 'Asia/Ho_Chi_Minh' && ['hour', 'day', 'week', 'month'].includes(report.granularity) &&
   validRange(report.current) && validRange(report.previous) && instant(report.asOf) && instant(report.generatedAt) &&
   Date.parse(report.asOf) >= Date.parse(report.current.from) && Date.parse(report.asOf) <= Date.parse(report.current.toExclusive) &&
-  typeof report.incomplete === 'boolean' && validKpis(report.kpis) && validSeries(report.series) && validServices(report.topServices)
+  typeof report.incomplete === 'boolean' && validKpis(report.kpis) && validCoverage(report.kpis) && validSeries(report.series) && validServices(report.topServices)
 
 export const merchantReportApi = {
   load: async (range, signal) => {
@@ -46,8 +54,8 @@ export const merchantReportApi = {
     return report
   },
   export: async (report) => {
-    if (report.kpis.ordersWithoutCommissionSnapshot > 0) {
-      throw new Error('merchant.reportSync.exportBlocked')
+    if (!validCoverage(report.kpis)) {
+      throw invalid()
     }
     const { data, headers } = await authorizedAxios.get('/merchant-reports/export', { params: { period: 'custom', from: report.current.fromLocalDate, to: report.current.toLocalDate, granularity: report.granularity, top: 5 }, responseType: 'blob' })
     if (!(data instanceof Blob) || !data.size || !String(headers?.['content-type'] || data.type).toLowerCase().startsWith('text/csv')) {

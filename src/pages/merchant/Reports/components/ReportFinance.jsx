@@ -5,15 +5,17 @@ import ReportChange from './ReportChange'
 
 export default function ReportFinance({ data }) {
   const { t } = useTranslation()
-  const missing = data.kpis.ordersWithoutCommissionSnapshot
+  const coverage = data.kpis.commissionCoverage
+  const missing = !coverage.currentComplete
   return (
     <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
       <h2 className="-mx-5 -mt-5 flex items-center gap-2 rounded-t-2xl border-b border-violet-500/15 bg-violet-500/5 p-5 text-lg font-bold [&>svg]:text-violet-600 dark:[&>svg]:text-violet-300">
         <Wallet size={21} />
         {t('merchant.reportSync.finance')}
       </h2>
-      {missing > 0 && (
+      {['current', 'previous'].filter(period => !coverage[`${period}Complete`]).map(period => (
         <p
+          key={period}
           role="status"
           className="mt-4 flex items-start gap-2 rounded-xl bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200"
         >
@@ -21,13 +23,18 @@ export default function ReportFinance({ data }) {
             size={18}
             className="shrink-0"
           />
-          {t('merchant.reportSync.coverage', { count: missing })}
+          {t(`merchant.reportCoverage.${period}`, { count: coverage[`${period}UncoveredOrders`], amount: formatCurrency(coverage[`${period}UncoveredNetAmount`]) })}
+        </p>
+      ))}
+      {data.kpis.merchantPayout.isEstimated && (
+        <p className="mt-3 text-sm text-muted-foreground">
+          {t('merchant.reportCoverage.exportNote')}
         </p>
       )}
       <div className="mt-5 grid gap-5 lg:grid-cols-[1.3fr_1fr]">
         <dl className="divide-y divide-border rounded-xl border border-border px-4">
           {['grossLaundryRevenue', 'refunds', 'commission', 'merchantPayout'].map((key) => {
-            const withheld = missing > 0 && ['commission', 'merchantPayout'].includes(key)
+            const withheld = missing && ['commission', 'merchantPayout'].includes(key)
             const metric = data.kpis[key]
             const Icon = key === 'grossLaundryRevenue' ? Plus : key === 'merchantPayout' ? Equal : Minus
             return (

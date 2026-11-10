@@ -7,7 +7,7 @@ import ReportChange from './ReportChange'
 export default function ReportStats({ data }) {
   const { t, i18n } = useTranslation()
   const rate = data.kpis.onTimeRate
-  const incomeAvailable = data.kpis.ordersWithoutCommissionSnapshot === 0
+  const incomeAvailable = data.kpis.commissionCoverage.currentComplete
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {[
@@ -36,6 +36,12 @@ export default function ReportStats({ data }) {
               <p className="text-xs text-muted-foreground">
                 {t('merchant.reportSync.reconcile')}
               </p>
+            )}
+            {key === 'income' && !data.kpis.merchantPayout.isEstimated && (
+              <ReportChange
+                value={data.kpis.merchantPayout.changePercent}
+                isNew={data.kpis.merchantPayout.isNew}
+              />
             )}
             {key === 'onTime' && (
               <>
