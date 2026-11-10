@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Store, Menu, ChevronDown, LogOut, Bell, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Store, UserRound, Menu, ChevronDown, LogOut, Bell, ChevronLeft, ChevronRight } from 'lucide-react'
 import Brand from '~/components/Brand/Brand'
 import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import LanguageSwitcher from '~/components/LanguageSwitcher/LanguageSwitcher'
@@ -72,10 +72,10 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
               aria-disabled={!enabled || undefined}
               tabIndex={!enabled ? -1 : undefined}
               onClick={() => setMobileOpen(false)}
-              aria-current={(key === 'overview' ? pathname === navHref(key) : pathname.startsWith(navHref(key))) ? 'page' : undefined}
+              aria-current={enabled && (key === 'overview' ? pathname === navHref(key) : pathname.startsWith(navHref(key))) ? 'page' : undefined}
               aria-label={t(`${prefix}.nav.${key}`)}
 
-              className={`flex w-full items-center ${enabled ? 'hover:bg-primary/12 hover:text-primary focus-visible:bg-primary/12 focus-visible:text-primary' : 'pointer-events-none opacity-45'} ${compact ? 'justify-center px-0' : 'gap-3 px-4'} rounded-xl py-3 text-base font-semibold ${(key === 'overview' ? pathname === navHref(key) : pathname.startsWith(navHref(key))) ? 'bg-primary/12 text-primary' : 'text-muted-foreground'}`}
+              className={`flex w-full items-center ${enabled ? 'hover:bg-primary/12 hover:text-primary focus-visible:bg-primary/12 focus-visible:text-primary' : 'pointer-events-none opacity-45'} ${compact ? 'justify-center px-0' : 'gap-3 px-4'} rounded-xl py-3 text-base font-semibold ${enabled && (key === 'overview' ? pathname === navHref(key) : pathname.startsWith(navHref(key))) ? 'bg-primary/12 text-primary' : 'text-muted-foreground'}`}
             >
               <Icon size={19} />
               {!compact && t(`${prefix}.nav.${key}`)}
@@ -109,7 +109,7 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
       resolveHref={resolveNotificationHref}
     >
       <div className="min-h-dvh bg-background text-foreground">
-        <header className={`sticky top-0 z-40 border-b border-border ${admin ? 'bg-card' : 'bg-card/95'} backdrop-blur-md ${collapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+        <header className={`sticky top-0 z-40 border-b border-border ${admin || prefix === 'shipper' ? 'bg-card' : 'bg-card/95'} backdrop-blur-md ${collapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
           <div className="flex min-h-20 items-center justify-between gap-3 px-4 sm:px-6">
             <div className="flex items-center gap-3 lg:hidden">
               <Button
@@ -127,11 +127,9 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
                 wordmarkClassName="hidden sm:inline"
               />
             </div>
-            {admin && (
-              <span className="hidden rounded-lg border border-primary/20 bg-primary/10 px-3 py-1.5 text-sm font-bold text-primary sm:inline-flex">
-                {t('admin.workspace')}
-              </span>
-            )}
+            <span className="hidden rounded-lg border border-primary/20 bg-primary/10 px-3 py-1.5 text-sm font-bold text-primary sm:inline-flex">
+              {t(`${prefix}.workspace`)}
+            </span>
             <div className="ml-auto flex items-center gap-1 sm:gap-2">
               <NotificationBell />
               <LanguageSwitcher />
@@ -164,7 +162,7 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
                     </p>
                   </div>
                   <DropdownMenuItem render={<Link to={profileHref} />}>
-                    <Store size={16} />
+                    {prefix === 'merchant' ? <Store size={16} /> : <UserRound size={16} />}
                     {t(`${prefix}.nav.profile`)}
                   </DropdownMenuItem>
                   <DropdownMenuItem render={<Link to={notificationsHref} />}>
