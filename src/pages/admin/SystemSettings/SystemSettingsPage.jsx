@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Settings, RefreshCw, Info, Warehouse } from 'lucide-react'
 import { Button } from '~/components/ui/button'
@@ -9,12 +9,16 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminSystemSettingApi } from '~/apis/admin/adminSystemSettingApi'
 import { formatDateTime, formatNumber } from '~/utils/formats'
 import SettingForm from './SettingForm'
+import AuditPanel from '../Audit/AuditPanel'
+import { useSearchParams } from 'react-router-dom'
 import { settingGroups } from './settingModel'
 
 export default function SystemSettingsPage() {
   const { t } = useTranslation()
-  const resource = useCatalogResource(adminSystemSettingApi.get)
-  const [group, setGroup] = useState('sla'), [dirty, setDirty] = useState(false), [busy, setBusy] = useState(false), [leave, setLeave] = useState(null)
+  const [params] = useSearchParams()
+  const [group, setGroup] = useState(params.get('tab') === 'audit' ? 'audit' : 'sla'), [dirty, setDirty] = useState(false), [busy, setBusy] = useState(false), [leave, setLeave] = useState(null)
+  const auditOpen = group === 'audit'
+  const resource = useCatalogResource(useCallback(signal => auditOpen ? Promise.resolve(null) : adminSystemSettingApi.get(signal), [auditOpen]))
   useEffect(() => {
     document.title = `${t('admin.nav.settings')} | WashGo`
   }, [t])
@@ -77,7 +81,7 @@ export default function SystemSettingsPage() {
         aria-label={t('admin.nav.settings')}
         className="flex gap-4 overflow-x-auto border-b border-border"
       >
-        {Object.keys(settingGroups).map(key => (
+        {[...Object.keys(settingGroups), 'audit'].map(key => (
           <Button
             key={key}
             role="tab"
@@ -87,11 +91,11 @@ export default function SystemSettingsPage() {
             onClick={() => navigate(key)}
             className={`h-12 shrink-0 rounded-none border-x-0 border-t-0 border-b-2 px-3 text-lg hover:bg-transparent ${key === group ? 'border-b-primary text-primary' : 'border-b-transparent text-muted-foreground'}`}
           >
-            {t(`admin.settings.groups.${key}`)}
+            {t(key === 'audit' ? 'admin.workspaceSync.audit' : `admin.settings.groups.${key}`)}
           </Button>
         ))}
       </div>
-      {resource.loading || resource.error || !resource.data ? (
+      {group === 'audit' ? <AuditPanel /> : resource.loading || resource.error || !resource.data ? (
         <ResourceFeedback
           {...resource}
           loadingText="merchant.loading"

@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { Wallet, Package, Store, PanelsTopLeft, Users, Clock, RefreshCw, TrendingUp, ChartNoAxesColumn, ShieldAlert } from 'lucide-react'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminDashboardApi } from '~/apis/admin/adminDashboardApi'
+import { adminWorkspaceApi } from '~/apis/admin/adminWorkspaceApi'
+import AdminAlerts from './AdminAlerts'
+import KpiChange from './KpiChange'
 import { dashboardRange } from '~/utils/dashboardQuery'
 import { dateRangeFilter } from '~/utils/dateRange'
 import { groupOrders } from '~/utils/orderGroups'
@@ -42,13 +45,14 @@ function Panel({ title, icon: Icon, resource, children, className = '', tone = '
     </section>
   )
 }
-function Metric({ resource, value, ...props }) {
+function Metric({ resource, value, metric, ...props }) {
   const { t } = useTranslation()
   return (
     <StatCard
       {...props}
       value={resource?.loading ? '…' : resource?.error ? '—' : value}
     >
+      {metric && !resource?.loading && !resource?.error && <KpiChange metric={metric} />}
       {resource?.error && (
         <Button
           variant="link"
@@ -72,9 +76,13 @@ export default function HomePage() {
   const { from, to } = range
   const filter = useMemo(() => dateRangeFilter({ from, to }), [from, to])
   const revenue = useCatalogResource(useCallback((signal) => adminDashboardApi.revenue(filter, signal), [filter]), revision)
-  const orders = useCatalogResource(useCallback((signal) => adminDashboardApi.orders(filter, signal), [filter]), revision)
-  const merchants = useCatalogResource(adminDashboardApi.merchants, revision)
-  const lockers = useCatalogResource(adminDashboardApi.lockers, revision)
+  const snapshot = useCatalogResource(useCallback(signal => adminWorkspaceApi.dashboard(filter, signal), [filter]), revision)
+  const live = snapshot.data
+  const statusNames = ['pending', 'deposited', 'collected', 'washing', 'drying', 'ironing', 'folding', 'awaitingPayment', 'paid', 'readyToReturn', 'returned', 'completed', 'movedToStorage', 'cancelled']
+  const counts = Object.fromEntries(statusNames.map((key, i) => [i === 13 ? 99 : i + 1, live?.orders.currentByStatus[String(i === 13 ? 99 : i + 1)] ?? Object.entries(live?.orders.currentByStatus || {}).find(([name]) => name.toLowerCase() === key.toLowerCase())?.[1] ?? 0]))
+  const orders = { ...snapshot, data: live ? { total: live.orders.created.current, counts } : null }
+  const merchants = { ...snapshot, data: live ? { total: live.merchants.active } : null }
+  const lockers = { ...snapshot, data: live ? { totalLockers: live.lockers.total, activeLockers: live.lockers.active, maintenanceLockers: live.lockers.maintenance, availableBoxes: live.lockers.availableBoxes } : null }
   const waiting = useCatalogResource(adminDashboardApi.waiting, revision)
   const recent = useCatalogResource(useCallback((signal) => adminDashboardApi.recent(filter, signal), [filter]), revision)
   const groups = orders.data ? groupOrders(orders.data.counts) : []
@@ -116,8 +124,9 @@ export default function HomePage() {
         <Metric
           icon={Wallet}
           label={t('admin.revenue')}
-          value={revenue.data ? formatCurrency(revenue.data.totalRevenue) : '—'}
-          resource={revenue}
+          value={live ? formatCurrency(live.revenue.total.current) : '—'}
+          resource={snapshot}
+          metric={live?.revenue.total}
           className="border-l-emerald-500 [&_p]:text-xl"
           iconClassName="bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
         />
@@ -126,6 +135,7 @@ export default function HomePage() {
           label={t('admin.orders')}
           value={orders.data?.total}
           resource={orders}
+          metric={live?.orders.created}
           className="border-l-primary"
           iconClassName="bg-primary/10 text-primary"
         />
@@ -147,21 +157,38 @@ export default function HomePage() {
         />
         <Metric
           icon={Users}
-          label={t('admin.customers')}
-          value="—"
-          title={t('admin.customerUnavailable')}
+          label={t('admin.workspaceSync.activeCustomers')}
+          value={live?.customers.total}
+          resource={snapshot}
           className="border-l-indigo-400"
           iconClassName="bg-indigo-500/10 text-indigo-600 dark:text-indigo-300"
         />
         <Metric
           icon={Clock}
           label={t('admin.waitingNow')}
-          value={waiting.data?.total}
-          resource={waiting}
+          value={live?.orders.waitingAssignment}
+          resource={snapshot}
           className="border-l-rose-400"
           iconClassName="bg-rose-500/10 text-rose-600 dark:text-rose-300"
         />
       </div>
+      {live && (
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[['completedPeriod', live.orders.completed], ['cancelledPeriod', live.orders.cancelled], ['newCustomers', live.customers.new]].map(([key, metric]) => (
+            <Metric
+              key={key}
+              icon={Package}
+              label={t(`admin.workspaceSync.${key}`)}
+              value={metric.current}
+              metric={metric}
+              resource={snapshot}
+              className="border-l-primary"
+              iconClassName="bg-primary/10 text-primary"
+            />
+          ))}
+        </div>
+      )}
+      <AdminAlerts revision={revision} />
       <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Panel
           title={t('admin.revenueChart')}
@@ -194,7 +221,7 @@ export default function HomePage() {
           )}
         </Panel>
         <Panel
-          title={t('admin.statusChart')}
+          title={t('admin.workspaceSync.currentStatuses')}
           icon={ChartNoAxesColumn}
           resource={orders}
           className="flex h-[32rem] flex-col self-start [&>h2]:shrink-0"
@@ -225,37 +252,35 @@ export default function HomePage() {
       </div>
       <div className="grid gap-5 xl:grid-cols-3">
         <Panel
-          title={t('admin.merchantRevenue')}
+          title={t('admin.workspaceSync.topMerchants')}
           tone="violet"
           icon={Store}
-          resource={revenue}
+          resource={snapshot}
         >
-          {revenue.data?.byMerchant.length ? (
+          <p className="mb-3 text-sm text-muted-foreground">
+            {t('admin.workspaceSync.topBasis')}
+          </p>
+          {live?.topMerchants.length ? (
             <ol className="divide-y divide-border">
-              {revenue.data.byMerchant.slice(0, 5).map((row, i) => (
+              {live.topMerchants.map(row => (
                 <li
-                  key={row.merchantId || 'unassigned'}
-                  className="flex flex-wrap items-center gap-3 py-3"
+                  key={row.merchantId}
+                  className="space-y-2 py-3"
                 >
-                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                    {i + 1}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="break-words text-sm font-semibold">
-                      {row.merchantName}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {t('admin.paidOrders', { count: row.paidOrderCount })}
-                    </p>
-                  </div>
-                  <strong className="text-sm tabular-nums">
-                    {formatCurrency(row.revenue)}
-                  </strong>
+                  <Link
+                    to={`${ADMIN_ROUTES.MERCHANTS}?merchant=${row.merchantId}`}
+                    className="font-semibold text-primary hover:underline"
+                  >
+                    {row.businessName}
+                  </Link>
+                  <p className="text-sm">
+                    {t('admin.workspaceSync.performance', { completed: row.completedOrders, total: row.finishedOrders, rate: row.completionRate === null ? '—' : `${formatNumber(row.completionRate)}%`, rating: row.rating === null ? '—' : formatNumber(row.rating), count: row.ratingCount })}
+                  </p>
                 </li>
               ))}
             </ol>
           ) : (
-            <p className="text-sm text-muted-foreground">
+            <p>
               {t('admin.noData')}
             </p>
           )}
@@ -309,7 +334,7 @@ export default function HomePage() {
         >
           {lockers.data && (
             <dl className="divide-y divide-border">
-              {['totalLockers', 'maintenanceLockers', 'availableBoxes', 'occupiedBoxes', 'reservedBoxes'].map((key) => (
+              {['totalLockers', 'maintenanceLockers', 'availableBoxes'].map((key) => (
                 <div
                   key={key}
                   className="flex justify-between gap-3 py-3 text-sm"
@@ -324,9 +349,7 @@ export default function HomePage() {
               ))}
             </dl>
           )}
-          <p className="mt-5 rounded-xl bg-primary/5 p-3 text-sm leading-6 text-muted-foreground">
-            {t('admin.alertUnavailable')}
-          </p>
+
         </Panel>
       </div>
       <Panel
@@ -364,7 +387,7 @@ export default function HomePage() {
                     <td className="p-3 text-muted-foreground">
                       {formatDateTime(row.createdOn)}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 font-semibold">
                       {row.lockerName || '—'}
                     </td>
                     <td className="p-3">
