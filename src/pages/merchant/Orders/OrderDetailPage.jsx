@@ -9,16 +9,15 @@ import OrderStatus from '~/components/orders/OrderStatus'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantOrderApi } from '~/apis/merchant/merchantOrderApi'
-import { MERCHANT_ROUTES } from '~/utils/constants'
+import { MERCHANT_ROUTES, ORDER_STATUS_OPTIONS, ORDER_STATUS_BORDER_COLORS } from '~/utils/constants'
 import { formatCurrency, formatDateTime } from '~/utils/formats'
-import { processingSteps, canWeigh, assignmentTask, statusLabel } from './orderModel'
+import { processingSteps, canWeigh, assignmentTask } from './orderModel'
 import OrderActionDialog from './components/OrderActionDialog'
 import OrderCommission from '~/components/merchant/OrderCommission'
 import PaymentStatus from '~/components/orders/PaymentStatus'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 import DeliveryInfo from './components/DeliveryInfo'
 import ShipperInfo from './components/ShipperInfo'
-import useOrderMedia, { mediaKey } from './useOrderMedia'
 
 function Panel({ icon: Icon, title, children }) {
   return (
@@ -41,9 +40,8 @@ export default function OrderDetailPage() {
   const load = useCallback((signal) => /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(orderId || '') ? merchantOrderApi.detail(orderId, signal) : Promise.reject(new Error('merchant.invalidResponse')), [orderId])
   const resource = useCatalogResource(load)
   const order = resource.data
-  const media = useOrderMedia(order)
-  const depositImages = order?.lockerImageUrls || media[mediaKey('locker', order?.lockerId)] || []
-  const returnImages = order?.returnLockerImageUrls || (!order?.returnLockerId || order.returnLockerId === order?.lockerId ? depositImages : media[mediaKey('locker', order?.returnLockerId)]) || []
+  const depositImages = order?.lockerImageUrls || []
+  const returnImages = order?.returnLockerImageUrls || (!order?.returnLockerId || order.returnLockerId === order?.lockerId ? depositImages : []) || []
   useEffect(() => {
     document.title = `${t('customer.order.orderDetails')}${order ? ` ${order.orderCode}` : ''} | WashGo`
   }, [order, t])
@@ -180,12 +178,13 @@ export default function OrderDetailPage() {
                     {[...order.timeline].sort((a, b) => b.timestamp - a.timestamp).map((entry, index) => (
                       <li
                         key={entry.id || index}
-                        className="border-l-2 border-primary/25 pl-4"
+                        className={`border-l-2 pl-4 ${ORDER_STATUS_BORDER_COLORS[ORDER_STATUS_OPTIONS.find(option => Number(option.value) === entry.status)?.color || 'slate']}`}
                       >
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <strong className="text-base">
-                            {t(statusLabel(entry.status))}
-                          </strong>
+                          <OrderStatus
+                            status={entry.status}
+                            showDot={false}
+                          />
                           <span className="text-sm text-muted-foreground">
                             {formatDateTime(entry.timestamp)}
                           </span>
@@ -199,6 +198,11 @@ export default function OrderDetailPage() {
                         {entry.note && (
                           <p className="mt-2 break-words text-sm font-normal leading-relaxed text-muted-foreground">
                             {entry.note}
+                          </p>
+                        )}
+                        {!entry.note && entry.actorRole === 'Customer' && [1, 2].includes(entry.status) && (
+                          <p className="mt-2 text-sm font-normal leading-relaxed text-muted-foreground">
+                            {t(`merchant.orderView.customerEvent.${entry.status}`)}
                           </p>
                         )}
                       </li>
@@ -220,7 +224,7 @@ export default function OrderDetailPage() {
                     >
                       <div className="flex min-w-0 flex-1 items-start gap-3">
                         <ResourceThumbnail
-                          urls={item.serviceImageUrls || media[mediaKey('service', item.serviceId)] || []}
+                          urls={item.serviceImageUrls || []}
                           name={item.serviceName}
                         />
                         <div className="min-w-0">

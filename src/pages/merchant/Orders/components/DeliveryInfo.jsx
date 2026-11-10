@@ -21,19 +21,16 @@ export default function DeliveryInfo({ order, depositImages, returnImages }) {
                 urls={slot.images}
                 name={slot.name}
               />
-              <p className="min-w-0 break-words font-semibold">
-                {slot.name || '—'}
-              </p>
+              <div className="min-w-0">
+                <p className="break-words font-semibold">
+                  {slot.name || '—'}
+                </p>
+                <p className="mt-2 break-words text-sm leading-6 text-muted-foreground">
+                  {slot.address || '—'}
+                </p>
+              </div>
             </div>
             <dl className="mt-4 space-y-4">
-              <div>
-                <dt className="text-sm text-muted-foreground">
-                  {t('merchant.orderView.lockerAddress')}
-                </dt>
-                <dd className="mt-2 break-words text-sm font-semibold leading-6">
-                  {slot.address || '—'}
-                </dd>
-              </div>
               <div>
                 <dt className="text-sm text-muted-foreground">
                   {t(slot.key === 'dropoff' ? 'merchant.orders.box' : 'merchant.orders.returnBox')}

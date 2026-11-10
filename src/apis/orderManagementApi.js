@@ -69,23 +69,7 @@ export const orderManagementApi = {
     if (data?.succeeded !== true || !Array.isArray(data.data) || data.data.some((item) => !item.id || !item.fullName)) {
       throw invalid()
     }
-    const items = data.data.map(item => ({ ...item, avatar: item.avatarUrl }))
-    for (let index = 0; index < items.length; index += 4) {
-      await Promise.all(items.slice(index, index + 4).map(async item => {
-        if (typeof item.email === 'string') {
-          return
-        }
-        try {
-          const response = await authorizedAxios.get(`/shipper/${encodeURIComponent(item.id)}`, { signal })
-          if (response.data?.succeeded === true && response.data.data?.id === item.id && typeof response.data.data.email === 'string') {
-            item.email = response.data.data.email
-          }
-        } catch {
-          // Contact enrichment does not change eligibility from the order endpoint.
-        }
-      }))
-    }
-    return items
+    return data.data.map(item => ({ ...item, avatar: item.avatarUrl }))
   },
   weigh: (id, weightKg, guard) => mutate(`/wash-order/${encodeURIComponent(id)}/actual-weight`, { weightKg }, id, (order) => order.actualWeightKg === weightKg, guard),
   status: (id, newStatus, note, guard) => mutate('/wash-order/status', { orderId: id, newStatus, note }, id, (order) => order.status === newStatus, guard),
