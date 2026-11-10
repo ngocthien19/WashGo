@@ -30,7 +30,7 @@ test('Admin list preserves filters and paging while summary stays system-wide', 
   await expect(page).toHaveURL(/city=Other\+City/)
   await expect(page.getByRole('table')).toContainText('Locker 13')
   await expect(page.getByRole('heading', { name: 'Total lockers', exact: true }).locator('..')).toContainText('13')
-  expect(state.filters.at(-1)).toMatchObject({ page: 1, take: 12, city: 'Other City' })
+  await expect.poll(() => state.filters.at(-1)).toMatchObject({ page: 1, take: 12, city: 'Other City' })
   expect(state.summaries.every(query => query === '')).toBe(true)
   expect(state.writes).toHaveLength(0)
 })
