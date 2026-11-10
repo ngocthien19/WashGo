@@ -8,11 +8,8 @@ export default function ReportFinance({ data }) {
   const missing = data.kpis.ordersWithoutCommissionSnapshot
   return (
     <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-      <h2 className="flex items-center gap-2 border-b border-border pb-4 text-lg font-bold">
-        <Wallet
-          size={21}
-          className="text-primary"
-        />
+      <h2 className="-mx-5 -mt-5 flex items-center gap-2 rounded-t-2xl border-b border-violet-500/15 bg-violet-500/5 p-5 text-lg font-bold [&>svg]:text-violet-600 dark:[&>svg]:text-violet-300">
+        <Wallet size={21} />
         {t('merchant.reportSync.finance')}
       </h2>
       {missing > 0 && (

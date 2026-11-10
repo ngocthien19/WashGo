@@ -8,12 +8,9 @@ export default function ReportTopServices({ services }) {
   const { t } = useTranslation()
   return (
     <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <div className="border-b border-border p-5">
-        <h2 className="flex items-center gap-2 text-lg font-bold">
-          <Trophy
-            size={21}
-            className="text-amber-500"
-          />
+      <div className="border-b border-amber-500/15 bg-amber-500/5 p-5">
+        <h2 className="flex items-center gap-2 text-lg font-bold [&>svg]:text-amber-600 dark:[&>svg]:text-amber-300">
+          <Trophy size={21} />
           {t('merchant.reports.bestServices')}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">

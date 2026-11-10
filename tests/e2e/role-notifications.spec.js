@@ -49,7 +49,7 @@ test('failure to mark read does not block navigation to the permitted Admin targ
   await expect(page).toHaveURL(new RegExp(`/admin/orders/${orderId}`))
 })
 
-test('Shipper shares inbox actions and has task navigation without fake order detail links', async ({ page }) => {
+test('Shipper shares inbox actions and routes real order notifications to scoped task details', async ({ page }) => {
   const state = await setupNotifications(page, { role: 'Shipper', dark: true })
   state.items[0] = { ...state.items[0], type: 30, group: 'order', title: 'New delivery task' }
   await page.setViewportSize({ width: 390, height: 844 })
@@ -57,7 +57,7 @@ test('Shipper shares inbox actions and has task navigation without fake order de
   const nav = page.getByRole('navigation', { name: 'Filter notifications', exact: true })
   await nav.getByRole('button', { name: 'Delivery tasks', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'New delivery task', exact: true })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'View details', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'View details', exact: true })).toBeVisible()
   await expect.poll(() => state.filters.at(-1)?.types).toEqual([10, 30, 31, 32, 33, 34])
   await page.getByRole('button', { name: 'Mark as read', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Mark as read', exact: true })).toHaveCount(0)
@@ -65,6 +65,8 @@ test('Shipper shares inbox actions and has task navigation without fake order de
   await expect(page.getByRole('dialog').getByRole('link', { name: 'All notifications', exact: true })).toHaveAttribute('href', '/shipper/notifications')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.keyboard.press('Escape')
+  await page.locator('main').getByRole('button', { name: 'View details', exact: true }).click()
+  await expect(page).toHaveURL(`/shipper/tasks/${orderId}`)
 })
 
 test('Customer has only published navigation groups and Merchant retains service/profile categories', async ({ page }) => {

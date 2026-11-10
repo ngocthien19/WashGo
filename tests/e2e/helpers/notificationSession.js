@@ -11,6 +11,9 @@ export async function setupNotifications(page, { role = 'Customer', dark = false
     const url = new URL(request.url())
     const path = url.pathname.replace(/^\/api/, '')
     const ok = (data) => route.fulfill({ json: { succeeded: true, data } })
+    if (path === '/shipper-profile' && role === 'Shipper') {
+      return ok({ id: 'notification-shipper', fullName: 'Alex', email: 'shipper@example.test', vehicleType: 1, status: 1, isActive: true, totalDeliveries: 0, rating: 0 })
+    }
     if (path === '/policy/customer') {
       return ok({ terms: { version: 'v1', content: 'Server terms' }, rules: {}, accepted: true, requiresAcceptance: false })
     }

@@ -76,6 +76,7 @@ export default function OtpInput({ value = '', onChange, onBlur, inputRef, error
       </div>
       {error && (
         <p
+          role="alert"
           className="mt-2 text-center text-xs text-destructive"
           id="otp-error"
         >

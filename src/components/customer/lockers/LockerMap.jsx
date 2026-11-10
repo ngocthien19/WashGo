@@ -31,19 +31,19 @@ const activeMarkerIcon = new Icon({
   className: 'drop-shadow-lg'
 })
 
-function LockerMarker({ locker, active, selectionVersion, onSelect }) {
+function LockerMarker({ locker, active, selectionVersion, onSelect, showAvailability, openSelectedPopup }) {
   const { t } = useTranslation()
   const marker = useRef(null)
   useEffect(() => {
     // Leaflet creates the image outside React, so update its accessible name explicitly.
     const element = marker.current?.getElement()
     element?.setAttribute('alt', `${active ? t('customer.selected') : t('customer.location')}${locker.name}`)
-    if (active) {
+    if (active && openSelectedPopup) {
       marker.current?.openPopup()
     } else {
       marker.current?.closePopup()
     }
-  }, [active, selectionVersion, locker.name, t])
+  }, [active, selectionVersion, locker.name, t, openSelectedPopup])
   return (
     <>
       {active && (
@@ -70,9 +70,11 @@ function LockerMarker({ locker, active, selectionVersion, onSelect }) {
             <p className="break-words">
               {formatLockerAddress(locker)}
             </p>
-            <span className="block font-medium text-emerald-700">
-              {t('customer.compartmentsAvailable', { availableSlotCount: locker.availableSlotCount })}
-            </span>
+            {showAvailability && (
+              <span className="block font-medium text-emerald-700">
+                {t('customer.compartmentsAvailable', { availableSlotCount: locker.availableSlotCount })}
+              </span>
+            )}
             <a
               href={getLockerMapLink(locker)}
               target="_blank"
@@ -119,13 +121,13 @@ function UserPosition({ position }) {
   )
 }
 
-function MapViewport({ lockers, selectedId, selectionVersion, position }) {
+function MapViewport({ lockers, selectedId, selectionVersion, position, fitPosition }) {
   const map = useMap()
   useEffect(() => {
     const updateViewport = () => {
       const selected = lockers.find((locker) => locker.id === selectedId)
       map.invalidateSize()
-      if (selected) {
+      if (selected && !(fitPosition && position)) {
         map.setView([selected.latitude, selected.longitude], LOCKER_MAP.ZOOM, { animate: false })
       } else if (lockers.length || position) {
         const locations = position ? [...lockers, position] : lockers
@@ -138,11 +140,11 @@ function MapViewport({ lockers, selectedId, selectionVersion, position }) {
     const observer = new ResizeObserver(updateViewport)
     observer.observe(map.getContainer())
     return () => observer.disconnect()
-  }, [map, lockers, selectedId, selectionVersion, position])
+  }, [map, lockers, selectedId, selectionVersion, position, fitPosition])
   return null
 }
 
-export default function LockerMap({ lockers, selectedId, selectionVersion = 0, onSelect, position }) {
+export default function LockerMap({ lockers, selectedId, selectionVersion = 0, onSelect, position, showAvailability = true, fitPosition = false, heightClassName = 'h-96 lg:h-[32rem]', openSelectedPopup = true }) {
   const { t } = useTranslation()
   const [tileError, setTileError] = useState(false)
   const [tileAttempt, setTileAttempt] = useState(0)
@@ -181,7 +183,7 @@ export default function LockerMap({ lockers, selectedId, selectionVersion = 0, o
         maxZoom={LOCKER_MAP.MAX_ZOOM}
         scrollWheelZoom
         zoomControl={false}
-        className="z-0 h-96 w-full text-foreground lg:h-[32rem]"
+        className={`z-0 w-full text-foreground ${heightClassName}`}
       >
         <TileLayer
           key={tileAttempt}
@@ -211,6 +213,7 @@ export default function LockerMap({ lockers, selectedId, selectionVersion = 0, o
           selectedId={selectedId}
           selectionVersion={selectionVersion}
           position={userPosition}
+          fitPosition={fitPosition}
         />
         <MapZoomControls position={userPosition} />
         {userPosition && (
@@ -223,6 +226,8 @@ export default function LockerMap({ lockers, selectedId, selectionVersion = 0, o
             active={selectedId === locker.id}
             selectionVersion={selectionVersion}
             onSelect={onSelect}
+            showAvailability={showAvailability}
+            openSelectedPopup={openSelectedPopup}
           />
         ))}
       </MapContainer>
