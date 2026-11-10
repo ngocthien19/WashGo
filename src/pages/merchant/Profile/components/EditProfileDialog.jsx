@@ -1,6 +1,11 @@
+import { useForm, useWatch } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { merchantDashboardApi } from '~/apis/merchant/merchantDashboardApi'
+import { privateDocumentApi } from '~/apis/privateDocumentApi'
+import BusinessLicenseField from '~/components/documents/BusinessLicenseField'
 import { lazy, Suspense, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Send, ImagePlus, X, PencilLine, Store, MapPin, Phone, Clock, ShieldCheck, Building2, MapPinned, Hash, FileCheck } from 'lucide-react'
+import { Send, ImagePlus, X, PencilLine, Store, MapPin, Phone, Clock, Building2, MapPinned, Hash } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -10,14 +15,20 @@ import { notify } from '~/utils/notifications'
 import { getApiError } from '~/utils/apiError'
 import { merchantProfileApi } from '~/apis/merchant/merchantProfileApi'
 
-import { displayOpeningHours } from '../profileModel'
+import { displayOpeningHours, merchantProfileSchema, profileSnapshot } from '../profileModel'
 
 const fieldIcons = { businessName: Store, address: MapPin, phone: Phone, openingHours: Clock, city: Building2 }
 const AddressPickerDialog = lazy(() => import('~/components/maps/AddressPickerDialog'))
 
 export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
   const { t } = useTranslation()
-  const [values, setValues] = useState({ businessName: shop.businessName || '', address: shop.address || '', city: shop.city || '', phone: shop.phone || '', openingHours: displayOpeningHours(shop.openingHours) })
+  const { control, register, setValue, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(merchantProfileSchema(shop.taxCode || '')), defaultValues: { businessName: shop.businessName || '', address: shop.address || '', city: shop.city || '', phone: shop.phone || '', openingHours: displayOpeningHours(shop.openingHours), taxCode: shop.taxCode || '' } })
+  const values = useWatch({ control })
+  const [license, setLicense] = useState(null)
+  const [removeLicense, setRemoveLicense] = useState(false)
+  const [documentBusy, setDocumentBusy] = useState(false)
+  const currentDocument = shop.documents?.find((document) => document.fileId === shop.businessLicenseDocumentId && document.kind === 1)
+
   const [mapOpen, setMapOpen] = useState(false)
   const [mapCenter, setMapCenter] = useState(hasCoordinates(shop) && (shop.latitude !== 0 || shop.longitude !== 0) ? { latitude: shop.latitude, longitude: shop.longitude } : null)
   const [existing, setExisting] = useState(shop.imageUrls || [])
@@ -26,20 +37,11 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
   const [error, setError] = useState('')
   const [uncertain, setUncertain] = useState(false)
   const locked = useRef(false)
-  const submit = async (event) => {
-    event.preventDefault()
-    if (locked.current || uncertain) {
+  const submit = async (formValues) => {
+    if (locked.current || uncertain || documentBusy) {
       return
     }
-    const payload = Object.fromEntries(Object.entries(values).map(([key, value]) => [key, value.trim()]))
-    if (!payload.city || payload.city.length > 100) {
-      setError('merchant.shop.cityRequired')
-      return
-    }
-    if (!payload.businessName || payload.businessName.length > 200 || !payload.address || payload.address.length > 500 || !payload.city || payload.city.length > 100 || !/^\+?[0-9 ()\-.]+$/.test(payload.phone) || payload.phone.length > 20 || !/^\d{9,11}$/.test(payload.phone.replace(/\D/g, '')) || payload.openingHours.length > 1000) {
-      setError('merchant.shop.invalidFields')
-      return
-    }
+    const payload = Object.fromEntries(Object.entries(formValues).map(([key, value]) => [key, value.trim()]))
     const locationChanged = payload.address !== (shop.address || '').trim() || payload.city !== (shop.city || '').trim()
     if (locationChanged && !hasCoordinates(mapCenter)) {
       setError('merchant.sync.chooseLocation')
@@ -47,7 +49,7 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
     }
     const coordinatesChanged = hasCoordinates(mapCenter) && (mapCenter.latitude !== shop.latitude || mapCenter.longitude !== shop.longitude)
     const changed = coordinatesChanged || Object.keys(payload).some((key) => payload[key] !== (key === 'openingHours' ? displayOpeningHours(shop[key]) : shop[key] || '').trim()) || images.images.length || JSON.stringify(existing) !== JSON.stringify(shop.imageUrls || [])
-    if (!changed) {
+    if (!changed && !license && !removeLicense) {
       setError('merchant.shop.noChanges'); return
     }
     locked.current = true
@@ -55,9 +57,16 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
     setError('')
     let submitting = false
     try {
+      const current = await merchantDashboardApi.profile()
+      if (profileSnapshot(current) !== profileSnapshot(shop) || current.pendingRequest || current.status !== 1) {
+        setUncertain(true); setError('merchant.backendSync.profileChanged'); return
+      }
+      if (license) {
+        await privateDocumentApi.read(license.fileId)
+      }
       const urls = await images.upload()
       submitting = true
-      const request = await merchantProfileApi.requestUpdate({ ...payload, ...(hasCoordinates(mapCenter) ? mapCenter : {}), openingHours: payload.openingHours || null, imageUrls: [...existing, ...urls] })
+      const request = await merchantProfileApi.requestUpdate({ ...payload, taxCode: payload.taxCode !== (shop.taxCode || '').trim() ? payload.taxCode : undefined, businessLicenseDocumentId: license?.fileId, removeBusinessLicenseDocument: removeLicense || undefined, operationId: crypto.randomUUID(), ...(hasCoordinates(mapCenter) ? mapCenter : {}), openingHours: payload.openingHours || null, imageUrls: [...existing, ...urls] })
       notify.success('merchant.shop.submitted')
       onSubmitted(request)
     } catch (failure) {
@@ -73,7 +82,7 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
     <Dialog
       open
       onOpenChange={(open) => {
-        if (!open && !locked.current) {
+        if (!open && !locked.current && !documentBusy) {
           onClose()
         }
       }}
@@ -94,11 +103,12 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
           </DialogDescription>
         </div>
         <form
-          onSubmit={submit}
+          noValidate
+          onSubmit={(event) => handleSubmit(submit)(event)}
           className="mt-5 space-y-5"
         >
           <fieldset
-            disabled={pending || uncertain}
+            disabled={pending || uncertain || documentBusy}
             className="grid gap-5 rounded-2xl border border-border/70 bg-muted/20 p-4 sm:grid-cols-2 sm:p-5"
           >
             {['businessName', 'address', 'city', 'phone', 'openingHours'].map((key) => {
@@ -118,12 +128,12 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
                       {key !== 'openingHours' && <span className="ml-1 text-destructive">*</span>}
                     </span>
                     <Input
-                      name={key}
+                      {...register(key)}
                       value={values[key]}
                       aria-label={t(`merchant.shop.${key}`)}
                       aria-describedby={key === 'city' ? 'merchant-profile-city-note' : undefined}
                       onChange={(event) => {
-                        setValues({ ...values, [key]: event.target.value })
+                        setValue(key, event.target.value, { shouldDirty: true })
                         if (['address', 'city'].includes(key)) {
                           setMapCenter(null)
                         }
@@ -135,6 +145,14 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
                       className="h-12 rounded-xl bg-card text-base shadow-none"
                       placeholder={key === 'openingHours' ? t('merchant.shop.hoursPlaceholder') : key === 'city' ? t('merchant.shop.notUpdated') : undefined}
                     />
+                    {errors[key] && (
+                      <span
+                        role="alert"
+                        className="text-sm text-destructive"
+                      >
+                        {t(errors[key].message)}
+                      </span>
+                    )}
                     {key === 'city' && (
                       <span
                         id="merchant-profile-city-note"
@@ -164,44 +182,49 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
               aria-labelledby="merchant-profile-legal-title"
               className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:col-span-2 sm:grid-cols-2"
             >
-              <div className="flex flex-wrap items-center justify-between gap-2 sm:col-span-2">
-                <h3
-                  id="merchant-profile-legal-title"
-                  className="flex items-center gap-2 font-semibold"
-                >
-                  <ShieldCheck size={18} />
-                  {t('merchant.shop.legalInfo')}
-                </h3>
-                <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
-                  {t('merchant.shop.legalReadOnly')}
-                </span>
-              </div>
-              {[['taxCode', Hash], ['businessLicense', FileCheck]].map(([key, Icon]) => (
-                <label
-                  key={key}
-                  className="flex min-w-0 flex-col gap-3 text-base font-medium"
-                >
-                  <span className="flex items-center gap-2">
-                    <Icon
-                      size={16}
-                      className="text-primary"
-                    />
-                    {t(`merchant.shop.${key}`)}
-                  </span>
-                  <Input
-                    readOnly
-                    value={shop[key] || ''}
-                    aria-describedby="merchant-profile-legal-note"
-                    placeholder={t(key === 'taxCode' ? 'merchant.shop.notUpdated' : 'merchant.shop.licenseUnavailable')}
-                    className="h-12 rounded-xl bg-muted/40 text-base shadow-none"
-                  />
-                </label>
-              ))}
-              <p
-                id="merchant-profile-legal-note"
-                className="text-sm leading-relaxed text-muted-foreground sm:col-span-2"
+              <h3
+                id="merchant-profile-legal-title"
+                className="font-semibold sm:col-span-2"
               >
-                {t('merchant.shop.restricted')}
+                {t('merchant.shop.legalInfo')}
+              </h3>
+              <label className="flex flex-col gap-3 text-base font-medium sm:col-span-2">
+                <span className="flex items-center gap-2">
+                  <Hash
+                    size={16}
+                    className="text-primary"
+                  />
+                  {t('merchant.shop.taxCode')}
+                </span>
+                <Input
+                  {...register('taxCode')}
+                  aria-label={t('merchant.shop.taxCode')}
+                  aria-describedby={errors.taxCode ? 'merchant-tax-error' : undefined}
+                  className="h-12 rounded-xl text-base"
+                  aria-invalid={!!errors.taxCode}
+                />
+                {errors.taxCode && (
+                  <span
+                    id="merchant-tax-error"
+                    role="alert"
+                    className="text-sm text-destructive"
+                  >
+                    {t(errors.taxCode.message)}
+                  </span>
+                )}
+              </label>
+              <BusinessLicenseField
+                current={currentDocument}
+                value={license}
+                removed={removeLicense}
+                onChange={(value, removed) => {
+                  setLicense(value); setRemoveLicense(removed)
+                }}
+                onBusy={setDocumentBusy}
+                disabled={pending || uncertain || documentBusy}
+              />
+              <p className="text-sm text-muted-foreground sm:col-span-2">
+                {t('merchant.backendSync.slaReadOnly')}
               </p>
             </section>
             <div className="space-y-3 rounded-xl border border-primary/15 bg-card p-4 sm:col-span-2">
@@ -272,7 +295,7 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
             <Button
               type="button"
               variant="secondary"
-              disabled={pending}
+              disabled={pending || documentBusy}
               className="h-11 px-5 text-base"
               onClick={onClose}
             >
@@ -280,7 +303,7 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
             </Button>
             <Button
               type="submit"
-              disabled={pending || uncertain || !!images.error}
+              disabled={pending || uncertain || documentBusy || !!images.error}
               className="h-11 px-5 text-base"
             >
               <Send size={17} />
@@ -302,7 +325,7 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
               initialCenter={mapCenter}
               onClose={() => setMapOpen(false)}
               onApply={(selected) => {
-                setValues((current) => ({ ...current, address: selected.address || '', city: selected.city || '' }))
+                setValue('address', selected.address || ''); setValue('city', selected.city || '')
                 setMapCenter(selected.position)
                 setError('')
                 setMapOpen(false)

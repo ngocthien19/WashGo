@@ -2,8 +2,10 @@ import { merchantSession } from './helpers/merchantSession'
 import { expect, test } from '@playwright/test'
 
 const orderId = '11111111-1111-4111-8111-111111111111'
+const uploadId = '22222222-2222-4222-8222-222222222222'
+const licenseDocument = { fileId: orderId, originalFileName: 'license.pdf', contentType: 'application/pdf', size: 100, kind: 1, previewSupported: true, uploadedAt: '2026-11-10T01:00:00Z' }
 async function setup(page, options = {}) {
-  const state = { ordersError: false, profileError: false, settlementError: false, empty: false, calls: [], submitted: null, updateError: false, updates: 0 }
+  const state = { ordersError: false, profileError: false, settlementError: false, empty: false, calls: [], submitted: null, updateError: false, updates: 0, documentUploads: 0, documentReads: [], documents: { [orderId]: licenseDocument }, deniedDocument: false, slaQueries: [] }
   if (!options.guest) {
     await merchantSession(page, options)
   }
@@ -39,13 +41,36 @@ async function setup(page, options = {}) {
     if (path === '/merchant-profile') {
       return state.profileError ? fail() : data({ id: 'merchant-test', businessName: 'WashGo Ben Thanh', address: '123 Test Street', city: 'Ho Chi Minh City', phone: '0901234567', email: 'shop@example.test', openingHours: '08:00–20:00', rating: 4.8, totalOrders: 28, status: 1, contractStartDate: '2023-03-15T00:00:00Z', pendingRequest: state.submitted, ...options.profile })
     }
+    if (path === '/merchant-reports/lifetime') {
+      return data(options.lifetime || { currency: 'VND', grossLaundryRevenue: 9000000, refunds: 1000000, netRevenue: 8000000, commission: 1600000, merchantPayout: 6400000, feesCollected: 10000, paidOrderCount: 10, commissionComplete: true, ordersWithoutCommissionSnapshot: 0, uncoveredNetAmount: 0, generatedAt: '2026-11-10T01:00:00Z' })
+    }
+    if (path === '/files/documents' && request.method() === 'POST') {
+      state.documentUploads++
+      expect(request.postData()).toContain('BusinessLicense')
+      expect(request.postData()).not.toContain('name="merchantId"')
+      state.documents[uploadId] = { ...licenseDocument, fileId: uploadId, originalFileName: 'new-license.pdf' }
+      return data(state.documents[uploadId])
+    }
+    const privateDocument = path.match(/^\/files\/documents\/([^/]+)(\/download)?$/)
+    if (privateDocument) {
+      state.documentReads.push(path)
+      if (state.deniedDocument) {
+        return route.fulfill({ status: 403, json: { succeeded: false, message: 'Document access denied' } })
+      }
+      const file = state.documents[privateDocument[1]]
+      if (privateDocument[2]) {
+        return route.fulfill({ contentType: file.contentType, body: Buffer.from('%PDF-1.4 mock document') })
+      }
+      return data(file)
+    }
     if (path === '/files/images') {
       return data({ url: '/uploads/mock/store.png' })
     }
     if (path === '/merchant-profile/update-requests') {
       state.updates++
       const body = request.postDataJSON()
-      expect(Object.keys(body).filter((key) => !['latitude', 'longitude'].includes(key)).sort()).toEqual(['address', 'businessName', 'city', 'imageUrls', 'openingHours', 'phone'])
+      expect(Object.keys(body).every((key) => ['address', 'businessName', 'city', 'imageUrls', 'openingHours', 'phone', 'latitude', 'longitude', 'taxCode', 'businessLicenseDocumentId', 'removeBusinessLicenseDocument', 'operationId'].includes(key))).toBe(true)
+      expect(body.operationId).toMatch(/^[a-f0-9-]{36}$/)
       if (state.updateError) {
         return fail()
       }
@@ -70,10 +95,11 @@ async function setup(page, options = {}) {
       return data({ currency: 'VND', period: 'month', kpis: { grossLaundryRevenue: kpi(1000000), refunds: kpi(100000), netRevenue: kpi(900000), commission: kpi(180000), merchantPayout: kpi(720000), ordersWithoutCommissionSnapshot: state.missingCommission ? 1 : 0 }, series: [{ index: 0, label: '01/11', netRevenue: 900000, computed: true }, { index: 1, label: '30/11', netRevenue: 0, computed: false }] })
     }
     if (path === '/merchant/sla-alerts') {
+      const query = Object.fromEntries(new URL(request.url()).searchParams); state.slaQueries.push(query)
       if (state.alertsError) {
         return fail()
       }
-      return data({ totalAlerts: state.empty ? 0 : 1, collectionAlertsCount: state.empty ? 0 : 1, processingAlertsCount: 0, returnAlertsCount: 0, serverNow: '2026-11-07T19:00:00', priorityOrders: state.empty ? [] : [{ orderId, orderCode: 'WG-MERCHANT-123', status: 2, alertType: 1, actionType: 1, overdueMinutes: 35, deadline: '2026-11-07T18:25:00', lockerName: 'Ben Thanh Locker', boxNumber: '3' }] })
+      return data({ page: Number(query.page), take: Number(query.take), priorityTotal: state.empty ? 0 : 1, totalAlerts: state.empty ? 0 : 1, collectionAlertsCount: state.empty ? 0 : 1, processingAlertsCount: 0, returnAlertsCount: 0, serverNow: '2026-11-07T12:00:00Z', priorityOrders: state.empty ? [] : [{ orderId, orderCode: 'WG-MERCHANT-123', status: 2, alertType: 1, actionType: 1, overdueMinutes: 35, deadline: '2026-11-07T11:25:00Z', lockerName: 'Ben Thanh Locker', boxNumber: '3' }] })
     }
     if (path === '/wash-order/filter') {
       const body = request.postDataJSON()
@@ -129,7 +155,7 @@ test('merchant dashboard uses scoped server totals, charts, order preview and st
   await expect(profile.getByText('Total revenue', { exact: true })).toBeVisible()
   await expect(profile.getByText('Ho Chi Minh City', { exact: true })).toBeVisible()
   await expect(profile.getByText('Date joined', { exact: true }).locator('..')).toContainText('Not updated')
-  await expect(profile.getByText('Not updated', { exact: true })).toHaveCount(3)
+  await expect(profile.getByText('Not updated', { exact: true })).toHaveCount(2)
   const address = await profile.getByText('Business address', { exact: true }).boundingBox()
   const city = await profile.getByText('City / Province', { exact: true }).boundingBox()
   expect(city.x).toBeGreaterThan(address.x)
@@ -242,9 +268,7 @@ test('profile edit uploads photos and submits a pending request without replacin
   await page.getByRole('button', { name: 'Edit store profile', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Edit store profile', exact: true })
   await expect(dialog.getByLabel('Tax code', { exact: true })).toHaveValue('0312345678')
-  await expect(dialog.getByLabel('Tax code', { exact: true })).not.toBeEditable()
-  await expect(dialog.getByLabel('Business license', { exact: true })).not.toBeEditable()
-  await expect(dialog.getByLabel('Business license', { exact: true })).toHaveAttribute('placeholder', 'Not provided by the system')
+  await expect(dialog.getByLabel('Tax code', { exact: true })).toBeEditable()
   await expect(dialog.getByLabel('City / Province', { exact: true })).toHaveValue('Ho Chi Minh City')
   await expect(dialog.getByLabel('City / Province', { exact: true })).toBeEditable()
   await expect(dialog.getByLabel('City / Province', { exact: true })).toHaveAttribute('required', '')
@@ -344,10 +368,10 @@ test('dashboard shows transaction revenue and server SLA actions, isolates failu
   await page.goto('/merchant')
   const revenue = page.getByRole('heading', { name: 'Revenue for this period', exact: true }).locator('..')
   await expect(revenue.getByText('720,000', { exact: true }).first()).toBeVisible()
-  await expect(revenue.getByRole('img', { name: 'Daily net revenue' })).toBeVisible()
+  await expect(revenue.getByRole('group', { name: 'Daily net revenue', exact: true })).toBeVisible()
   await revenue.getByText('View chart data', { exact: true }).click()
   await expect(revenue.getByRole('table')).toContainText('900,000')
-  await expect(revenue.getByRole('table')).not.toContainText('30/11')
+  await expect(revenue.getByRole('row', { name: /30\/11/ })).toContainText('Not yet computed')
   await expect(page.getByText('35 minutes overdue', { exact: false })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Assign collection', exact: true })).toHaveAttribute('href', `/merchant/orders/${orderId}`)
   state.missingCommission = true
@@ -403,16 +427,135 @@ test('dashboard period filters keep matching server ranges and survive reload', 
   await page.keyboard.press('Escape')
   await expect(page.getByText('35 minutes overdue', { exact: false })).toBeVisible()
   const chart = await page.getByRole('heading', { name: 'Orders by status group', exact: true }).locator('..').boundingBox()
-  const alerts = await page.getByRole('heading', { name: /Orders needing attention/ }).locator('..').boundingBox()
-  expect(alerts.x).toBeGreaterThan(chart.x)
-  expect(Math.abs(alerts.y - chart.y)).toBeLessThan(2)
-  expect(Math.abs(alerts.height - chart.height)).toBeLessThan(2)
+  const alerts = await page.getByRole('heading', { name: /Orders needing attention/, level: 2 }).locator('..').boundingBox()
+  // The current layout places the status/distribution charts above the full-width alerts.
+  expect(alerts.y).toBeGreaterThanOrEqual(chart.y + chart.height)
   state.empty = true
   await page.getByRole('button', { name: 'Refresh', exact: true }).click()
   const empty = page.getByText('No orders are available for this chart yet.', { exact: true })
   await expect(empty).toBeVisible()
-  const emptyChart = await empty.locator('..').locator('..').boundingBox()
-  const emptyAlerts = await page.getByRole('heading', { name: /Orders needing attention/ }).locator('..').boundingBox()
-  expect(Math.abs(emptyChart.height - emptyAlerts.height)).toBeLessThan(2)
+  await expect(page.getByRole('heading', { name: 'Orders by status group', exact: true })).toBeVisible()
+  const distribution = empty.locator('..')
+  await expect(distribution.locator('svg circle')).toHaveCount(1)
+  await expect(distribution.getByRole('button')).toHaveCount(7)
+  await expect(distribution.getByRole('button').first()).toHaveAttribute('aria-label', /: 0$/)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
+
+
+test('Merchant submits tax code and private PDF license for approval while current legal details stay unchanged', async ({ page }) => {
+  const profile = { taxCode: '0312345678', businessLicenseDocumentId: orderId, documents: [licenseDocument] }
+  const state = await setup(page, { profile })
+  await page.goto('/merchant/profile')
+  await expect(page.getByRole('heading', { name: 'Lifetime finances', exact: true })).toBeVisible()
+  const financial = page.getByRole('heading', { name: 'Lifetime finances', exact: true }).locator('..')
+  await expect(financial).toContainText('8,000,000')
+  await page.getByRole('button', { name: 'Edit store profile', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Edit store profile', exact: true })
+  await dialog.getByLabel('Tax code', { exact: true }).fill('123')
+  await dialog.getByRole('button', { name: 'Submit for approval', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toContainText('10 digits')
+  expect(state.updates).toBe(0)
+  await dialog.getByLabel('Tax code', { exact: true }).fill('0123456789-001')
+  await dialog.getByLabel('Upload business license', { exact: true }).setInputFiles({ name: 'wrong.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg/>') })
+  await expect(dialog.getByRole('alert')).toContainText('10 MB')
+  expect(state.documentUploads).toBe(0)
+  await dialog.getByLabel('Upload business license', { exact: true }).setInputFiles({ name: 'new-license.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 mock') })
+  await expect(dialog.getByText('new-license.pdf', { exact: true })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Submit for approval', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.submitted.proposed).toMatchObject({ taxCode: '0123456789-001', businessLicenseDocumentId: uploadId })
+  expect(state.submitted.proposed).not.toHaveProperty('slaDocumentId')
+  expect(state.submitted.proposed).not.toHaveProperty('businessLicense')
+  await expect(page.getByText('0312345678', { exact: true })).toBeVisible()
+  await expect(page.getByText('license.pdf', { exact: true })).toBeVisible()
+  expect(state.documentUploads).toBe(1)
+})
+
+test('private PDF preview and download use authenticated endpoints and permission failures remain visible', async ({ page }) => {
+  const state = await setup(page, { profile: { businessLicenseDocumentId: orderId, documents: [licenseDocument] } })
+  await page.goto('/merchant/profile')
+  await page.getByRole('button', { name: 'Preview PDF', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.locator('iframe')).toHaveAttribute('src', /^blob:/)
+  expect(state.documentReads).toContain(`/files/documents/${orderId}/download`)
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  const download = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download', exact: true }).click()
+  expect((await download).suggestedFilename()).toBe('license.pdf')
+  state.deniedDocument = true
+  await page.getByRole('button', { name: 'Preview PDF', exact: true }).click()
+  await expect(page.getByRole('alert')).toContainText('You do not have permission')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+})
+
+test('Admin-issued Word SLA is download-only while Merchant edits the business license', async ({ page }) => {
+  const sla = { ...licenseDocument, fileId: uploadId, kind: 3, originalFileName: 'sla.docx', contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', previewSupported: false }
+  const state = await setup(page, { profile: { slaDocumentId: uploadId, documents: [sla] } })
+  state.documents[uploadId] = sla
+  await page.goto('/merchant/profile')
+  await expect(page.getByText('sla.docx', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Preview PDF', exact: true })).toHaveCount(0)
+  const download = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download', exact: true }).click()
+  expect((await download).suggestedFilename()).toBe('sla.docx')
+  await page.getByRole('button', { name: 'Edit store profile', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByLabel('Upload business license', { exact: true })).toHaveCount(1)
+  await expect(dialog.locator('input[type="file"]')).toHaveCount(2)
+})
+
+test('license removal remains an approval proposal and stale profiles cannot be submitted', async ({ page }) => {
+  const profile = { businessLicenseDocumentId: orderId, documents: [licenseDocument] }
+  const state = await setup(page, { profile })
+  await page.goto('/merchant/profile')
+  await page.getByRole('button', { name: 'Edit store profile', exact: true }).click()
+  let dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Propose document removal', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Submit for approval', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.submitted.proposed.removeBusinessLicenseDocument).toBe(true)
+  await expect(page.getByText('license.pdf', { exact: true })).toBeVisible()
+  state.submitted = null
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit store profile', exact: true }).click()
+  dialog = page.getByRole('dialog')
+  await dialog.getByLabel('Business name', { exact: true }).fill('Proposed name')
+  profile.phone = '0987654321'
+  await dialog.getByRole('button', { name: 'Submit for approval', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toContainText('profile has changed')
+  expect(state.updates).toBe(1)
+})
+
+test('incomplete lifetime commission coverage does not display provisional earnings as confirmed', async ({ page }) => {
+  await setup(page, { lifetime: { currency: 'VND', grossLaundryRevenue: 1000, refunds: 200, netRevenue: 800, commission: 0, merchantPayout: 800, feesCollected: 0, paidOrderCount: 1, commissionComplete: false, ordersWithoutCommissionSnapshot: 1, uncoveredNetAmount: 800, generatedAt: '2026-11-10T01:00:00Z' } })
+  await page.goto('/merchant/profile')
+  const section = page.getByRole('heading', { name: 'Lifetime finances', exact: true }).locator('..')
+  await expect(section.getByText('Pending reconciliation', { exact: true })).toHaveCount(2)
+  await expect(section.getByRole('status')).toContainText('missing locked commission rates')
+})
+
+test('SLA alerts page and filter on the server while preserving global alert counts', async ({ page }) => {
+  await setup(page)
+  const calls = []
+  await page.route('**/api/merchant/sla-alerts?*', (route) => {
+    const query = new URL(route.request().url()).searchParams
+    calls.push(Object.fromEntries(query))
+    const pageIndex = Number(query.get('page')), take = Number(query.get('take')), type = Number(query.get('alertType'))
+    const all = Array.from({ length: 7 }, (_, index) => ({ orderId: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`, orderCode: `SLA-${index + 1}`, status: index < 5 ? 2 : 9, alertType: index < 5 ? 1 : 3, actionType: index < 5 ? 1 : 3, overdueMinutes: 60, deadline: '2026-11-10T01:00:00Z', lockerName: 'Test Locker', boxNumber: '3' }))
+    const filtered = type ? all.filter((row) => row.alertType === type) : all
+    return route.fulfill({ json: { succeeded: true, data: { page: pageIndex, take, priorityTotal: filtered.length, totalAlerts: 7, collectionAlertsCount: 5, processingAlertsCount: 0, returnAlertsCount: 2, serverNow: '2026-11-10T02:00:00Z', priorityOrders: filtered.slice((pageIndex - 1) * take, pageIndex * take) } } })
+  })
+  await page.goto('/merchant')
+  await expect(page.getByText('SLA-5', { exact: true })).toBeVisible()
+  await expect(page.getByText('SLA-6', { exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Next page', exact: true }).click()
+  await expect(page.getByText('SLA-6', { exact: true })).toBeVisible()
+  await page.getByRole('combobox', { name: 'SLA alert type', exact: true }).click()
+  await page.getByRole('option').filter({ hasText: /return/i }).click()
+  await expect(page.getByText('SLA-7', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'List filters', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Orders needing attention list', exact: true })).toBeVisible()
+  await expect(page.getByText('2 matching orders', { exact: true })).toBeVisible()
+  expect(calls.at(-1)).toMatchObject({ page: '1', take: '5', alertType: '3' })
 })

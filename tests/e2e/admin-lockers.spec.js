@@ -7,6 +7,18 @@ const menu = async (page, action) => {
 }
 const save = dialog => dialog.getByRole('button', { name: 'Save locker', exact: true }).click()
 
+test('an operational alert deep link opens the right Locker and closes without losing list filters', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto(`/admin/lockers?page=2&locker=${lockerId}`)
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toContainText('Central Locker')
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await expect(dialog).toHaveCount(0)
+  await expect(page).not.toHaveURL(/locker=/)
+  await expect(page).toHaveURL(/page=2/)
+  expect(state.writes).toHaveLength(0)
+})
+
 test('Admin list preserves filters and paging while summary stays system-wide', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/admin/lockers?page=2')
@@ -18,7 +30,7 @@ test('Admin list preserves filters and paging while summary stays system-wide', 
   await expect(page).toHaveURL(/city=Other\+City/)
   await expect(page.getByRole('table')).toContainText('Locker 13')
   await expect(page.getByRole('heading', { name: 'Total lockers', exact: true }).locator('..')).toContainText('13')
-  expect(state.filters.at(-1)).toMatchObject({ page: 1, take: 12, city: 'Other City' })
+  await expect.poll(() => state.filters.at(-1)).toMatchObject({ page: 1, take: 12, city: 'Other City' })
   expect(state.summaries.every(query => query === '')).toBe(true)
   expect(state.writes).toHaveLength(0)
 })

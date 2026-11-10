@@ -4,7 +4,7 @@ import { reportFixture } from './helpers/merchantReportData'
 
 async function setup(page, options = {}) {
   await merchantSession(page, options)
-  const state = { calls: [], exports: [], fail: false, missing: false, noRate: false, exportFail: false, negative: false }
+  const state = { calls: [], exports: [], fail: false, missing: false, previousMissing: false, noRate: false, exportFail: false, negative: false }
   await page.route('**/api/**', async (route) => {
     const req = route.request(), url = new URL(req.url()), path = url.pathname.replace(/^\/api/, '')
     const ok = (data) => route.fulfill({ json: { succeeded: true, data } })
@@ -32,6 +32,15 @@ async function setup(page, options = {}) {
       const report = reportFixture(params)
       if (state.missing) {
         report.kpis.ordersWithoutCommissionSnapshot = 2
+        Object.assign(report.kpis.commissionCoverage, { currentComplete: false, currentUncoveredOrders: 2, currentUncoveredNetAmount: -20000 })
+      }
+      if (state.previousMissing) {
+        Object.assign(report.kpis.commissionCoverage, { previousComplete: false, previousUncoveredOrders: 3, previousUncoveredNetAmount: 100000 })
+      }
+      if (state.missing || state.previousMissing) {
+        for (const key of ['commission', 'merchantPayout']) {
+          Object.assign(report.kpis[key], { isEstimated: true, changePercent: null })
+        }
       }
       if (state.noRate) {
         report.kpis.onTimeRate = { numerator: 0, denominator: 0, rate: null, previousNumerator: 0, previousDenominator: 0, previousRate: null, changePoints: null }
@@ -46,6 +55,9 @@ async function setup(page, options = {}) {
       if (state.exportFail) {
         return route.fulfill({ status: 500, json: { succeeded: false } })
       }
+      if (state.missing || state.previousMissing) {
+        return route.fulfill({ contentType: 'text/csv; charset=utf-8', body: '\uFEFFMetric,Current,Previous\r\nEarnings (provisional; not paid out),800000,800000\r\nOrders without commission snapshot,0,3\r\nUncovered net revenue,0,100000\r\n' })
+      }
       return route.fulfill({ contentType: 'text/csv; charset=utf-8', body: '\uFEFFMetric,Current\r\nRevenue after refunds,1000000\r\nIncome after commission,800000\r\n' })
     }
     return route.fulfill({ status: 404, json: { succeeded: false } })
@@ -53,6 +65,29 @@ async function setup(page, options = {}) {
   return state
 }
 const url = '/merchant/reports?period=custom&from=2026-11-01&to=2026-11-07'
+
+test('previous-only missing coverage preserves current earnings and exports marked provisional CSV', async ({ page }) => {
+  const state = await setup(page)
+  state.previousMissing = true
+  await page.goto(url)
+  const income = page.getByRole('region', { name: 'Income after commission', exact: true })
+  await expect(income).toContainText('800,000')
+  await expect(income).not.toContainText('0%')
+  await expect(page.getByRole('status')).toContainText('Previous period: 3 orders')
+  await expect(page.getByRole('status')).toContainText('100,000')
+  const download = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Export CSV report', exact: true }).click()
+  const file = await download, chunks = [], stream = await file.createReadStream()
+  for await (const chunk of stream) {
+    chunks.push(chunk)
+  }
+  expect(Buffer.concat(chunks).toString('utf8')).toContain('provisional; not paid out')
+  state.missing = true
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click()
+  await expect(income).toContainText('Awaiting reconciliation')
+  await expect(page.getByRole('status').filter({ hasText: 'Current period: 2 orders' })).toContainText('20,000')
+  await expect(page.getByRole('status').filter({ hasText: 'Previous period: 3 orders' })).toBeVisible()
+})
 
 test('one report shows actual metrics, pp rate change, top-service images and accessible charts', async ({ page }) => {
   const state = await setup(page)
@@ -131,7 +166,7 @@ test('invalid ranges do not fetch; failed reports cannot export and retry recove
   await expect(page.getByRole('region', { name: 'Income after commission', exact: true })).toBeVisible()
 })
 
-test('missing commission withholds income and export; zero eligible on-time sample stays unavailable', async ({ page }) => {
+test('missing commission withholds income while marked CSV remains available; zero on-time sample stays unavailable', async ({ page }) => {
   const state = await setup(page)
   state.missing = true; state.noRate = true
   await page.goto(url)
@@ -139,7 +174,7 @@ test('missing commission withholds income and export; zero eligible on-time samp
   await expect(income).toContainText('Awaiting reconciliation')
   await expect(income).not.toContainText('800,000')
   await expect(page.getByRole('region', { name: 'On-time laundry completion', exact: true })).not.toContainText('0/0 eligible orders')
-  await expect(page.getByRole('button', { name: 'Export CSV report' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Export CSV report' })).toBeEnabled()
   expect(state.exports).toHaveLength(0)
 })
 

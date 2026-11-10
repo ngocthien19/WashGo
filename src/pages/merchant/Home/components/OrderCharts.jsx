@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChartNoAxesCombined } from 'lucide-react'
 import { formatNumber } from '~/utils/formats'
 import { groupOrders } from '../dashboardModel'
 
@@ -11,21 +10,6 @@ export default function OrderCharts({ counts, aside }) {
   const total = groups.reduce((sum, group) => sum + group.value, 0)
   const max = Math.max(1, ...groups.map((group) => group.value))
   const selected = groups.find((group) => group.key === active)
-  if (!total) {
-    return (
-      <div className="grid items-stretch gap-5 xl:grid-cols-[1.2fr_1fr]">
-        <div className="grid min-h-64 place-items-center rounded-2xl border border-border bg-card p-8 text-center text-muted-foreground">
-          <div>
-            <ChartNoAxesCombined className="mx-auto mb-3 size-10 text-primary/50" />
-            <p>
-              {t('merchant.emptyChart')}
-            </p>
-          </div>
-        </div>
-        {aside}
-      </div>
-    )
-  }
   return (
     <div className="grid items-start gap-5 xl:grid-cols-2">
       <section className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
@@ -67,6 +51,14 @@ export default function OrderCharts({ counts, aside }) {
             className="size-full -rotate-90"
             aria-hidden="true"
           >
+            <circle
+              cx="100"
+              cy="100"
+              r="75"
+              fill="none"
+              strokeWidth={24}
+              className="stroke-muted"
+            />
             {groups.filter((group) => group.value > 0).map((group, index, visible) => {
               const length = group.value / total * 100
               const start = visible.slice(0, index).reduce((sum, entry) => sum + entry.value, 0) / total * 100
@@ -96,6 +88,11 @@ export default function OrderCharts({ counts, aside }) {
             </span>
           </div>
         </div>
+        {!total && (
+          <p className="px-5 pb-4 text-center text-sm text-muted-foreground">
+            {t('merchant.emptyChart')}
+          </p>
+        )}
         <div
           className="grid gap-1 px-5 pb-5 sm:grid-cols-2"
           onMouseLeave={() => setActive(null)}

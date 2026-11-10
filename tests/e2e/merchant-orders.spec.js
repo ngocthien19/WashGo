@@ -31,7 +31,7 @@ test('Merchant list checks current permissions before opening collection assignm
 async function setup(page, options = {}) {
   await merchantSession(page, options)
   const operations = new Map()
-  const state = { summaries: [], lists: [], writes: [], failWrite: false, failRead: false, shippers: true, order: {
+  const state = { calls: [], summaries: [], lists: [], writes: [], failWrite: false, failRead: false, shippers: true, order: {
     id, revision: 1, orderCode: 'WG-ORDER-123', merchantOrderCode: 'MC-123', status: options.status || 3, paymentStatus: options.paymentStatus || 1,
     createdOn: 1794009600, finalAmount: 50000, totalAmount: 50000, discountAmount: 0, weightSurchargeAmount: 0,
     actualWeightKg: null, includedWeightKg: 5, baseProcessingHours: 12, lockerName: 'Ben Thanh Locker', boxNumber: '3',
@@ -42,6 +42,7 @@ async function setup(page, options = {}) {
   await page.route('**/api/**', async (route) => {
     const req = route.request()
     const path = new URL(req.url()).pathname.replace(/^\/api/, '')
+    state.calls.push(path)
     const ok = (data) => route.fulfill({ json: { succeeded: true, data } })
     if (path === '/auth/me') {
       return ok({ id: 'merchant-test', fullName: 'Alex Store Owner', role: 'Merchant', email: 'merchant@example.test' })
@@ -102,7 +103,7 @@ async function setup(page, options = {}) {
       return ok({ ...state.order, allowedActions: state.allowedActions || mockOrderActions(state.order) })
     }
     if (path === `/wash-order/${id}/available-shippers`) {
-      return ok(state.shippers ? [{ id: shipperId, fullName: 'Test Driver', phone: '0901234567', vehicleType: 1, taskType: options.status === 9 ? 2 : 1, vehiclePlate: '59-ABC' }] : [])
+      return ok(state.shippers ? [{ id: shipperId, fullName: 'Test Driver', email: 'driver@example.test', phone: '0901234567', vehicleType: 1, taskType: options.status === 9 ? 2 : 1, vehiclePlate: '59-ABC' }] : [])
     }
     if (req.method() === 'PUT' && [`/wash-order/${id}/actual-weight`, '/wash-order/status', '/wash-order/assign-shipper'].includes(path)) {
       const body = req.postDataJSON()
@@ -348,7 +349,7 @@ test('server permissions and overdue metadata drive the detail view', async ({ p
 
 test('Merchant detail mirrors the layout with contacts, drop-off/pickup and highlighted assignment code', async ({ page }) => {
   const state = await setup(page, { status: 2 })
-  Object.assign(state.order, { shipperId, shipperName: 'Test Driver', lockerId: '33333333-3333-4333-8333-333333333333', lockerAddress: '123 Test Street' })
+  Object.assign(state.order, { shipperId, shipperName: 'Test Driver', shipperEmail: 'driver@example.test', shipperPhone: '0901234567', shipperVehicleType: 1, shipperVehiclePlate: '59-ABC', lockerId: '33333333-3333-4333-8333-333333333333', lockerAddress: '123 Test Street' })
   state.order.items[0].serviceId = '44444444-4444-4444-8444-444444444444'
   await page.goto(`/merchant/orders/${id}`)
   await expect(page.getByText('driver@example.test', { exact: true })).toBeVisible()
@@ -363,5 +364,35 @@ test('Merchant detail mirrors the layout with contacts, drop-off/pickup and high
   const code = dialog.getByText('WG-ORDER-123', { exact: true })
   expect(await code.evaluate(el => getComputedStyle(el).fontWeight)).toBe('600')
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  expect(state.writes).toHaveLength(0)
+})
+
+test('Merchant uses enriched order images and actual finances without catalog or shipper lookups', async ({ page }) => {
+  const state = await setup(page)
+  Object.assign(state.order, { lockerImageUrls: ['/order-deposit.svg'], returnLockerId: shipperId, returnLockerName: 'Return Station', returnLockerImageUrls: ['/order-return.svg'], shipperId, shipperName: 'Assigned Driver', shipperEmail: 'assigned@example.test', commissionRateApplied: 0, commissionStatus: 'Locked', commissionAmount: 0, merchantNetAmount: 50000, commissionBaseAmount: 50000, collectedLaundryAmount: 40000, refundedAmount: 10000, commissionOnCollected: 0, merchantPayoutOnCollected: 30000, financialStatus: 'Adjusted', services: [{ serviceId: 'service', serviceName: 'Everyday wash', serviceThumbnailUrl: '/order-service.svg' }] })
+  state.order.items[0].serviceImageUrls = ['/order-service.svg']
+  state.order.lockerAddress = '123 Test Street'
+  state.order.timeline.push({ id: 'created', status: 1, actorRole: 'Customer', actorName: 'Customer', timestamp: 1794009400, note: null }, { id: 'deposited', status: 2, actorRole: 'Customer', actorName: 'Customer', timestamp: 1794009500, note: null })
+  await page.route('**/order-*.svg', route => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="blue"/></svg>' }))
+  await page.goto('/merchant/orders')
+  const rateColumn = page.getByRole('columnheader', { name: 'Commission rate', exact: true })
+  await expect(rateColumn).toBeAttached()
+  await expect(page.getByRole('cell', { name: '0%', exact: true })).toBeAttached()
+  await expect(page.getByText('assigned@example.test', { exact: true })).toBeAttached()
+  await expect(page.getByRole('img', { name: 'Everyday wash', exact: true })).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Ben Thanh Locker', exact: true })).toHaveAttribute('src', /order-deposit.svg$/)
+  await page.getByRole('link', { name: 'WG-ORDER-123', exact: true }).click()
+  await expect(page.getByText('assigned@example.test', { exact: true })).toBeVisible()
+  await expect(page.locator('dd').filter({ hasText: 'assigned@example.test' })).toHaveCSS('font-size', '16px')
+  await expect(page.getByText('The customer created the order via the app or website.', { exact: true })).toBeVisible()
+  await expect(page.getByText('The customer opened the locker using a PIN/QR code and successfully deposited the laundry.', { exact: true })).toBeVisible()
+  const dropoff = page.getByRole('heading', { name: 'Drop-off', exact: true }).locator('..')
+  await expect(dropoff.getByText('123 Test Street', { exact: true })).toBeVisible()
+  expect(await dropoff.getByText('Ben Thanh Locker', { exact: true }).evaluate(el => el.parentElement.textContent)).toContain('123 Test Street')
+  await expect(page.getByRole('img', { name: 'Return Station', exact: true })).toHaveAttribute('src', /order-return.svg$/)
+  await expect(page.getByText('0%', { exact: true })).toBeVisible()
+  await expect(page.getByText('Adjusted for refunds', { exact: true })).toBeVisible()
+  await expect(page.getByText('Earnings on collections after refunds', { exact: true }).locator('..')).toContainText('30,000')
+  expect(state.calls.some(path => path.startsWith('/locker/') || path.startsWith('/merchant-service/') || path.startsWith('/shipper/'))).toBe(false)
   expect(state.writes).toHaveLength(0)
 })

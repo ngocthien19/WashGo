@@ -7,16 +7,22 @@ import AnimatedNumber from '~/components/motion/AnimatedNumber'
 import { displayOpeningHours, formatJoinedDate } from './profileModel'
 import EditProfileDialog from './components/EditProfileDialog'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import { getImageUrl } from '~/utils/formats'
+import { getImageUrl, formatCurrency } from '~/utils/formats'
+import useCatalogResource from '~/hooks/useCatalogResource'
+import { merchantInsightsApi } from '~/apis/merchant/merchantInsightsApi'
+import PrivateDocumentCard from '~/components/documents/PrivateDocumentCard'
+import LifetimeFinance from './components/LifetimeFinance'
 
 const fieldIcons = { businessName: Store, taxCode: Hash, address: MapPin, city: Building2, phone: Phone, email: Mail, openingHours: Clock, businessLicense: FileCheck }
 
 export default function ProfilePage() {
   const { profile } = useOutletContext()
   const [editing, setEditing] = useState(false)
+  const [revision, setRevision] = useState(0)
+  const lifetime = useCatalogResource(merchantInsightsApi.lifetime, revision)
   const { t, i18n } = useTranslation()
   const shop = profile.data
-  const fields = shop ? ['businessName', 'taxCode', 'address', 'city', 'phone', 'email', 'openingHours', 'businessLicense'] : []
+  const fields = shop ? ['businessName', 'taxCode', 'address', 'city', 'phone', 'email', 'openingHours'] : []
   const status = { 1: 'active', 2: 'inactive', 3: 'suspended' }[shop?.status]
   useEffect(() => {
     document.title = `${t('merchant.nav.profile')} | WashGo`
@@ -37,7 +43,9 @@ export default function ProfilePage() {
             variant="outline"
             className="h-11 rounded-xl px-4 text-base"
             disabled={profile.loading}
-            onClick={profile.retry}
+            onClick={() => {
+              profile.retry(); setRevision((value) => value + 1)
+            }}
           >
             <RefreshCw size={17} />
             {t('customer.orders.refresh')}
@@ -120,9 +128,11 @@ export default function ProfilePage() {
                 <h2 className="text-sm font-medium text-foreground">
                   {t('merchant.shop.revenue')}
                 </h2>
-                <p className="mt-1 text-2xl font-bold">—</p>
+                <p className="mt-1 text-2xl font-bold">
+                  {lifetime.loading ? '…' : lifetime.error || !lifetime.data ? '—' : formatCurrency(lifetime.data.netRevenue)}
+                </p>
                 <p className="text-sm text-muted-foreground">
-                  {t('merchant.sync.totalRevenuePending')}
+                  {t('merchant.backendSync.netRevenueBasis')}
                 </p>
               </div>
             </section>
@@ -202,6 +212,45 @@ export default function ProfilePage() {
               </dl>
             </section>
           </div>
+          <LifetimeFinance resource={lifetime} />
+          <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+            <h2 className="flex items-center gap-3 border-b border-primary/15 bg-primary/5 p-5 text-lg font-bold">
+              <FileCheck className="text-primary" />
+              {t('merchant.backendSync.documents')}
+            </h2>
+            <div className="grid gap-4 p-5 lg:grid-cols-3">
+              {[[1, 'businessLicenseDocumentId', 'businessLicense'], [2, 'contractDocumentId', 'contract'], [3, 'slaDocumentId', 'sla']].map(([kind, field, label]) => {
+                const document = shop.documents?.find((entry) => entry.fileId === shop[field] && entry.kind === kind)
+                return document ? (
+                  <PrivateDocumentCard
+                    key={field}
+                    document={document}
+                    label={t(`merchant.backendSync.${label}`)}
+                  />
+                ) : (
+                  <div
+                    key={field}
+                    className="rounded-xl border border-dashed border-border p-4"
+                  >
+                    <h3 className="font-semibold">
+                      {t(`merchant.backendSync.${label}`)}
+                    </h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {t('merchant.backendSync.noDocument')}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+            {shop.businessLicense && (
+              <p className="px-5 pb-5 text-sm text-muted-foreground">
+                {t('merchant.backendSync.legacyLicense')}
+                :
+                {' '}
+                {shop.businessLicense}
+              </p>
+            )}
+          </section>
         </div>
       )}
       {editing && (

@@ -5,15 +5,15 @@ import { merchantOrderApi } from './merchantOrderApi'
 vi.mock('~/utils/authorizedAxios', () => ({ default: { post: vi.fn(), put: vi.fn(), get: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
 const guard = { expectedRevision: 3, expectedStatus: 3, operationId: '11111111-1111-4111-8111-111111111111' }
-it('enriches eligible shipper email without replacing eligibility or vehicle information', async () => {
-  authorizedAxios.get.mockReset().mockResolvedValueOnce({ data: { succeeded: true, data: [{ id: 'driver', fullName: 'Eligible Driver', vehicleType: 1, vehiclePlate: '59-ABC', phone: '0901234567' }] } })
-    .mockResolvedValueOnce({ data: { succeeded: true, data: { id: 'driver', email: 'driver@example.test', fullName: 'Other name', vehicleType: 2 } } })
-  expect(await merchantOrderApi.shippers('order')).toMatchObject([{ id: 'driver', fullName: 'Eligible Driver', email: 'driver@example.test', vehicleType: 1 }])
+it('uses eligible shipper contacts from the order endpoint without extra profile requests', async () => {
+  authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: [{ id: 'driver', fullName: 'Eligible Driver', email: 'driver@example.test', avatarUrl: '/avatar.png', vehicleType: 1 }] } })
+  expect(await merchantOrderApi.shippers('order')).toMatchObject([{ id: 'driver', email: 'driver@example.test', avatar: '/avatar.png', vehicleType: 1 }])
+  expect(authorizedAxios.get).toHaveBeenCalledExactlyOnceWith('/wash-order/order/available-shippers', { signal: undefined })
 })
-it('keeps an eligible shipper selectable when contact enrichment fails', async () => {
-  authorizedAxios.get.mockReset().mockResolvedValueOnce({ data: { succeeded: true, data: [{ id: 'driver', fullName: 'Eligible Driver', vehicleType: 1 }] } })
-    .mockRejectedValueOnce({ response: { status: 403 } })
-  expect(await merchantOrderApi.shippers('order')).toMatchObject([{ id: 'driver', fullName: 'Eligible Driver' }])
+it('keeps eligible shippers with null email without probing profiles', async () => {
+  authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: [{ id: 'driver', fullName: 'Eligible Driver', email: null }] } })
+  expect(await merchantOrderApi.shippers('order')).toMatchObject([{ id: 'driver', email: null }])
+  expect(authorizedAxios.get).toHaveBeenCalledTimes(1)
 })
 it('whitelists staff filters and never sends customer/merchant identity or private column filters', async () => {
   authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, list: [], total: 25 } })

@@ -78,7 +78,7 @@ export default function ReportsPage() {
           </Button>
           <Button
             className="h-11 px-4 text-base"
-            disabled={!resource.data || resource.loading || !!resource.error || exporting || resource.data.kpis.ordersWithoutCommissionSnapshot > 0}
+            disabled={!resource.data || resource.loading || !!resource.error || exporting}
             onClick={exportReport}
           >
             <Download size={17} />

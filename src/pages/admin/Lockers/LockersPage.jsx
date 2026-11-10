@@ -402,6 +402,16 @@ export default function LockersPage() {
           onSaved={refresh}
         />
       )}
+      {!modal && /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(params.get('locker') || '') && (
+        <LockerDetails
+          id={params.get('locker')}
+          tab="details"
+          onSaved={refresh}
+          onClose={() => setParams(current => {
+            const next = new URLSearchParams(current); next.delete('locker'); return next
+          })}
+        />
+      )}
       {modal && ['create', 'edit'].includes(modal.kind) && (
         <LockerEditor
           key={modal.locker?.id || 'new'}

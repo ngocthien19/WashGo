@@ -15,7 +15,6 @@ import PaymentStatus from '~/components/orders/PaymentStatus'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '~/components/ui/dropdown-menu'
-import { merchantOrderMediaApi } from '~/apis/merchant/merchantOrderMediaApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantOrderApi } from '~/apis/merchant/merchantOrderApi'
 import { initialOrdersQuery } from '~/utils/ordersQuery'
@@ -23,7 +22,7 @@ import { readMerchantOrdersQuery, writeMerchantOrdersQuery, buildMerchantOrdersF
 import OrderDateFilter from './components/OrderDateFilter'
 import OrderSummary from './components/OrderSummary'
 import { MERCHANT_ROUTES, ORDER_STATUS_OPTIONS, ORDER_SORT_OPTIONS, PAYMENT_STATUSES } from '~/utils/constants'
-import { formatCurrency, formatDateTime } from '~/utils/formats'
+import { formatCurrency, formatDateTime, formatNumber } from '~/utils/formats'
 import { PAGE_SIZE, assignmentTask } from './orderModel'
 import OrderActionDialog from './components/OrderActionDialog'
 import { notify } from '~/utils/notifications'
@@ -39,7 +38,6 @@ export default function OrdersPage() {
   const loadSummary = useCallback((signal) => merchantOrderApi.summary(orderScopeFilter({ keyword: query.keyword, paymentStatus: query.paymentStatus, from: query.from, to: query.to }), signal), [query.keyword, query.paymentStatus, query.from, query.to])
   const summary = useCatalogResource(loadSummary)
   const resource = useCatalogResource(load)
-  const lockerPhotos = useCatalogResource(merchantOrderMediaApi.lockers)
   const [assignment, setAssignment] = useState(null)
   const [openingAssignment, setOpeningAssignment] = useState(false)
   const openAssignment = async (id) => {
@@ -87,7 +85,7 @@ export default function OrdersPage() {
           className="h-11 px-4 text-base"
           disabled={loading || summary.loading}
           onClick={() => {
-            resource.retry(); summary.retry(); lockerPhotos.retry()
+            resource.retry(); summary.retry()
           }}
         >
           <RefreshCw size={17} />
@@ -186,12 +184,12 @@ export default function OrdersPage() {
             >
               <TableHeader>
                 <TableRow>
-                  {['code', 'services', 'locker', 'state', 'weight', 'total', 'shipper', 'actions'].map((key) => (
+                  {['code', 'services', 'locker', 'state', 'weight', 'total', 'commissionRate', 'shipper', 'actions'].map((key) => (
                     <TableHead
                       key={key}
                       className={`${headerBg} ${key === 'locker' ? 'min-w-[340px]' : key === 'actions' ? 'sticky right-0 z-20 w-24 border-l border-border text-center' : ''}`}
                     >
-                      {t(`merchant.orders.${key}`)}
+                      {t(key === 'commissionRate' ? 'merchant.orderView.commissionRate' : `merchant.orders.${key}`)}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -245,7 +243,7 @@ export default function OrdersPage() {
                     <TableCell className="min-w-[340px]">
                       <div className="flex items-center gap-3">
                         <ResourceThumbnail
-                          urls={order.lockerImageUrls || lockerPhotos.data?.[order.lockerId] || []}
+                          urls={order.lockerImageUrls || []}
                           name={order.lockerName}
                         />
                         <div>
@@ -270,6 +268,9 @@ export default function OrdersPage() {
                     <TableCell className="whitespace-nowrap font-bold">
                       {formatCurrency(order.finalAmount)}
                     </TableCell>
+                    <TableCell className="whitespace-nowrap font-semibold">
+                      {order.commissionStatus !== 'Missing' && Number.isFinite(order.commissionRateApplied) && order.commissionRateApplied >= 0 && order.commissionRateApplied <= 100 ? `${formatNumber(order.commissionRateApplied)}%` : '—'}
+                    </TableCell>
                     <TableCell>
                       <div className="flex min-w-48 items-center gap-3">
                         <UserAvatar
@@ -277,9 +278,16 @@ export default function OrdersPage() {
                           fullName={order.shipperName}
                           className="size-11"
                         />
-                        <span className="font-semibold">
-                          {order.shipperName || t('merchant.orders.unassigned')}
-                        </span>
+                        <div className="min-w-0">
+                          <p className="font-semibold">
+                            {order.shipperName || t('merchant.orders.unassigned')}
+                          </p>
+                          {order.shipperEmail && (
+                            <p className="mt-1 break-words text-sm text-muted-foreground">
+                              {order.shipperEmail}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="sticky right-0 z-10 border-l border-border bg-card text-center">
