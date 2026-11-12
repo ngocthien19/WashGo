@@ -1,3 +1,5 @@
+import useImages from '~/hooks/useImages'
+import ImagePicker from '~/components/ImagePicker'
 import { useCallback, useRef, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -16,7 +18,7 @@ import { formatCurrency } from '~/utils/formats'
 import { notify } from '~/utils/notifications'
 import { getApiError } from '~/utils/apiError'
 import { ADMIN_ROUTES } from '~/utils/constants'
-import { actionSchema, canAct, snapshot, threadSnapshot, unknownWrite } from '../complaintModel'
+import { actionSchema, canAct, snapshot, unknownWrite } from '../complaintModel'
 import useComplaintContacts from '../useComplaintContacts'
 import ComplaintContact from './ComplaintContact'
 import { customerContact } from '../complaintContacts'
@@ -25,16 +27,15 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
   const { t } = useTranslation()
   const load = useCallback(signal => adminComplaintApi.detail(id, signal), [id])
   const loadSettings = useCallback(signal => kind === 'resolve' ? adminComplaintApi.settings(signal) : Promise.resolve(null), [kind])
-  const loadMessages = useCallback(signal => kind === 'pay' ? Promise.resolve([]) : adminComplaintApi.messages(id, signal), [id, kind])
-  const messages = useCatalogResource(loadMessages)
   const resource = useCatalogResource(load), settings = useCatalogResource(loadSettings), value = resource.data
   const contacts = useComplaintContacts(value)
   const { register, control, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(actionSchema(kind)), defaultValues: { note: '', reference: '', responsibleParty: '', compensationLevel: 0, itemValue: '' } })
   const level = useWatch({ control, name: 'compensationLevel' }), itemValue = useWatch({ control, name: 'itemValue' })
   const [pending, setPending] = useState(false), [blocked, setBlocked] = useState(false), [confirmed, setConfirmed] = useState(false), [error, setError] = useState('')
+  const proof = useImages(5)
   const locked = useRef(false)
   const submit = async values => {
-    if (!value || locked.current || blocked || !confirmed || !canAct(value, kind) || !messages.data) {
+    if (!value || locked.current || blocked || !confirmed || !canAct(value, kind)) {
       return
     }
     locked.current = true; setPending(true); setError('')
@@ -44,21 +45,19 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
       if (snapshot(latest) !== snapshot(value) || !canAct(latest, kind)) {
         setBlocked(true); throw new Error('admin.complaints.changed')
       }
-      if (kind !== 'pay' && threadSnapshot(await adminComplaintApi.messages(id)) !== threadSnapshot(messages.data)) {
-        setBlocked(true); throw new Error('admin.complaints.changed')
-      }
-      if (kind === 'resolve' && values.compensationLevel > 0) {
+      if (kind === 'resolve') {
         if (!settings.data || JSON.stringify(await adminComplaintApi.settings()) !== JSON.stringify(settings.data)) {
           setBlocked(true); throw new Error('admin.complaints.settingsChanged')
         }
       }
+      const proofImageUrls = kind === 'pay' ? await proof.upload() : []
       writing = true
       if (kind === 'resolve') {
-        await adminComplaintApi.resolve(id, { resolutionNote: values.note.trim(), responsibleParty: values.responsibleParty ? Number(values.responsibleParty) : null, compensationLevel: Number(values.compensationLevel), itemValue: values.compensationLevel > 0 ? Number(values.itemValue) : 0 })
+        await adminComplaintApi.resolve(id, { expectedVersion: value.version, expectedSettingsVersion: settings.data?.version, resolutionNote: values.note.trim(), responsibleParty: values.responsibleParty ? Number(values.responsibleParty) : null, compensationLevel: Number(values.compensationLevel), itemValue: values.compensationLevel > 0 ? Number(values.itemValue) : 0 })
       } else if (kind === 'reject') {
-        await adminComplaintApi.reject(id, values.note.trim())
+        await adminComplaintApi.reject(id, values.note.trim(), value.version)
       } else {
-        await adminComplaintApi.pay(id, values.reference.trim())
+        await adminComplaintApi.pay(id, values.reference.trim(), value.version, proofImageUrls)
       }
       notify.success(`admin.complaints.success.${kind}`); onSaved()
     } catch (failure) {
@@ -84,7 +83,7 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
       }}
     >
       <DialogContent
-        ready={!resource.loading && !settings.loading && !messages.loading && !contacts.loading}
+        ready={!resource.loading && !settings.loading && !contacts.loading}
         className="max-w-2xl"
         closeLabel="common.close"
       >
@@ -97,6 +96,17 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
             {t(`admin.complaints.hints.${kind}`)}
           </DialogDescription>
         </DialogHeader>
+        {kind === 'pay' && value && (
+          <div className="mt-5 space-y-3">
+            <h2 className="font-semibold">
+              {t('admin.sync.paymentProof')}
+            </h2>
+            <ImagePicker
+              selection={proof}
+              disabled={pending || blocked}
+            />
+          </div>
+        )}
         {!value ? (
           <ResourceFeedback
             {...resource}
@@ -131,7 +141,6 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
                 </p>
               )}
             </div>
-            {messages.error && <ResourceFeedback {...messages} />}
             {!allowed && (
               <p
                 role="alert"
@@ -141,7 +150,7 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
               </p>
             )}
             <fieldset
-              disabled={pending || blocked || !allowed || !messages.data}
+              disabled={pending || blocked || !allowed}
               className="grid min-w-0 gap-4"
             >
               <label className="grid gap-3 text-sm font-medium">
@@ -276,7 +285,7 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
               <Button
                 type="submit"
                 variant={kind === 'reject' ? 'destructive' : 'default'}
-                disabled={pending || blocked || !confirmed || !allowed || !messages.data || level > 0 && !settings.data}
+                disabled={pending || blocked || !confirmed || !allowed || level > 0 && !settings.data}
                 className="h-11 px-5 text-base"
               >
                 {t('admin.complaints.confirm')}

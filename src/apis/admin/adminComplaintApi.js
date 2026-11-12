@@ -1,3 +1,4 @@
+import { adminWrite, versionGuard, administrativeSummary } from './adminWrite'
 import authorizedAxios from '~/utils/authorizedAxios'
 import { isId } from '~/pages/admin/Merchants/merchantModel'
 import { adminLockerApi } from './adminLockerApi'
@@ -14,8 +15,8 @@ const unwrap = (response, validate) => {
   }
   return response.data.data
 }
-const write = async (path, body, validate) => {
-  const response = await authorizedAxios.post(path, body)
+const write = async (path, body, validate, version, action, id) => {
+  const response = await adminWrite('Incident', action, id, 'post', path, { ...body, ...versionGuard(version) })
   try {
     return unwrap(response, validate)
   } catch {
@@ -27,6 +28,9 @@ export const adminComplaintApi = {
   merchants: adminLockerApi.merchants,
   contacts: async (incident, signal) => {
     const customer = customerContact(incident), merchant = merchantContact(incident)
+    if ('contactBasis' in incident) {
+      return { customer, merchant }
+    }
     const jobs = []
     if (!customer.phone && isId(incident.orderId)) {
       jobs.push({ kind: 'customer', path: `/wash-order/${incident.orderId}`, validate: value => value?.id === incident.orderId && value.customerId === incident.customerId })
@@ -49,18 +53,27 @@ export const adminComplaintApi = {
     return { customer, merchant }
   },
   list: async (query, signal) => {
-    const { data } = await authorizedAxios.post('/incident/filter', pick(query, ['keyword', 'status', 'severity', 'type', 'merchantId', 'fromDate', 'toDate', 'page', 'take']), { signal })
+    const { data } = await authorizedAxios.post('/incident/filter', pick(query, ['keyword', 'status', 'severity', 'type', 'merchantId', 'fromDate', 'toDate', 'page', 'take', 'compensationStatus', 'orderId', 'customerId', 'sortBy']), { signal })
     if (data?.succeeded !== true || !Array.isArray(data.list) || !data.list.every(valid) || !Number.isInteger(data.total) || data.total < 0) {
       throw invalid()
     }
     return { ...data, currentPage: query.page, totalPages: Math.ceil(data.total / query.take) }
   },
-  summary: signal => Promise.all([undefined, 1, 2, 3].map(status => adminComplaintApi.list({ page: 1, take: 1, status }, signal).then(result => result.total))),
+  summary: async signal => {
+    const value = await administrativeSummary('/incident/summary', signal); return [value.total, value.counts.Pending || 0, value.counts.Resolved || 0, value.counts.Rejected || 0]
+  },
   detail: (id, signal) => authorizedAxios.get(`/incident/${encodeURIComponent(id)}`, { signal }).then(response => unwrap(response, value => valid(value) && value.id === id)),
-  settings: signal => authorizedAxios.get('/system-setting', { signal }).then(response => unwrap(response, value => compensationKeys.every(key => Number.isInteger(value?.[key]) && value[key] >= 0 && value[key] <= 1000))).then(value => pick(value, compensationKeys)),
-  resolve: (id, body) => write(`/incident/${encodeURIComponent(id)}/resolve`, pick(body, ['resolutionNote', 'responsibleParty', 'compensationLevel', 'itemValue']), item => valid(item) && item.id === id && item.status === 2),
-  reject: (id, reason) => write(`/incident/${encodeURIComponent(id)}/reject`, { reason }, item => valid(item) && item.id === id && item.status === 3),
-  pay: (id, reference) => write(`/incident/${encodeURIComponent(id)}/confirm-compensation`, { reference }, item => valid(item) && item.id === id && item.status === 2 && item.compensationStatus === 2 && item.compensationReference === reference),
+  settings: signal => authorizedAxios.get('/system-setting', { signal }).then(response => unwrap(response, value => compensationKeys.every(key => Number.isInteger(value?.[key]) && value[key] >= 0 && value[key] <= 1000))).then(value => pick(value, [...compensationKeys, 'version'])),
+  resolve: (id, body) => write(`/incident/${encodeURIComponent(id)}/resolve`, pick(body, ['resolutionNote', 'responsibleParty', 'compensationLevel', 'itemValue', 'expectedSettingsVersion']), item => valid(item) && item.id === id && item.status === 2, body.expectedVersion, 'Resolve', id),
+  reject: (id, reason, version) => write(`/incident/${encodeURIComponent(id)}/reject`, { reason }, item => valid(item) && item.id === id && item.status === 3, version, 'Reject', id),
+  pay: (id, reference, version, proofImageUrls = []) => write(`/incident/${encodeURIComponent(id)}/confirm-compensation`, { reference, proofImageUrls }, item => valid(item) && item.id === id && item.status === 2 && item.compensationStatus === 2 && item.compensationReference === reference, version, 'ConfirmCompensation', id),
+  messagesPage: async (id, page, signal) => {
+    const { data } = await authorizedAxios.get(`/incident/${encodeURIComponent(id)}/messages/page`, { params: { page, take: 10 }, signal })
+    if (data?.succeeded !== true || !Array.isArray(data.list) || data.list.some(item => !message(item, id)) || !Number.isInteger(data.total)) {
+      throw invalid()
+    }
+    return data
+  },
   messages: (id, signal) => authorizedAxios.get(`/incident/${encodeURIComponent(id)}/messages`, { signal }).then(response => unwrap(response, items => Array.isArray(items) && items.every(item => message(item, id)))),
-  message: (id, body) => write(`/incident/${encodeURIComponent(id)}/messages`, pick(body, ['content', 'imageUrls', 'videoUrls']), item => message(item, id) && item.senderRole === 'Admin')
+  message: (id, body) => write(`/incident/${encodeURIComponent(id)}/messages`, pick(body, ['content', 'imageUrls', 'videoUrls']), item => message(item, id) && item.senderRole === 'Admin', body.expectedVersion, 'Message', id)
 }

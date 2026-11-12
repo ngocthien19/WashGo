@@ -16,9 +16,13 @@ import { settingGroups } from './settingModel'
 export default function SystemSettingsPage() {
   const { t } = useTranslation()
   const [params] = useSearchParams()
-  const [group, setGroup] = useState(params.get('tab') === 'audit' ? 'audit' : 'sla'), [dirty, setDirty] = useState(false), [busy, setBusy] = useState(false), [leave, setLeave] = useState(null)
-  const auditOpen = group === 'audit'
+  const [group, setGroup] = useState(['audit', 'history'].includes(params.get('tab')) ? params.get('tab') : 'sla'), [dirty, setDirty] = useState(false), [busy, setBusy] = useState(false), [leave, setLeave] = useState(null)
+  const [auditRevision, setAuditRevision] = useState(0), [auditLoading, setAuditLoading] = useState(false)
+  const auditOpen = ['audit', 'history'].includes(group)
   const resource = useCatalogResource(useCallback(signal => auditOpen ? Promise.resolve(null) : adminSystemSettingApi.get(signal), [auditOpen]))
+  const refresh = () => {
+    resource.retry(); setAuditRevision(value => value + 1)
+  }
   useEffect(() => {
     document.title = `${t('admin.nav.settings')} | WashGo`
   }, [t])
@@ -40,7 +44,7 @@ export default function SystemSettingsPage() {
       setLeave(target); return
     }
     if (target === 'refresh') {
-      resource.retry()
+      refresh()
     } else {
       setGroup(target)
     }
@@ -59,7 +63,7 @@ export default function SystemSettingsPage() {
         </div>
         <Button
           variant="outline"
-          disabled={resource.loading || busy}
+          disabled={busy || (auditOpen ? auditLoading : resource.loading)}
           onClick={() => navigate('refresh')}
           className="h-11 px-5 text-base"
         >
@@ -81,7 +85,7 @@ export default function SystemSettingsPage() {
         aria-label={t('admin.nav.settings')}
         className="flex gap-4 overflow-x-auto border-b border-border"
       >
-        {[...Object.keys(settingGroups), 'audit'].map(key => (
+        {[...Object.keys(settingGroups), 'history', 'audit'].map(key => (
           <Button
             key={key}
             role="tab"
@@ -91,11 +95,22 @@ export default function SystemSettingsPage() {
             onClick={() => navigate(key)}
             className={`h-12 shrink-0 rounded-none border-x-0 border-t-0 border-b-2 px-3 text-lg hover:bg-transparent ${key === group ? 'border-b-primary text-primary' : 'border-b-transparent text-muted-foreground'}`}
           >
-            {t(key === 'audit' ? 'admin.workspaceSync.audit' : `admin.settings.groups.${key}`)}
+            {t(key === 'history' ? 'admin.sync.settingsHistory' : key === 'audit' ? 'admin.workspaceSync.audit' : `admin.settings.groups.${key}`)}
           </Button>
         ))}
       </div>
-      {group === 'audit' ? <AuditPanel /> : resource.loading || resource.error || !resource.data ? (
+      {auditOpen ? (
+        <AuditPanel
+          key={group}
+          settings={group === 'history'}
+          showRefresh={false}
+          compactFilters
+          autoApply
+          tableView
+          revision={auditRevision}
+          onLoadingChange={setAuditLoading}
+        />
+      ) : resource.loading || resource.error || !resource.data ? (
         <ResourceFeedback
           {...resource}
           loadingText="merchant.loading"
@@ -179,7 +194,7 @@ export default function SystemSettingsPage() {
               <Button
                 onClick={() => {
                   const target = leave; setLeave(null); setDirty(false); if (target === 'refresh') {
-                    resource.retry()
+                    refresh()
                   } else {
                     setGroup(target)
                   }

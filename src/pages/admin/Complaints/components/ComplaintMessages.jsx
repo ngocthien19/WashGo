@@ -1,3 +1,4 @@
+import TablePagination from '~/components/Pagination/TablePagination'
 import { useCallback, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -20,7 +21,8 @@ import { messageSchema, snapshot, unknownWrite } from '../complaintModel'
 
 export default function ComplaintMessages({ incident, onChanged }) {
   const { t } = useTranslation()
-  const load = useCallback(signal => adminComplaintApi.messages(incident.id, signal), [incident.id])
+  const [page, setPage] = useState(1)
+  const load = useCallback(signal => adminComplaintApi.messagesPage(incident.id, page, signal), [incident.id, page])
   const resource = useCatalogResource(load), images = useImages(5), videos = useVideos()
   const { register, handleSubmit, reset, formState: { errors } } = useForm({ resolver: yupResolver(messageSchema), defaultValues: { content: '' } })
   const [pending, setPending] = useState(false), [blocked, setBlocked] = useState(false), [error, setError] = useState('')
@@ -37,8 +39,8 @@ export default function ComplaintMessages({ incident, onChanged }) {
         setBlocked(true); throw new Error('admin.complaints.changed')
       }
       writing = true
-      await adminComplaintApi.message(incident.id, { content: values.content.trim(), imageUrls, videoUrls })
-      reset(); images.images.forEach(images.removeImage); videos.videos.forEach(videos.removeVideo); resource.retry(); notify.success('admin.complaints.messageSent')
+      await adminComplaintApi.message(incident.id, { expectedVersion: incident.version, content: values.content.trim(), imageUrls, videoUrls })
+      reset(); images.images.forEach(images.removeImage); videos.videos.forEach(videos.removeVideo); resource.retry(); onChanged(); notify.success('admin.complaints.messageSent')
     } catch (failure) {
       const unknown = writing && unknownWrite(failure)
       if (unknown || failure.response?.status === 409) {
@@ -65,6 +67,16 @@ export default function ComplaintMessages({ incident, onChanged }) {
           <RefreshCw size={18} />
         </Button>
       </header>
+      {resource.data?.total > 0 && (
+        <TablePagination
+          currentPage={page}
+          totalPages={Math.ceil(resource.data.total / 10)}
+          total={resource.data.total}
+          pageSize={10}
+          rowCount={resource.data.list.length}
+          onPageChange={setPage}
+        />
+      )}
       <p className="text-sm text-muted-foreground">
         {t('admin.complaints.messageHint')}
       </p>
@@ -75,7 +87,7 @@ export default function ComplaintMessages({ incident, onChanged }) {
         />
       ) : (
         <div className="max-h-[32rem] space-y-3 overflow-y-auto pr-1">
-          {resource.data?.map(message => (
+          {resource.data?.list.map(message => (
             <article
               key={message.id}
               className={`space-y-3 rounded-xl border border-border p-4 ${message.senderRole === 'Admin' ? 'bg-primary/5' : 'bg-muted/25'}`}

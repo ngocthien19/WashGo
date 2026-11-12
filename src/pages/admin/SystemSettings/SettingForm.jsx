@@ -38,7 +38,7 @@ export default function SettingForm({ group, data, onDirty, onBusy, onSaved }) {
         setBlocked(true); throw new Error('admin.settings.changed')
       }
       writing = true
-      await adminSystemSettingApi.update(group, review)
+      await adminSystemSettingApi.update(group, review, data.version)
       notify.success('admin.settings.saved'); setReview(null); onDirty(false); onSaved()
     } catch (failure) {
       const unknown = writing && unknownWrite(failure)
