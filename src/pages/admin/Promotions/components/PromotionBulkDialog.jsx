@@ -1,12 +1,13 @@
+import AdministrativeBatchControls from '~/components/AdministrativeBatchControls'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Layers, Power, Trash2, Info, Ticket } from 'lucide-react'
+import { Layers, Power, Trash2, Ticket } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { statusClass } from '../promotionModel'
 
-// No single-promotion mutations here: execution requires a real batch endpoint.
-export default function PromotionBulkDialog({ promotions, onClose }) {
+export default function PromotionBulkDialog({ promotions, onClose, onSaved }) {
+  const [frozen, setFrozen] = useState(false), [busy, setBusy] = useState(false)
   const { t } = useTranslation()
   const [action, setAction] = useState('deactivate')
   const eligible = value => action === 'delete' ? value.usedCount === 0 : value.isActive === (action === 'deactivate')
@@ -14,7 +15,7 @@ export default function PromotionBulkDialog({ promotions, onClose }) {
     <Dialog
       open
       onOpenChange={open => {
-        if (!open) {
+        if (!open && !busy) {
           onClose()
         }
       }}
@@ -44,6 +45,7 @@ export default function PromotionBulkDialog({ promotions, onClose }) {
                 role="tab"
                 aria-selected={action === key}
                 variant="ghost"
+                disabled={frozen}
                 onClick={() => setAction(key)}
                 className={`h-12 rounded-none border-x-0 border-t-0 border-b-2 bg-transparent px-3 text-base font-medium hover:bg-transparent dark:hover:bg-transparent ${key === action ? 'border-b-primary text-primary' : 'border-b-transparent text-muted-foreground'}`}
               >
@@ -87,32 +89,17 @@ export default function PromotionBulkDialog({ promotions, onClose }) {
           <p className="text-sm font-medium">
             {t('admin.promotions.bulk.affected', { count: promotions.filter(eligible).length })}
           </p>
-          <p
-            role="status"
-            className="flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm leading-6 text-amber-800 dark:text-amber-200"
-          >
-            <Info
-              size={19}
-              className="mt-0.5 shrink-0"
-            />
-            {t('admin.promotions.bulk.unavailable')}
-          </p>
-          <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
-            <Button
-              variant="secondary"
-              onClick={onClose}
-              className="h-11 px-5 text-base"
-            >
-              {t('common.close')}
-            </Button>
-            <Button
-              variant={action === 'delete' ? 'destructive' : 'default'}
-              disabled
-              className="h-11 px-5 text-base"
-            >
-              {t(`admin.promotions.${action}`)}
-            </Button>
-          </footer>
+          <AdministrativeBatchControls
+            module="Promotion"
+            path="/promotion/batch"
+            command={{ items: promotions.map(item => ({ id: item.id, expectedVersion: item.version })), action: action === 'delete' ? 'Delete' : 'Status', isActive: action === 'activate' }}
+            label={t(`admin.promotions.${action}`)}
+            destructive={action === 'delete'}
+            onClose={onClose}
+            onSaved={onSaved}
+            onFreeze={setFrozen}
+            onBusy={setBusy}
+          />
         </div>
       </DialogContent>
     </Dialog>

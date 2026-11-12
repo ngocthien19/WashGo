@@ -1,14 +1,18 @@
+import { adminUpgradeMocks } from './helpers/adminUpgradeMocks'
 import { expect, test } from '@playwright/test'
 import { merchantSession } from './helpers/merchantSession'
 const id = 'a0000000-0000-4000-8000-000000000001', proposalId = 'b0000000-0000-4000-8000-000000000001', merchantId = 'c0000000-0000-4000-8000-000000000001'
 async function setup(page, options = {}) {
   await merchantSession(page, { role: 'Admin', ...options })
   const service = { id, merchantId, code: 'SVC_TEST', name: 'Everyday wash', description: 'Careful cleaning', unitPrice: 50000, pricePerKg: null, pricePerItem: null, estimatedDurationHours: 24, serviceType: 1, unit: 'kg', isActive: true, approvalStatus: 2, imageUrls: [] }
-  const state = { service, proposal: { id: proposalId, merchantId, merchantName: 'Central Laundry', serviceId: id, requestType: 2, status: 1, current: { ...service }, proposed: { ...service, name: 'Premium wash', unitPrice: 60000 }, reason: 'Improve service', createdAt: '2026-11-08T00:00:00Z' }, filters: [], writes: [], stale: false, unknown: false, reads: 0, removed: false }
-  await page.route('**/api/**', route => {
+  const state = { service, proposal: { id: proposalId, merchantId, merchantName: 'Central Laundry', merchantImageUrls: ['/uploads/mock/merchant.svg'], serviceId: id, requestType: 2, status: 1, current: { ...service }, proposed: { ...service, name: 'Premium wash', unitPrice: 60000 }, reason: 'Improve service', createdAt: '2026-11-08T00:00:00Z' }, filters: [], writes: [], stale: false, unknown: false, reads: 0, removed: false }
+  await page.route('**/api/**', async route => {
     const req = route.request(), path = new URL(req.url()).pathname.replace(/^\/api/, ''), body = /application\/json/.test(req.headers()['content-type'] || '') ? req.postDataJSON() : undefined
     const ok = data => route.fulfill({ json: { succeeded: true, data } })
     const list = (rows, total = rows.length) => route.fulfill({ json: { succeeded: true, list: rows, total, currentPage: body.page } })
+    if (await adminUpgradeMocks(route, state, [{ id: merchantId, name: 'Central Laundry', status: 1 }])) {
+      return
+    }
     if (path === '/auth/me') {
       return ok({ id: 'admin-test', fullName: 'Test Admin', role: 'Admin' })
     }
@@ -76,6 +80,20 @@ async function menu(page, action) {
   await page.getByRole('menuitem', { name: action, exact: true }).click()
 }
 
+test('backend sync: batch services uses one guarded request and clears the selection', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto('/admin/services')
+  await page.getByRole('checkbox', { name: 'Select all services on this page', exact: true }).check()
+  await page.getByRole('button', { name: 'Bulk actions', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Pause selected', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes).toHaveLength(1)
+  expect(state.writes[0]).toMatchObject({ path: '/wash-service/batch', body: { action: 'Status', isActive: false, operationId: expect.any(String), items: [{ id, expectedVersion: 'version-1' }] } })
+  expect(state.service.isActive).toBe(false)
+  await expect(page.getByRole('button', { name: 'Bulk actions', exact: true })).toHaveCount(0)
+})
+
 test('service details animate once after data is ready instead of showing a loading popup', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/admin/services')
@@ -103,7 +121,7 @@ test('Admin catalog filters false availability on the server and summary stays g
   expect(state.writes).toHaveLength(0)
 })
 
-test('Admin creates and edits supported service fields without unsupported photo or approval writes', async ({ page }) => {
+test('Admin creates and edits supported service fields and image list without approval writes', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/admin/services')
   await page.getByRole('button', { name: 'Add service', exact: true }).click()
@@ -121,7 +139,7 @@ test('Admin creates and edits supported service fields without unsupported photo
   await dialog.getByRole('button', { name: 'Save service', exact: true }).click()
   await expect(dialog).toHaveCount(0)
   expect(state.writes[1].body).toMatchObject({ id, unitPrice: 55000, merchantId: null, isActive: true })
-  expect(state.writes[1].body).not.toHaveProperty('imageUrls')
+  expect(state.writes[1].body.imageUrls).toEqual([])
   expect(state.writes[1].body).not.toHaveProperty('approvalStatus')
 })
 
@@ -133,7 +151,7 @@ test('Admin pauses and deletes with confirmation and retains approval status', a
   await dialog.getByRole('checkbox').check()
   await dialog.getByRole('button', { name: 'Confirm', exact: true }).click()
   await expect(dialog).toHaveCount(0)
-  expect(state.writes[0].body).toEqual({ serviceId: id, approvalStatus: 2, isActive: false })
+  expect(state.writes[0].body).toMatchObject({ serviceId: id, approvalStatus: 2, isActive: false })
   await menu(page, 'Delete service')
   dialog = page.getByRole('dialog')
   await expect(dialog.getByRole('button', { name: 'Confirm', exact: true })).toBeDisabled()
@@ -155,7 +173,7 @@ test('proposal detail compares snapshots and rejects with a required reason', as
   await dialog.getByLabel('Rejection reason', { exact: true }).fill('Please clarify the pricing')
   await dialog.getByRole('button', { name: 'Confirm', exact: true }).click()
   await expect(dialog).toHaveCount(0)
-  expect(state.writes[0]).toEqual({ path: `/service-proposal/${proposalId}/reject`, body: { reason: 'Please clarify the pricing' } })
+  expect(state.writes[0]).toMatchObject({ path: `/service-proposal/${proposalId}/reject`, body: { reason: 'Please clarify the pricing' } })
   await expect(page).not.toHaveURL(/proposal=/)
 })
 
@@ -245,11 +263,11 @@ test('service details are read-only and bulk preview never runs per-service requ
   const reads = state.reads
   await page.getByRole('checkbox', { name: 'Select all services on this page', exact: true }).check()
   await page.getByRole('button', { name: 'Bulk actions', exact: true }).click()
-  await expect(dialog.getByRole('button', { name: 'Pause selected', exact: true })).toBeDisabled()
+  await expect(dialog.getByRole('button', { name: 'Pause selected', exact: true })).toBeEnabled()
   await dialog.getByRole('tab', { name: 'Activate selected', exact: true }).click()
   await expect(dialog.getByText('0 services eligible for this action', { exact: true })).toBeVisible()
   await dialog.getByRole('tab', { name: 'Delete selected', exact: true }).click()
-  await expect(dialog.getByRole('button', { name: 'Delete selected', exact: true })).toBeDisabled()
+  await expect(dialog.getByRole('button', { name: 'Delete selected', exact: true })).toBeEnabled()
   expect(state.reads).toBe(reads)
   expect(state.writes).toHaveLength(0)
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
@@ -273,4 +291,32 @@ test('Merchant photos appear in proposal rows and details and Reject hovers red 
   const background = await reject.evaluate(el => getComputedStyle(el).backgroundColor)
   expect(background).not.toBe('rgba(0, 0, 0, 0)')
   expect(state.writes).toHaveLength(0)
+})
+
+
+test('service review confirmation closes independently and locks an unknown result', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto(`/admin/services?tab=proposals&proposal=${proposalId}`)
+  await page.getByRole('button', { name: 'Reject', exact: true }).click()
+  let confirmation = page.getByRole('dialog', { name: 'Reject', exact: true })
+  await expect(confirmation).toBeVisible()
+  await expect(confirmation.locator('[data-dialog-header]')).toHaveAttribute('data-tone', 'danger')
+  await confirmation.getByRole('button', { name: 'Close', exact: true }).first().click()
+  await expect(confirmation).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Reject', exact: true })).toBeFocused()
+  expect(state.writes).toHaveLength(0)
+  await page.getByRole('button', { name: 'Approve', exact: true }).click()
+  confirmation = page.getByRole('dialog', { name: 'Approve', exact: true })
+  await expect(confirmation.locator('[data-dialog-header]')).toHaveAttribute('data-tone', 'success')
+  await page.keyboard.press('Escape')
+  await expect(confirmation).toHaveCount(0)
+  await page.getByRole('button', { name: 'Reject', exact: true }).click()
+  confirmation = page.getByRole('dialog', { name: 'Reject', exact: true })
+  await confirmation.getByLabel('Rejection reason', { exact: true }).fill('Please provide a clear service scope')
+  await confirmation.getByRole('checkbox').check()
+  state.unknown = true
+  await confirmation.getByRole('button', { name: 'Confirm', exact: true }).click()
+  await expect(confirmation.getByRole('alert')).toBeVisible()
+  await expect(confirmation.getByRole('button', { name: 'Confirm', exact: true })).toBeDisabled()
+  expect(state.writes).toHaveLength(1)
 })

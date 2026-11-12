@@ -5,7 +5,7 @@ import { formatDateTime } from '~/utils/formats'
 export const TAKE = 12
 export const formatPromotionTime = value => formatDateTime(value, 'Asia/Ho_Chi_Minh')
 export const fields = ['code', 'description', 'discountType', 'discountValue', 'minOrderAmount', 'maxDiscountAmount', 'startAt', 'endAt', 'usageLimit', 'usageLimitPerCustomer', 'isActive']
-export const snapshot = value => JSON.stringify(['id', ...fields, 'usedCount'].map(key => value[key] ?? null))
+export const snapshot = value => JSON.stringify(['canChangeCode', 'version', 'id', ...fields, 'usedCount'].map(key => value[key] ?? null))
 export const unknownWrite = error => Boolean(error.uncertain || !error.response || error.response.status >= 500 || error.response.status === 408)
 export const localTime = value => value && Number.isFinite(Date.parse(value)) ? new Date(Date.parse(value) + 7 * 3600000).toISOString().slice(0, 16) : ''
 const utcTime = value => new Date(`${value}:00+07:00`).toISOString()
@@ -30,7 +30,7 @@ export const promotionSchema = yup.object({
 })
 export const defaults = value => ({ code: value?.code || '', description: value?.description || '', discountType: value?.discountType || 1, discountValue: value?.discountValue ?? '', minOrderAmount: value?.minOrderAmount ?? 0, maxDiscountAmount: value?.maxDiscountAmount ?? '', startAt: localTime(value?.startAt), endAt: localTime(value?.endAt), usageLimit: value?.usageLimit ?? '', usageLimitPerCustomer: value?.usageLimitPerCustomer ?? '', isActive: value?.isActive ?? true })
 export const payload = (values, current) => ({
-  ...(current ? { id: current.id } : {}), code: values.code.trim().toUpperCase(), description: values.description?.trim() || null,
+  ...(current ? { id: current.id, expectedVersion: current.version } : {}), code: values.code.trim().toUpperCase(), description: values.description?.trim() || null,
   discountType: Number(values.discountType), discountValue: Number(values.discountValue), minOrderAmount: Number(values.minOrderAmount),
   ...Object.fromEntries(['maxDiscountAmount', 'usageLimit', 'usageLimitPerCustomer'].map(key => [key, values[key] === '' || values[key] == null ? null : Number(values[key])])),
   ...Object.fromEntries(['startAt', 'endAt'].map(key => [key, current && values[key] === localTime(current[key]) ? current[key] : utcTime(values[key])])),

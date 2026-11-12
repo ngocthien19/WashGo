@@ -1,3 +1,4 @@
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -37,6 +38,7 @@ export default function PromotionsPage() {
   const selected = rows.filter(row => ids.includes(row.id))
   const linked = isId(params.get('promotion')) ? { kind: 'detail', id: params.get('promotion') } : null
   const current = modal || linked
+  const [resetVersion, setResetVersion] = useState(0)
   const update = patch => setParams(writeQuery({ ...query, ...patch, page: patch.page || 1 }))
   const close = () => {
     setModal(null); if (linked) {
@@ -121,6 +123,7 @@ export default function PromotionsPage() {
             {t('admin.promotions.search')}
           </p>
           <CatalogToolbar
+            resetKey={resetVersion}
             embedded
             label={t('admin.promotions.search')}
             placeholder={t('admin.promotions.searchHint')}
@@ -145,8 +148,15 @@ export default function PromotionsPage() {
             />
           </label>
         ))}
+        <ClearFiltersButton
+          className="sm:col-span-2 xl:col-span-full"
+          active={query.keyword || query.status || query.type || query.from || query.to}
+          onClear={() => {
+            setResetVersion(value => value + 1); setParams({})
+          }}
+        />
         <DateRangeFilter
-          key={`${query.from}:${query.to}`}
+          key={`${resetVersion}:${query.from}:${query.to}`}
           from={query.from}
           to={query.to}
           onApply={range => update(range)}
@@ -349,6 +359,7 @@ export default function PromotionsPage() {
       {current && (current.kind === 'bulk' ? (
         <PromotionBulkDialog
           promotions={current.promotions}
+          onSaved={saved}
           onClose={close}
         />
       ) : ['create', 'edit'].includes(current.kind) ? (

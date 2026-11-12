@@ -1,12 +1,13 @@
+import AdministrativeBatchControls from '~/components/AdministrativeBatchControls'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Layers, Power, Trash2, Info } from 'lucide-react'
+import { Layers, Power, Trash2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 
-// Wait for a real batch endpoint; never emulate a batch by calling single-service mutations.
-export default function ServiceBulkDialog({ services, onClose }) {
+export default function ServiceBulkDialog({ services, onClose, onSaved }) {
+  const [frozen, setFrozen] = useState(false), [busy, setBusy] = useState(false)
   const { t } = useTranslation()
   const [action, setAction] = useState('pause')
   const affected = services.filter(service => action === 'delete' || service.approvalStatus === 2 && service.isActive === (action === 'pause'))
@@ -14,7 +15,7 @@ export default function ServiceBulkDialog({ services, onClose }) {
     <Dialog
       open
       onOpenChange={open => {
-        if (!open) {
+        if (!open && !busy) {
           onClose()
         }
       }}
@@ -44,6 +45,7 @@ export default function ServiceBulkDialog({ services, onClose }) {
                 variant="ghost"
                 role="tab"
                 aria-selected={action === key}
+                disabled={frozen}
                 onClick={() => setAction(key)}
                 className={`h-12 rounded-none border-x-0 border-t-0 border-b-2 bg-transparent px-3 text-base font-medium hover:bg-transparent dark:hover:bg-transparent ${key === action ? 'border-b-primary text-primary' : 'border-b-transparent text-muted-foreground'}`}
               >
@@ -86,32 +88,17 @@ export default function ServiceBulkDialog({ services, onClose }) {
           <p className="text-sm font-medium">
             {t('admin.services.bulkAffected', { count: affected.length })}
           </p>
-          <p
-            role="status"
-            className="flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm leading-6 text-amber-800 dark:text-amber-200"
-          >
-            <Info
-              size={19}
-              className="mt-0.5 shrink-0"
-            />
-            {t('admin.services.bulkUnavailable')}
-          </p>
-          <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
-            <Button
-              variant="secondary"
-              onClick={onClose}
-              className="h-11 px-5 text-base"
-            >
-              {t('common.close')}
-            </Button>
-            <Button
-              variant={action === 'delete' ? 'destructive' : 'default'}
-              disabled
-              className="h-11 px-6 text-base"
-            >
-              {t(`admin.services.bulkActions.${action}`)}
-            </Button>
-          </footer>
+          <AdministrativeBatchControls
+            module="Service"
+            path="/wash-service/batch"
+            command={{ items: services.map(item => ({ id: item.id, expectedVersion: item.version })), action: action === 'delete' ? 'Delete' : 'Status', isActive: action === 'activate' }}
+            label={t(`admin.services.bulkActions.${action}`)}
+            destructive={action === 'delete'}
+            onClose={onClose}
+            onSaved={onSaved}
+            onFreeze={setFrozen}
+            onBusy={setBusy}
+          />
         </div>
       </DialogContent>
     </Dialog>

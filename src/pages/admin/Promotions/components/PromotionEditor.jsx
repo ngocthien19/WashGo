@@ -3,7 +3,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useTranslation } from 'react-i18next'
 import { Tags, Save } from 'lucide-react'
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Checkbox } from '~/components/ui/checkbox'
@@ -28,7 +28,7 @@ export default function PromotionEditor({ value, onClose, onSaved }) {
       if (value && snapshot(await adminPromotionApi.detail(value.id)) !== snapshot(value)) {
         setBlocked(true); throw new Error('admin.promotions.changed')
       }
-      if (value && (values.usageLimit != null && values.usageLimit < value.usedCount || value.usedCount > 0 && values.code !== value.code)) {
+      if (value && (values.usageLimit != null && values.usageLimit < value.usedCount || (value.canChangeCode === false) && values.code !== value.code)) {
         throw new Error('admin.promotions.usedRule')
       }
       writing = true
@@ -58,7 +58,7 @@ export default function PromotionEditor({ value, onClose, onSaved }) {
         className="max-w-3xl"
         closeLabel="common.close"
       >
-        <header className="-mx-6 -mt-6 border-b border-primary/10 bg-primary/5 px-6 py-5 sm:-mx-8 sm:-mt-8 sm:px-8">
+        <DialogHeader>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
             <Tags className="text-primary" />
             {t(value ? 'admin.promotions.edit' : 'admin.promotions.create')}
@@ -66,7 +66,7 @@ export default function PromotionEditor({ value, onClose, onSaved }) {
           <DialogDescription className="mt-3 text-base text-muted-foreground">
             {t('admin.promotions.editorHint')}
           </DialogDescription>
-        </header>
+        </DialogHeader>
         <form
           noValidate
           onSubmit={event => handleSubmit(submit)(event)}
@@ -103,7 +103,7 @@ export default function PromotionEditor({ value, onClose, onSaved }) {
                     {...register(key)}
                     aria-label={t(`admin.promotions.fields.${key}`)}
                     aria-invalid={!!errors[key]}
-                    readOnly={key === 'code' && value?.usedCount > 0}
+                    readOnly={key === 'code' && (value?.canChangeCode === false)}
                     type={['startAt', 'endAt'].includes(key) ? 'datetime-local' : ['code', 'description'].includes(key) ? 'text' : 'number'}
                     step={['startAt', 'endAt'].includes(key) ? '60' : key.includes('usage') ? '1' : '0.01'}
                     maxLength={key === 'code' ? 50 : key === 'description' ? 500 : undefined}
