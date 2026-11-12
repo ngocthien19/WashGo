@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useTranslation } from 'react-i18next'
 import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
 import DateRangeFilter from '~/components/DateRangeFilter/DateRangeFilter'
@@ -5,9 +7,11 @@ import { SelectField } from '~/components/ui/select'
 
 export default function IncidentFilters({ params, change }) {
   const { t } = useTranslation()
+  const [resetVersion, setResetVersion] = useState(0)
   return (
     <section className="grid gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm">
       <CatalogToolbar
+        resetKey={resetVersion}
         embedded
         keyword={params.get('keyword') || ''}
         onSearch={(keyword) => change({ keyword })}
@@ -34,8 +38,14 @@ export default function IncidentFilters({ params, change }) {
           options={['newest', 'oldest', 'status'].map((value) => ({ value, label: t(`customer.sync.sorts.${value}`) }))}
         />
       </div>
+      <ClearFiltersButton
+        active={params.get('keyword') || params.get('status') || params.get('type') || params.get('from') || params.get('to') || (params.get('sort') && params.get('sort') !== 'newest')}
+        onClear={() => {
+          setResetVersion(value => value + 1); change({ keyword: '', status: '', type: '', sort: '', from: '', to: '' })
+        }}
+      />
       <DateRangeFilter
-        key={`${params.get('from')}-${params.get('to')}`}
+        key={`${resetVersion}-${params.get('from')}-${params.get('to')}`}
         from={params.get('from') || ''}
         to={params.get('to') || ''}
         onApply={change}

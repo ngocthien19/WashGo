@@ -1,3 +1,4 @@
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Shirt, Trash2, Info, ListChecks, ChevronDown } from 'lucide-react'
@@ -32,6 +33,10 @@ export default function OrderServices({ items, onChange }) {
           onSearch={(keyword) => setQuery({ keyword, page: 1 })}
           label={t('customer.order.findServices')}
           placeholder={t('customer.order.findServices')}
+        />
+        <ClearFiltersButton
+          active={query.keyword}
+          onClear={() => setQuery({ keyword: '', page: 1 })}
         />
         {loading || error || !data?.list?.length ? (
           <CatalogFeedback

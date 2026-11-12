@@ -1,3 +1,4 @@
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useCallback, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -52,6 +53,10 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
             }}
           />
         )}
+      />
+      <ClearFiltersButton
+        active={query.keyword}
+        onClear={() => setQuery({ keyword: '', page: 1 })}
       />
       <FormError>
         {locationError}
@@ -152,6 +157,10 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
               {t('customer.order.occupied')}
             </Button>
           </div>
+          <ClearFiltersButton
+            active={slotFilter !== 'available'}
+            onClear={() => setSlotFilter('available')}
+          />
         </div>
         <p className="mt-2 text-xs leading-6 text-muted-foreground">
           {locker ? `${locker.name} · ${t('customer.order.reservationNote')}` : t('customer.order.chooseLockerFirst')}
