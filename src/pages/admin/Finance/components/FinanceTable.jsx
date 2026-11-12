@@ -4,13 +4,13 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '~
 import TablePagination from '~/components/Pagination/TablePagination'
 import { TAKE } from '../financeModel'
 const headerBg = 'bg-[color-mix(in_srgb,var(--primary)_8%,var(--muted))] dark:bg-[color-mix(in_srgb,var(--primary)_12%,var(--muted))]'
-export default function FinanceTable({ columns, rows, label, pagination, rowKey = row => row.id, minWidth = 'min-w-[1000px]' }) {
+export default function FinanceTable({ columns, rows, label, pagination, rowKey = row => row.id, minWidth = 'min-w-[1000px]', embedded = false }) {
   const { t } = useTranslation()
   const [localPage, setLocalPage] = useState(1)
   const page = pagination?.page || Math.min(localPage, Math.max(1, Math.ceil(rows.length / TAKE)))
   const visible = pagination ? rows : rows.slice((page - 1) * TAKE, page * TAKE)
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+    <div className={embedded ? 'overflow-hidden' : 'overflow-hidden rounded-2xl border border-border bg-card shadow-sm'}>
       <p className="border-b border-border p-5">
         <strong className="mr-2 text-2xl">
           {pagination?.total ?? rows.length}

@@ -1,3 +1,4 @@
+import SettlementLines from './SettlementLines'
 import { useCallback, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -21,11 +22,11 @@ import FinanceBreakdown from './FinanceBreakdown'
 export default function FinanceRecordDialog({ kind, value: original, period, onClose, onSaved }) {
   const { t } = useTranslation()
   const commission = kind === 'commissionDetail', refund = ['refundDetail', 'approve', 'reject', 'confirmRefund'].includes(kind), detail = kind.endsWith('Detail')
-  const load = useCallback(signal => commission ? adminFinanceApi.commissions({ ...period, merchantId: original.merchantId }, signal).then(rows => {
-    const row = rows.find(item => item.merchantId === original.merchantId); if (!row) {
+  const load = useCallback(signal => commission ? adminFinanceApi.commissions({ ...period, merchantId: original.merchantId, page: 1, take: 1 }, signal).then(result => {
+    const row = result.list.find(item => item.merchantId === original.merchantId); if (!row) {
       throw new Error('admin.finance.notFound')
     } return row
-  }) : refund ? adminFinanceApi.refund(original.id, signal) : adminFinanceApi.settlement(original, signal), [commission, refund, original, period])
+  }) : refund ? adminFinanceApi.refund(original.id, signal) : adminFinanceApi.settlement(original, signal).then(async row => detail ? { ...row, sourceLines: await adminFinanceApi.lines(row.id, 1, signal) } : row), [commission, refund, original, period, detail])
   const resource = useCatalogResource(load), value = resource.data
   const { register, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(actionSchema(kind)), defaultValues: { text: '' } })
   const [pending, setPending] = useState(false), [blocked, setBlocked] = useState(false), [confirmed, setConfirmed] = useState(false), [error, setError] = useState('')
@@ -43,11 +44,11 @@ export default function FinanceRecordDialog({ kind, value: original, period, onC
       }
       writing = true
       if (kind === 'pay') {
-        await adminFinanceApi.pay(value.id, values.text.trim())
+        await adminFinanceApi.pay(value.id, values.text.trim(), value.version)
       } else if (kind === 'confirmRefund') {
-        await adminFinanceApi.confirmRefund(value.id, values.text.trim())
+        await adminFinanceApi.confirmRefund(value.id, values.text.trim(), value.version)
       } else {
-        await adminFinanceApi.review(value.id, kind === 'approve', values.text.trim() || null)
+        await adminFinanceApi.review(value.id, kind === 'approve', values.text.trim() || null, value.version)
       }
       notify.success(`admin.finance.success.${kind}`); onSaved()
     } catch (failure) {
@@ -92,6 +93,12 @@ export default function FinanceRecordDialog({ kind, value: original, period, onC
           />
         ) : (
           <div className="mt-5 space-y-5">
+            {!refund && !commission && detail && (
+              <SettlementLines
+                id={value.id}
+                initial={value.sourceLines}
+              />
+            )}
             {refund ? (
               <section className="space-y-4 rounded-2xl border border-border p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -129,9 +136,6 @@ export default function FinanceRecordDialog({ kind, value: original, period, onC
               </section>
             ) : (
               <>
-                <p className="text-xl font-semibold">
-                  {value.merchantName}
-                </p>
                 {!commission && (
                   <>
                     <p className="text-sm text-muted-foreground">

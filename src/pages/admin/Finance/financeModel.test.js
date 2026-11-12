@@ -4,7 +4,7 @@ import { shiftDay, vietnamToday } from '~/utils/dateRange'
 const merchantId = 'a0000000-0000-4000-8000-000000000001'
 it('uses inclusive Vietnam boundaries, only supported settlement filters and safe URL values', () => {
   const query = readQuery(new URLSearchParams(`tab=settlements&merchantId=${merchantId}&from=2026-01-01&to=2026-01-31&status=2&page=3`))
-  expect(periodFilter(query)).toEqual({ merchantId, fromDate: Date.parse('2026-01-01T00:00:00+07:00') / 1000, toDate: Date.parse('2026-01-31T23:59:59+07:00') / 1000 })
+  expect(periodFilter(query)).toEqual({ merchantId, page: 3, take: 12, granularity: 'day', fromDate: Date.parse('2026-01-01T00:00:00+07:00') / 1000, toDate: Date.parse('2026-01-31T23:59:59+07:00') / 1000 })
   expect(settlementFilter(query)).toEqual({ merchantId, status: 2, page: 3, take: 12 })
   expect(readQuery(new URLSearchParams('tab=bad&merchantId=bad&status=99&page=-1'))).toMatchObject({ tab: 'revenue', merchantId: '', status: '', page: 1 })
 })

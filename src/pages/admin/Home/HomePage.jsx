@@ -203,6 +203,7 @@ export default function HomePage() {
               </p>
               <RevenueChart
                 data={revenue.data.daily}
+                hourly={revenue.data.hourly}
                 range={range}
               />
               <div className="mt-5 grid gap-3 border-t border-border pt-4 sm:grid-cols-3">

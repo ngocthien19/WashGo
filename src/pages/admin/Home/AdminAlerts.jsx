@@ -1,3 +1,4 @@
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { TriangleAlert } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -72,6 +73,12 @@ export default function AdminAlerts({ revision }) {
               />
             </label>
           </div>
+          <ClearFiltersButton
+            active={type || severity}
+            onClear={() => {
+              setType(''); setSeverity(''); setPage(1)
+            }}
+          />
           <h3 className="font-semibold">
             {t('admin.workspaceSync.alertResults', { count: value.total })}
           </h3>

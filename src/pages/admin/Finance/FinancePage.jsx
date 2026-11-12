@@ -1,11 +1,12 @@
+import CommissionReview from './components/CommissionReview'
+import FinanceFilters from './components/FinanceFilters'
+import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Wallet, RefreshCw, Download, Plus, MoreHorizontal, Eye, Check, X, Banknote, Undo2, Shirt } from 'lucide-react'
+import { Wallet, RefreshCw, Download, Plus, MoreHorizontal, Eye, Check, X, Banknote, Undo2, Shirt, TrendingUp } from 'lucide-react'
 import { Button } from '~/components/ui/button'
-import { SelectField } from '~/components/ui/select'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '~/components/ui/dropdown-menu'
-import DashboardFilters from '~/components/workspace/DashboardFilters'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import StatCard from '~/components/workspace/StatCard'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
@@ -26,8 +27,8 @@ export default function FinancePage() {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams(), [modal, setModal] = useState(null), [exporting, setExporting] = useState(false)
   const exportLock = useRef(false)
-  const query = useMemo(() => readQuery(params), [params]), periodTab = ['revenue', 'commissions'].includes(query.tab)
-  const load = useCallback(signal => query.tab === 'settlements' ? adminFinanceApi.settlements(settlementFilter(query), signal) : query.tab === 'refunds' ? adminFinanceApi.refunds(query.status, signal) : adminFinanceApi[query.tab](periodFilter(query), signal), [query])
+  const query = useMemo(() => readQuery(params), [params])
+  const load = useCallback(signal => query.tab === 'commissionReview' ? Promise.resolve({}) : query.tab === 'settlements' ? adminFinanceApi.settlements(settlementFilter(query), signal) : query.tab === 'refunds' ? adminFinanceApi.refunds(settlementFilter(query), signal) : adminFinanceApi[query.tab](periodFilter(query), signal), [query])
   const resource = useCatalogResource(load), merchants = useCatalogResource(adminFinanceApi.merchants)
   const update = patch => setParams(writeQuery({ ...query, ...patch, page: patch.page || 1 }))
   const rowMerchant = row => merchants.data?.find(item => item.id === row.merchantId)
@@ -44,7 +45,7 @@ export default function FinancePage() {
   )
   const moneyColumn = key => ({ key, label: `admin.finance.fields.${key}`, className: 'min-w-44 whitespace-nowrap', render: row => (
     <span className={key === 'payoutAmount' ? 'font-semibold text-primary' : 'font-medium'}>
-      {formatCurrency(row[key])}
+      {row.commissionComplete === false && ['commissionAmount', 'payoutAmount'].includes(key) ? '—' : formatCurrency(row[key])}
     </span>
   ) })
   const actionMenu = (row, refund = false) => (
@@ -95,7 +96,7 @@ export default function FinancePage() {
     }
     exportLock.current = true; setExporting(true)
     try {
-      const blob = await adminFinanceApi.export(periodFilter(query)), url = URL.createObjectURL(blob), link = document.createElement('a')
+      const blob = await adminFinanceApi.export({ ...periodFilter(query), asOf: Math.floor(Date.parse(resource.data.asOf || resource.data.generatedAt) / 1000) }), url = URL.createObjectURL(blob), link = document.createElement('a')
       link.href = url; link.download = `washgo-finance-${query.from}-${query.to}.csv`; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); notify.success('admin.finance.exported')
     } catch (error) {
       notify.error(getApiError(error))
@@ -169,54 +170,11 @@ export default function FinancePage() {
           </Button>
         ))}
       </div>
-      <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2">
-        {query.tab !== 'refunds' && (
-          <label className="grid gap-2 text-sm">
-            <span>
-              {t('admin.complaints.merchant')}
-            </span>
-            <SelectField
-              label={t('admin.complaints.merchant')}
-              value={query.merchantId}
-              disabled={merchants.loading || Boolean(merchants.error)}
-              onValueChange={merchantId => update({ merchantId })}
-              options={[{ value: '', label: t('common.all') }, ...(merchants.data || []).map(row => ({ value: row.id, label: row.name })), ...(query.merchantId && !merchants.data?.some(row => row.id === query.merchantId) ? [{ value: query.merchantId, label: query.merchantId }] : [])]}
-            />
-          </label>
-        )}
-        {!periodTab && (
-          <label className="grid gap-2 text-sm">
-            <span>
-              {t('admin.finance.status')}
-            </span>
-            <SelectField
-              label={t('admin.finance.status')}
-              value={query.status}
-              onValueChange={status => update({ status })}
-              options={[{ value: '', label: t('common.all') }, ...(query.tab === 'refunds' ? [1, 2, 3, 4] : [1, 2]).map(value => ({ value: String(value), label: t(`admin.finance.${query.tab === 'refunds' ? 'refundStatuses' : 'settlementStatuses'}.${value}`) }))]}
-            />
-          </label>
-        )}
-        {periodTab && (
-          <div className="grid gap-2 sm:justify-items-end">
-            <span className="text-sm">
-              {t('admin.finance.period')}
-            </span>
-            <DashboardFilters
-              range={{ mode: query.period, from: query.from, to: query.to }}
-              onChange={next => update({ period: next.mode, from: next.from || '', to: next.to || '' })}
-            />
-            <p className="text-sm text-muted-foreground">
-              {query.from.split('-').reverse().join('/')}
-              {' '}
-              –
-              {' '}
-              {query.to.split('-').reverse().join('/')}
-            </p>
-          </div>
-        )}
-        {query.tab !== 'refunds' && merchants.error && <ResourceFeedback {...merchants} />}
-      </section>
+      <FinanceFilters
+        query={query}
+        merchants={merchants}
+        onChange={update}
+      />
       {query.tab === 'refunds' && query.orderId && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/15 bg-primary/5 p-4">
           <p className="text-sm">
@@ -230,7 +188,12 @@ export default function FinancePage() {
           </Button>
         </div>
       )}
-      {resource.loading || resource.error || !resource.data ? (
+      {query.tab === 'commissionReview' ? (
+        <CommissionReview
+          key={query.merchantId}
+          merchantId={query.merchantId}
+        />
+      ) : resource.loading || resource.error || !resource.data ? (
         <ResourceFeedback
           {...resource}
           loadingText="merchant.loading"
@@ -252,16 +215,20 @@ export default function FinancePage() {
                 ))}
               </div>
               <section className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
-                <h2 className="border-b border-border pb-3 text-lg font-semibold">
+                <h2 className="-mx-5 -mt-5 flex items-center gap-3 rounded-t-2xl border-b border-primary/15 bg-primary/5 px-5 py-4 text-lg font-semibold">
+                  <TrendingUp className="size-5 text-primary" />
                   {t('admin.finance.cashflow')}
                 </h2>
                 <p className="text-sm text-muted-foreground">
                   {t('admin.finance.cashflowHint')}
                 </p>
-                <RevenueChart
-                  data={report.daily}
-                  range={query}
-                />
+                <div className="rounded-xl border border-primary/10 bg-primary/3 p-3 sm:p-4">
+                  <RevenueChart
+                    data={report.daily}
+                    hourly={report.hourly}
+                    range={query}
+                  />
+                </div>
                 <dl className="grid gap-4 sm:grid-cols-3">
                   {['storageFeeRevenue', 'cancellationFeeRevenue', 'totalRevenue'].map(key => (
                     <div
@@ -285,14 +252,22 @@ export default function FinancePage() {
                 rowKey={row => row.merchantId || 'unassigned'}
                 columns={[{ key: 'merchant', label: 'admin.complaints.merchant', className: 'min-w-72', render: merchantCell }, { key: 'count', label: 'admin.finance.orders', render: row => formatNumber(row.paidOrderCount) }, { key: 'revenue', label: 'admin.finance.kpis.totalRevenue', render: row => formatCurrency(row.revenue) }]}
               />
-              <section className="space-y-3">
-                <h2 className="border-b border-border pb-3 text-lg font-semibold">
-                  {t('admin.finance.services')}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {t('admin.finance.serviceHint')}
-                </p>
+              <section className="overflow-hidden rounded-2xl border border-primary/20 bg-card shadow-sm">
+                <header className="flex items-start gap-3 border-b border-primary/15 bg-primary/5 p-5">
+                  <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                    <Shirt className="size-6" />
+                  </span>
+                  <div className="min-w-0 space-y-2">
+                    <h2 className="text-lg font-semibold">
+                      {t('admin.finance.services')}
+                    </h2>
+                    <p className="text-base leading-6 text-muted-foreground">
+                      {t('admin.finance.serviceHint')}
+                    </p>
+                  </div>
+                </header>
                 <FinanceTable
+                  embedded
                   key={`services:${params}`}
                   rows={report.byService}
                   rowKey={row => row.serviceId}
@@ -304,12 +279,23 @@ export default function FinancePage() {
           )}
           {query.tab === 'commissions' && (
             <section className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-3">
+                {['netRevenue', 'commissionAmount', 'payoutAmount'].map(key => (
+                  <StatCard
+                    key={key}
+                    icon={Wallet}
+                    label={t(`admin.finance.fields.${key}`)}
+                    value={resource.data.commissionComplete === false && key !== 'netRevenue' ? '—' : formatCurrency(resource.data[key])}
+                  />
+                ))}
+              </div>
               <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
                 {t('admin.finance.commissionHint')}
               </p>
               <FinanceTable
                 key={params.toString()}
-                rows={resource.data}
+                rows={resource.data.list}
+                pagination={{ page: query.page, total: resource.data.total, totalPages: resource.data.totalPages, onChange: page => update({ page }) }}
                 rowKey={row => row.merchantId}
                 label="admin.finance.commissionResults"
                 minWidth="min-w-[1600px]"
@@ -349,7 +335,8 @@ export default function FinancePage() {
           {query.tab === 'refunds' && (
             <FinanceTable
               key={`refunds:${params}`}
-              rows={query.orderId ? resource.data.filter(row => row.orderId === query.orderId) : resource.data}
+              rows={resource.data.list}
+              pagination={{ page: query.page, total: resource.data.total, totalPages: resource.data.totalPages, onChange: page => update({ page }) }}
               label="admin.finance.refundResults"
               minWidth="min-w-[1250px]"
               columns={[{ key: 'order', label: 'admin.complaints.columns.order', className: 'min-w-48', render: row => (
@@ -359,7 +346,26 @@ export default function FinancePage() {
                 >
                   {row.orderCode || t('customer.incidents.relatedOrder')}
                 </Link>
-              ) }, { key: 'customer', label: 'admin.complaints.customer', className: 'min-w-52', render: row => row.customerName || '—' }, { key: 'amount', label: 'admin.finance.refundAmount', className: 'min-w-44 whitespace-nowrap', render: row => formatCurrency(row.amount) }, { key: 'reason', label: 'admin.finance.reason', className: 'min-w-72 max-w-96', render: row => (
+              ) }, { key: 'customer', label: 'admin.complaints.customer', className: 'min-w-52', render: row => (
+                <div className="flex items-center gap-3">
+                  <UserAvatar
+                    avatar={row.customerAvatarUrl}
+                    fullName={row.customerName}
+                    className="size-11"
+                  />
+                  <div className="min-w-0">
+                    <p className="font-semibold">
+                      {row.customerName || '—'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {row.customerEmail || '—'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {row.customerPhoneNumber || '—'}
+                    </p>
+                  </div>
+                </div>
+              ) }, { key: 'amount', label: 'admin.finance.refundAmount', className: 'min-w-44 whitespace-nowrap', render: row => formatCurrency(row.amount) }, { key: 'reason', label: 'admin.finance.reason', className: 'min-w-72 max-w-96', render: row => (
                 <p className="whitespace-pre-wrap break-words">
                   {row.reason}
                 </p>
