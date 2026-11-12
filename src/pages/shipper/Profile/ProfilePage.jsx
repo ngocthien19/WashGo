@@ -1,3 +1,5 @@
+import AccountSecurity from '~/components/account/AccountSecurity'
+import ShipperActivities from './ShipperActivities'
 import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
@@ -8,7 +10,7 @@ import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import FormError from '~/components/ui/FormError'
 import { Button } from '~/components/ui/button'
-import { formatNumber } from '~/utils/formats'
+import { formatNumber, formatDateTime } from '~/utils/formats'
 import { setUser } from '~/redux/auth/authSlice'
 import ShipperPanel from '../components/ShipperPanel'
 import ProfileEditor from './ProfileEditor'
@@ -19,7 +21,7 @@ export default function ProfilePage() {
   const { profile, logout, logoutPending } = useOutletContext()
   const dispatch = useDispatch()
   const authUser = useSelector((state) => state.auth.user)
-  const [editing, setEditing] = useState(false)
+  const [editing, setEditing] = useState(false), [revision, setRevision] = useState(0)
   const user = profile.data || (profile.error && authUser ? { fullName: authUser.fullName, email: authUser.email, phone: authUser.phone, avatarUrl: authUser.avatar } : null)
   useEffect(() => {
     document.title = `${t('shipper.nav.profile')} | WashGo`
@@ -39,7 +41,9 @@ export default function ProfilePage() {
           <Button
             variant="outline"
             className="h-11 px-5"
-            onClick={profile.retry}
+            onClick={() => {
+              profile.retry(); setRevision(value => value + 1)
+            }}
             disabled={profile.loading}
           >
             <RefreshCw size={17} />
@@ -81,21 +85,13 @@ export default function ProfilePage() {
                 {t('shipper.role')}
               </span>
             </div>
-            <dl className="grid grid-cols-2 gap-3 border-t border-border p-5 text-center">
+            <dl className="grid gap-3 border-t border-border p-5 text-center">
               <div>
                 <dt className="text-xs text-muted-foreground">
                   {t('shipper.lifetime')}
                 </dt>
                 <dd className="mt-2 text-xl font-bold text-primary">
                   {formatNumber(user.totalDeliveries)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">
-                  {t('merchant.shippers.rating')}
-                </dt>
-                <dd className="mt-2 text-xl font-bold text-amber-700 dark:text-amber-300">
-                  {user.rating > 0 ? `${formatNumber(user.rating)} / 5` : '—'}
                 </dd>
               </div>
             </dl>
@@ -165,6 +161,39 @@ export default function ProfilePage() {
                   </p>
                 </div>
               </div>
+              <div className="space-y-2 px-5 pt-4 text-sm text-muted-foreground">
+                {user.merchantEmail && (
+                  <p>
+                    <a
+                      className="hover:text-primary hover:underline"
+                      href={`mailto:${user.merchantEmail}`}
+                    >
+                      {user.merchantEmail}
+                    </a>
+                  </p>
+                )}
+                {user.merchantAddress && (
+                  <p>
+                    {user.merchantAddress}
+                  </p>
+                )}
+                {user.createdAt && (
+                  <p>
+                    {t('shipper.sync.joined')}
+                    :
+                    {' '}
+                    {formatDateTime(user.createdAt)}
+                  </p>
+                )}
+                {user.updatedAt && (
+                  <p>
+                    {t('shipper.sync.updated')}
+                    :
+                    {' '}
+                    {formatDateTime(user.updatedAt)}
+                  </p>
+                )}
+              </div>
               <dl className="grid gap-4 p-5 sm:grid-cols-2">
                 {[[ShieldCheck, 'workState', typeof user.isActive === 'boolean' ? t(`merchant.shippers.active.${user.isActive}`) : null], [Truck, 'status', user.status ? t(`merchant.shippers.statuses.${user.status}`) : null]].map(([Icon, key, value]) => (
                   <div key={key}>
@@ -202,6 +231,12 @@ export default function ProfilePage() {
             </section>
           </div>
         </div>
+      )}
+      {profile.data && (
+        <>
+          <AccountSecurity revision={revision} />
+          <ShipperActivities revision={revision} />
+        </>
       )}
       {editing && profile.data && (
         <ProfileEditor

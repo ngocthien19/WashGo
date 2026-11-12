@@ -1,8 +1,13 @@
+import HistoryDetail from './HistoryDetail'
+import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
+import ClearFiltersButton from '~/components/ClearFiltersButton'
+import { notify } from '~/utils/notifications'
+import { getApiError } from '~/utils/apiError'
 import DeliveryLocker from '../components/DeliveryLocker'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { History, RefreshCw, RotateCcw, ClockArrowDown, PackageOpen, Truck } from 'lucide-react'
+import { History, RefreshCw, Download, Eye, ClockArrowDown, PackageOpen, Truck } from 'lucide-react'
 import Reveal from '~/components/motion/Reveal'
 import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
@@ -21,7 +26,21 @@ export default function DeliveryHistoryPage() {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
   const query = useMemo(() => readHistoryQuery(params), [params])
-  const [revision, setRevision] = useState(0)
+  const [revision, setRevision] = useState(0), [selected, setSelected] = useState(null), [exporting, setExporting] = useState(false), [reset, setReset] = useState(0)
+  const lockers = useCatalogResource(useCallback(signal => shipperDeliveryApi.lockers({ ...historyFilter(query), lockerId: undefined }, signal), [query]), revision)
+  const download = async () => {
+    if (exporting) {
+      return
+    }
+    setExporting(true)
+    try {
+      const blob = await shipperDeliveryApi.export(historyFilter(query)); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'shipper-delivery.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (error) {
+      notify.error(getApiError(error))
+    } finally {
+      setExporting(false)
+    }
+  }
   const resource = useCatalogResource(useCallback((signal) => shipperDeliveryApi.list(historyFilter(query), signal), [query]), revision)
   const { data, loading, error } = resource
   const update = (patch) => setParams(historyParams({ ...query, ...patch, page: patch.page || 1 }))
@@ -56,12 +75,19 @@ export default function DeliveryHistoryPage() {
         </Button>
       </header>
       <HistorySummary
-        from={query.from}
-        to={query.to}
+        query={query}
         revision={revision}
       />
       <section className="workspace-filters space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <div className="flex flex-wrap items-end gap-4">
+        <CatalogToolbar
+          embedded
+          resetKey={reset}
+          keyword={query.keyword}
+          onSearch={keyword => update({ keyword })}
+          label={t('shipper.tasks.search')}
+          placeholder={t('shipper.tasks.searchHint')}
+        />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <div className="grid w-full gap-2 sm:w-72">
             <label
               htmlFor="delivery-task-type"
@@ -77,16 +103,31 @@ export default function DeliveryHistoryPage() {
               options={['', '1', '2'].map((value) => ({ value, label: t(value === '' ? 'shipper.deliveryHistory.allTypes' : value === '1' ? 'shipper.deliveryHistory.collect' : 'shipper.deliveryHistory.return') }))}
             />
           </div>
-          {(query.from || query.to || query.taskType || query.invalidDates) && (
-            <Button
-              variant="secondary"
-              className="h-11 px-5"
-              onClick={() => setParams({})}
-            >
-              <RotateCcw size={17} />
-              {t('shipper.deliveryHistory.reset')}
-            </Button>
-          )}
+          <SelectField
+            label={t('shipper.deliveryHistory.locker')}
+            value={query.lockerId}
+            onValueChange={lockerId => update({ lockerId })}
+            disabled={lockers.loading || !!lockers.error}
+            options={[{ value: '', label: t('common.all') }, ...(lockers.data || []).map(row => ({ value: row.id, label: row.name }))]}
+          />
+          <SelectField
+            label={t('shipper.sync.cancelledReturn')}
+            value={query.cancelledReturn}
+            onValueChange={cancelledReturn => update({ cancelledReturn })}
+            options={[{ value: '', label: t('common.all') }, { value: 'true', label: t('shipper.sync.cancelledOnly') }, { value: 'false', label: t('shipper.sync.normalOnly') }]}
+          />
+          <SelectField
+            label={t('shipper.sync.sort')}
+            value={query.sort}
+            onValueChange={sort => update({ sort })}
+            options={[{ value: 'newest', label: t('shipper.deliveryHistory.newest') }, { value: 'oldest', label: t('shipper.sync.oldest') }]}
+          />
+          <ClearFiltersButton
+            active={query.from || query.to || query.taskType || query.keyword || query.lockerId || query.cancelledReturn || query.sort === 'oldest' || query.invalidDates}
+            onClear={() => {
+              setReset(value => value + 1); setParams({})
+            }}
+          />
         </div>
         <DateRangeFilter
           key={`${query.from}-${query.to}`}
@@ -105,6 +146,17 @@ export default function DeliveryHistoryPage() {
           </p>
         )}
       </section>
+      <div className="flex justify-end">
+        <Button
+          className="h-11 px-5"
+          variant="outline"
+          onClick={download}
+          disabled={exporting || loading}
+        >
+          <Download className="size-4" />
+          {t('shipper.sync.export')}
+        </Button>
+      </div>
       <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 p-5">
           <p className="text-sm">
@@ -131,21 +183,21 @@ export default function DeliveryHistoryPage() {
             >
               <TableHeader className="bg-primary/5">
                 <TableRow>
-                  {['order', 'taskType', 'locker', 'completedAt', 'orderStatus'].map((key) => (
+                  {['order', 'taskType', 'locker', 'completedAt', 'orderStatus', 'actions'].map((key) => (
                     <TableHead
                       key={key}
                       className="px-5 py-4 whitespace-nowrap font-semibold"
                     >
-                      {t(`shipper.deliveryHistory.${key}`)}
+                      {t(key === 'actions' ? 'shipper.tasks.actions' : `shipper.deliveryHistory.${key}`)}
                     </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.list.map((row, index) => {
+                {data.list.map((row) => {
                   const Icon = row.taskType === 1 ? PackageOpen : Truck
                   return (
-                    <TableRow key={`${row.orderId}-${row.taskType}-${row.completedAt}-${index}`}>
+                    <TableRow key={row.eventId}>
                       <TableCell className="px-5 py-5">
                         <strong className="inline-flex whitespace-nowrap rounded-lg bg-primary/10 px-3 py-2 text-primary">
                           {row.orderCode}
@@ -171,6 +223,16 @@ export default function DeliveryHistoryPage() {
                       <TableCell className="px-5 py-5">
                         <OrderStatus status={row.orderStatus} />
                       </TableCell>
+                      <TableCell className="px-5 py-5">
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          aria-label={t('shipper.sync.eventDetail')}
+                          onClick={() => setSelected(row.eventId)}
+                        >
+                          <Eye className="size-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   )
                 })}
@@ -189,6 +251,12 @@ export default function DeliveryHistoryPage() {
           />
         )}
       </section>
+      {selected && (
+        <HistoryDetail
+          id={selected}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </Reveal>
   )
 }

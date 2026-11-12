@@ -20,9 +20,25 @@ export default function ProfileEditor({ profile, onClose, onSaved }) {
   const { register, control, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(profileSchema), defaultValues: { fullName: profile.fullName, phone: profile.phone || '', vehicleType: profile.vehicleType, vehiclePlate: profile.vehiclePlate || '' } })
   const avatar = useImages(1, profile.avatarUrl ? [profile.avatarUrl] : [])
   const [pending, setPending] = useState(false)
-  const [blocked, setBlocked] = useState(false)
+  const [blocked, setBlocked] = useState(shipperWorkspaceApi.hasPendingProfile(profile.id))
   const [error, setError] = useState('')
-  const lock = useRef(false)
+  const lock = useRef(false), operation = useRef(null)
+  const [unknown, setUnknown] = useState(shipperWorkspaceApi.hasPendingProfile(profile.id))
+  const check = async () => {
+    if (lock.current) {
+      return
+    }
+    lock.current = true; setPending(true)
+    try {
+      const result = await shipperWorkspaceApi.checkProfile(profile.id); if (result.id !== profile.id) {
+        throw new Error('shipper.invalidResponse')
+      } onSaved(result)
+    } catch (failure) {
+      setError(getApiError(failure))
+    } finally {
+      lock.current = false; setPending(false)
+    }
+  }
   const submit = async (values) => {
     if (lock.current || blocked || avatar.error) {
       return
@@ -41,7 +57,8 @@ export default function ProfileEditor({ profile, onClose, onSaved }) {
       }
       const currentAvatar = urls[0] || ''
       writing = true
-      const result = await shipperWorkspaceApi.updateProfile(profilePayload(values, currentAvatar === (profile.avatarUrl || '') ? null : currentAvatar))
+      operation.current = crypto.randomUUID()
+      const result = await shipperWorkspaceApi.updateProfile({ id: profile.id, ...profilePayload(values, currentAvatar === (profile.avatarUrl || '') ? null : currentAvatar), expectedRevision: profile.revision, operationId: operation.current })
       if (result.id !== profile.id) {
         throw new Error('shipper.invalidResponse')
       }
@@ -49,7 +66,7 @@ export default function ProfileEditor({ profile, onClose, onSaved }) {
       onSaved(result)
     } catch (failure) {
       const unknown = writing && (!failure.response || failure.response.status >= 500)
-      setBlocked(unknown || failure.response?.status === 409)
+      setUnknown(unknown); setBlocked(unknown || failure.response?.status === 409)
       setError(unknown ? 'shipper.unknown' : getApiError(failure))
     } finally {
       lock.current = false
@@ -82,6 +99,15 @@ export default function ProfileEditor({ profile, onClose, onSaved }) {
           <FormError>
             {error}
           </FormError>
+          {unknown && (
+            <Button
+              type="button"
+              onClick={check}
+              disabled={pending}
+            >
+              {t('admin.sync.checkResult')}
+            </Button>
+          )}
           <fieldset
             disabled={pending || blocked}
             className="space-y-5"

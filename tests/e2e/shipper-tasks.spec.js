@@ -10,6 +10,7 @@ const cancelledId = '33333333-3333-4333-8333-333333333333'
 const shipperId = '44444444-4444-4444-8444-444444444444'
 const photo = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="140"><rect width="200" height="140" fill="#e0e7ff"/><rect x="50" y="20" width="100" height="110" rx="8" fill="#64748b"/></svg>')}`
 const makeOrder = (id, type) => ({ id, revision: 1, orderCode: `WG-${type}`, merchantOrderCode: `MC-${type}`, status: type === 1 ? 2 : 9, paymentStatus: type === 1 ? 1 : 2, assignedTaskType: type, nextAction: type, shipperId, shipperAssignedAt: '2026-11-10T01:00:00Z', lockerId: 'deposit-locker', lockerName: 'Deposit Station', lockerLatitude: 10.77, lockerLongitude: 106.69, returnLockerLatitude: 10.8, returnLockerLongitude: 106.7, boxId: 'box-3', boxNumber: '3', returnLockerId: 'return-locker', taskLockerName: type === 1 ? 'Deposit Station' : 'Return Station', taskLockerAddress: '123 Test Street', taskLockerImageUrls: [photo], merchantImageUrls: [photo], merchantEmail: 'store@example.test', merchantPhone: '0909998888', taskBoxNumber: type === 1 ? '3' : null, merchantName: 'Test Store', shipperNote: 'Keep bags sealed', cancelledGoodsStatus: 0, customerName: 'PRIVATE CUSTOMER', shipperTaskPinCode: 'SECRET VALUE', items: [{ id: 'item-1', serviceName: 'Wash service', serviceImageUrls: [photo], quantity: 1 }] })
+const asTask = order => ({ taskId: order.id, assignmentVersion: order.id, orderId: order.id, orderCode: order.orderCode, merchantOrderCode: order.merchantOrderCode, taskType: order.assignedTaskType, status: order.nextAction ? 1 : 2, orderStatus: order.status, orderRevision: order.revision, canCollect: order.nextAction === 1, canReturn: order.nextAction === 2, taskLockerName: order.taskLockerName, taskLockerAddress: order.taskLockerAddress, taskLockerImageUrls: order.taskLockerImageUrls, taskLockerLatitude: order.assignedTaskType === 1 ? order.lockerLatitude : order.returnLockerLatitude, taskLockerLongitude: order.assignedTaskType === 1 ? order.lockerLongitude : order.returnLockerLongitude, taskBoxNumber: order.taskBoxNumber, assignedAt: order.shipperAssignedAt, note: order.shipperNote, merchantName: order.merchantName, order: { ...order, merchantPhoneNumber: order.merchantPhone } })
 async function setup(page, options = {}) {
   if (!options.guest) {
     await merchantSession(page, { role: 'Shipper', dark: options.dark })
@@ -23,7 +24,7 @@ async function setup(page, options = {}) {
       return ok({ id: 'auth-user', fullName: 'Alex Driver', role: 'Shipper', email: 'driver@example.test' })
     }
     if (path === '/shipper-profile') {
-      return ok({ id: shipperId, fullName: 'Alex Driver', email: 'driver@example.test', vehicleType: 1, status: 2, isActive: true, totalDeliveries: 20, rating: 0 })
+      return ok({ revision: 'v1', id: shipperId, fullName: 'Alex Driver', email: 'driver@example.test', vehicleType: 1, status: 2, isActive: true, totalDeliveries: 20, rating: 0 })
     }
     if (path === '/notification/unread-count') {
       return ok(0)
@@ -31,17 +32,24 @@ async function setup(page, options = {}) {
     if (path.startsWith('/hubs/notifications')) {
       return fail(404, '')
     }
-    if (path === '/wash-order/filter') {
+    if (path === '/shipper-tasks/summary') {
+      const body = request.postDataJSON(); const rows = Object.values(state.details).filter(row => row.nextAction && (!body.keyword || row.orderCode.includes(body.keyword))); return ok({ totalPending: rows.length, collectPending: rows.filter(row => row.assignedTaskType === 1).length, returnPending: rows.filter(row => row.assignedTaskType === 2).length })
+    }
+    const credentialMatch = path.match(/^\/shipper-tasks\/([^/]+)\/credentials$/)
+    if (credentialMatch) {
+      const row = state.details[credentialMatch[1]]; return ok({ taskId: row.id, assignmentVersion: row.id, orderRevision: row.revision, pinCode: row.shipperTaskPinCode, qrCode: row.shipperTaskQrString, remainingAttempts: 5, serverNow: '2026-11-12T00:00:00Z' })
+    }
+    if (path === '/shipper-tasks/filter') {
       const body = request.postDataJSON(); state.filters.push(body)
-      expect(body.pendingOnly).toBe(true)
+      expect(body.taskStatus).toBe(1)
       expect(body).not.toHaveProperty('shipperId')
       if (state.failList && body.take > 1) {
         return fail(500, 'List unavailable')
       }
       const rows = Object.values(state.details).filter((row) => row.nextAction != null && (!body.taskType || row.assignedTaskType === body.taskType) && (!body.keyword || row.orderCode.includes(body.keyword)))
-      return route.fulfill({ json: { succeeded: true, total: rows.length, list: rows.slice((body.page - 1) * body.take, body.page * body.take) } })
+      return route.fulfill({ json: { succeeded: true, total: rows.length, list: rows.slice((body.page - 1) * body.take, body.page * body.take).map(asTask) } })
     }
-    const match = path.match(/^\/wash-order\/([^/]+)(?:\/(shipper-collect|shipper-return))?$/)
+    const match = path.match(/^\/(?:wash-order|shipper-tasks)\/([^/]+)(?:\/(shipper-collect|shipper-return))?$/)
     if (match) {
       const order = state.details[match[1]]
       if (!order) {
@@ -49,11 +57,11 @@ async function setup(page, options = {}) {
       }
       if (request.method() === 'GET') {
         state.reads.push(order.id)
-        return ok(order)
+        return ok(path.startsWith('/shipper-tasks/') ? asTask(order) : order)
       }
       const body = request.postDataJSON()
       state.writes.push({ path, body })
-      expect(Object.keys(body).every((key) => ['pinCode', 'qrCode'].includes(key))).toBe(true)
+      expect(Object.keys(body).every((key) => ['pinCode', 'qrCode', 'taskId', 'expectedAssignmentVersion', 'expectedTaskType', 'expectedRevision', 'expectedStatus', 'operationId'].includes(key))).toBe(true)
       if (state.unknown) {
         return fail(503, 'Unknown delivery result')
       }
@@ -101,6 +109,7 @@ test('task list uses scoped server filters, links, no credentials and preserves 
   await setup(page)
   await page.goto('/shipper/tasks')
   await expect(page.getByRole('table')).toBeVisible()
+  await page.getByRole('columnheader', { name: 'Actions', exact: true }).scrollIntoViewIfNeeded()
   await expect(page.getByRole('columnheader', { name: 'Actions', exact: true })).toBeInViewport()
   await expect(page.getByText('SECRET VALUE', { exact: true })).toHaveCount(0)
   await page.getByRole('combobox', { name: 'Delivery type', exact: true }).click()
@@ -155,7 +164,7 @@ test('return QR rejects mismatched tasks locally and shows the server allocated 
   await dialog.getByRole('button', { name: 'Confirm', exact: true }).click()
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.getByText('Return to compartment 7 recorded.', { exact: true }).first()).toBeVisible()
-  expect(state.writes[0].body).toEqual({ qrCode: 'WASHGO:RETURN:WG-2:123456' })
+  expect(state.writes[0].body).toEqual({ qrCode: 'WASHGO:RETURN:WG-2:123456', taskId: returnId, expectedAssignmentVersion: returnId, expectedRevision: 1, expectedTaskType: 2, expectedStatus: 9, operationId: expect.any(String) })
 })
 
 test('changed assignment prevents a write using a stale task snapshot', async ({ page }) => {
@@ -179,7 +188,8 @@ test('unknown mutation result stays blocked after closing the modal and does not
   await expect(dialog.getByRole('alert')).toContainText('unknown')
   await expect(dialog.getByRole('button', { name: 'Confirm', exact: true })).toBeDisabled()
   await dialog.getByRole('button', { name: 'Close', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Confirm collection', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Confirm collection', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Check result', exact: true })).toBeVisible()
   expect(state.writes).toHaveLength(1)
 })
 
@@ -328,7 +338,8 @@ test('list quick confirmation checks current assignment and blocks retry after a
   await expect(dialog.getByRole('alert')).toBeVisible()
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
   await row.getByRole('button', { name: 'Actions', exact: true }).click()
-  await expect(page.getByRole('menuitem', { name: 'Confirm collection', exact: true })).toHaveAttribute('aria-disabled', 'true')
+  await expect(page.getByRole('menuitem', { name: 'Check result', exact: true })).toBeVisible()
+  await expect(page.getByRole('menuitem', { name: 'Confirm collection', exact: true })).toHaveCount(0)
   expect(state.writes).toHaveLength(1)
 })
 

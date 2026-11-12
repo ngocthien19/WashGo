@@ -7,7 +7,7 @@ async function setup(page, options = {}) {
     await merchantSession(page, { role: 'Shipper', dark: options.dark })
   }
   const rows = Array.from({ length: 30 }, (_, index) => ({
-    orderId: `order-${Math.floor(index / 2)}`, orderCode: `WG-${Math.floor(index / 2)}`, taskType: index % 2 + 1,
+    eventId: `event-${index}`, taskId: `task-${index}`, orderId: `order-${Math.floor(index / 2)}`, orderCode: `WG-${Math.floor(index / 2)}`, taskType: index % 2 + 1,
     lockerName: index % 2 ? 'Return Locker' : 'Deposit Locker', lockerImageUrls: [photo], lockerAddress: 'Historical locker address', boxNumber: `${index + 1}`,
     completedAt: new Date(Date.parse('2026-11-09T12:00:00Z') - index * 86400000).toISOString(), orderStatus: 12
   }))
@@ -19,12 +19,18 @@ async function setup(page, options = {}) {
       return ok({ id: 'history-user', fullName: 'Alex Driver', role: 'Shipper', email: 'driver@example.test' })
     }
     if (path === '/shipper-profile') {
-      return ok({ id: 'shipper-1', fullName: 'Alex Driver', email: 'driver@example.test', vehicleType: 1, status: 1, isActive: true, totalDeliveries: 30, rating: 0 })
+      return ok({ revision: 'v1', id: 'shipper-1', fullName: 'Alex Driver', email: 'driver@example.test', vehicleType: 1, status: 1, isActive: true, totalDeliveries: 30, rating: 0 })
+    }
+    if (path === '/shipper-delivery/lockers/filter') {
+      return ok([])
+    }
+    if (path === '/shipper-delivery/summary') {
+      const body = request.postDataJSON(); const filtered = state.empty ? [] : rows.filter(row => (!body.fromDate || Date.parse(row.completedAt) / 1000 >= body.fromDate) && (!body.toDate || Date.parse(row.completedAt) / 1000 <= body.toDate)); return ok({ total: filtered.length, collectCount: filtered.filter(row => row.taskType === 1).length, returnCount: filtered.filter(row => row.taskType === 2).length })
     }
     if (path === '/shipper-delivery/history') {
       const body = request.postDataJSON()
       state.filters.push(body)
-      expect(Object.keys(body).every((key) => ['fromDate', 'toDate', 'taskType', 'page', 'take'].includes(key))).toBe(true)
+      expect(Object.keys(body).every((key) => ['fromDate', 'toDate', 'taskType', 'page', 'take', 'sortBy', 'keyword', 'lockerId', 'cancelledReturn'].includes(key))).toBe(true)
       if (state.failList && body.take > 1) {
         return route.fulfill({ status: 500, json: { succeeded: false } })
       }
@@ -77,7 +83,7 @@ test('filters delivery type and inclusive completion dates, resets page and pres
   await page.reload()
   await expect(page.getByLabel('From date', { exact: true })).toHaveValue('2026-11-01')
   await expect(page.getByRole('table').getByText('Collection', { exact: true })).toHaveCount(0)
-  await page.getByRole('button', { name: 'Clear filters', exact: true }).click()
+  await page.getByRole('button', { name: 'Clear all', exact: true }).click()
   await expect(page).toHaveURL('/shipper/history')
 })
 
@@ -102,7 +108,7 @@ test('invalid URL filters can be cleared', async ({ page }) => {
   await setup(page)
   await page.goto('/shipper/history?from=2026-02-30&to=2026-01-01')
   await expect(page.getByRole('alert')).toContainText('date range in the URL is invalid')
-  await page.getByRole('button', { name: 'Clear filters', exact: true }).click()
+  await page.getByRole('button', { name: 'Clear all', exact: true }).click()
   await expect(page.getByRole('alert')).toHaveCount(0)
 })
 

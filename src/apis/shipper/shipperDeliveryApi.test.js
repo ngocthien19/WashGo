@@ -2,13 +2,13 @@ import { beforeEach, expect, it, vi } from 'vitest'
 import authorizedAxios from '~/utils/authorizedAxios'
 import { shipperDeliveryApi } from './shipperDeliveryApi'
 vi.mock('~/utils/authorizedAxios', () => ({ default: { post: vi.fn() } }))
-const row = { orderId: 'order-1', orderCode: 'WG1', taskType: 1, lockerName: 'Locker', completedAt: '2026-11-09T01:00:00Z', orderStatus: 12 }
+const row = { eventId: 'event-1', orderId: 'order-1', orderCode: 'WG1', taskType: 1, lockerName: 'Locker', completedAt: '2026-11-09T01:00:00Z', orderStatus: 12 }
 beforeEach(() => vi.clearAllMocks())
 it('paginates by server totals and sends only the supported scoped query', async () => {
   const signal = new AbortController().signal
   authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, list: [row], total: 30 } })
   const result = await shipperDeliveryApi.list({ fromDate: 100, toDate: 200, taskType: 2, page: 3, take: 12, shipperId: 'other', keyword: 'fake', sortBy: 'fake' }, signal)
-  expect(authorizedAxios.post).toHaveBeenCalledWith('/shipper-delivery/history', { fromDate: 100, toDate: 200, taskType: 2, page: 3, take: 12 }, { signal })
+  expect(authorizedAxios.post).toHaveBeenCalledWith('/shipper-delivery/history', { fromDate: 100, toDate: 200, taskType: 2, page: 3, take: 12, keyword: 'fake', sortBy: 'fake' }, { signal })
   expect(result).toEqual({ list: [row], total: 30, currentPage: 3, totalPages: 3 })
 })
 it('preserves separate collect and return events for the same order', async () => {

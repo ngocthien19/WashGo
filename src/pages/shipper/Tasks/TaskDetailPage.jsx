@@ -32,11 +32,19 @@ function Details({ id }) {
     if (!/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(id || '')) {
       throw new Error('shipper.tasks.invalidId')
     }
-    return shipperTaskApi.detail(id, signal)
+    return shipperTaskApi.resolve(id, signal)
   }, [id]))
   const order = resource.data
   const type = order?.assignedTaskType
   const canAct = canCompleteTask(order, profile.data?.id)
+  const unresolved = unknown || order && shipperTaskApi.hasPending(order)
+  const check = async () => {
+    try {
+      const value = await shipperTaskApi.check(order); setResult({ ...value, type }); setUnknown(false); resource.retry(); profile.retry()
+    } catch {
+      setUnknown(true)
+    }
+  }
   useEffect(() => {
     document.title = `${order?.orderCode || t('shipper.tasks.detail')} | WashGo`
   }, [order?.orderCode, t])
@@ -76,14 +84,20 @@ function Details({ id }) {
             <RefreshCw size={17} />
             {t('customer.orders.refresh')}
           </Button>
-          {canAct && (
+          {(canAct || unresolved) && (
             <Button
               className="h-11 px-5"
-              disabled={unknown || acting}
-              onClick={() => setActing(true)}
+              disabled={acting}
+              onClick={() => {
+                if (unresolved) {
+                  check()
+                } else {
+                  setActing(true)
+                }
+              }}
             >
               {type === 1 ? <PackageOpen size={17} /> : <Truck size={17} />}
-              {t(type === 1 ? 'shipper.tasks.confirmCollect' : 'shipper.tasks.confirmReturn')}
+              {t(unresolved ? 'admin.sync.checkResult' : type === 1 ? 'shipper.tasks.confirmCollect' : 'shipper.tasks.confirmReturn')}
             </Button>
           )}
         </div>
@@ -96,7 +110,7 @@ function Details({ id }) {
           {t(result.type === 1 ? 'shipper.tasks.collectSaved' : 'shipper.tasks.returnSaved', { box: result.boxNumber || '—' })}
         </p>
       )}
-      {unknown && (
+      {unresolved && (
         <FormError>
           {'shipper.tasks.unknown'}
         </FormError>
@@ -127,7 +141,7 @@ function Details({ id }) {
                   />
                 </div>
                 <dl className="grid gap-5 p-5 sm:grid-cols-2">
-                  {[[Clock, 'assigned', formatDateTime(order.shipperAssignedAt, 'Asia/Ho_Chi_Minh')], [Info, 'note', order.shipperNote]].map(([Icon, key, value]) => (
+                  {[[Clock, 'assigned', formatDateTime(order.shipperAssignedAt, 'Asia/Ho_Chi_Minh')], [Clock, 'deadline', formatDateTime(order.deadline, 'Asia/Ho_Chi_Minh')], [Info, 'note', order.shipperNote]].map(([Icon, key, value]) => (
                     <div
                       key={key}
                       className={key === 'address' || key === 'note' ? 'sm:col-span-2' : ''}
@@ -137,7 +151,7 @@ function Details({ id }) {
                           size={16}
                           className="text-primary"
                         />
-                        {t(`shipper.tasks.${key}`)}
+                        {t(key === 'deadline' ? 'shipper.sync.deadline' : `shipper.tasks.${key}`)}
                       </dt>
                       <dd className="break-words rounded-xl border border-border bg-muted/20 p-3 text-base font-medium">
                         {value || (key === 'box' && type === 2 ? t('shipper.tasks.autoBox') : '—')}
@@ -212,7 +226,7 @@ function Details({ id }) {
                 icon={Package}
               >
                 <ul className="divide-y divide-border px-5">
-                  {order.items.map((item, index) => (
+                  {(order.items || []).map((item, index) => (
                     <li
                       key={item.id || index}
                       className="flex items-center gap-3 py-4"
@@ -243,7 +257,7 @@ function Details({ id }) {
                   </p>
                 )}
               </ShipperPanel>
-              {canAct && !unknown && (
+              {canAct && !unresolved && (
                 <TaskCredential
                   key={taskSnapshot(order)}
                   order={order}
@@ -269,7 +283,7 @@ function Details({ id }) {
       )}
       {mapOpen && (
         <TaskMapDialog
-          id={id}
+          id={order?.taskId || id}
           onClose={() => setMapOpen(false)}
         />
       )}

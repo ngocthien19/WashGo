@@ -1,11 +1,30 @@
+import { taskDto, securityRoutes } from './helpers/shipperContracts'
 import { expect, test } from '@playwright/test'
 import { merchantSession } from './helpers/merchantSession'
 const photo = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#c7d2fe"/></svg>')}`
 
+for (const hasLegacyRating of [true, false]) {
+  test(`profile omits shipper stars with ${hasLegacyRating ? 'legacy' : 'absent'} rating data`, async ({ page }) => {
+    const state = await setup(page)
+    if (!hasLegacyRating) {
+      delete state.profile.rating
+    }
+    await page.goto('/shipper/profile')
+    await expect(page.getByRole('heading', { name: 'Alex Driver', exact: true })).toBeVisible()
+    await expect(page.getByText('Lifetime deliveries', { exact: true })).toBeVisible()
+    await expect(page.getByText('Rating', { exact: true })).toHaveCount(0)
+    await expect(page.getByText('4.8 / 5', { exact: true })).toHaveCount(0)
+    expect(state.writes).toHaveLength(0)
+  })
+}
+
 async function setup(page, options = {}) {
   await merchantSession(page, { role: 'Shipper', dark: options.dark })
-  const state = { writes: [], historyFilters: [], failTasks: false, profile: { id: 'shipper-test', fullName: 'Alex Driver', email: 'driver@example.test', phone: '0901234567', avatarUrl: null, vehicleType: 1, vehiclePlate: '59-X1 12345', status: 1, isActive: true, totalDeliveries: 24, rating: 4.8, merchantId: 'store-1', merchantName: 'WashGo Test Store' } }
-  await page.route('**/api/**', (route) => {
+  const state = { writes: [], historyFilters: [], failTasks: false, profile: { revision: 'profile-v1', id: 'shipper-test', fullName: 'Alex Driver', email: 'driver@example.test', phone: '0901234567', avatarUrl: null, vehicleType: 1, vehiclePlate: '59-X1 12345', status: 1, isActive: true, totalDeliveries: 24, rating: 4.8, merchantId: 'store-1', merchantName: 'WashGo Test Store' } }
+  await page.route('**/api/**', async (route) => {
+    if (await securityRoutes(route)) {
+      return
+    }
     const request = route.request()
     const path = new URL(request.url()).pathname.replace(/^\/api/, '')
     const ok = (data) => route.fulfill({ json: { succeeded: true, data } })
@@ -26,21 +45,16 @@ async function setup(page, options = {}) {
       }
       return ok(state.profile)
     }
-    if (path === '/wash-order/filter') {
-      const body = request.postDataJSON()
-      expect(body).not.toHaveProperty('shipperId')
-      expect(body.pendingOnly).toBe(true)
+    if (path === '/shipper-dashboard') {
+      const query = Object.fromEntries(new URL(request.url()).searchParams); state.historyFilters.push(query)
       if (state.failTasks) {
         return route.fulfill({ status: 500, json: { succeeded: false } })
       }
-      return route.fulfill({ json: { succeeded: true, total: body.taskType === 1 ? 7 : 0, list: body.taskType === 1 ? [{ id: 'order-1', orderCode: 'WG-TEST-1', assignedTaskType: 1, lockerId: 'locker-1', lockerName: 'Ben Thanh Locker', lockerImageUrls: [photo], lockerAddress: 'Dashboard locker address', boxNumber: '3', shipperAssignedAt: '2026-11-09T01:00:00Z', shipperNote: 'Collect sealed bag' }] : [] } })
+      const performance = { total: 2, onTimeCount: 0, slaSampleCount: 0, onTimeRate: null, durationSampleCount: 0, averageDurationHours: null }
+      return ok({ pendingCollectCount: 7, pendingReturnCount: 0, completedCollectCount: 0, completedReturnCount: 2, totalDeliveries: 24, generatedAt: '2026-11-12T01:00:00Z', from: '2026-11-11T17:00:00Z', to: '2026-11-12T01:00:00Z', previousFrom: '2026-11-10T17:00:00Z', previousTo: '2026-11-11T01:00:00Z', chart: [], performance, previousPerformance: performance, pendingCollect: [taskDto({ id: 'order-1', orderCode: 'WG-TEST-1', assignedTaskType: 1, nextAction: 1, status: 2, revision: 1, lockerName: 'Ben Thanh Locker', lockerImageUrls: [photo], lockerAddress: 'Dashboard locker address', boxNumber: '3', shipperAssignedAt: '2026-11-09T01:00:00Z', shipperNote: 'Collect sealed bag' })], pendingReturn: [], recentCompletions: [{ eventId: 'event-1', orderId: 'past-order', orderCode: 'WG-DONE-1', taskType: 2, lockerName: 'Ben Thanh Locker', lockerImageUrls: [photo], lockerAddress: 'Dashboard locker address', completedAt: '2026-11-09T02:00:00Z' }] })
     }
-    if (path === '/shipper-delivery/history') {
-      const body = request.postDataJSON()
-      expect(body.fromDate).toBeGreaterThan(0)
-      state.historyFilters.push(body)
-      expect(body.toDate).toBeGreaterThanOrEqual(body.fromDate)
-      return route.fulfill({ json: { succeeded: true, total: 2, list: [{ orderId: 'past-order', orderCode: 'WG-DONE-1', taskType: 2, lockerName: 'Ben Thanh Locker', lockerImageUrls: [photo], lockerAddress: 'Dashboard locker address', completedAt: '2026-11-09T02:00:00Z' }] } })
+    if (path.startsWith('/shipper-profile/operations/')) {
+      return ok(state.profile)
     }
     if (path === '/notification/unread-count') {
       return ok(0)
@@ -103,7 +117,7 @@ test('profile validates, saves only supported fields, and refreshes account iden
   await dialog.locator('#shipper-phone').fill('0901111222')
   await dialog.getByRole('button', { name: 'Save changes', exact: true }).click()
   await expect(page.getByRole('dialog')).toHaveCount(0)
-  expect(state.writes).toEqual([{ fullName: 'Updated Driver', phone: '0901111222', vehicleType: 1, vehiclePlate: '59-X1 12345', avatarUrl: null }])
+  expect(state.writes).toEqual([{ fullName: 'Updated Driver', phone: '0901111222', vehicleType: 1, vehiclePlate: '59-X1 12345', avatarUrl: null, expectedRevision: 'profile-v1', operationId: expect.any(String) }])
   await expect(page.locator('header').first()).toContainText('Updated Driver')
 })
 
@@ -118,8 +132,9 @@ test('unknown profile write is not retried and a stale profile cannot be overwri
   await page.keyboard.press('Escape')
   await page.getByRole('button', { name: 'Edit profile', exact: true }).click()
   state.profile.phone = '0909999888'
-  await page.getByRole('dialog').getByRole('button', { name: 'Save changes', exact: true }).click()
-  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('changed')
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Save changes', exact: true })).toBeDisabled()
+  await page.getByRole('dialog').getByRole('button', { name: 'Check result', exact: true }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
   expect(state.writes).toHaveLength(1)
 })
 
@@ -129,7 +144,7 @@ test('mobile dark navigation and independent task retry remain usable', async ({
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/shipper')
   await expect(page.getByRole('heading', { name: 'Delivery overview', exact: true })).toBeVisible()
-  await expect(page.getByText('WG-DONE-1', { exact: true })).toBeVisible()
+  await expect(page.getByText('WG-DONE-1', { exact: true })).toHaveCount(0)
   state.failTasks = false
   await page.getByRole('button', { name: 'Try again', exact: true }).first().click()
   await expect(page.getByText('WG-TEST-1', { exact: true })).toBeVisible()
@@ -142,19 +157,19 @@ test('dashboard period presets and custom range filter completions and survive r
   const state = await setup(page)
   await page.goto('/shipper')
   await expect.poll(() => state.historyFilters.length).toBeGreaterThan(0)
-  expect(state.historyFilters.at(-1).toDate - state.historyFilters.at(-1).fromDate).toBe(86399)
+  expect(state.historyFilters.at(-1).period).toBe('day')
   await expect(page.locator('main').getByText('WashGo Test Store', { exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: 'Week', exact: true }).click()
   await expect(page).toHaveURL(/period=week/)
-  await expect.poll(() => state.historyFilters.at(-1).toDate - state.historyFilters.at(-1).fromDate).toBe(7 * 86400 - 1)
+  await expect.poll(() => state.historyFilters.at(-1).period).toBe('week')
   await page.getByRole('button', { name: 'Month', exact: true }).click()
   await expect(page).toHaveURL(/period=month/)
   await page.getByRole('button', { name: 'Custom', exact: true }).click()
   await page.getByLabel('From date', { exact: true }).fill('2026-10-01')
   await page.getByLabel('To date', { exact: true }).fill('2026-10-05')
   await page.getByRole('button', { name: 'Apply', exact: true }).click()
-  await expect.poll(() => state.historyFilters.at(-1).fromDate).toBe(Date.parse('2026-10-01T00:00:00+07:00') / 1000)
-  expect(state.historyFilters.at(-1).toDate).toBe(Date.parse('2026-10-05T23:59:59+07:00') / 1000)
+  await expect.poll(() => state.historyFilters.at(-1).fromDate).toBe(String(Date.parse('2026-10-01T00:00:00+07:00') / 1000))
+  expect(state.historyFilters.at(-1).toDate).toBe(String(Date.parse('2026-10-05T23:59:59+07:00') / 1000))
   await page.reload()
   await expect(page.getByRole('button', { name: 'Custom', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await page.getByRole('button', { name: 'Custom', exact: true }).click()
