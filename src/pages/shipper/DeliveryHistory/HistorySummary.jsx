@@ -5,21 +5,19 @@ import StatCard from '~/components/workspace/StatCard'
 import { Button } from '~/components/ui/button'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { shipperDeliveryApi } from '~/apis/shipper/shipperDeliveryApi'
-import { dateRangeFilter } from '~/utils/dateRange'
+import { historyFilter } from './historyModel'
 
-export default function HistorySummary({ from, to, revision }) {
+export default function HistorySummary({ query, revision }) {
   const { t } = useTranslation()
-  const all = useCatalogResource(useCallback((signal) => shipperDeliveryApi.list({ ...dateRangeFilter({ from, to }), take: 1 }, signal), [from, to]), revision)
-  const collect = useCatalogResource(useCallback((signal) => shipperDeliveryApi.list({ ...dateRangeFilter({ from, to }), taskType: 1, take: 1 }, signal), [from, to]), revision)
-  const returns = useCatalogResource(useCallback((signal) => shipperDeliveryApi.list({ ...dateRangeFilter({ from, to }), taskType: 2, take: 1 }, signal), [from, to]), revision)
+  const resource = useCatalogResource(useCallback(signal => shipperDeliveryApi.summary(historyFilter(query), signal), [query]), revision)
   return (
     <div className="grid gap-4 sm:grid-cols-3">
-      {[[all, 'total', PackageCheck, 'border-l-primary', 'bg-primary/10 text-primary'], [collect, 'collectTotal', PackageOpen, 'border-l-emerald-500', 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'], [returns, 'returnTotal', Truck, 'border-l-violet-500', 'bg-violet-500/10 text-violet-700 dark:text-violet-300']].map(([resource, key, Icon, edge, color]) => (
+      {[[resource, 'total', PackageCheck, 'border-l-primary', 'bg-primary/10 text-primary'], [resource, 'collectTotal', PackageOpen, 'border-l-emerald-500', 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'], [resource, 'returnTotal', Truck, 'border-l-violet-500', 'bg-violet-500/10 text-violet-700 dark:text-violet-300']].map(([resource, key, Icon, edge, color]) => (
         <StatCard
           key={key}
           icon={Icon}
           label={t(`shipper.deliveryHistory.${key}`)}
-          value={resource.loading ? '…' : resource.error ? '—' : resource.data?.total}
+          value={resource.loading ? '…' : resource.error ? '—' : resource.data?.[({ total: 'total', collectTotal: 'collectCount', returnTotal: 'returnCount' })[key]]}
           className={edge}
           iconClassName={color}
         >

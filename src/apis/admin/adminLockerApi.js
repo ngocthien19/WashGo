@@ -1,3 +1,4 @@
+import { adminWrite, newOperationId, versionGuard, administrativeBatch } from './adminWrite'
 import authorizedAxios from '~/utils/authorizedAxios'
 import { merchantLockerApi } from '~/apis/merchant/merchantLockerApi'
 import { isId } from '~/pages/admin/Lockers/lockerModel'
@@ -5,8 +6,8 @@ import { isId } from '~/pages/admin/Lockers/lockerModel'
 const invalid = () => new Error('admin.invalidResponse')
 const pick = (value, keys) => Object.fromEntries(keys.filter(key => value[key] !== undefined).map(key => [key, value[key]]))
 const valid = item => isId(item?.id) && typeof item.name === 'string' && typeof item.code === 'string' && [1, 2, 3].includes(item.status)
-const unwrapWrite = async (method, path, body, validate) => {
-  const { data } = method === 'delete' ? await authorizedAxios.delete(path) : await authorizedAxios[method](path, body)
+const unwrapWrite = async (method, path, body, validate, guard = {}, action = 'Update', resource = body?.boxId || body?.id || 'new') => {
+  const { data } = await adminWrite('Locker', action, resource, method, path, method === 'delete' ? undefined : { ...body, ...guard }, method === 'delete' ? guard : undefined)
   if (data?.succeeded !== true || !validate(data.data)) {
     const error = invalid(); error.uncertain = true; throw error
   }
@@ -32,20 +33,20 @@ export const adminLockerApi = {
     return [...new Set(data.data.map(item => item.value).filter(value => value.trim()))].sort((a, b) => a.localeCompare(b, 'vi'))
   },
   merchants: async signal => {
-    const rows = new Map()
-    let page = 1, pages = 1
-    while (page <= pages) {
-      const { data } = await authorizedAxios.post('/merchant/filter', { page, take: 100 }, { signal })
-      if (data?.succeeded !== true || !Array.isArray(data.list) || !Number.isInteger(data.total) || data.total < 0 || data.list.some(row => !isId(row.id) || typeof row.businessName !== 'string' || ![1, 2, 3].includes(row.status))) {
+    const rows = [], take = 50
+    let page = 1, total = Infinity
+    while (rows.length < total) {
+      const { data } = await authorizedAxios.get('/admin/lookups/merchants', { params: { page, take }, signal })
+      if (data?.succeeded !== true || !Array.isArray(data.list) || !Number.isInteger(data.total) || data.list.some(row => !isId(row.id) || typeof row.name !== 'string') || !data.list.length && rows.length < data.total) {
         throw invalid()
       }
-      data.list.forEach(row => rows.set(row.id, { id: row.id, name: row.businessName, status: row.status, email: typeof row.email === 'string' ? row.email : null, phone: typeof row.phone === 'string' ? row.phone : null, imageUrls: Array.isArray(row.imageUrls) ? row.imageUrls.filter(url => typeof url === 'string') : [] }))
-      pages = Math.ceil(data.total / 100); page += 1
+      rows.push(...data.list); total = data.total; page++
     }
-    return [...rows.values()].sort((a, b) => a.name.localeCompare(b.name, 'vi'))
+    return rows
   },
-  create: body => unwrapWrite('post', '/locker', pick(body, [...fields, 'code', 'boxCount', 'defaultBoxSize']), valid),
-  update: body => unwrapWrite('put', '/locker', pick(body, [...fields, 'id', 'status']), item => valid(item) && item.id === body.id && item.status === body.status),
-  remove: id => unwrapWrite('delete', `/locker/${encodeURIComponent(id)}`, null, value => value === true),
-  boxStatus: body => unwrapWrite('put', '/locker/box-status', pick(body, ['lockerId', 'boxId', 'newStatus']), value => value === true)
+  create: body => unwrapWrite('post', '/locker', pick(body, [...fields, 'code', 'boxCount', 'defaultBoxSize']), valid, { operationId: newOperationId() }, 'Create'),
+  update: body => unwrapWrite('put', '/locker', pick(body, [...fields, 'id', 'status']), item => valid(item) && item.id === body.id && item.status === body.status, versionGuard(body.expectedVersion)),
+  batch: body => administrativeBatch('Locker', '/locker/batch', body),
+  remove: (id, version) => unwrapWrite('delete', `/locker/${encodeURIComponent(id)}`, null, value => value === true, versionGuard(version), 'Delete', id),
+  boxStatus: body => unwrapWrite('put', '/locker/box-status', pick(body, ['lockerId', 'boxId', 'newStatus', 'expectedBoxStatus']), value => value === true, versionGuard(body.expectedVersion), 'BoxStatus')
 }

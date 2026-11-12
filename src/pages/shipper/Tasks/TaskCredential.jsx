@@ -6,10 +6,10 @@ import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 import { shipperTaskApi } from '~/apis/shipper/shipperTaskApi'
 import { getApiError } from '~/utils/apiError'
-import { canCompleteTask, taskSnapshot, matchesTaskQr } from './taskModel'
+import { matchesTaskQr } from './taskModel'
 import { notify } from '~/utils/notifications'
 
-export default function TaskCredential({ order, shipperId }) {
+export default function TaskCredential({ order }) {
   const { t } = useTranslation()
   const [credential, setCredential] = useState(null)
   const [showQr, setShowQr] = useState(false)
@@ -23,16 +23,16 @@ export default function TaskCredential({ order, shipperId }) {
     }
     lock.current = true; setPending(true); setError('')
     try {
-      const row = await shipperTaskApi.credentials(order.id)
-      if (!canCompleteTask(row, shipperId) || taskSnapshot(row) !== taskSnapshot(order)) {
+      const row = await shipperTaskApi.credentials(order)
+      if (row.taskId !== order.taskId || row.assignmentVersion !== order.assignmentVersion || row.orderRevision !== order.revision) {
         setCredential(null); setShowPin(false); setShowQr(false)
         setError('shipper.tasks.changed'); return
       }
-      if (!/^\d{6}$/.test(row.shipperTaskPinCode || '') || !matchesTaskQr(row.shipperTaskQrString || '', order.orderCode, order.nextAction)) {
+      if (!/^\d{6}$/.test(row.pinCode || '') || !matchesTaskQr(row.qrCode || '', order.orderCode, order.nextAction)) {
         setCredential(null); setShowPin(false); setShowQr(false)
         setError('shipper.tasks.codeUnavailable'); return
       }
-      const value = { pin: row.shipperTaskPinCode, qr: row.shipperTaskQrString }
+      const value = { pin: row.pinCode, qr: row.qrCode }
       setCredential(value)
       return value
     } catch (failure) {

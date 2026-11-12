@@ -7,7 +7,7 @@ beforeEach(() => vi.clearAllMocks())
 
 it('submits city and paired coordinates for approval without identity or financial fields', async () => {
   authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, data: { id: 'request', status: 1 } } })
-  const payload = { businessName: 'Store', address: 'Address', city: 'City', latitude: 10.7, longitude: 106.6, phone: '0901234567', openingHours: null, imageUrls: [] }
+  const payload = { expectedMerchantVersion: 'profile-v1', businessName: 'Store', address: 'Address', city: 'City', latitude: 10.7, longitude: 106.6, phone: '0901234567', openingHours: null, imageUrls: [] }
   await merchantProfileApi.requestUpdate({ ...payload, merchantId: 'other', commissionRate: 1, taxCode: '1234567890', businessLicenseDocumentId: 'document-id', removeBusinessLicenseDocument: false, operationId: 'operation', status: 1 })
   expect(authorizedAxios.post).toHaveBeenCalledExactlyOnceWith('/merchant-profile/update-requests', { ...payload, taxCode: '1234567890', businessLicenseDocumentId: 'document-id', removeBusinessLicenseDocument: false, operationId: 'operation' })
 })

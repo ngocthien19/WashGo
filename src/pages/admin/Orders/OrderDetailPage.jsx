@@ -1,3 +1,5 @@
+import OrderCommission from '~/components/orders/OrderCommission'
+import CancelExpiredDialog from './components/CancelExpiredDialog'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -146,6 +148,15 @@ export default function OrderDetailPage() {
                   {t(assignmentTask(order) === 1 ? 'merchant.orders.assignCollect' : 'merchant.orders.assignReturn')}
                 </Button>
               )}
+              {order.allowedActions?.canCancelExpiredDeposit && (
+                <Button
+                  variant="destructive"
+                  className="h-11 px-4 text-base"
+                  onClick={() => setAction('cancelExpired')}
+                >
+                  {t('admin.sync.cancelExpired')}
+                </Button>
+              )}
               {canStore(order) && (
                 <Button
                   variant="outline"
@@ -213,7 +224,28 @@ export default function OrderDetailPage() {
                     </div>
                   </div>
                 </div>
-                <Fields values={fields([['shipper', order.shipperName], ['customerNote', order.customerNote], ['shipperNote', order.shipperNote]])} />
+                <div className="mb-5 flex min-w-0 items-center gap-3 rounded-xl border border-border p-4">
+                  <UserAvatar
+                    avatar={order.shipperAvatarUrl}
+                    fullName={order.shipperName}
+                    alt={order.shipperName || ''}
+                    className="size-12"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm text-muted-foreground">
+                      {t('admin.orderManagement.shipper')}
+                    </p>
+                    <p className="mt-1 break-words text-base font-semibold">
+                      {order.shipperName || t('admin.orderManagement.unassigned')}
+                    </p>
+                    {order.shipperId && (
+                      <p className="mt-1 text-base">
+                        {order.shipperPhone || '—'}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <Fields values={fields([['customerNote', order.customerNote], ['shipperNote', order.shipperNote]])} />
                 {order.cancellationReason && (
                   <p className="mt-5 rounded-xl bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-300">
                     {t('admin.orderManagement.cancelReason')}
@@ -236,7 +268,7 @@ export default function OrderDetailPage() {
                       <h3 className="mb-4 border-b border-border pb-3 font-semibold text-primary">
                         {t(`admin.orderManagement.${slot.key}`)}
                       </h3>
-                      <div className="mb-4 flex items-center gap-3">
+                      <div className="mb-4 flex items-start gap-3">
                         <ResourceThumbnail
                           urls={slot.images}
                           name={slot.name}
@@ -248,10 +280,13 @@ export default function OrderDetailPage() {
                           <p className="mt-1 break-words font-semibold">
                             {slot.name || '—'}
                           </p>
+                          <p className="mt-2 break-words text-base leading-6 text-muted-foreground">
+                            {slot.address || '—'}
+                          </p>
                         </div>
                       </div>
                       <dl className="space-y-4">
-                        {[['lockerAddress', slot.address], [slot.boxLabel, slot.box]].map(([key, value]) => (
+                        {[[slot.boxLabel, slot.box]].map(([key, value]) => (
                           <div key={key}>
                             <dt className="text-sm text-muted-foreground">
                               {t(`admin.orderManagement.${key}`)}
@@ -375,6 +410,7 @@ export default function OrderDetailPage() {
                     </dd>
                   </div>
                 </dl>
+                <OrderCommission order={order} />
                 <div className="mt-5 border-t border-border pt-4">
                   <Fields values={fields([['paymentDeadline', order.paymentDeadline ? formatDateTime(order.paymentDeadline) : null], ['pickupDeadline', order.pickupDeadline ? formatDateTime(order.pickupDeadline) : null]])} />
                 </div>
@@ -391,6 +427,13 @@ export default function OrderDetailPage() {
           </div>
           {action === 'merchant' && (
             <MerchantAssignmentDialog
+              id={order.id}
+              onClose={done}
+              onSaved={done}
+            />
+          )}
+          {action === 'cancelExpired' && (
+            <CancelExpiredDialog
               id={order.id}
               onClose={done}
               onSaved={done}

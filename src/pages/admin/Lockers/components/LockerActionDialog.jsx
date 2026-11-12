@@ -36,9 +36,9 @@ export default function LockerActionDialog({ locker, box, onClose, onSaved }) {
       }
       writing = true
       if (removing) {
-        await adminLockerApi.remove(locker.id)
+        await adminLockerApi.remove(locker.id, current.version)
       } else {
-        await adminLockerApi.boxStatus({ lockerId: locker.id, boxId: box.id, newStatus: restoring ? 1 : 4 })
+        await adminLockerApi.boxStatus({ lockerId: locker.id, boxId: box.id, expectedBoxStatus: box.status, expectedVersion: current.version, newStatus: restoring ? 1 : 4 })
       }
       notify.success(removing ? 'admin.lockers.deleted' : 'admin.lockers.boxUpdated'); onSaved()
     } catch (failure) {

@@ -1,3 +1,4 @@
+import { accountSecurityApi } from '~/apis/auth/accountSecurityApi'
 import authorizedAxios from '~/utils/authorizedAxios'
 
 const invalid = () => new Error('admin.invalidResponse')
@@ -18,7 +19,7 @@ const paged = ({ data }) => {
 // PostgreSQL microsecond ticks exceed Number.MAX_SAFE_INTEGER. Keep versions as decimal strings in memory.
 export const parseAdminProfile = raw => typeof raw === 'string' ? JSON.parse(raw.replace(/("version"\s*:\s*)(\d+)/g, '$1"$2"')) : raw
 const profile = value => {
-  if (!value?.id || value.role !== 'Admin' || typeof value.fullName !== 'string' || typeof value.email !== 'string' || !/^[0-9]{1,19}$/.test(value.version) || (typeof value.version === 'number' && !Number.isSafeInteger(value.version)) || !instant(value.joinedAt) || !['Active', 'Locked'].includes(value.accountStatus) || !Array.isArray(value.editableFields)) {
+  if (!value?.id || value.role !== 'Admin' || typeof value.fullName !== 'string' || typeof value.email !== 'string' || typeof value.version !== 'string' || !value.version.trim() || !instant(value.joinedAt) || !['Active', 'Locked'].includes(value.accountStatus) || !Array.isArray(value.editableFields)) {
     throw invalid()
   }
   return { ...value, version: String(value.version) }
@@ -28,10 +29,10 @@ const kpi = v => v && Number.isFinite(v.current) && (v.previous === null || Numb
 export const adminWorkspaceApi = {
   profile: signal => authorizedAxios.get('/admin/profile', { ...profileOptions, signal }).then(unwrap).then(profile),
   saveProfile: async ({ fullName, phone, avatar, expectedVersion }, id) => {
-    if (!/^[0-9]{1,19}$/.test(expectedVersion)) {
+    if (typeof expectedVersion !== 'string' || !expectedVersion.trim()) {
       throw invalid()
     }
-    const body = JSON.stringify({ fullName, phone, avatar, expectedVersion: String(expectedVersion) }).replace(/"expectedVersion":"(\d+)"/, '"expectedVersion":$1')
+    const body = { fullName, phone, avatar, expectedVersion }
     const value = profile(unwrap(await authorizedAxios.put('/admin/profile', body, { ...profileOptions, headers: { 'Content-Type': 'application/json' } })))
     if (value.id !== id) {
       throw invalid()
@@ -61,24 +62,5 @@ export const adminWorkspaceApi = {
       throw invalid()
     } return v
   }),
-  security: signal => authorizedAxios.get('/auth/security', { signal }).then(unwrap).then(v => {
-    if (!['hasPassword', 'googleLinked', 'twoFactorSupported', 'twoFactorEnabled'].every(k => typeof v[k] === 'boolean') || !count(v.activeSessions)) {
-      throw invalid()
-    } return v
-  }),
-  sessions: signal => authorizedAxios.get('/auth/sessions', { signal }).then(unwrap).then(v => {
-    if (!Array.isArray(v) || v.some(r => !r.id || typeof r.isCurrent !== 'boolean' || !['startedAt', 'lastActiveAt', 'expiresAt'].every(k => instant(r[k])))) {
-      throw invalid()
-    } return v
-  }),
-  password: async ({ currentPassword, newPassword, confirmNewPassword, revokeOtherSessions }) => {
-    if (unwrap(await authorizedAxios.post('/auth/change-password', { currentPassword, newPassword, confirmNewPassword, revokeOtherSessions })) !== true) {
-      throw invalid()
-    }
-  },
-  revoke: async id => {
-    const v = unwrap(await (id ? authorizedAxios.delete(`/auth/sessions/${encodeURIComponent(id)}`) : authorizedAxios.post('/auth/sessions/revoke-others'))); if (!count(v.revoked)) {
-      throw invalid()
-    } return v
-  }
+  ...accountSecurityApi
 }

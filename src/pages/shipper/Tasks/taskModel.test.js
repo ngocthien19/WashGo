@@ -2,12 +2,12 @@ import { expect, it } from 'vitest'
 import { readTaskQuery, taskFilter, taskParams, taskSnapshot, canCompleteTask, matchesTaskQr, credentialSchema } from './taskModel'
 it('normalizes task search/type/paging without inventing assignment-date filters', () => {
   const query = readTaskQuery(new URLSearchParams('keyword=WG&taskType=2&page=3'))
-  expect(taskFilter(query)).toEqual({ keyword: 'WG', taskType: 2, page: 3, take: 12 })
-  expect(taskParams(query)).toEqual({ keyword: 'WG', taskType: '2', page: '3' })
+  expect(taskFilter(query)).toMatchObject({ keyword: 'WG', taskType: 2, taskStatus: 1, sortBy: [{ field: 'AssignedAt', isDescending: false }], page: 3, take: 12 })
+  expect(taskParams(query)).toMatchObject({ keyword: 'WG', taskType: '2', page: '3' })
   expect(readTaskQuery(new URLSearchParams('taskType=0&page=-1')).page).toBe(1)
 })
 it('requires matching shipper-domain ID and BE nextAction, not the auth User ID', () => {
-  const order = { shipperId: 'domain-id', nextAction: 1, assignedTaskType: 1 }
+  const order = { taskId: 'task', assignmentVersion: 'task', revision: 1, canCollect: true, canReturn: false, shipperId: 'domain-id', nextAction: 1, assignedTaskType: 1 }
   expect(canCompleteTask(order, 'domain-id')).toBe(true)
   expect(canCompleteTask(order, 'user-id')).toBe(false)
   expect(canCompleteTask({ ...order, nextAction: null }, 'domain-id')).toBe(false)

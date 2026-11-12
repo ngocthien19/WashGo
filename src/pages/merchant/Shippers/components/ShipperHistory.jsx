@@ -1,3 +1,4 @@
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -28,6 +29,11 @@ function HistoryContent({ id, audit }) {
               options={[{ value: '', label: t('common.all') }, ...(key === 'taskType' ? [1, 2] : [1, 2, 3, 4]).map((value) => ({ value: String(value), label: t(`merchant.shipperSync.${key}.${value}`) }))]}
             />
           ))}
+          <ClearFiltersButton
+            className="sm:col-span-2"
+            active={query.taskType || query.status}
+            onClear={() => setQuery({ page: 1, taskType: '', status: '' })}
+          />
         </div>
       )}
       {resource.loading || resource.error || !items?.length ? (

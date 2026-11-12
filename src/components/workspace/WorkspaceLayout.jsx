@@ -77,8 +77,15 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
 
               className={`flex w-full items-center ${enabled ? 'hover:bg-primary/12 hover:text-primary focus-visible:bg-primary/12 focus-visible:text-primary' : 'pointer-events-none opacity-45'} ${compact ? 'justify-center px-0' : 'gap-3 px-4'} rounded-xl py-3 text-base font-semibold ${enabled && (key === 'overview' ? pathname === navHref(key) : pathname.startsWith(navHref(key))) ? 'bg-primary/12 text-primary' : 'text-muted-foreground'}`}
             >
-              <Icon size={19} />
-              {!compact && t(`${prefix}.nav.${key}`)}
+              <Icon
+                size={19}
+                className="shrink-0"
+              />
+              {!compact && (
+                <span className={admin ? 'whitespace-nowrap' : undefined}>
+                  {t(`${prefix}.nav.${key}`)}
+                </span>
+              )}
             </Link>
           </NavTooltip>
         ))}
@@ -109,7 +116,7 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
       resolveHref={resolveNotificationHref}
     >
       <div className="min-h-dvh bg-background text-foreground">
-        <header className={`sticky top-0 z-40 border-b border-border ${admin || prefix === 'shipper' ? 'bg-card' : 'bg-card/95'} backdrop-blur-md ${collapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+        <header className={`sticky top-0 z-40 border-b border-border ${admin || prefix === 'shipper' ? 'bg-card' : 'bg-card/95'} backdrop-blur-md ${collapsed ? 'lg:ml-20' : admin ? 'lg:ml-72' : 'lg:ml-64'}`}>
           <div className="flex min-h-20 items-center justify-between gap-3 px-4 sm:px-6">
             <div className="flex items-center gap-3 lg:hidden">
               <Button
@@ -190,7 +197,7 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
             </div>
           )}
         </header>
-        <aside className={`group/sidebar fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border ${admin ? 'bg-indigo-50/70 dark:bg-indigo-950/30' : 'bg-card'} lg:flex ${collapsed ? 'w-20' : 'w-64'}`}>
+        <aside className={`group/sidebar fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border ${admin ? 'bg-indigo-50/70 dark:bg-indigo-950/30' : 'bg-card'} lg:flex ${collapsed ? 'w-20' : admin ? 'w-72' : 'w-64'}`}>
           <div className="flex h-20 shrink-0 items-center justify-center border-b border-border px-4">
             <NavTooltip
               content="WashGo"
@@ -227,7 +234,7 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
             {logoutButton(collapsed)}
           </div>
         </aside>
-        <main className={`min-w-0 p-4 sm:p-6 lg:p-8 ${collapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+        <main className={`min-w-0 p-4 sm:p-6 lg:p-8 ${collapsed ? 'lg:ml-20' : admin ? 'lg:ml-72' : 'lg:ml-64'}`}>
           <Outlet context={{ ...context, logout, logoutPending: pending }} />
         </main>
       </div>

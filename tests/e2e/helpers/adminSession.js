@@ -47,7 +47,8 @@ export async function setupAdmin(page, { dark = false, guest = false } = {}) {
       return ok({ hasPassword: true, passwordChangedAt: '2026-10-01T00:00:00Z', lastLoginAt: '2026-11-10T00:00:00Z', googleLinked: false, twoFactorSupported: false, twoFactorEnabled: false, activeSessions: state.sessions.length })
     }
     if (path === '/auth/sessions') {
-      return ok(state.sessions)
+      const query = new URL(req.url()).searchParams, page = Number(query.get('page') || 1), take = Number(query.get('take') || 10)
+      return ok({ total: state.sessions.length, page, take, hasMore: page * take < state.sessions.length, current: state.sessions.find(row => row.isCurrent) || null, items: state.sessions.slice((page - 1) * take, page * take) })
     }
     if (path === '/auth/change-password') {
       state.passwords++

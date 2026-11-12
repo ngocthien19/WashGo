@@ -53,11 +53,12 @@ export default function MerchantAssignmentDialog({ id, ids, onClose, onSaved }) 
           setBlocked(true); setError('admin.orderManagement.changed'); return
         }
       }
+      const guarded = pairs.map(pair => ({ ...pair, expectedRevision: resource.data.snapshots.find(order => order.id === pair.orderId).revision, expectedCommissionRate: (bulk ? suggestions.find(item => item.orderId === pair.orderId).suggested : value.merchants.find(item => item.merchantId === pair.merchantId)).commissionRate }))
       writing = true
       if (bulk) {
-        await adminOrderApi.autoAssign(pairs)
+        await adminOrderApi.autoAssign(guarded)
       } else {
-        await adminOrderApi.assignMerchant(id, selected)
+        await adminOrderApi.assignMerchant(id, selected, guarded[0])
       }
       notify.success('admin.orderManagement.assigned'); onSaved()
     } catch (failure) {

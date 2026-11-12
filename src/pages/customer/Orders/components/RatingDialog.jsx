@@ -66,6 +66,11 @@ export default function RatingDialog({ order, resource, onClose, onSaved }) {
                       {formatDateTime(rating.createdOn)}
                     </p>
                   </div>
+                  {rating.isVisible === false && (
+                    <p className="rounded-xl bg-muted p-3 text-sm text-muted-foreground">
+                      {t('customer.rating.notPublic')}
+                    </p>
+                  )}
                   <RatingStars
                     featured
                     label={t('customer.rating.overallStars')}

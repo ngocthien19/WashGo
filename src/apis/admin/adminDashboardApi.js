@@ -21,6 +21,9 @@ export function validateRevenue(value) {
     || !Array.isArray(value.byMerchant) || value.byMerchant.some((row) => typeof row.merchantName !== 'string' || !Number.isFinite(row.revenue) || !count(row.paidOrderCount))) {
     throw invalid()
   }
+  if (value.hourly != null && (!Array.isArray(value.hourly) || value.hourly.some(row => !Number.isFinite(Date.parse(row.hourStart)) || !Number.isFinite(row.revenue)))) {
+    throw invalid()
+  }
   return value
 }
 export const adminDashboardApi = {
@@ -30,7 +33,7 @@ export const adminDashboardApi = {
     }
     return value
   }),
-  revenue: (filter, signal) => authorizedAxios.post('/finance/revenue-report', filter, { signal }).then(unwrap).then(validateRevenue),
+  revenue: (filter, signal) => authorizedAxios.post('/finance/revenue-report', { ...filter, granularity: filter.toDate - filter.fromDate < 86400 ? 'hour' : 'day' }, { signal }).then(unwrap).then(validateRevenue),
   orders: (filter, signal) => authorizedAxios.post('/wash-order/summary', filter, { signal }).then(unwrap).then((value) => {
     const counts = orderStatusCounts(value.statusCounts)
     if (!count(value.total) || Object.values(counts).reduce((sum, n) => sum + n, 0) !== value.total) {

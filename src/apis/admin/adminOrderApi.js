@@ -1,3 +1,4 @@
+import { newOperationId } from './adminWrite'
 import authorizedAxios from '~/utils/authorizedAxios'
 import { orderManagementApi } from '~/apis/orderManagementApi'
 import { isId } from '~/pages/admin/Merchants/merchantModel'
@@ -13,28 +14,56 @@ const unwrap = (response, validate) => {
   return response.data.data
 }
 const pairsValid = (items) => items.length > 0 && items.length <= 50 && items.every(item => isId(item.orderId) && isId(item.merchantId)) && new Set(items.map(item => item.orderId)).size === items.length
-const write = async (path, body, validate) => {
-  const response = await authorizedAxios.post(path, body)
+const write = async (path, body, validate, reconcile) => {
+  let response
+  try {
+    response = await authorizedAxios.post(path, body)
+  } catch (failure) {
+    if (reconcile && (!failure.response || failure.response.status >= 500)) {
+      try {
+        const value = await reconcile(); if (validate(value)) {
+          return value
+        }
+      } catch { /* Keep uncertain writes locked. */ }
+      failure.uncertain = true
+    }
+    throw failure
+  }
   try {
     return unwrap(response, validate)
   } catch {
     const error = invalid(); error.uncertain = true; throw error
   }
 }
+const orderWrite = (path, body, id, operation, validate) => write(path, body, validate, async () => {
+  const result = await orderManagementApi.operation(id, body.operationId, operation)
+  if (!result) {
+    throw invalid()
+  }
+  return orderManagementApi.detail(id)
+})
+const assignmentLookup = async (operationId, pairs) => {
+  const { data } = await authorizedAxios.get(`/order-assignment/operations/${operationId}`)
+  if (data?.succeeded !== true || data.data?.operationId !== operationId || !Array.isArray(data.data.results) || data.data.results.length !== pairs.length || data.data.results.some(row => !pairs.some(pair => pair.orderId === row.orderId && pair.merchantId === row.merchantId))) {
+    throw invalid()
+  }
+  return data.data.results
+}
 export const adminOrderApi = {
   ...orderManagementApi,
-  lookup: async (path, name, signal) => {
+  lookup: async (_path, name, signal) => {
     const items = new Map()
     let page = 1, pages = 1
     while (page <= pages) {
-      const { data } = await authorizedAxios.post(path, { page, take: 100 }, { signal })
-      if (data?.succeeded !== true || !Array.isArray(data.list) || !Number.isInteger(data.total) || data.list.some(item => !isId(item.id) || typeof item[name] !== 'string')) {
+      const kind = name === 'businessName' ? 'merchants' : 'lockers'
+      const { data } = await authorizedAxios.get(`/admin/lookups/${kind}`, { params: { page, take: 50 }, signal })
+      if (data?.succeeded !== true || !Array.isArray(data.list) || !Number.isInteger(data.total) || data.list.some(item => !isId(item.id) || typeof item.name !== 'string') || !data.list.length && items.size < data.total) {
         throw invalid()
       }
       for (const item of data.list) {
-        items.set(item.id, { value: item.id, label: item[name], phone: typeof item.phone === 'string' ? item.phone : null, imageUrls: Array.isArray(item.imageUrls) ? item.imageUrls.filter(url => typeof url === 'string') : [] })
+        items.set(item.id, { value: item.id, label: item.name, status: item.status })
       }
-      pages = Math.ceil(data.total / 100); page += 1
+      pages = Math.ceil(data.total / 50); page += 1
     }
     return [...items.values()].sort((a, b) => a.label.localeCompare(b.label, 'vi'))
   },
@@ -70,7 +99,10 @@ export const adminOrderApi = {
     return { ...data, totalPages: Math.ceil(data.total / filter.take) }
   },
   candidates: async (id, signal) => unwrap(await authorizedAxios.get(`/order-assignment/${encodeURIComponent(id)}/candidates`, { signal }), data => data?.order?.id === id && waiting(data.order) && Array.isArray(data.merchants) && data.merchants.every(candidate)),
-  assignMerchant: (id, merchantId) => write(`/order-assignment/${encodeURIComponent(id)}/assign`, { merchantId }, data => data?.orderId === id && data.merchantId === merchantId),
+  assignMerchant: (id, merchantId, guard) => {
+    const body = { merchantId, expectedRevision: guard.expectedRevision, expectedCommissionRate: guard.expectedCommissionRate, operationId: newOperationId() }
+    return write(`/order-assignment/${encodeURIComponent(id)}/assign`, body, data => data?.orderId === id && data.merchantId === merchantId, async () => (await assignmentLookup(body.operationId, [{ orderId: id, merchantId }]))[0])
+  },
   suggest: async (orderIds, signal) => {
     if (!orderIds.length || orderIds.length > 50 || !orderIds.every(isId) || new Set(orderIds).size !== orderIds.length) {
       throw invalid()
@@ -81,7 +113,13 @@ export const adminOrderApi = {
     if (!pairsValid(assignments)) {
       throw invalid()
     }
-    return write('/order-assignment/auto-assign', { assignments }, data => Array.isArray(data) && data.length === assignments.length && new Set(data.map(item => item.orderId)).size === data.length && data.every(item => assignments.some(pair => pair.orderId === item.orderId && pair.merchantId === item.merchantId)))
+    const operationId = newOperationId()
+    return write('/order-assignment/auto-assign', { assignments, operationId }, data => Array.isArray(data) && data.length === assignments.length && new Set(data.map(item => item.orderId)).size === data.length && data.every(item => assignments.some(pair => pair.orderId === item.orderId && pair.merchantId === item.merchantId)), () => assignmentLookup(operationId, assignments))
   },
-  store: (id, values) => write('/wash-order/move-to-storage', { orderId: id, storageLocation: values.storageLocation.trim(), storageReference: values.storageReference.trim(), note: values.note?.trim() || null }, data => data?.id === id && data.status === 13)
+  cancellationQuote: (id, signal) => authorizedAxios.get(`/wash-order/${encodeURIComponent(id)}/admin-cancellation-quote`, { signal }).then(response => unwrap(response, value => value?.orderId === id && Number.isSafeInteger(value.revision) && typeof value.canCancel === 'boolean' && ['paidAmount', 'feeAmount', 'refundAmount', 'feeOutstanding'].every(key => Number.isFinite(value[key])))),
+  cancelExpired: (quote, reason) => {
+    const body = { reason, expectedRevision: quote.revision, expectedStatus: quote.status, expectedFeeAmount: quote.feeAmount, operationId: newOperationId() }
+    return orderWrite(`/wash-order/${quote.orderId}/cancel-expired-deposit`, body, quote.orderId, 'CancelExpiredDeposit', value => value?.id === quote.orderId && value.status === 12)
+  },
+  store: (id, values, order) => orderWrite('/wash-order/move-to-storage', { orderId: id, storageLocation: values.storageLocation.trim(), storageReference: values.storageReference.trim(), note: values.note?.trim() || null, expectedRevision: order.revision, expectedStatus: order.status, operationId: newOperationId() }, id, 'MoveToStorage', data => data?.id === id && data.status === 13)
 }

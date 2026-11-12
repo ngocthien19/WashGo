@@ -13,10 +13,10 @@ it('preserves the exact Int64 profile version on read and write and excludes pri
   authorizedAxios.put.mockResolvedValue({ data: { succeeded: true, data: profile } })
   await adminWorkspaceApi.saveProfile({ fullName: 'Changed', phone: '', avatar: '', expectedVersion: profile.version, email: 'other', role: 'Customer', id: 'other' }, 'admin')
   const body = authorizedAxios.put.mock.calls[0][1]
-  expect(body).toContain('"expectedVersion":63935071200123457')
-  expect(body).not.toContain('email')
-  expect(body).not.toContain('role')
-  expect(body).toContain('"avatar":""')
+  expect(body.expectedVersion).toBe('63935071200123457')
+  expect(body).not.toHaveProperty('email')
+  expect(body).not.toHaveProperty('role')
+  expect(body.avatar).toBe('')
 })
 it('rejects already-rounded versions and invalid Admin profile fields', async () => {
   authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: { ...profile, version: Number(profile.version) } } })

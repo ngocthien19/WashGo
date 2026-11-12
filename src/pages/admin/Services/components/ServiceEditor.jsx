@@ -3,12 +3,13 @@ import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useTranslation } from 'react-i18next'
 import { Shirt, Save } from 'lucide-react'
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { SelectField } from '~/components/ui/select'
 import { SERVICE_TYPES } from '~/utils/constants'
-import ResourceGallery from '~/components/ResourceThumbnail/ResourceGallery'
+import ImagePicker from '~/components/ImagePicker'
+import useImages from '~/hooks/useImages'
 import { adminServiceApi } from '~/apis/admin/adminServiceApi'
 import { notify } from '~/utils/notifications'
 import { getApiError } from '~/utils/apiError'
@@ -18,6 +19,7 @@ export default function ServiceEditor({ service, onClose, onSaved }) {
   const { t } = useTranslation()
   const { register, control, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(serviceSchema), defaultValues: defaults(service) })
   const [pending, setPending] = useState(false), [error, setError] = useState(''), [blocked, setBlocked] = useState(false)
+  const images = useImages(5, service?.imageUrls || [])
   const locked = useRef(false)
   const submit = async values => {
     if (locked.current || blocked) {
@@ -26,11 +28,15 @@ export default function ServiceEditor({ service, onClose, onSaved }) {
     locked.current = true; setPending(true); setError('')
     let writing = false
     try {
-      if (service && snapshot(await adminServiceApi.service(service.id)) !== snapshot(service)) {
+      if (service && snapshot(await adminServiceApi.service(service.id)) !== snapshot(service) || service && service.canEdit === false) {
+        setBlocked(true); throw new Error('admin.services.changed')
+      }
+      const imageUrls = await images.upload()
+      if (service && snapshot(await adminServiceApi.service(service.id)) !== snapshot(service) || service && service.canEdit === false) {
         setBlocked(true); throw new Error('admin.services.changed')
       }
       writing = true
-      await adminServiceApi[service ? 'update' : 'create'](payload(values, service))
+      await adminServiceApi[service ? 'update' : 'create']({ ...payload(values, service), imageUrls })
       notify.success(service ? 'admin.services.updated' : 'admin.services.created'); onSaved()
     } catch (failure) {
       const message = writing && unknownWrite(failure) ? 'admin.services.unknown' : getApiError(failure)
@@ -55,7 +61,7 @@ export default function ServiceEditor({ service, onClose, onSaved }) {
         className="max-w-3xl"
         closeLabel="common.close"
       >
-        <header className="-mx-6 -mt-6 border-b border-primary/10 bg-primary/5 px-6 py-5 sm:-mx-8 sm:-mt-8 sm:px-8">
+        <DialogHeader>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
             <Shirt className="text-primary" />
             {t(service ? 'admin.services.edit' : 'admin.services.create')}
@@ -63,7 +69,7 @@ export default function ServiceEditor({ service, onClose, onSaved }) {
           <DialogDescription className="mt-3 text-base text-muted-foreground">
             {t('admin.services.editorHint')}
           </DialogDescription>
-        </header>
+        </DialogHeader>
         <form
           noValidate
           className="mt-5 space-y-5"
@@ -117,16 +123,10 @@ export default function ServiceEditor({ service, onClose, onSaved }) {
               />
             </label>
           </fieldset>
-          {service && (
-            <ResourceGallery
-              urls={service.imageUrls}
-              imageLabel="merchant.services.image"
-              thumbnails
-            />
-          )}
-          <p className="rounded-xl bg-muted/40 p-3 text-sm leading-6 text-muted-foreground">
-            {t('admin.services.imagesUnavailable')}
-          </p>
+          <ImagePicker
+            selection={images}
+            disabled={pending || blocked}
+          />
           {error && (
             <p
               role="alert"

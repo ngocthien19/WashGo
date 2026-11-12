@@ -7,7 +7,7 @@ import { privateDocumentApi, DOCUMENT_TYPES } from '~/apis/privateDocumentApi'
 import { getApiError } from '~/utils/apiError'
 import PrivateDocumentCard from './PrivateDocumentCard'
 
-export default function BusinessLicenseField({ current, value, removed, onChange, onBusy, disabled }) {
+export default function BusinessLicenseField({ current, value, removed, onChange, onBusy, disabled, kind = 1, label, admin = false, merchantId }) {
   const { t } = useTranslation()
   const input = useRef(null)
   const request = useRef(null)
@@ -21,7 +21,7 @@ export default function BusinessLicenseField({ current, value, removed, onChange
     const controller = new AbortController(); request.current = controller
     onBusy(true); setError('')
     try {
-      const uploaded = await privateDocumentApi.uploadLicense(file, controller.signal)
+      const uploaded = await (admin ? privateDocumentApi.upload(file, kind, controller.signal, merchantId) : privateDocumentApi.uploadLicense(file, controller.signal))
       if (!controller.signal.aborted) {
         onChange(uploaded, false)
       }
@@ -39,23 +39,23 @@ export default function BusinessLicenseField({ current, value, removed, onChange
   return (
     <div className="space-y-3 sm:col-span-2">
       <h3 className="font-semibold">
-        {t('merchant.shop.businessLicense')}
+        {label || t('merchant.shop.businessLicense')}
       </h3>
       {document ? (
         <PrivateDocumentCard
           document={document}
-          label={t('merchant.shop.businessLicense')}
+          label={label || t('merchant.shop.businessLicense')}
         />
       ) : (
         <p className="text-sm text-muted-foreground">
-          {t(removed ? 'merchant.backendSync.removalProposed' : 'merchant.backendSync.noDocument')}
+          {t(removed ? admin ? 'admin.sync.documentRemoval' : 'merchant.backendSync.removalProposed' : 'merchant.backendSync.noDocument')}
         </p>
       )}
       <input
         ref={input}
         type="file"
         className="sr-only"
-        aria-label={t('merchant.backendSync.uploadLicense')}
+        aria-label={admin ? t('admin.sync.uploadDocument') : t('merchant.backendSync.uploadLicense')}
         accept={Object.values(DOCUMENT_TYPES).join(',')}
         disabled={disabled}
         onChange={(event) => {
@@ -71,7 +71,7 @@ export default function BusinessLicenseField({ current, value, removed, onChange
           onClick={() => input.current?.click()}
         >
           <Upload size={17} />
-          {t('merchant.backendSync.uploadLicense')}
+          {admin ? t('admin.sync.uploadDocument') : t('merchant.backendSync.uploadLicense')}
         </Button>
         {document && (
           <Button
@@ -82,7 +82,7 @@ export default function BusinessLicenseField({ current, value, removed, onChange
             onClick={() => onChange(null, true)}
           >
             <Trash2 size={17} />
-            {t('merchant.backendSync.removeDocument')}
+            {t(admin ? 'admin.sync.removeDocument' : 'merchant.backendSync.removeDocument')}
           </Button>
         )}
         {(value || removed) && (
@@ -101,9 +101,11 @@ export default function BusinessLicenseField({ current, value, removed, onChange
       <p className="text-sm leading-6 text-muted-foreground">
         {t('merchant.backendSync.documentRules')}
       </p>
-      <p className="text-sm leading-6 text-muted-foreground">
-        {t('merchant.backendSync.approvalDocuments')}
-      </p>
+      {!admin && (
+        <p className="text-sm leading-6 text-muted-foreground">
+          {t('merchant.backendSync.approvalDocuments')}
+        </p>
+      )}
       <FormError>
         {error}
       </FormError>

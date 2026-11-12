@@ -1,3 +1,4 @@
+import { adminWrite, versionGuard } from './adminWrite'
 import authorizedAxios from '~/utils/authorizedAxios'
 import { settingPayload, validSettings } from '~/pages/admin/SystemSettings/settingModel'
 
@@ -9,9 +10,17 @@ const unwrap = response => {
 }
 export const adminSystemSettingApi = {
   get: signal => authorizedAxios.get('/system-setting', { signal }).then(unwrap),
-  update: async (group, values) => {
+  history: async (query, signal) => {
+    const { data } = await authorizedAxios.post('/system-setting/history/filter', query, { signal })
+    if (data?.succeeded !== true || !Array.isArray(data.list) || !Number.isInteger(data.total)) {
+      throw new Error('admin.invalidResponse')
+    }
+    return data
+  },
+  update: async (group, values, version) => {
     const body = settingPayload(group, values)
-    const response = await authorizedAxios.put(`/system-setting/${group}`, body)
+    const action = { sla: 'Sla', commission: 'Commission', penalty: 'Penalty' }[group]
+    const response = await adminWrite('SystemSetting', action, null, 'put', `/system-setting/${group}`, { ...body, ...versionGuard(version) })
     try {
       const data = unwrap(response)
       if (!Object.keys(body).every(key => data[key] === body[key])) {

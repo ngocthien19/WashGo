@@ -15,18 +15,22 @@ const metadata = (value) => {
   return value
 }
 export const privateDocumentApi = {
-  uploadLicense: async (file, signal) => {
+  uploadLicense: (file, signal) => privateDocumentApi.upload(file, 1, signal),
+  upload: async (file, kind, signal, merchantId) => {
     if (!validateDocumentFile(file)) {
       throw new Error('merchant.backendSync.documentRules')
     }
     const body = new FormData()
-    body.append('file', file); body.append('kind', 'BusinessLicense')
+    body.append('file', file); body.append('kind', { 1: 'BusinessLicense', 2: 'Contract', 3: 'Sla' }[kind])
+    if (merchantId) {
+      body.append('merchantId', merchantId)
+    }
     const { data } = await authorizedAxios.post('/files/documents', body, { signal })
     if (data?.succeeded !== true) {
       throw invalid()
     }
     const value = metadata(data.data)
-    if (value.kind !== 1) {
+    if (value.kind !== kind) {
       throw invalid()
     }
     return value

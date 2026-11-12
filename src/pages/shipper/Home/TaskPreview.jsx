@@ -30,7 +30,7 @@ export default function TaskPreview({ resource, type, icon }) {
           <ul className="divide-y divide-border">
             {resource.data.list.map((row) => (
               <li
-                key={row.id}
+                key={row.taskId}
                 className="space-y-2 py-4 first:pt-0 last:pb-0"
               >
                 <p className="flex flex-wrap items-center gap-2">
@@ -59,7 +59,7 @@ export default function TaskPreview({ resource, type, icon }) {
                 <Button
                   variant="outline-primary"
                   className="h-10 px-4"
-                  render={<Link to={SHIPPER_ROUTES.TASK_DETAIL.replace(':orderId', row.id)} />}
+                  render={<Link to={SHIPPER_ROUTES.TASK_DETAIL.replace(':orderId', row.taskId)} />}
                   nativeButton={false}
                 >
                   {t('shipper.tasks.view')}

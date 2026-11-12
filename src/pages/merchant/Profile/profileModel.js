@@ -29,4 +29,4 @@ export const merchantProfileSchema = (initialTaxCode = '') => yup.object({
   taxCode: yup.string().trim().test('tax-code', 'merchant.backendSync.invalidTaxCode', (value) => !value || value === initialTaxCode || /^\d{10}(-\d{3})?$/.test(value))
 })
 
-export const profileSnapshot = (shop) => JSON.stringify(['id', 'status', 'businessName', 'address', 'city', 'latitude', 'longitude', 'phone', 'openingHours', 'imageUrls', 'taxCode', 'businessLicense', 'businessLicenseDocumentId', 'contractDocumentId', 'slaDocumentId', 'pendingRequest'].map((key) => shop[key] ?? null))
+export const profileSnapshot = (shop) => JSON.stringify(['id', 'version', 'status', 'businessName', 'address', 'city', 'latitude', 'longitude', 'phone', 'openingHours', 'imageUrls', 'taxCode', 'businessLicense', 'businessLicenseDocumentId', 'contractDocumentId', 'slaDocumentId', 'pendingRequest'].map((key) => shop[key] ?? null))

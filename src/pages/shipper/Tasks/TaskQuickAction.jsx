@@ -9,8 +9,8 @@ import TaskActionDialog from './TaskActionDialog'
 
 export default function TaskQuickAction({ row, profile, onClose, onSaved, onUnknown }) {
   const { t } = useTranslation()
-  const resource = useCatalogResource(useCallback((signal) => shipperTaskApi.detail(row.id, signal), [row.id]))
-  if (!resource.loading && !profile.loading && !resource.error && !profile.error && resource.data?.assignedTaskType === row.assignedTaskType && canCompleteTask(resource.data, profile.data?.id)) {
+  const resource = useCatalogResource(useCallback((signal) => shipperTaskApi.detail(row.taskId, signal), [row.taskId]))
+  if (!resource.loading && !profile.loading && !resource.error && !profile.error && resource.data?.assignedTaskType === row.assignedTaskType && (canCompleteTask(resource.data, profile.data?.id) || shipperTaskApi.hasPending(resource.data))) {
     return (
       <TaskActionDialog
         order={resource.data}

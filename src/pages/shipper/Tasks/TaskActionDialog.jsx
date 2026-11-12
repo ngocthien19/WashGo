@@ -17,19 +17,33 @@ import { credentialSchema, matchesTaskQr, taskSnapshot, canCompleteTask } from '
 
 export default function TaskActionDialog({ order, shipperId, onClose, onSaved, onUnknown }) {
   const { t } = useTranslation()
-  const type = order.nextAction
+  const type = order.assignedTaskType
   const Icon = type === 1 ? PackageOpen : Truck
   const { register, handleSubmit, control, setValue, resetField, clearErrors, formState: { errors } } = useForm({ resolver: yupResolver(credentialSchema), defaultValues: { mode: 'pin', pinCode: '', qrCode: '', confirmed: false } })
   const [mode, qrCode] = useWatch({ control, name: ['mode', 'qrCode'] })
   const lock = useRef(false)
   const [pending, setPending] = useState(false)
   const [blocked, setBlocked] = useState(false)
+  const [unknown, setUnknown] = useState(shipperTaskApi.hasPending(order))
+  const check = async () => {
+    if (lock.current) {
+      return
+    }
+    lock.current = true; setPending(true)
+    try {
+      const result = await shipperTaskApi.check(order); onSaved(result)
+    } catch (failure) {
+      setError(getApiError(failure))
+    } finally {
+      lock.current = false; setPending(false)
+    }
+  }
   const [error, setError] = useState('')
   const changeMode = (next) => {
     setValue('mode', next); resetField('pinCode'); setValue('qrCode', ''); resetField('confirmed'); clearErrors(); setError('')
   }
   const submit = async (values) => {
-    if (lock.current || blocked) {
+    if (lock.current || blocked || unknown) {
       return
     }
     if (mode === 'qr' && !matchesTaskQr(values.qrCode, order.orderCode, type)) {
@@ -40,7 +54,7 @@ export default function TaskActionDialog({ order, shipperId, onClose, onSaved, o
     setError('')
     let writing = false
     try {
-      const current = await shipperTaskApi.detail(order.id)
+      const current = await shipperTaskApi.detail(order.taskId)
       if (!canCompleteTask(current, shipperId) || taskSnapshot(current) !== taskSnapshot(order)) {
         setBlocked(true); setError('shipper.tasks.changed'); return
       }
@@ -53,7 +67,7 @@ export default function TaskActionDialog({ order, shipperId, onClose, onSaved, o
       const unknown = writing && (failure.uncertain || !failure.response || failure.response.status >= 500)
       setError(unknown ? 'shipper.tasks.unknown' : getApiError(failure))
       if (unknown) {
-        setBlocked(true); onUnknown()
+        setUnknown(true); setBlocked(true); onUnknown()
       } else if (failure.response?.status === 409 || failure.response?.status === 404) {
         setBlocked(true)
       }
@@ -99,8 +113,17 @@ export default function TaskActionDialog({ order, shipperId, onClose, onSaved, o
           <FormError>
             {error}
           </FormError>
+          {unknown && (
+            <Button
+              type="button"
+              disabled={pending}
+              onClick={check}
+            >
+              {t('admin.sync.checkResult')}
+            </Button>
+          )}
           <fieldset
-            disabled={pending || blocked}
+            disabled={pending || blocked || unknown}
             className="space-y-4"
           >
             <div className="flex gap-2 border-b border-border">
@@ -139,7 +162,7 @@ export default function TaskActionDialog({ order, shipperId, onClose, onSaved, o
                       inputRef={field.ref}
                       masked
                       autoComplete="off"
-                      disabled={pending || blocked}
+                      disabled={pending || blocked || unknown}
                       label="shipper.tasks.pin"
                       digitLabel="shipper.media.pinDigit"
                       error={errors.pinCode ? { message: 'shipper.tasks.invalidPin' } : undefined}
@@ -150,7 +173,7 @@ export default function TaskActionDialog({ order, shipperId, onClose, onSaved, o
             ) : (
               <>
                 <QrScanInput
-                  disabled={pending || blocked}
+                  disabled={pending || blocked || unknown}
                   hasCode={Boolean(qrCode)}
                   onCode={(code) => setValue('qrCode', code, { shouldValidate: true })}
                   onClear={() => setValue('qrCode', '')}
@@ -195,7 +218,7 @@ export default function TaskActionDialog({ order, shipperId, onClose, onSaved, o
             <Button
               type="submit"
               className="h-12 px-6 text-base"
-              disabled={pending || blocked}
+              disabled={pending || blocked || unknown}
             >
               <CircleCheck size={18} />
               {t(pending ? 'shipper.tasks.sending' : 'shipper.tasks.confirm')}

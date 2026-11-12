@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useTranslation } from 'react-i18next'
 import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
 import { SelectField } from '~/components/ui/select'
@@ -6,6 +8,7 @@ import { CUSTOMER_NOTIFICATION_TYPES } from './notificationModel'
 
 export default function NotificationFilters({ params, change, types = CUSTOMER_NOTIFICATION_TYPES, className = '' }) {
   const { t } = useTranslation()
+  const [resetVersion, setResetVersion] = useState(0)
   return (
     <div className={`grid gap-4 rounded-2xl border border-border bg-card p-5 font-medium shadow-sm ${className}`}>
       <div className="grid items-end gap-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
@@ -14,6 +17,7 @@ export default function NotificationFilters({ params, change, types = CUSTOMER_N
             {t('notificationNav.search')}
           </span>
           <CatalogToolbar
+            resetKey={resetVersion}
             embedded
             label={t('customer.sync.searchNotifications')}
             placeholder={t('customer.sync.searchNotifications')}
@@ -45,8 +49,14 @@ export default function NotificationFilters({ params, change, types = CUSTOMER_N
           />
         </label>
       </div>
+      <ClearFiltersButton
+        active={params.get('keyword') || params.get('type') || params.get('from') || params.get('to') || (params.get('sort') && params.get('sort') !== 'newest')}
+        onClear={() => {
+          setResetVersion(value => value + 1); change({ keyword: '', type: '', sort: '', from: '', to: '' })
+        }}
+      />
       <DateRangeFilter
-        key={`${params.get('from')}-${params.get('to')}`}
+        key={`${resetVersion}-${params.get('from')}-${params.get('to')}`}
         from={params.get('from') || ''}
         to={params.get('to') || ''}
         onApply={change}

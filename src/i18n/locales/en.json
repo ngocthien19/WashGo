@@ -203,6 +203,7 @@
     }
   },
   "common": {
+    "confirm": "Confirm",
     "photos": "Photos",
     "noPhotos": "No photos available",
     "photoUnavailable": "Unable to load photo",
@@ -378,7 +379,134 @@
     "forgotPasswordTitle": "Forgot password?"
   },
   "admin": {
+    "reconcile": {
+      "confirm": "I have checked the evidence and confirm this historical rate.",
+      "title": "Reconcile commission",
+      "hint": "Confirm the rate using a verified contract or other evidence. The current Merchant rate does not prove the historical rate. Transactions already in a settlement cannot be edited here.",
+      "rate": "Verified rate (%)",
+      "rateRequired": "Enter a rate between 0 and 100 with at most 2 decimal places.",
+      "evidence": "Supporting evidence",
+      "evidenceRequired": "Enter supporting evidence between 10 and 1000 characters.",
+      "Missing": "Missing locked rate",
+      "LegacyUnverified": "Unverified legacy rate",
+      "locked": "Included in settlement"
+    },
+    "reviews": {
+      "actionsNamed": "Review actions for {{code}}",
+      "view": "View details",
+      "description": "Monitor and moderate customer reviews of the WashGo service for each order.",
+      "detail": "Review details",
+      "detailHint": "Customer feedback and internal information for moderation.",
+      "readOnlyDetail": "Showing the list snapshot. The latest details cannot yet be verified for moderation.",
+      "internalInfo": "Internal information",
+      "customerName": "Customer",
+      "merchantName": "Responsible Merchant",
+      "criteria": "Service criteria",
+      "distribution": "Rating distribution",
+      "qualityStars": "Laundry quality",
+      "speedStars": "Processing time",
+      "attitudeStars": "Service experience",
+      "packagingStars": "Packaging",
+      "comment": "Comment",
+      "noComment": "No comment",
+      "media": "Attached photos and videos",
+      "noMedia": "No photos or videos attached.",
+      "mediaCount": "{{images}} photos · {{videos}} videos",
+      "visible": "Visible",
+      "hidden": "Hidden",
+      "hide": "Hide reviews",
+      "show": "Restore visibility",
+      "reason": "Reason for hiding",
+      "reasonHint": "Explain why these reviews should be hidden...",
+      "reasonRequired": "Enter a reason for hiding the review.",
+      "reasonLong": "The reason must be at most 500 characters.",
+      "confirmRequired": "Confirm this action to continue.",
+      "confirm": "I have reviewed the selected reviews and confirm this action.",
+      "actionHint": "{{count}} reviews selected. Only visibility changes; customer feedback is preserved.",
+      "bulk": "Bulk review actions",
+      "selected": "{{count}} reviews selected on this page",
+      "clearSelection": "Clear review selection",
+      "selectPage": "Select all reviews on this page",
+      "selectNamed": "Select review for {{code}}",
+      "viewNamed": "View review for {{code}}",
+      "skipped": "Not eligible for this action",
+      "notReady": "Moderation is not ready for the selected reviews. You can still view the available data.",
+      "unavailable": "Reviews are not available yet. Please try again later.",
+      "summaryPending": "Review statistics are being updated. Counts are not inferred from the current page.",
+      "unknown": "The outcome is not confirmed. Check the submitted operation before acting on these reviews again.",
+      "lookupHint": "Checking the outcome only reads the submitted request and does not repeat the action.",
+      "stale": "This review has changed. Close this window, refresh the list and review it again.",
+      "resultsHint": "Processing results received. Check the outcome of each review above.",
+      "done": "Processed",
+      "outcomes": { "Changed": "Changed", "Unchanged": "Already in the requested state", "Skipped": "Skipped", "Failed": "Failed", "Succeeded": "Succeeded" },
+      "total": "Total reviews",
+      "average": "Visible review average",
+      "search": "Search reviews",
+      "searchHint": "Order code, customer name or comment...",
+      "selectedMerchant": "Selected Merchant",
+      "stars": "Stars",
+      "status": "Visibility",
+      "dateRange": "Review date range",
+      "results": "reviews found",
+      "empty": "No reviews match these filters.",
+      "order": "Order",
+      "created": "Reviewed at",
+      "actions": "Actions"
+    },
+    "sync": {
+      "batchOutcomes": "Changed {{changed}}; unchanged {{unchanged}}; skipped {{skipped}}; failed {{failed}}.",
+      "snapshotLines": "Source lines captured when the settlement was created.",
+      "legacyLines": "Legacy period: lines recalculated from current sources for reference; the recorded settlement amounts are unchanged.",
+      "missingVersion": "The data version is missing. Close and reload before making changes.",
+      "processing": "The operation is processing or its result is not yet known.",
+      "batchUnknown": "The result is unknown. Check its status before another action; do not resend this operation.",
+      "batchResult": "Processed: {{succeeded}} successful, {{failed}} unsuccessful.",
+      "checkResult": "Check result",
+      "settingsHistory": "Settings history",
+      "uploadDocument": "Choose document",
+      "removeDocument": "Remove document",
+      "documentRemoval": "The document will be removed when the profile is saved.",
+      "merchantCreated": "Merchant created. Credential email: {{delivery}}.",
+      "delivery": {
+        "0": "unknown",
+        "1": "accepted by mail server",
+        "2": "failed"
+      },
+      "coverage": "Awaiting reconciliation: {{count}} orders lack locked commission rates (value {{amount}}).",
+      "carryForward": "Prior-period adjustment",
+      "periodPayout": "Earnings generated in this period",
+      "settlementLines": "Settlement transactions",
+      "cannotCreate": "This period cannot be settled yet. Check the data and previously closed periods.",
+      "cancelExpired": "Cancel expired order",
+      "cancelHint": "Review cancellation fees and expected refunds. Only overdue orders awaiting deposit can be cancelled.",
+      "cancelReason": "Cancellation reason",
+      "cancelConfirm": "I confirm cancellation using the amounts displayed.",
+      "cancelled": "Expired deposit order cancelled.",
+      "depositExpired": "Deposit overdue",
+      "depositDeadline": "Deposit deadline",
+      "compensationFilter": "Compensation status",
+      "searchFinance": "Search Merchant, order or payment reference",
+      "dateBasis": "Date basis",
+      "dateBases": {
+        "period": "Settlement period",
+        "paid": "Payout date",
+        "created": "Request date",
+        "reviewed": "Review date",
+        "refunded": "Refund date"
+      },
+      "paidAmount": "Amount collected",
+      "feeAmount": "Cancellation fee",
+      "refundAmount": "Expected refund",
+      "feeOutstanding": "Outstanding fee",
+      "promotionUsages": "Promotion usage history",
+      "reverted": "Usage reverted",
+      "applied": "Applied",
+      "compensationPercent": "Applied compensation rate",
+      "paymentProof": "Payment evidence",
+      "promotionUsageRange": "Usage history date range"
+    },
     "workspaceSync": {
+      "sessionStale": "This session has already ended. The list has been refreshed.",
       "activeCustomers": "Active customers",
       "snapshotAt": "KPIs updated at {{date}}. Charts and lists may reflect different update times.",
       "auditValues": "Filtered change details",
@@ -396,8 +524,24 @@
       "severity": "Severity",
       "alertResults": "Alert list · {{count}} results",
       "availableBoxes": "{{count}}/{{total}} compartments available",
-      "severities": { "1": "Low", "2": "Medium", "3": "High" },
-      "alertTypes": { "1": "Assignment overdue", "2": "Collection overdue", "3": "Processing overdue", "4": "Return overdue", "5": "Customer pickup overdue", "6": "Payment overdue", "7": "Deposit overdue", "8": "Locker nearly full", "9": "Pending complaint overdue", "10": "Contract expiring", "11": "Contract expired" },
+      "severities": {
+        "1": "Low",
+        "2": "Medium",
+        "3": "High"
+      },
+      "alertTypes": {
+        "1": "Assignment overdue",
+        "2": "Collection overdue",
+        "3": "Processing overdue",
+        "4": "Return overdue",
+        "5": "Customer pickup overdue",
+        "6": "Payment overdue",
+        "7": "Deposit overdue",
+        "8": "Locker nearly full",
+        "9": "Pending complaint overdue",
+        "10": "Contract expiring",
+        "11": "Contract expired"
+      },
       "invalidName": "Full name must contain 2 to 100 characters.",
       "invalidPhone": "Phone number must contain 10 digits starting with 0.",
       "changed": "The profile has changed. Close and refresh before editing again.",
@@ -406,7 +550,10 @@
       "save": "Save changes",
       "profileHint": "Update your name, phone and avatar. Email, role and status are read-only.",
       "avatarHint": "One JPG, PNG or WEBP image, up to 5 MB. Remove the current image to choose a new one.",
-      "accountStatuses": { "Active": "Active", "Locked": "Locked" },
+      "accountStatuses": {
+        "Active": "Active",
+        "Locked": "Locked"
+      },
       "passwordRules": "New password: 8–128 characters with uppercase, lowercase and a digit; different from your current password.",
       "passwordMatch": "New password confirmation does not match.",
       "currentPassword": "Current password",
@@ -438,8 +585,25 @@
       "filterTooLong": "Filters allow up to 200 characters.",
       "changedFields": "Changed fields",
       "result": "Result",
-      "results": { "1": "Success", "2": "Failed", "3": "Denied" },
-      "auditFields": { "keyword": "Keyword", "actorId": "Actor ID", "actorRole": "Actor role", "module": "Module", "action": "Action", "resourceType": "Resource type", "resourceId": "Resource ID", "resourceCode": "Resource code", "actorName": "Actor", "reason": "Reason", "errorCode": "Error code", "correlationId": "Correlation ID" }
+      "results": {
+        "1": "Success",
+        "2": "Failed",
+        "3": "Denied"
+      },
+      "auditFields": {
+        "keyword": "Keyword",
+        "actorId": "Actor ID",
+        "actorRole": "Actor role",
+        "module": "Module",
+        "action": "Action",
+        "resourceType": "Resource type",
+        "resourceId": "Resource ID",
+        "resourceCode": "Resource code",
+        "actorName": "Actor",
+        "reason": "Reason",
+        "errorCode": "Error code",
+        "correlationId": "Correlation ID"
+      }
     },
     "services": {
       "bulk": "Bulk actions",
@@ -773,7 +937,7 @@
       },
       "createHint": "Create a Merchant account and store profile. The system attempts to email sign-in credentials.",
       "editHint": "Changes apply directly to the Merchant profile. Use the separate account action to lock access.",
-      "commissionHint": "Leave commission blank on create to use the system default; on edit, blank keeps the current rate. Enter license details and document links directly; uploaded photos are store photos.",
+      "commissionHint": "Leave commission blank on create to use the system default; on edit, blank keeps the current rate. Licenses, contracts and SLA files are stored as private documents.",
       "areaHint": "{{count}} service areas are currently assigned. Saving this profile preserves those assignments; service area priorities are managed separately.",
       "save": "Save information",
       "saving": "Saving…",
@@ -839,6 +1003,7 @@
     "loading": "Loading data…",
     "invalidResponse": "System data is invalid. Please try again.",
     "nav": {
+      "reviews": "Review management",
       "overview": "Dashboard",
       "merchants": "Merchant management",
       "orders": "Order management",
@@ -924,7 +1089,7 @@
         "list": "Selected promotions",
         "eligible": "Expected to be included",
         "skipped": "Skipped: already in the requested state or has recorded uses",
-        "affected": "{{count}} promotions expected; the server must recheck eligibility.",
+        "affected": "{{count}} promotions expected.",
         "unavailable": "Waiting for backend batch endpoints. Confirmation is unavailable; individual APIs will not be called to emulate a batch."
       },
       "create": "Add promotion",
@@ -1121,6 +1286,7 @@
     "finance": {
       "description": "Track collections, refunds, Merchant commissions and settlement payouts.",
       "tabs": {
+        "commissionReview": "Reconcile commission",
         "revenue": "Collections & refunds",
         "commissions": "Merchant commissions",
         "settlements": "Settlements",
@@ -1162,8 +1328,8 @@
       },
       "breakdown": "Settlement breakdown",
       "orderCount": "Orders with laundry collected: {{count}}",
-      "currentRate": "Current Merchant rate: {{value}}% (reference only; commission is calculated per order by the server).",
-      "commissionHint": "Server figures are not recorded payouts. Check cross-period refunds and legacy orders with missing commission rates before finalizing: these adjustments may not be fully reflected by the current backend.",
+      "currentRate": "Current Merchant rate: {{value}}% (reference only; commission is calculated per order by the system).",
+      "commissionHint": "Commission uses each order's locked rate; cross-period refunds are adjusted in the refund period. Calculated earnings are not recorded payouts. Missing locked rates require reconciliation before a settlement can be created.",
       "detail": "View details",
       "create": "Create settlement",
       "createHint": "Choose a Merchant and a completed date range, then review figures before finalizing. Created snapshots cannot overlap earlier periods.",
@@ -1191,7 +1357,9 @@
       "noteHint": "Review note; required for rejection, up to 1000 characters...",
       "settlementStatuses": {
         "1": "Awaiting payout",
-        "2": "Paid"
+        "2": "Paid",
+        "3": "Carry forward",
+        "4": "No payout"
       },
       "refundStatuses": {
         "1": "Pending review",
@@ -1202,7 +1370,7 @@
       "settlementHint": "Figures are frozen when the settlement is created. Later transactions do not automatically update this period.",
       "refundHint": "Review the request and recorded refund outcome.",
       "manualHint": "Record this only after the actual external transfer. This button does not execute a bank transaction.",
-      "snapshotRate": "Reference rate when this settlement was created: {{value}}% (actual commission is calculated per order by the server).",
+      "snapshotRate": "Reference rate when this settlement was created: {{value}}% (actual commission is calculated per order by the system).",
       "rejectHint": "Enter a rejection reason to record the outcome of this refund review.",
       "reviewHint": "Approval accepts the request. The actual refund and its transfer reference are recorded separately.",
       "confirmTransferred": "I confirm that the correct amount was transferred and the reference is accurate.",
@@ -1313,7 +1481,10 @@
     }
   },
   "merchant": {
+    "reviewSync": {"title": "Service reviews", "search": "Search review comments...", "pendingContent": "Comments and media are available after moderation."},
     "orderFinance": {
+      "settledNetAmount": "Net receipts in paid settlements",
+      "unsettledNetAmount": "Net receipts awaiting settlement",
       "collectedLaundryAmount": "Laundry payments collected",
       "refundedAmount": "Refunds paid",
       "commissionOnCollected": "Commission on collections after refunds",
@@ -2434,6 +2605,7 @@
       "back": "Back to complaints"
     },
     "rating": {
+      "notPublic": "Your review is saved and is not currently visible publicly.",
       "photos": "Review photos",
       "title": "Rate service",
       "viewTitle": "View your rating",
@@ -2984,6 +3156,10 @@
     "reloadCounts": "Retry notification counts"
   },
   "shipper": {
+    "sync": {
+      "joined": "Date joined", "updated": "Last profile update",
+      "chart": "Completed collections and returns", "performance": "Performance in period", "onTime": "On-time completion rate", "duration": "Average assignment duration", "sample": "{{count}} on time / {{total}} events with SLA", "durationSample": "{{count}} events with duration data", "previous": "Completions in previous period", "eventDetail": "Delivery event details", "deadline": "Task deadline", "eventStatus": "Order status at completion", "captured": "Information captured at completion.", "legacy": "Legacy record: available data may have been reconstructed.", "currentImages": "Locker images show the current resource, not a historical photo.", "cancelledReturn": "Return category", "cancelledOnly": "Cancelled order returns", "normalOnly": "Other deliveries", "sort": "Sort by", "oldest": "Oldest completion first", "taskStatus": "Task status", "assignedRange": "Assignment date", "statuses": { "1": "Assigned", "2": "Completed", "3": "Reassigned", "4": "Cancelled" }, "export": "Export CSV"
+    },
     "media": {
       "lockerPhoto": "Locker station photo {{number}}",
       "servicePhoto": "Service photo {{number}}",

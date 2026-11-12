@@ -16,6 +16,21 @@ async function fillCreate(page) {
   }
   return dialog
 }
+
+test('backend sync: Admin uploads a private Merchant license and preserves version and other documents', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto('/admin/merchants')
+  await menu(page, 'Edit merchant')
+  const dialog = page.getByRole('dialog')
+  await dialog.getByLabel('Choose document', { exact: true }).first().setInputFiles({ name: 'license.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\nMock license\n%%EOF') })
+  await expect(dialog.getByText('license.pdf', { exact: true })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Save information', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes).toHaveLength(1)
+  expect(state.writes[0].body).toMatchObject({ id: merchantId, businessLicenseDocumentId: state.documents[0].fileId, removeBusinessLicenseDocument: false, expectedVersion: 'version-1', operationId: expect.any(String), serviceAreaIds: null })
+  expect(state.writes[0].body).not.toHaveProperty('contractDocumentId')
+  expect(state.writes[0].body).not.toHaveProperty('slaDocumentId')
+})
 test('merchant totals remain global while URL filters and paging apply on the server', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/admin/merchants?page=2')
@@ -98,7 +113,7 @@ test('lock requires a reason and explicit unfinished-order confirmation, then of
   await dialog.getByRole('checkbox').check()
   await confirm.click()
   await expect(dialog).toHaveCount(0)
-  expect(state.writes[0].body).toEqual({ merchantId, status: 3, rejectionReason: 'Operational review', confirm: true })
+  expect(state.writes[0].body).toMatchObject({ merchantId, status: 3, rejectionReason: 'Operational review', confirm: true })
   await menu(page, 'Unlock account')
   dialog = page.getByRole('dialog')
   await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
@@ -166,7 +181,7 @@ test('approval cannot overwrite a changed profile and rejection requires a reaso
   await dialog.getByRole('textbox').fill('Please resubmit against the current profile')
   await dialog.getByRole('button', { name: 'Confirm rejection', exact: true }).click()
   await expect(dialog).toHaveCount(0)
-  expect(state.writes[0].body).toEqual({ reason: 'Please resubmit against the current profile' })
+  expect(state.writes[0].body).toMatchObject({ reason: 'Please resubmit against the current profile' })
 })
 test('mobile dark table keeps actions sticky and a list failure can retry', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
@@ -186,4 +201,22 @@ test('mobile dark table keeps actions sticky and a list failure can retry', asyn
   await expect(dialog.getByText('GP-001', { exact: true })).toBeVisible()
   expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
   expect(state.writes).toHaveLength(0)
+})
+
+
+test('Merchant region and detail fields use readable text and blue section headers', async ({ page }) => {
+  await setup(page)
+  await page.goto('/admin/merchants')
+  const row = page.getByRole('row').filter({ hasText: 'Ben Thanh Laundry' })
+  const area = row.locator('td').nth(1)
+  for (const text of await area.locator('p').all()) {
+    expect(await text.evaluate(el => getComputedStyle(el).fontSize)).toBe('16px')
+  }
+  await menu(page, 'View details')
+  const dialog = page.getByRole('dialog')
+  const label = dialog.locator('dt').first(), value = dialog.locator('dd').first()
+  expect(await label.evaluate(el => getComputedStyle(el).fontSize)).toBe('16px')
+  expect(await value.evaluate(el => getComputedStyle(el).fontSize)).toBe('16px')
+  await expect(dialog.getByRole('heading', { name: 'Contact information', exact: true })).toHaveClass(/bg-primary\/5/)
+  await expect(dialog.getByRole('heading', { name: 'Contact information', exact: true }).locator('span')).toHaveClass(/text-primary/)
 })

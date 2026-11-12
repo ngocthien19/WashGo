@@ -1,7 +1,7 @@
 import ShipperHistory from './ShipperHistory'
 import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pencil, UserRound, Phone, Mail, CalendarDays, CreditCard, Bike, Hash, Star, PackageCheck, ClipboardList, ShieldCheck } from 'lucide-react'
+import { Pencil, UserRound, Phone, Mail, CalendarDays, CreditCard, Bike, Hash, PackageCheck, ClipboardList, ShieldCheck } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import UserAvatar from '~/components/UserAvatar/UserAvatar'
@@ -85,8 +85,8 @@ export default function ShipperDetails({ id, onClose, onEdit, editImmediately = 
                 </span>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              {[{ key: 'totalDeliveries', Icon: PackageCheck, color: 'border-l-primary', iconColor: 'text-primary' }, { key: 'activeTaskCount', Icon: ClipboardList, color: 'border-l-emerald-500', iconColor: 'text-emerald-600 dark:text-emerald-300' }, { key: 'rating', Icon: Star, color: 'border-l-amber-500', iconColor: 'text-amber-600 dark:text-amber-300' }].map(({ key, Icon, color, iconColor }) => (
+            <div className="grid grid-cols-2 gap-3">
+              {[{ key: 'totalDeliveries', Icon: PackageCheck, color: 'border-l-primary', iconColor: 'text-primary' }, { key: 'activeTaskCount', Icon: ClipboardList, color: 'border-l-emerald-500', iconColor: 'text-emerald-600 dark:text-emerald-300' }].map(({ key, Icon, color, iconColor }) => (
                 <div
                   key={key}
                   className={`rounded-xl border border-border border-l-4 bg-card p-3 sm:p-4 ${color}`}
@@ -96,12 +96,7 @@ export default function ShipperDetails({ id, onClose, onEdit, editImmediately = 
                     className={`mb-2 ${iconColor}`}
                   />
                   <p className="text-2xl font-bold">
-                    {key === 'rating' && shipper.hasRating === false ? '—' : (
-                      <AnimatedNumber
-                        value={shipper[key]}
-                        decimals={key === 'rating' ? 1 : 0}
-                      />
-                    )}
+                    <AnimatedNumber value={shipper[key]} />
                   </p>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">
                     {t(`merchant.shippers.${key}`)}

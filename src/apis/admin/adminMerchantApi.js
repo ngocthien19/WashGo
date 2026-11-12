@@ -1,3 +1,4 @@
+import { newOperationId, versionGuard } from './adminWrite'
 import authorizedAxios from '~/utils/authorizedAxios'
 import { isId } from '~/pages/admin/Merchants/merchantModel'
 
@@ -20,30 +21,38 @@ const paged = (validate) => ({ data }) => {
   return { ...data, totalPages: Math.ceil(data.total / 12) }
 }
 const merchant = unwrap(isMerchant), request = unwrap(isRequest)
-const write = async (method, path, body, validate) => {
-  const result = await authorizedAxios[method](path, body)
+const write = async (method, path, body, validate, params, action) => {
+  const operationId = body?.operationId || body?.clientRequestId || params?.operationId
+  let result
+  try {
+    result = await (params ? authorizedAxios[method](path, body, { params }) : authorizedAxios[method](path, body))
+  } catch (failure) {
+    if (!operationId || failure.response && failure.response.status < 500) {
+      throw failure
+    }
+    try {
+      const lookup = await authorizedAxios.get(`/merchant/operations/${operationId}`)
+      if (lookup.data?.succeeded !== true || lookup.data.data?.operationId !== operationId || lookup.data.data.operation !== action) {
+        throw invalid()
+      }
+      result = { data: lookup.data.data.result }
+    } catch {
+      failure.uncertain = true; throw failure
+    }
+  }
   try {
     return validate(result)
   } catch {
-    const error = invalid(); error.uncertain = true; throw error
+    const failure = invalid(); failure.uncertain = true; throw failure
   }
 }
 export const adminMerchantApi = {
-  cities: async (signal) => {
-    const cities = new Set()
-    let page = 1, totalPages = 1
-    // Merchant has no exposed distinct-city endpoint; use all pages, independent of table filters.
-    while (page <= totalPages) {
-      const result = await authorizedAxios.post('/merchant/filter', { page, take: 100 }, { signal }).then(paged(isMerchant))
-      for (const row of result.list) {
-        if (row.city.trim()) {
-          cities.add(row.city)
-        }
-      }
-      totalPages = Math.ceil(result.total / 100)
-      page += 1
+  cities: async signal => {
+    const { data } = await authorizedAxios.get('/merchant/cities', { signal })
+    if (data?.succeeded !== true || !Array.isArray(data.data) || data.data.some(city => typeof city !== 'string')) {
+      throw invalid()
     }
-    return [...cities].sort((a, b) => a.localeCompare(b, 'vi'))
+    return data.data
   },
   list: (filter, signal) => authorizedAxios.post('/merchant/filter', filter, { signal }).then(paged(isMerchant)),
   detail: (id, signal) => authorizedAxios.get(`/merchant/${encodeURIComponent(id)}`, { signal }).then(merchant).then((value) => {
@@ -51,31 +60,34 @@ export const adminMerchantApi = {
       throw invalid()
     } return value
   }),
-  summary: async (signal) => {
-    const counts = await Promise.all([undefined, 1, 2, 3].map((status) => authorizedAxios.post('/merchant/filter', { page: 1, take: 1, status }, { signal }).then(paged(isMerchant)).then((value) => value.total)))
-    const pending = await authorizedAxios.post('/merchant-profile-request/filter', { page: 1, take: 1, status: 1 }, { signal }).then(paged(isRequest))
-    return { counts, pending: pending.total }
+  summary: async signal => {
+    const { data } = await authorizedAxios.get('/merchant/summary', { signal })
+    const value = data?.data
+    if (data?.succeeded !== true || ['total', 'active', 'inactive', 'suspended', 'pendingProfileRequests'].some(key => !Number.isInteger(value?.[key]) || value[key] < 0)) {
+      throw invalid()
+    }
+    return { counts: [value.total, value.active, value.inactive, value.suspended], pending: value.pendingProfileRequests }
   },
-  create: (body) => write('post', '/merchant', body, merchant),
-  update: (body) => write('put', '/merchant', body, (response) => {
+  create: (body) => write('post', '/merchant', { ...body, clientRequestId: newOperationId() }, merchant, undefined, 'Create'),
+  update: (body) => write('put', '/merchant', { ...body, ...versionGuard(body.expectedVersion) }, (response) => {
     const value = merchant(response); if (value.id !== body.id) {
       throw invalid()
     } return value
-  }),
-  status: (id, status, rejectionReason, confirm) => write('put', '/merchant/status', { merchantId: id, status, rejectionReason, confirm }, (response) => {
+  }, undefined, 'Update'),
+  status: (id, status, rejectionReason, confirm, version) => write('put', '/merchant/status', { merchantId: id, status, rejectionReason, confirm, ...versionGuard(version) }, (response) => {
     const value = merchant(response); if (value.id !== id || value.status !== status) {
       throw invalid()
     } return value
-  }),
+  }, undefined, 'Status'),
   requests: (filter, signal) => authorizedAxios.post('/merchant-profile-request/filter', filter, { signal }).then(paged(isRequest)),
   request: (id, signal) => authorizedAxios.get(`/merchant-profile-request/${encodeURIComponent(id)}`, { signal }).then(request).then((value) => {
     if (value.id !== id) {
       throw invalid()
     } return value
   }),
-  review: (id, approve, reason) => write('post', `/merchant-profile-request/${encodeURIComponent(id)}/${approve ? 'approve' : 'reject'}`, approve ? undefined : { reason }, (response) => {
+  review: (id, approve, reason, version) => write('post', `/merchant-profile-request/${encodeURIComponent(id)}/${approve ? 'approve' : 'reject'}`, approve ? undefined : { reason, ...versionGuard(version) }, (response) => {
     const value = request(response); if (value.id !== id || value.status !== (approve ? 2 : 3)) {
       throw invalid()
     } return value
-  })
+  }, approve ? versionGuard(version) : undefined, approve ? 'ApproveProfile' : 'RejectProfile')
 }

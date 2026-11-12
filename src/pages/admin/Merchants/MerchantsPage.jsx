@@ -328,11 +328,11 @@ export default function MerchantsPage() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="max-w-64 whitespace-normal px-5 py-5">
+                        <TableCell className="max-w-64 whitespace-normal px-5 py-5 text-base">
                           <p className="font-semibold">
                             {row.city || '—'}
                           </p>
-                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          <p className="mt-1 text-base leading-6 text-muted-foreground">
                             {row.address}
                           </p>
                         </TableCell>

@@ -1,3 +1,4 @@
+import { adminUpgradeMocks } from './adminUpgradeMocks'
 import { merchantSession } from './merchantSession.js'
 import { mockOrderActions, mockStatusCounts } from './merchantOrderData.js'
 
@@ -19,6 +20,9 @@ export async function setupAdminOrders(page, options = {}) {
     const ok = data => route.fulfill({ json: { succeeded: true, data } })
     const fail = (status = 500) => route.fulfill({ status, json: { succeeded: false, message: 'admin.invalidResponse' } })
     const paged = (rows, filter) => route.fulfill({ json: { succeeded: true, list: rows.slice((filter.page - 1) * filter.take, filter.page * filter.take), total: rows.length, currentPage: filter.page } })
+    if (await adminUpgradeMocks(route, state, [{ id: merchantId, name: 'Test Laundry', status: 1 }])) {
+      return
+    }
     if (path === '/auth/me') {
       return ok({ id: 'admin-test', role: 'Admin', fullName: 'Test Admin', email: 'admin@example.test' })
     }
@@ -116,7 +120,7 @@ export async function setupAdminOrders(page, options = {}) {
       if (state.stale && state.reads > 1) {
         order.revision++
       }
-      return ok({ ...order, allowedActions: { ...mockOrderActions(order), canAssignShipper: !!order.merchantId && [2, 9].includes(order.status), canUpdateWeight: false } })
+      return ok({ ...order, allowedActions: { ...mockOrderActions(order), canAssignShipper: !!order.merchantId && [2, 9].includes(order.status), canUpdateWeight: false, canMoveToStorage: order.status === 10, canCancelExpiredDeposit: order.status === 1 && order.isDepositExpired === true } })
     }
     throw new Error(`Unexpected Admin order API: ${req.method()} ${path}`)
   })

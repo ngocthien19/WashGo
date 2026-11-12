@@ -1,3 +1,4 @@
+import PartnerReviews from './components/PartnerReviews'
 import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -76,7 +77,7 @@ export default function ProfilePage() {
       ) : (
         <div className="mt-6 space-y-5">
           <div className="grid gap-4 sm:grid-cols-3">
-            {Number.isFinite(shop.rating) && (
+            {(shop.rating === null || Number.isFinite(shop.rating)) && (
               <section className="flex items-center gap-3 rounded-2xl border border-border border-l-4 border-l-amber-500 bg-card p-4 shadow-sm">
                 <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-300">
                   <Star
@@ -89,13 +90,13 @@ export default function ProfilePage() {
                     {t('merchant.shop.rating')}
                   </h2>
                   <p className="mt-1 text-2xl font-bold">
-                    {shop.publicRatingCount === 0 ? '—' : (
+                    {shop.hasRating === false || shop.rating === null || shop.publicRatingCount === 0 ? '—' : (
                       <AnimatedNumber
                         value={shop.rating}
                         decimals={1}
                       />
                     )}
-                    {shop.publicRatingCount !== 0 && <span className="ml-1 text-sm font-normal text-muted-foreground">/ 5</span>}
+                    {shop.rating != null && shop.hasRating !== false && shop.publicRatingCount !== 0 && <span className="ml-1 text-sm font-normal text-muted-foreground">/ 5</span>}
                   </p>
                   {Number.isInteger(shop.publicRatingCount) && (
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -213,6 +214,7 @@ export default function ProfilePage() {
             </section>
           </div>
           <LifetimeFinance resource={lifetime} />
+          <PartnerReviews />
           <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
             <h2 className="flex items-center gap-3 border-b border-primary/15 bg-primary/5 p-5 text-lg font-bold">
               <FileCheck className="text-primary" />
@@ -242,12 +244,12 @@ export default function ProfilePage() {
                 )
               })}
             </div>
-            {shop.businessLicense && (
+            {shop.legacyBusinessLicense?.value && (
               <p className="px-5 pb-5 text-sm text-muted-foreground">
                 {t('merchant.backendSync.legacyLicense')}
                 :
                 {' '}
-                {shop.businessLicense}
+                {shop.legacyBusinessLicense.value}
               </p>
             )}
           </section>

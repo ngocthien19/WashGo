@@ -1,3 +1,4 @@
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ClipboardPlus, ArrowRight } from 'lucide-react'
@@ -54,6 +55,7 @@ function AssignmentConfirmation({ id, onClose }) {
 export default function ShipperAssignment({ onClose }) {
   const { t } = useTranslation()
   const [query, setQuery] = useState({ keyword: '', status: 2, page: 1 })
+  const [resetVersion, setResetVersion] = useState(0)
   const [id, setId] = useState(null)
   const load = useCallback((signal) => merchantOrderApi.list({ ...query, take: 6, paymentStatus: query.status === 9 ? 2 : undefined, sortBy: [{ field: 'CreatedOn', isDescending: true }] }, signal), [query])
   const resource = useCatalogResource(load)
@@ -89,6 +91,7 @@ export default function ShipperAssignment({ onClose }) {
         </DialogDescription>
         <div className="workspace-filters mt-5 grid items-center gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-[2fr_1fr]">
           <CatalogToolbar
+            resetKey={resetVersion}
             embedded
             keyword={query.keyword}
             label={t('merchant.orders.search')}
@@ -100,6 +103,13 @@ export default function ShipperAssignment({ onClose }) {
             value={query.status}
             onValueChange={(status) => setQuery({ ...query, status, page: 1 })}
             options={[2, 9, 99].map((value) => ({ value, label: t(`merchant.shippers.tasks.${value}`) }))}
+          />
+          <ClearFiltersButton
+            className="sm:col-span-2"
+            active={query.keyword || query.status !== 2}
+            onClear={() => {
+              setResetVersion(value => value + 1); setQuery({ keyword: '', status: 2, page: 1 }); setId(null)
+            }}
           />
         </div>
         {resource.loading || resource.error || !resource.data?.list.length ? (

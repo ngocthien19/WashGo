@@ -12,7 +12,7 @@ import { adminFinanceApi } from '~/apis/admin/adminFinanceApi'
 import { vietnamToday, shiftDay } from '~/utils/dateRange'
 import { getApiError } from '~/utils/apiError'
 import { notify } from '~/utils/notifications'
-import { createSchema, periodFilter, commissionSnapshot, unknownWrite } from '../financeModel'
+import { createSchema, periodFilter, unknownWrite } from '../financeModel'
 import FinanceBreakdown from './FinanceBreakdown'
 
 export default function SettlementEditor({ merchants, defaultMerchant, onClose, onSaved }) {
@@ -29,22 +29,22 @@ export default function SettlementEditor({ merchants, defaultMerchant, onClose, 
     let writing = false
     try {
       const query = periodFilter(values)
-      const rows = await adminFinanceApi.commissions(query)
-      const row = rows.find(item => item.merchantId === values.merchantId)
+      const quote = await adminFinanceApi.quote(query)
+      const row = quote.summary
       if (!row) {
         throw new Error('admin.finance.noPreview')
       }
       if (!preview) {
-        setPreview({ row, values: { ...values }, query }); setConfirmed(false); return
+        setPreview({ row, quote, values: { ...values }, query }); setConfirmed(false); return
       }
       if (!confirmed) {
         return
       }
-      if (commissionSnapshot(row) !== commissionSnapshot(preview.row) || JSON.stringify(query) !== JSON.stringify(preview.query)) {
+      if (quote.quoteToken !== preview.quote.quoteToken || !quote.canCreate || JSON.stringify(query) !== JSON.stringify(preview.query)) {
         setBlocked(true); throw new Error('admin.finance.changed')
       }
       writing = true
-      await adminFinanceApi.create(query)
+      await adminFinanceApi.create({ ...query, quoteToken: preview.quote.quoteToken })
       notify.success('admin.finance.created'); onSaved()
     } catch (failure) {
       const unknown = writing && unknownWrite(failure)
@@ -87,7 +87,7 @@ export default function SettlementEditor({ merchants, defaultMerchant, onClose, 
             disabled={pending || blocked || Boolean(preview)}
             className="workspace-filters grid gap-4 sm:grid-cols-2"
           >
-            <label className="grid gap-3 text-sm font-medium sm:col-span-2">
+            <label className="grid gap-3 text-base font-medium sm:col-span-2">
               <span>
                 {t('admin.complaints.merchant')}
               </span>
@@ -97,6 +97,7 @@ export default function SettlementEditor({ merchants, defaultMerchant, onClose, 
                 render={({ field }) => (
                   <SelectField
                     label={t('admin.complaints.merchant')}
+                    className="h-12 text-base font-normal"
                     value={field.value}
                     onValueChange={field.onChange}
                     options={[{ value: '', label: t('admin.finance.chooseMerchant') }, ...merchants.map(row => ({ value: row.id, label: row.name }))]}
@@ -115,7 +116,7 @@ export default function SettlementEditor({ merchants, defaultMerchant, onClose, 
             {['from', 'to'].map(key => (
               <label
                 key={key}
-                className="grid gap-3 text-sm font-medium"
+                className="grid gap-3 text-base font-medium"
               >
                 <span>
                   {t(`merchant.orders.${key}Day`)}
@@ -141,10 +142,15 @@ export default function SettlementEditor({ merchants, defaultMerchant, onClose, 
           </fieldset>
           {preview && (
             <>
-              <p className="font-semibold text-primary">
-                {preview.row.merchantName}
-              </p>
               <FinanceBreakdown value={preview.row} />
+              {!preview.quote.canCreate && (
+                <p
+                  role="alert"
+                  className="rounded-xl bg-destructive/10 p-4 text-destructive"
+                >
+                  {t('admin.sync.cannotCreate')}
+                </p>
+              )}
               <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
                 {t('admin.finance.commissionHint')}
               </p>
@@ -193,7 +199,7 @@ export default function SettlementEditor({ merchants, defaultMerchant, onClose, 
             </Button>
             <Button
               type="submit"
-              disabled={pending || blocked || Boolean(preview) && !confirmed}
+              disabled={pending || blocked || Boolean(preview) && (!confirmed || !preview.quote.canCreate)}
               className="h-11 px-5 text-base"
             >
               {t(preview ? 'admin.finance.confirmCreateButton' : 'admin.finance.preview')}

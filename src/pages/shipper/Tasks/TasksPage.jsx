@@ -18,6 +18,7 @@ import { shipperTaskApi } from '~/apis/shipper/shipperTaskApi'
 import { SHIPPER_ROUTES } from '~/utils/constants'
 import { formatDateTime, formatNumber } from '~/utils/formats'
 import DeliveryTypeBadge from '../components/DeliveryTypeBadge'
+import DateRangeFilter from '~/components/DateRangeFilter/DateRangeFilter'
 import { readTaskQuery, taskFilter, taskParams, TASK_TAKE } from './taskModel'
 import TaskSummary from './TaskSummary'
 import DeliveryLocker from '../components/DeliveryLocker'
@@ -28,10 +29,9 @@ export default function TasksPage() {
   const { profile } = useOutletContext()
   const [mapId, setMapId] = useState(null)
   const [acting, setActing] = useState(null)
-  const [blockedIds, setBlockedIds] = useState([])
   const [params, setParams] = useSearchParams()
   const query = useMemo(() => readTaskQuery(params), [params])
-  const [revision, setRevision] = useState(0)
+  const [revision, setRevision] = useState(0), [reset, setReset] = useState(0)
   const resource = useCatalogResource(useCallback((signal) => shipperTaskApi.list(taskFilter(query), signal), [query]), revision)
   const { data, loading, error } = resource
   const update = (patch) => setParams(taskParams({ ...query, ...patch, page: patch.page || 1 }))
@@ -67,6 +67,8 @@ export default function TasksPage() {
       </header>
       <TaskSummary
         keyword={query.keyword}
+        from={query.from}
+        to={query.to}
         revision={revision}
       />
       <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-[minmax(0,2fr)_minmax(200px,1fr)_auto]">
@@ -76,6 +78,7 @@ export default function TasksPage() {
           </p>
           <CatalogToolbar
             embedded
+            resetKey={reset}
             keyword={query.keyword}
             onSearch={(keyword) => update({ keyword })}
             label={t('shipper.tasks.search')}
@@ -98,17 +101,48 @@ export default function TasksPage() {
             options={['', '1', '2'].map((value) => ({ value, label: t(value === '' ? 'shipper.deliveryHistory.allTypes' : value === '1' ? 'shipper.deliveryHistory.collect' : 'shipper.deliveryHistory.return') }))}
           />
         </div>
-        {(query.keyword || query.taskType) && (
+        <SelectField
+          label={t('shipper.sync.taskStatus')}
+          value={query.taskStatus}
+          onValueChange={taskStatus => update({ taskStatus })}
+          options={[1, 2, 3, 4].map(value => ({ value: String(value), label: t(`shipper.sync.statuses.${value}`) }))}
+        />
+        <SelectField
+          label={t('shipper.sync.sort')}
+          value={query.sort}
+          onValueChange={sort => update({ sort })}
+          options={[{ value: 'AssignedAt', label: t('shipper.tasks.assigned') }, { value: 'Deadline', label: t('shipper.sync.deadline') }]}
+        />
+        <div className="sm:col-span-full">
+          <DateRangeFilter
+            from={query.from}
+            to={query.to}
+            key={`${query.from}:${query.to}`}
+            label="shipper.sync.assignedRange"
+            onApply={update}
+          />
+        </div>
+        {(query.keyword || query.taskType || query.from || query.to || query.taskStatus !== '1' || query.sort !== 'AssignedAt') && (
           <Button
             variant="secondary"
             className="h-11 px-5"
-            onClick={() => setParams({})}
+            onClick={() => {
+              setReset(value => value + 1); setParams({})
+            }}
           >
             <RotateCcw size={17} />
             {t('shipper.deliveryHistory.reset')}
           </Button>
         )}
       </section>
+      {query.invalidDates && (
+        <p
+          role="alert"
+          className="text-sm text-destructive"
+        >
+          {t('shipper.deliveryHistory.invalidUrlDates')}
+        </p>
+      )}
       <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         <p className="p-5 text-sm">
           <strong className="mr-2 text-2xl font-bold">
@@ -140,9 +174,9 @@ export default function TasksPage() {
             </TableHeader>
             <TableBody>
               {data.list.map((row) => {
-                const href = SHIPPER_ROUTES.TASK_DETAIL.replace(':orderId', row.id)
+                const href = SHIPPER_ROUTES.TASK_DETAIL.replace(':orderId', row.taskId)
                 return (
-                  <TableRow key={row.id}>
+                  <TableRow key={row.taskId}>
                     <TableCell className="px-5 py-5">
                       <Link
                         to={href}
@@ -164,13 +198,22 @@ export default function TasksPage() {
                         {...taskLocker(row)}
                         fallback={t('shipper.tasks.seeDestination')}
                         autoBox={row.assignedTaskType === 2}
-                        onOpenMap={() => setMapId(row.id)}
+                        onOpenMap={() => setMapId(row.taskId)}
                       />
                     </TableCell>
                     <TableCell className="whitespace-nowrap px-5 py-5">
                       {formatDateTime(row.shipperAssignedAt, 'Asia/Ho_Chi_Minh')}
+                      <p className={row.isOverdue ? 'mt-2 text-sm text-destructive' : 'mt-2 text-sm text-muted-foreground'}>
+                        {t('shipper.sync.deadline')}
+                        :
+                        {' '}
+                        {formatDateTime(row.deadline)}
+                      </p>
                     </TableCell>
                     <TableCell className="px-5 py-5">
+                      <span className="mb-2 block text-sm font-medium text-primary">
+                        {t(`shipper.sync.statuses.${row.taskStatus}`)}
+                      </span>
                       <OrderStatus status={row.status} />
                     </TableCell>
                     <TableCell className="sticky right-0 bg-card px-5 py-5">
@@ -195,11 +238,11 @@ export default function TasksPage() {
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-base"
-                            disabled={blockedIds.includes(row.id)}
+                            disabled={!row.nextAction && !shipperTaskApi.hasPending(row)}
                             onClick={() => setActing(row)}
                           >
                             {row.assignedTaskType === 1 ? <PackageOpen size={17} /> : <Truck size={17} />}
-                            {t(row.assignedTaskType === 1 ? 'shipper.tasks.confirmCollect' : 'shipper.tasks.confirmReturn')}
+                            {t(shipperTaskApi.hasPending(row) ? 'admin.sync.checkResult' : row.assignedTaskType === 1 ? 'shipper.tasks.confirmCollect' : 'shipper.tasks.confirmReturn')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -232,7 +275,7 @@ export default function TasksPage() {
           row={acting}
           profile={profile}
           onClose={() => setActing(null)}
-          onUnknown={() => setBlockedIds((ids) => [...new Set([...ids, acting.id])])}
+          onUnknown={() => setRevision(value => value + 1)}
           onSaved={() => {
             setActing(null); setRevision((value) => value + 1); profile.retry()
           }}

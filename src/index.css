@@ -5,6 +5,17 @@
 
 @custom-variant dark (&:is(.dark *));
 
+input[type="checkbox"]:not(:disabled),
+label:has(input[type="checkbox"]:not(:disabled)),
+label:has([data-slot="checkbox"]:not([data-disabled])) {
+  cursor: pointer;
+}
+input[type="checkbox"]:disabled,
+label:has(input[type="checkbox"]:disabled),
+label:has([data-slot="checkbox"][data-disabled]) {
+  cursor: not-allowed;
+}
+
 .workspace-filters {
   --workspace-filter-text: #25324a;
   color: var(--workspace-filter-text);

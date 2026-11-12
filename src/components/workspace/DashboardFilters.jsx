@@ -1,3 +1,4 @@
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CalendarDays, X } from 'lucide-react'
@@ -6,7 +7,7 @@ import { Button } from '~/components/ui/button'
 import DateRangeFilter from '~/components/DateRangeFilter/DateRangeFilter'
 import { validDashboardRange } from '~/utils/dashboardQuery'
 
-export default function DashboardFilters({ range, onChange }) {
+export default function DashboardFilters({ range, onChange, showClear = true }) {
   const { t } = useTranslation()
   const [custom, setCustom] = useState(false)
   const [error, setError] = useState(false)
@@ -46,6 +47,12 @@ export default function DashboardFilters({ range, onChange }) {
           ) : button
         })}
       </div>
+      <ClearFiltersButton
+        active={showClear && range.mode !== 'month'}
+        onClear={() => {
+          setCustom(false); setError(false); onChange({ mode: 'month' })
+        }}
+      />
       <Popover.Portal>
         <Popover.Positioner
           side="bottom"

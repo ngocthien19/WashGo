@@ -30,7 +30,7 @@ export default function StorageDialog({ order, onClose, onSaved }) {
       if (!sameOrderState(order, current) || !canStore(current)) {
         setBlocked(true); setError('admin.orderManagement.changed'); return
       }
-      writing = true; await adminOrderApi.store(order.id, values)
+      writing = true; await adminOrderApi.store(order.id, values, current)
       notify.success('admin.orderManagement.stored'); onSaved()
     } catch (failure) {
       const unknown = writing && unknownResult(failure)

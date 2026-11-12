@@ -25,7 +25,7 @@ export const settingsSchema = group => yup.object(Object.fromEntries(settingGrou
   return wrong < 0 || this.createError({ path: keys[wrong], message: 'admin.settings.compensationOrder' })
 })
 export const settingPayload = (group, values) => Object.fromEntries(settingGroups[group].map(({ key }) => [key, Number(values[key])]))
-export const settingSnapshot = value => JSON.stringify([...settingFields.map(field => field.key), 'storageTransferAfterHours', 'updatedAt'].map(key => value[key] ?? null))
+export const settingSnapshot = value => JSON.stringify([...settingFields.map(field => field.key), 'storageTransferAfterHours', 'updatedAt', 'version'].map(key => value[key] ?? null))
 export const settingChanges = (group, original, values) => settingGroups[group].filter(({ key }) => original[key] !== Number(values[key]))
 export const validSettings = value => Boolean(value && settingFields.every(field => typeof value[field.key] === 'number') && Object.keys(settingGroups).every(group => settingsSchema(group).isValidSync(value)) && Number.isInteger(value.storageTransferAfterHours) && value.storageTransferAfterHours > 0 && (value.updatedAt == null || typeof value.updatedAt === 'string' && Number.isFinite(Date.parse(value.updatedAt))))
 export { unknownWrite } from '~/pages/admin/Services/serviceModel'

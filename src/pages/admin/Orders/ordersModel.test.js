@@ -16,11 +16,8 @@ it('offers Merchant assignment only for unassigned deposited orders', () => {
   expect(canAssignMerchant({ status: 1 })).toBe(false)
   expect(canAssignMerchant({ status: 2, merchantId: 'merchant' })).toBe(false)
 })
-it('uses server time and actual storage state to offer a transfer after 72 hours', () => {
-  const order = { status: 10, pickupDeadline: '2026-11-01T00:00:00Z', serverNow: '2026-11-04T00:00:01Z' }
-  expect(canStore(order)).toBe(true)
-  expect(canStore({ ...order, serverNow: '2026-11-04T00:00:00Z' })).toBe(false)
-  expect(canStore({ ...order, serverNow: undefined })).toBe(false)
-  expect(canStore({ ...order, movedToStorageAt: '2026-11-03T00:00:00Z' })).toBe(false)
-  expect(canStore({ ...order, status: 13 })).toBe(false)
+it('uses server capability for storage, including changes to policy timing', () => {
+  expect(canStore({ allowedActions: { canMoveToStorage: true } })).toBe(true)
+  expect(canStore({ allowedActions: { canMoveToStorage: false }, status: 10, serverNow: '2099-01-01' })).toBe(false)
+  expect(canStore({ status: 10 })).toBe(false)
 })

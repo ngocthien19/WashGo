@@ -4,6 +4,25 @@ import { expect, test } from '@playwright/test'
 const orderId = '11111111-1111-4111-8111-111111111111'
 const uploadId = '22222222-2222-4222-8222-222222222222'
 const licenseDocument = { fileId: orderId, originalFileName: 'license.pdf', contentType: 'application/pdf', size: 100, kind: 1, previewSupported: true, uploadedAt: '2026-11-10T01:00:00Z' }
+test('partner reviews release moderated content without customer or order identity and do not invent a store rating', async ({ page }) => {
+  await setup(page, {
+    profile: { rating: null, hasRating: false, publicRatingCount: 0 },
+    reviewRows: [
+      { id: orderId, overallStars: 4, createdOn: 1794009600, contentReleased: false, comment: 'PRIVATE UNRELEASED', customerName: 'PRIVATE CUSTOMER', orderCode: 'PRIVATE ORDER', imageUrls: [], videoUrls: [] },
+      { id: uploadId, overallStars: 5, createdOn: 1794009600, contentReleased: true, comment: 'Released service feedback', customerName: 'PRIVATE CUSTOMER', orderCode: 'PRIVATE ORDER', imageUrls: [], videoUrls: [] }
+    ]
+  })
+  await page.goto('/merchant/profile')
+  const rating = page.getByRole('heading', { name: 'Store rating', exact: true }).locator('..')
+  await expect(rating).toContainText('—')
+  const reviews = page.getByRole('heading', { name: 'Service reviews', exact: true }).locator('..')
+  await expect(reviews).toContainText('Released service feedback')
+  await expect(reviews).toContainText('Comments and media are available after moderation.')
+  await expect(reviews).not.toContainText('PRIVATE')
+  await page.setViewportSize({ width: 390, height: 844 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
+
 async function setup(page, options = {}) {
   const state = { ordersError: false, profileError: false, settlementError: false, empty: false, calls: [], submitted: null, updateError: false, updates: 0, documentUploads: 0, documentReads: [], documents: { [orderId]: licenseDocument }, deniedDocument: false, slaQueries: [] }
   if (!options.guest) {
@@ -38,8 +57,11 @@ async function setup(page, options = {}) {
     if (path === '/notification/filter') {
       return data({ items: [{ id: 'notice-1', type: 20, title: 'New order assigned', content: 'An order has been assigned to your store.', createdOn: 1794009600, isRead: true, linkType: 'order', linkId: orderId }], total: 1, page: 1, take: 10, unreadTotal: 0, counts: [{ group: 'order', total: 1, unread: 0 }] })
     }
+    if (path === '/rating/partner/filter') {
+      return list(options.reviewRows || [], options.reviewRows?.length || 0)
+    }
     if (path === '/merchant-profile') {
-      return state.profileError ? fail() : data({ id: 'merchant-test', businessName: 'WashGo Ben Thanh', address: '123 Test Street', city: 'Ho Chi Minh City', phone: '0901234567', email: 'shop@example.test', openingHours: '08:00–20:00', rating: 4.8, totalOrders: 28, status: 1, contractStartDate: '2023-03-15T00:00:00Z', pendingRequest: state.submitted, ...options.profile })
+      return state.profileError ? fail() : data({ version: 'profile-version-1', id: 'merchant-test', businessName: 'WashGo Ben Thanh', address: '123 Test Street', city: 'Ho Chi Minh City', phone: '0901234567', email: 'shop@example.test', openingHours: '08:00–20:00', rating: 4.8, totalOrders: 28, status: 1, contractStartDate: '2023-03-15T00:00:00Z', pendingRequest: state.submitted, ...options.profile })
     }
     if (path === '/merchant-reports/lifetime') {
       return data(options.lifetime || { currency: 'VND', grossLaundryRevenue: 9000000, refunds: 1000000, netRevenue: 8000000, commission: 1600000, merchantPayout: 6400000, feesCollected: 10000, paidOrderCount: 10, commissionComplete: true, ordersWithoutCommissionSnapshot: 0, uncoveredNetAmount: 0, generatedAt: '2026-11-10T01:00:00Z' })
@@ -69,7 +91,8 @@ async function setup(page, options = {}) {
     if (path === '/merchant-profile/update-requests') {
       state.updates++
       const body = request.postDataJSON()
-      expect(Object.keys(body).every((key) => ['address', 'businessName', 'city', 'imageUrls', 'openingHours', 'phone', 'latitude', 'longitude', 'taxCode', 'businessLicenseDocumentId', 'removeBusinessLicenseDocument', 'operationId'].includes(key))).toBe(true)
+      expect(Object.keys(body).every((key) => ['address', 'businessName', 'city', 'imageUrls', 'openingHours', 'phone', 'latitude', 'longitude', 'taxCode', 'businessLicenseDocumentId', 'removeBusinessLicenseDocument', 'operationId', 'expectedMerchantVersion'].includes(key))).toBe(true)
+      expect(body.expectedMerchantVersion).toBe('profile-version-1')
       expect(body.operationId).toMatch(/^[a-f0-9-]{36}$/)
       if (state.updateError) {
         return fail()

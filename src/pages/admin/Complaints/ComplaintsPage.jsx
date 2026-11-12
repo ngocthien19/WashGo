@@ -1,3 +1,4 @@
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -29,6 +30,7 @@ export default function ComplaintsPage() {
   const query = useMemo(() => readQuery(params), [params])
   const load = useCallback(signal => adminComplaintApi.list(filter(query), signal), [query])
   const resource = useCatalogResource(load), summary = useCatalogResource(adminComplaintApi.summary), merchants = useCatalogResource(adminComplaintApi.merchants)
+  const [resetVersion, setResetVersion] = useState(0)
   const update = patch => setParams(writeQuery({ ...query, ...patch, page: patch.page || 1 }))
   const refresh = () => {
     resource.retry(); summary.retry()
@@ -83,6 +85,7 @@ export default function ComplaintsPage() {
             {t('admin.complaints.search')}
           </p>
           <CatalogToolbar
+            resetKey={resetVersion}
             embedded
             label={t('admin.complaints.search')}
             placeholder={t('admin.complaints.searchHint')}
@@ -91,6 +94,15 @@ export default function ComplaintsPage() {
             formClassName="h-11 rounded-xl p-1 pl-3 [&_input]:h-8 [&_button]:size-8"
           />
         </div>
+        <label className="grid gap-2 text-sm">
+          {t('admin.sync.compensationFilter')}
+          <SelectField
+            label={t('admin.sync.compensationFilter')}
+            value={query.compensationStatus}
+            onValueChange={compensationStatus => update({ compensationStatus })}
+            options={[{ value: '', label: t('common.all') }, ...[0, 1, 2].map(value => ({ value: String(value), label: t(`customer.incidents.compensationStatus.${value}`) }))]}
+          />
+        </label>
         {[['status', statuses, 'statuses'], ['severity', INCIDENT_SEVERITIES, 'severities'], ['type', INCIDENT_TYPES, 'types']].map(([key, values, labels]) => (
           <label
             key={key}
@@ -124,8 +136,15 @@ export default function ComplaintsPage() {
             <ResourceFeedback {...merchants} />
           </div>
         )}
+        <ClearFiltersButton
+          className="sm:col-span-2 xl:col-span-full"
+          active={query.keyword || query.status || query.type || query.severity || query.merchantId || query.compensationStatus || query.orderId || query.customerId || query.from || query.to}
+          onClear={() => {
+            setResetVersion(value => value + 1); setParams({})
+          }}
+        />
         <DateRangeFilter
-          key={`${query.from}:${query.to}`}
+          key={`${resetVersion}:${query.from}:${query.to}`}
           from={query.from}
           to={query.to}
           onApply={update}

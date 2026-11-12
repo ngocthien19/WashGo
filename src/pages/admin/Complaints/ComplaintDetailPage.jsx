@@ -16,6 +16,7 @@ import { formatCurrency, formatDateTime } from '~/utils/formats'
 import { canAct, severityClass } from './complaintModel'
 import ComplaintActionDialog from './components/ComplaintActionDialog'
 import ComplaintMessages from './components/ComplaintMessages'
+import AuditPanel from '../Audit/AuditPanel'
 import ComplaintContact from './components/ComplaintContact'
 import useComplaintContacts from './useComplaintContacts'
 import { customerContact, merchantContact } from './complaintContacts'
@@ -117,24 +118,66 @@ export default function ComplaintDetailPage() {
                 <dl className="grid gap-5 sm:grid-cols-2">
                   {[['type', t(`customer.incidents.types.${value.type}`)], ['createdAt', formatDateTime(value.createdOn)]].map(([key, text]) => (
                     <div key={key}>
-                      <dt className="text-sm text-muted-foreground">
+                      <dt className="text-base text-muted-foreground">
                         {t(`customer.incidents.${key}`)}
                       </dt>
-                      <dd className="mt-2 font-semibold">
+                      <dd className="mt-2 text-base font-semibold">
                         {text}
                       </dd>
                     </div>
                   ))}
                 </dl>
-                <p className="whitespace-pre-wrap break-words text-base leading-relaxed">
-                  {value.description}
-                </p>
+                <div className="space-y-2 rounded-xl border border-primary/10 bg-primary/3 p-4">
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    {t('customer.incidents.descriptionLabel')}
+                  </h3>
+                  <p className="whitespace-pre-wrap break-words text-lg leading-8">
+                    {value.description}
+                  </p>
+                </div>
                 {value.customerUpdatedAt && (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base text-muted-foreground">
                     {t('admin.complaints.customerUpdated', { date: formatDateTime(value.customerUpdatedAt) })}
                   </p>
                 )}
               </section>
+              <section className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <h2 className="-mx-5 -mt-5 rounded-t-2xl border-b border-primary/10 bg-primary/5 px-5 py-4 text-lg font-semibold">
+                  {t('admin.complaints.participants')}
+                </h2>
+                <dl className="space-y-5">
+                  {['customer', 'merchant'].map(key => (
+                    <div key={key}>
+                      <dt className="text-sm text-muted-foreground">
+                        {t(`admin.complaints.${key}`)}
+                      </dt>
+                      <dd className="mt-3">
+                        <ComplaintContact
+                          kind={key}
+                          value={contactData[key]}
+                        />
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                <Link
+                  to={`${ADMIN_ROUTES.ORDERS}/${value.orderId}`}
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary"
+                >
+                  {t('customer.incidents.relatedOrder')}
+                  {' '}
+                  ·
+                  {' '}
+                  {value.orderCode}
+                </Link>
+              </section>
+              <ComplaintMessages
+                key={`${value.id}:${value.customerUpdatedAt || ''}:${value.status}:${value.compensationStatus}`}
+                incident={value}
+                onChanged={resource.retry}
+              />
+            </div>
+            <aside className="min-w-0 space-y-6">
               <section className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
                 <h2 className="-mx-5 -mt-5 rounded-t-2xl border-b border-primary/10 bg-primary/5 px-5 py-4 text-lg font-semibold">
                   {t('admin.complaints.evidence')}
@@ -173,43 +216,6 @@ export default function ComplaintDetailPage() {
                   </div>
                 </dl>
               </section>
-              <ComplaintMessages
-                key={`${value.id}:${value.customerUpdatedAt || ''}:${value.status}:${value.compensationStatus}`}
-                incident={value}
-                onChanged={resource.retry}
-              />
-            </div>
-            <aside className="min-w-0 space-y-6">
-              <section className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
-                <h2 className="-mx-5 -mt-5 rounded-t-2xl border-b border-primary/10 bg-primary/5 px-5 py-4 text-lg font-semibold">
-                  {t('admin.complaints.participants')}
-                </h2>
-                <dl className="space-y-5">
-                  {['customer', 'merchant'].map(key => (
-                    <div key={key}>
-                      <dt className="text-sm text-muted-foreground">
-                        {t(`admin.complaints.${key}`)}
-                      </dt>
-                      <dd className="mt-3">
-                        <ComplaintContact
-                          kind={key}
-                          value={contactData[key]}
-                        />
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                <Link
-                  to={`${ADMIN_ROUTES.ORDERS}/${value.orderId}`}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary"
-                >
-                  {t('customer.incidents.relatedOrder')}
-                  {' '}
-                  ·
-                  {' '}
-                  {value.orderCode}
-                </Link>
-              </section>
               <section className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
                 <h2 className="-mx-5 -mt-5 rounded-t-2xl border-b border-primary/10 bg-primary/5 px-5 py-4 text-lg font-semibold">
                   {t('customer.incidents.compensation')}
@@ -232,12 +238,31 @@ export default function ComplaintDetailPage() {
                     </div>
                   ))}
                 </dl>
+                {value.compensationPercentApplied != null && (
+                  <p className="text-base font-semibold">
+                    {`${t('admin.sync.compensationPercent')}: ${value.compensationPercentApplied}%`}
+                  </p>
+                )}
+                {!!value.compensationProofImageUrls?.length && (
+                  <div className="space-y-3">
+                    <h3 className="font-semibold">
+                      {t('admin.sync.paymentProof')}
+                    </h3>
+                    <CustomerImageGallery urls={value.compensationProofImageUrls} />
+                  </div>
+                )}
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {t('admin.complaints.paymentHint')}
                 </p>
               </section>
             </aside>
           </div>
+          <AuditPanel
+            key={value.version}
+            resourceType="Incident"
+            resourceId={value.id}
+          />
+
         </>
       )}
       {action && value && (

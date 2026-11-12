@@ -1,3 +1,4 @@
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -18,6 +19,7 @@ import { HISTORY_TAKE } from '../lockerModel'
 export default function LockerUsage({ locker, api = merchantLockerApi, orderBase = MERCHANT_ROUTES.ORDERS }) {
   const { t } = useTranslation()
   const [query, setQuery] = useState({ page: 1, boxId: '', from: '', to: '' })
+  const [resetVersion, setResetVersion] = useState(0)
   const load = useCallback((signal) => api.history(locker.id, { page: query.page, take: HISTORY_TAKE, boxId: query.boxId || undefined, ...dateRangeFilter(query) }, signal), [api, locker.id, query])
   const resource = useCatalogResource(load)
   return (
@@ -34,7 +36,14 @@ export default function LockerUsage({ locker, api = merchantLockerApi, orderBase
             options={[{ value: '', label: t('common.all') }, ...locker.boxes.map((box) => ({ value: box.id, label: t('customer.order.box', { number: box.boxNumber }) }))]}
           />
         </label>
+        <ClearFiltersButton
+          active={query.boxId || query.from || query.to}
+          onClear={() => {
+            setResetVersion(value => value + 1); setQuery({ page: 1, boxId: '', from: '', to: '' })
+          }}
+        />
         <DateRangeFilter
+          key={`${resetVersion}:${query.from}:${query.to}`}
           from={query.from}
           to={query.to}
           label="merchant.lockers.usageRange"

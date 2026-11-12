@@ -37,11 +37,11 @@ export const merchantSchema = yup.object({
   contractEndDate: yup.string().test('date', '', (value) => !value || validDay(value)).test('range', '', function(value) {
     return !value || !this.parent.contractStartDate || value >= this.parent.contractStartDate
   }),
-  slaDocUrl: yup.string().trim().max(500).test('url', '', safeDocumentUrl)
+  slaDocUrl: yup.mixed().strip()
 }).test('coordinates', 'admin.merchants.invalidLocation', (value) => value.latitude !== 0 || value.longitude !== 0)
 
 export function merchantDefaults(value) {
-  return { businessName: value?.businessName || '', email: value?.email || '', phone: value?.phone || '', taxCode: value?.taxCode || '', businessLicense: displayJsonText(value?.businessLicense), address: value?.address || '', district: value?.district || '', city: value?.city || '', latitude: value?.latitude ?? '', longitude: value?.longitude ?? '', openingHours: displayJsonText(value?.openingHours), depositAmount: value?.depositAmount ?? 1000000, commissionRate: value?.commissionRate ?? '', serviceRadiusKm: value?.serviceRadiusKm ?? 5, maxCapacity: value?.maxCapacity ?? 50, contractStartDate: contractDay(value?.contractStartDate), contractEndDate: contractDay(value?.contractEndDate), slaDocUrl: value?.slaDocUrl || '' }
+  return { businessName: value?.businessName || '', email: value?.email || '', phone: value?.phone || '', taxCode: value?.taxCode || '', businessLicense: displayJsonText(value?.businessLicense), address: value?.address || '', district: value?.district || '', city: value?.city || '', latitude: value?.latitude ?? '', longitude: value?.longitude ?? '', openingHours: displayJsonText(value?.openingHours), depositAmount: value?.depositAmount ?? 1000000, commissionRate: value?.commissionRate ?? '', serviceRadiusKm: value?.serviceRadiusKm ?? 5, maxCapacity: value?.maxCapacity ?? 50, contractStartDate: contractDay(value?.contractStartDate), contractEndDate: contractDay(value?.contractEndDate) }
 }
 export function merchantPayload(values, original, imageUrls) {
   const body = Object.fromEntries(Object.keys(merchantDefaults()).map((key) => [key, typeof values[key] === 'string' ? values[key].trim() : values[key]]))
@@ -52,11 +52,12 @@ export function merchantPayload(values, original, imageUrls) {
   for (const key of ['contractStartDate', 'contractEndDate']) {
     body[key] = body[key] ? original && contractDay(original[key]) === body[key] ? original[key] : `${body[key]}T00:00:00+07:00` : null
   }
-  return { ...body, ...(original ? { id: original.id } : {}), imageUrls, serviceAreaIds: original ? null : [] }
+  delete body.slaDocUrl
+  return { ...body, ...(original ? { id: original.id, expectedVersion: original.version } : {}), imageUrls, serviceAreaIds: original ? null : [] }
 }
-export const merchantSnapshot = (value) => JSON.stringify([merchantDefaults(value), value.status, value.imageUrls || [], [...(value.serviceAreaIds || [])].sort()])
-export const requestSnapshot = (value) => JSON.stringify([value.id, value.status, value.current, value.proposed, value.changedFields])
-export const profileStillCurrent = (current, value) => ['businessName', 'address', 'phone', 'city', 'latitude', 'longitude', 'openingHours', 'imageUrls'].every((key) => {
+export const merchantSnapshot = (value) => JSON.stringify([value.version, merchantDefaults(value), value.status, value.imageUrls || [], [...(value.serviceAreaIds || [])].sort()])
+export const requestSnapshot = (value) => JSON.stringify([value.version, value.id, value.status, value.current, value.proposed, value.changedFields])
+export const profileStillCurrent = (current, value) => ['businessName', 'address', 'phone', 'city', 'latitude', 'longitude', 'openingHours', 'imageUrls', ...(current.documentsSnapshotIncluded ? ['taxCode', 'businessLicenseDocumentId'] : [])].every((key) => {
   if (current[key] == null && ['city', 'latitude', 'longitude'].includes(key)) {
     return true
   }

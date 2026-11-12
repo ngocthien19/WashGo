@@ -318,14 +318,18 @@ test('batch closes and resets selection with per-ID failures in toast', async ({
   await expect(page.getByRole('region', { name: 'Bulk actions', exact: true })).toHaveCount(0)
 })
 
-test('rating sorting is sent to the server; detail opens scoped histories', async ({ page }) => {
+test('shipper ratings are removed while detail keeps operational metrics and scoped histories', async ({ page }) => {
   const state = await setup(page)
-  await page.goto('/merchant/shippers')
-  await page.getByRole('combobox', { name: 'Sort by rating', exact: true }).click()
-  await page.getByRole('option', { name: 'Rating: high to low', exact: true }).click()
-  await expect.poll(() => state.filters.at(-1).sortBy).toEqual([{ field: 'Rating', isDescending: true }])
+  await page.goto('/merchant/shippers?ratingSort=desc')
+  await expect(page.getByRole('columnheader', { name: 'Rating', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('combobox', { name: 'Sort by rating', exact: true })).toHaveCount(0)
+  await expect.poll(() => state.filters.length).toBeGreaterThan(0)
+  expect(state.filters.at(-1).sortBy).toBeUndefined()
   await rowAction(page, 'View Test Driver')
   const dialog = page.getByRole('dialog')
+  await expect(dialog.getByText('Rating', { exact: true })).toHaveCount(0)
+  await expect(dialog.getByText('Deliveries completed', { exact: true })).toBeVisible()
+  await expect(dialog.getByText('Active tasks', { exact: true })).toBeVisible()
   await dialog.locator('summary').filter({ hasText: 'Task history' }).click()
   await expect(dialog.getByRole('link', { name: 'WG-HISTORY' })).toHaveAttribute('href', `/merchant/orders/${id}`)
   await dialog.locator('summary').filter({ hasText: 'Administration history' }).click()

@@ -1,6 +1,9 @@
+import ClearFiltersButton from '~/components/ClearFiltersButton'
+import DetailTabs from '~/components/DetailTabs'
+import PromotionUsages from './PromotionUsages'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Tags, Trash2, Power, Download, Ticket, Coins, Wallet, ShoppingBag } from 'lucide-react'
+import { Tags, Trash2, Power, Download, Ticket, Coins, Wallet, ShoppingBag, ClipboardCheck, ChartNoAxesCombined } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
@@ -10,7 +13,7 @@ import StatCard from '~/components/workspace/StatCard'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminPromotionApi } from '~/apis/admin/adminPromotionApi'
-import { formatCurrency, formatNumber } from '~/utils/formats'
+import { formatCurrency, formatNumber, formatDateTime } from '~/utils/formats'
 import { dateRangeFilter } from '~/utils/dateRange'
 import { notify } from '~/utils/notifications'
 import { getApiError } from '~/utils/apiError'
@@ -41,11 +44,17 @@ function PromotionStatistics({ id }) {
     }
   }
   return (
-    <section className="space-y-4">
-      <h2 className="border-b border-border pb-3 text-lg font-semibold">
+    <section className="space-y-4 rounded-2xl border border-border bg-card p-5">
+      <h2 className="-mx-5 -mt-5 flex items-center gap-3 rounded-t-2xl border-b border-primary/15 bg-primary/5 p-5 text-lg font-semibold">
+        <ChartNoAxesCombined className="size-5 text-primary" />
         {t('admin.promotions.statistics')}
       </h2>
+      <ClearFiltersButton
+        active={range.from || range.to}
+        onClear={() => setRange({ from: '', to: '' })}
+      />
       <DateRangeFilter
+        key={`${range.from}:${range.to}`}
         from={range.from}
         to={range.to}
         onApply={setRange}
@@ -59,6 +68,15 @@ function PromotionStatistics({ id }) {
         />
       ) : (
         <>
+          {stats.fromDate && stats.toDate && (
+            <p className="text-sm text-muted-foreground">
+              {formatDateTime(stats.fromDate, 'Asia/Ho_Chi_Minh')}
+              {' '}
+              –
+              {' '}
+              {formatDateTime(stats.toDate, 'Asia/Ho_Chi_Minh')}
+            </p>
+          )}
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {[['usedCount', Ticket], ['totalDiscountAmount', Coins], ['revenue', ShoppingBag], ['paidRevenue', Wallet]].map(([key, Icon], index) => (
               <StatCard
@@ -138,12 +156,13 @@ function PromotionStatistics({ id }) {
 export default function PromotionDialog({ id, kind, onClose, onSaved }) {
   const { t } = useTranslation()
   const detail = kind === 'detail'
+  const [tab, setTab] = useState('conditions')
   const load = useCallback(signal => adminPromotionApi.detail(id, signal), [id])
   const resource = useCatalogResource(load), value = resource.data
   const [pending, setPending] = useState(false), [blocked, setBlocked] = useState(false), [confirmed, setConfirmed] = useState(false), [error, setError] = useState('')
   const locked = useRef(false)
   const run = async () => {
-    if (!value || locked.current || blocked || !confirmed || kind === 'delete' && value.usedCount > 0) {
+    if (!value || locked.current || blocked || !confirmed || kind === 'delete' && (value.canDelete === false || value.usedCount > 0)) {
       return
     }
     locked.current = true; setPending(true); setError('')
@@ -155,7 +174,7 @@ export default function PromotionDialog({ id, kind, onClose, onSaved }) {
       }
       writing = true
       if (kind === 'delete') {
-        await adminPromotionApi.remove(id)
+        await adminPromotionApi.remove(id, latest.version)
       } else {
         await adminPromotionApi.toggle(latest)
       }
@@ -181,6 +200,7 @@ export default function PromotionDialog({ id, kind, onClose, onSaved }) {
       }}
     >
       <DialogContent
+        ready={!resource.loading}
         className={detail ? 'max-w-5xl' : 'max-w-xl'}
         closeLabel="common.close"
       >
@@ -214,31 +234,40 @@ export default function PromotionDialog({ id, kind, onClose, onSaved }) {
               </span>
             </div>
             {detail ? (
-              <>
-                <section className="rounded-2xl border border-border p-5">
-                  <h2 className="mb-4 border-b border-border pb-3 text-lg font-semibold">
-                    {t('admin.promotions.conditions')}
-                  </h2>
-                  <dl className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {[
-                      ['discountType', t(`admin.promotions.types.${value.discountType}`)], ['discountValue', value.discountType === 1 ? `${formatNumber(value.discountValue)}%` : formatCurrency(value.discountValue)], ['minOrderAmount', formatCurrency(value.minOrderAmount)], ['maxDiscountAmount', value.maxDiscountAmount == null ? t('admin.promotions.unlimited') : formatCurrency(value.maxDiscountAmount)], ['startAt', formatPromotionTime(value.startAt)], ['endAt', formatPromotionTime(value.endAt)], ['usageLimit', value.usageLimit ?? t('admin.promotions.unlimited')], ['usageLimitPerCustomer', value.usageLimitPerCustomer ?? t('admin.promotions.unlimited')], ['usedCount', formatNumber(value.usedCount)]
-                    ].map(([key, text]) => (
-                      <div key={key}>
-                        <dt className="text-sm text-muted-foreground">
-                          {t(`admin.promotions.fields.${key}`)}
-                        </dt>
-                        <dd className="mt-2 font-semibold">
-                          {text}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                </section>
-                <PromotionStatistics id={id} />
-              </>
+              <DetailTabs
+                label={t('admin.promotions.detail')}
+                tabs={[{ value: 'conditions', label: t('admin.promotions.conditions') }, { value: 'statistics', label: t('admin.promotions.statistics') }, { value: 'usages', label: t('admin.sync.promotionUsages') }]}
+                value={tab}
+                onChange={setTab}
+              >
+                {tab === 'conditions' && (
+                  <section className="rounded-2xl border border-border p-5">
+                    <h2 className="-mx-5 -mt-5 mb-5 flex items-center gap-3 rounded-t-2xl border-b border-primary/15 bg-primary/5 p-5 text-lg font-semibold">
+                      <ClipboardCheck className="size-5 text-primary" />
+                      {t('admin.promotions.conditions')}
+                    </h2>
+                    <dl className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                      {[
+                        ['discountType', t(`admin.promotions.types.${value.discountType}`)], ['discountValue', value.discountType === 1 ? `${formatNumber(value.discountValue)}%` : formatCurrency(value.discountValue)], ['minOrderAmount', formatCurrency(value.minOrderAmount)], ['maxDiscountAmount', value.maxDiscountAmount == null ? t('admin.promotions.unlimited') : formatCurrency(value.maxDiscountAmount)], ['startAt', formatPromotionTime(value.startAt)], ['endAt', formatPromotionTime(value.endAt)], ['usageLimit', value.usageLimit ?? t('admin.promotions.unlimited')], ['usageLimitPerCustomer', value.usageLimitPerCustomer ?? t('admin.promotions.unlimited')], ['usedCount', formatNumber(value.usedCount)]
+                      ].map(([key, text]) => (
+                        <div key={key}>
+                          <dt className="text-base text-muted-foreground">
+                            {t(`admin.promotions.fields.${key}`)}
+                          </dt>
+                          <dd className="mt-2 text-base font-semibold">
+                            {text}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </section>
+                )}
+                {tab === 'statistics' && <PromotionStatistics id={id} />}
+                {tab === 'usages' && <PromotionUsages id={id} />}
+              </DetailTabs>
             ) : (
               <>
-                {kind === 'delete' && value.usedCount > 0 && (
+                {kind === 'delete' && (value.canDelete === false || value.usedCount > 0) && (
                   <p className="text-sm text-destructive">
                     {t('admin.promotions.usedRule')}
                   </p>
@@ -247,7 +276,7 @@ export default function PromotionDialog({ id, kind, onClose, onSaved }) {
                   <Checkbox
                     checked={confirmed}
                     onCheckedChange={setConfirmed}
-                    disabled={pending || blocked || kind === 'delete' && value.usedCount > 0}
+                    disabled={pending || blocked || kind === 'delete' && (value.canDelete === false || value.usedCount > 0)}
                   />
                   {t('admin.promotions.confirmHint')}
                 </label>

@@ -6,15 +6,16 @@ const id = '10000000-0000-4000-8000-000000000001'
 const row = { id, ...merchantDefaults(), businessName: 'Store', email: 'owner@example.test', phone: '0901234567', address: '123 Street', city: 'HCM', latitude: 10.77, longitude: 106.7, status: 1, commissionRate: 0, imageUrls: ['/uploads/store.png'], serviceAreaIds: ['area-1'], contractStartDate: '2026-11-07T17:00:00Z' }
 it('validates location, financial bounds, dates and phone before sending', async () => {
   expect(await merchantSchema.isValid(merchantDefaults(row))).toBe(true)
-  for (const patch of [{ latitude: 0, longitude: 0 }, { latitude: 91 }, { commissionRate: 101 }, { commissionRate: 15.123 }, { depositAmount: -1 }, { serviceRadiusKm: 0 }, { maxCapacity: 1.5 }, { phone: 'not-a-number' }, { contractStartDate: '2026-11-08', contractEndDate: '2026-11-07' }, { contractEndDate: '2026-02-31' }, { slaDocUrl: 'javascript:alert(1)' }]) {
+  for (const patch of [{ latitude: 0, longitude: 0 }, { latitude: 91 }, { commissionRate: 101 }, { commissionRate: 15.123 }, { depositAmount: -1 }, { serviceRadiusKm: 0 }, { maxCapacity: 1.5 }, { phone: 'not-a-number' }, { contractStartDate: '2026-11-08', contractEndDate: '2026-11-07' }, { contractEndDate: '2026-02-31' }]) {
     expect(await merchantSchema.isValid({ ...merchantDefaults(row), ...patch })).toBe(false)
   }
 })
 it('preserves zero commission, original contract instants and service area priorities', () => {
-  const body = merchantPayload({ ...merchantDefaults(row), role: 'Admin', status: 3, approvedBy: 'attacker' }, row, row.imageUrls)
+  const body = merchantPayload({ ...merchantDefaults(row), role: 'Admin', status: 3, approvedBy: 'attacker', slaDocUrl: 'https://legacy.test/sla.pdf' }, row, row.imageUrls)
   expect(body.commissionRate).toBe(0)
   expect(body.contractStartDate).toBe(row.contractStartDate)
   expect(body.serviceAreaIds).toBeNull()
+  expect(body).not.toHaveProperty('slaDocUrl')
   expect(body).not.toHaveProperty('role')
   expect(body).not.toHaveProperty('status')
   expect(body).not.toHaveProperty('approvedBy')

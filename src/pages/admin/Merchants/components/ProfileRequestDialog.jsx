@@ -1,3 +1,5 @@
+import { privateDocumentApi } from '~/apis/privateDocumentApi'
+import PrivateDocumentCard from '~/components/documents/PrivateDocumentCard'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, X, FileCheck } from 'lucide-react'
@@ -14,7 +16,12 @@ import MerchantDialogHeader from './MerchantDialogHeader'
 
 export default function ProfileRequestDialog({ id, onClose, onSaved }) {
   const { t } = useTranslation()
-  const load = useCallback((signal) => adminMerchantApi.request(id, signal), [id])
+  const load = useCallback(async signal => {
+    const request = await adminMerchantApi.request(id, signal)
+    const ids = [...new Set([request.current.businessLicenseDocumentId, request.proposed.businessLicenseDocumentId].filter(Boolean))]
+    const values = await Promise.allSettled(ids.map(fileId => privateDocumentApi.read(fileId, signal)))
+    return { ...request, documentMetadata: Object.fromEntries(values.flatMap((value, index) => value.status === 'fulfilled' ? [[ids[index], value.value]] : [])) }
+  }, [id])
   const resource = useCatalogResource(load)
   const value = resource.data
   const [reason, setReason] = useState(''), [rejecting, setRejecting] = useState(false), [pending, setPending] = useState(false), [blocked, setBlocked] = useState(false), [error, setError] = useState('')
@@ -34,7 +41,7 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
         setError('admin.merchants.profileConflict'); setBlocked(true); return
       }
       writing = true
-      await adminMerchantApi.review(id, approve, reason.trim())
+      await adminMerchantApi.review(id, approve, reason.trim(), value.version)
       notify.success(approve ? 'admin.merchants.approved' : 'admin.merchants.rejected'); onSaved()
     } catch (failure) {
       const unknown = writing && unknownWrite(failure)
@@ -45,7 +52,7 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
       lock.current = false; setPending(false)
     }
   }
-  const keys = ['businessName', 'address', 'city', 'phone', 'openingHours', 'latitude', 'longitude']
+  const keys = ['businessName', 'address', 'city', 'phone', 'openingHours', 'latitude', 'longitude', 'taxCode']
   return (
     <Dialog
       open
@@ -134,6 +141,30 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
                 />
               </section>
             </div>
+            {(value.current.documentsSnapshotIncluded || value.proposed.documentsSnapshotIncluded) && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {['current', 'proposed'].map(key => (
+                  <section
+                    key={key}
+                    className="space-y-3"
+                  >
+                    <h3 className="font-semibold">
+                      {t(key === 'current' ? 'admin.merchants.before' : 'admin.merchants.proposed')}
+                    </h3>
+                    {value.documentMetadata?.[value[key].businessLicenseDocumentId] ? (
+                      <PrivateDocumentCard
+                        document={value.documentMetadata[value[key].businessLicenseDocumentId]}
+                        label={t('merchant.backendSync.businessLicense')}
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        {t('merchant.backendSync.noDocument')}
+                      </p>
+                    )}
+                  </section>
+                ))}
+              </div>
+            )}
             {value.rejectionReason && (
               <p className="rounded-xl bg-rose-500/10 p-4 text-sm font-semibold text-rose-700 dark:text-rose-300">
                 {value.rejectionReason}

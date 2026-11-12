@@ -1,3 +1,4 @@
+import ActionConfirmationDialog from '~/components/ActionConfirmationDialog'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Shirt, Check, X, Trash2, Power, Store } from 'lucide-react'
@@ -37,11 +38,14 @@ export default function ServiceRecordDialog({ id, kind, onClose, onSaved, mercha
       if (!proposal && action === 'toggle' && latest.approvalStatus !== 2) {
         throw new Error('admin.services.approvedOnly')
       }
+      if (!proposal && (action === 'delete' && latest.canDelete === false || action === 'toggle' && latest.canChangeAvailability === false)) {
+        throw new Error('admin.services.changed')
+      }
       writing = true
       if (proposal) {
-        await adminServiceApi.review(id, action === 'approve', reason.trim())
+        await adminServiceApi.review(id, action === 'approve', reason.trim(), latest.version)
       } else if (action === 'delete') {
-        await adminServiceApi.remove(id)
+        await adminServiceApi.remove(id, latest.version)
       } else {
         await adminServiceApi.status(latest, !latest.isActive)
       }
@@ -56,6 +60,59 @@ export default function ServiceRecordDialog({ id, kind, onClose, onSaved, mercha
       locked.current = false; setPending(false)
     }
   }
+  const actionContent = action && value && (
+    <section className={actionOnly ? 'space-y-4 rounded-xl border border-border bg-muted/20 p-4' : 'space-y-4'}>
+      {actionOnly && (
+        <h2 className="border-b border-border pb-3 text-lg font-semibold">
+          {t(`admin.services.${action}`)}
+        </h2>
+      )}
+      {!proposal && (
+        <div className="flex items-center gap-3">
+          <ResourceThumbnail
+            urls={value.imageUrls}
+            name={value.name}
+          />
+          <span className="font-semibold">
+            {value.name}
+          </span>
+        </div>
+      )}
+      {actionOnly && (
+        <p className="text-sm leading-6 text-muted-foreground">
+          {t(action === 'delete' ? 'admin.services.deleteHint' : 'admin.services.statusHint')}
+        </p>
+      )}
+      {action === 'reject' && (
+        <label className="grid gap-3 text-sm font-medium">
+          <span>
+            {t('merchant.services.rejectionReason')}
+          </span>
+          <Input
+            aria-label={t('merchant.services.rejectionReason')}
+            value={reason}
+            onChange={event => setReason(event.target.value)}
+            maxLength={1000}
+            disabled={pending || blocked}
+            placeholder={t('admin.services.rejectPlaceholder')}
+            className="h-11 text-base font-normal"
+          />
+        </label>
+      )}
+      <label className="flex items-start gap-3 text-base">
+        <input
+          type="checkbox"
+          checked={confirmed}
+          onChange={event => setConfirmed(event.target.checked)}
+          disabled={pending || blocked}
+          className="mt-1 size-5 accent-primary"
+        />
+        <span>
+          {t('admin.services.confirmCheck')}
+        </span>
+      </label>
+    </section>
+  )
   return (
     <Dialog
       open
@@ -70,7 +127,7 @@ export default function ServiceRecordDialog({ id, kind, onClose, onSaved, mercha
         className={proposal ? 'max-w-5xl' : actionOnly ? 'max-w-xl' : 'max-w-3xl'}
         closeLabel="common.close"
       >
-        <DialogHeader tone={kind === 'delete' || action === 'reject' ? 'danger' : kind === 'toggle' ? value?.isActive ? 'warning' : 'success' : action === 'approve' ? 'success' : 'info'}>
+        <DialogHeader tone={kind === 'delete' ? 'danger' : kind === 'toggle' ? value?.isActive ? 'warning' : 'success' : 'info'}>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
             {kind === 'delete' ? <Trash2 className="text-destructive" /> : kind === 'toggle' ? <Power className="text-amber-600" /> : <Shirt className="text-primary" />}
             {t(actionOnly ? kind === 'delete' ? 'admin.services.delete' : value?.isActive ? 'admin.services.deactivate' : 'admin.services.activate' : proposal ? 'merchant.services.proposalDetails' : 'merchant.services.details')}
@@ -159,67 +216,8 @@ export default function ServiceRecordDialog({ id, kind, onClose, onSaved, mercha
                 )}
               </>
             ) : !actionOnly && <ServiceInfo value={value} />}
-            {action && (
-              <section className="space-y-4 rounded-xl border border-border bg-muted/20 p-4">
-                <h2 className="border-b border-border pb-3 text-lg font-semibold">
-                  {t(`admin.services.${action}`)}
-                </h2>
-                {!proposal && (
-                  <div className="flex items-center gap-3">
-                    <ResourceThumbnail
-                      urls={value.imageUrls}
-                      name={value.name}
-                    />
-                    <span className="font-semibold">
-                      {value.name}
-                    </span>
-                  </div>
-                )}
-                <p className="text-sm leading-6 text-muted-foreground">
-                  {t(action === 'delete' ? 'admin.services.deleteHint' : proposal ? 'admin.services.confirmReviewHint' : 'admin.services.statusHint')}
-                </p>
-                {action === 'reject' && (
-                  <label className="grid gap-3 text-sm font-medium">
-                    <span>
-                      {t('merchant.services.rejectionReason')}
-                    </span>
-                    <Input
-                      aria-label={t('merchant.services.rejectionReason')}
-                      value={reason}
-                      onChange={event => setReason(event.target.value)}
-                      maxLength={1000}
-                      disabled={pending || blocked}
-                      placeholder={t('admin.services.rejectPlaceholder')}
-                      className="h-11 text-base font-normal"
-                    />
-                  </label>
-                )}
-                <label className="flex items-start gap-3 text-base">
-                  <input
-                    type="checkbox"
-                    checked={confirmed}
-                    onChange={event => setConfirmed(event.target.checked)}
-                    disabled={pending || blocked}
-                    className="mt-1 size-5 accent-primary"
-                  />
-                  <span>
-                    {t('admin.services.confirmCheck')}
-                  </span>
-                </label>
-                {!actionOnly && (
-                  <Button
-                    disabled={!confirmed || pending || blocked || action === 'reject' && !reason.trim()}
-                    onClick={run}
-                    variant={['delete', 'reject'].includes(action) ? 'destructive' : 'default'}
-                    className="h-11 px-6 text-base"
-                  >
-                    {action === 'delete' ? <Trash2 size={18} /> : action === 'toggle' ? <Power size={18} /> : <Check size={18} />}
-                    {t(pending ? 'admin.services.saving' : 'admin.services.confirm')}
-                  </Button>
-                )}
-              </section>
-            )}
-            {error && (
+            {actionOnly && actionContent}
+            {error && !proposal && (
               <p
                 role="alert"
                 className="rounded-xl bg-destructive/10 p-4 text-sm text-destructive"
@@ -276,6 +274,27 @@ export default function ServiceRecordDialog({ id, kind, onClose, onSaved, mercha
           </div>
         )}
       </DialogContent>
+      {proposal && action && value && (
+        <ActionConfirmationDialog
+          title={t(`admin.services.${action}`)}
+          description={t('admin.services.confirmReviewHint')}
+          icon={action === 'reject' ? X : Check}
+          tone={action === 'reject' ? 'danger' : 'success'}
+          pending={pending}
+          disabled={!confirmed || blocked || action === 'reject' && !reason.trim()}
+          error={error}
+          onClose={() => {
+            setAction(null); setConfirmed(false)
+          }}
+          onConfirm={run}
+          confirmLabel={t(pending ? 'admin.services.saving' : 'admin.services.confirm')}
+        >
+          <p className="rounded-xl border border-primary/15 bg-primary/5 p-4 font-semibold">
+            {value.proposed.name}
+          </p>
+          {actionContent}
+        </ActionConfirmationDialog>
+      )}
     </Dialog>
   )
 }

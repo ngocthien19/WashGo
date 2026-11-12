@@ -1,3 +1,4 @@
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -40,6 +41,7 @@ export default function ServicesPage() {
   const selected = rows.filter(row => ids.includes(row.id))
   const linked = isId(params.get('proposal')) ? { kind: 'proposal', id: params.get('proposal') } : isId(params.get('service')) ? { kind: 'detail', id: params.get('service') } : null
   const currentModal = modal || linked
+  const [resetVersion, setResetVersion] = useState(0)
   const update = patch => setParams(writeQuery({ ...query, ...patch, page: patch.page || 1 }))
   const close = () => {
     setModal(null); if (linked) {
@@ -58,7 +60,11 @@ export default function ServicesPage() {
     }
     setOpening(true)
     try {
-      setModal({ kind: 'edit', service: await adminServiceApi.service(id) })
+      const service = await adminServiceApi.service(id)
+      if (service.canEdit === false) {
+        throw new Error('admin.services.changed')
+      }
+      setModal({ kind: 'edit', service })
     } catch (error) {
       notify.error(getApiError(error))
     } finally {
@@ -147,6 +153,7 @@ export default function ServicesPage() {
             {t('admin.services.search')}
           </p>
           <CatalogToolbar
+            resetKey={resetVersion}
             embedded
             label={t('admin.services.search')}
             placeholder={t('admin.services.searchHint')}
@@ -198,6 +205,13 @@ export default function ServicesPage() {
             />
           </label>
         )}
+        <ClearFiltersButton
+          className="sm:col-span-2 xl:col-span-full"
+          active={query.keyword || query.type || query.state || query.approval || query.merchantId || query.serviceId}
+          onClear={() => {
+            setResetVersion(value => value + 1); setParams(writeQuery({ tab: query.tab, sort: query.sort }))
+          }}
+        />
         {!catalog && merchants.error && <ResourceFeedback {...merchants} />}
       </section>
       {selected.length > 0 && (
@@ -391,7 +405,7 @@ export default function ServicesPage() {
                             </DropdownMenuItem>
                             {catalog && (
                               <DropdownMenuItem
-                                disabled={opening}
+                                disabled={opening || row.canEdit === false}
                                 onClick={() => edit(row.id)}
                               >
                                 <Pencil
@@ -404,7 +418,7 @@ export default function ServicesPage() {
                             {catalog && (
                               <>
                                 <DropdownMenuItem
-                                  disabled={row.approvalStatus !== 2}
+                                  disabled={row.canChangeAvailability === false || row.approvalStatus !== 2}
                                   onClick={() => setModal({ kind: 'toggle', id: row.id })}
                                 >
                                   <Power
@@ -414,6 +428,7 @@ export default function ServicesPage() {
                                   {t(row.isActive ? 'admin.services.deactivate' : 'admin.services.activate')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
+                                  disabled={row.canDelete === false}
                                   onClick={() => setModal({ kind: 'delete', id: row.id })}
                                   className="text-destructive"
                                 >
@@ -462,6 +477,7 @@ export default function ServicesPage() {
       {currentModal?.kind === 'bulk' && (
         <ServiceBulkDialog
           services={currentModal.services}
+          onSaved={saved}
           onClose={close}
         />
       )}

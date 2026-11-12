@@ -1,3 +1,4 @@
+import { adminUpgradeMocks } from './adminUpgradeMocks'
 import { merchantSession } from './merchantSession.js'
 
 export const merchantId = '10000000-0000-4000-8000-000000000001'
@@ -8,13 +9,16 @@ export async function setupAdminMerchants(page, { dark = false } = {}) {
   const merchants = Array.from({ length: 13 }, (_, i) => ({ id: `10000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`, businessName: i === 0 ? 'Ben Thanh Laundry' : `Laundry ${String(i + 1).padStart(2, '0')}`, email: `store${i + 1}@example.test`, phone: '0901234567', taxCode: '0312345678', businessLicense: '"GP-001"', address: '123 Test Street', district: 'District 1', city: 'Ho Chi Minh City', latitude: 10.77, longitude: 106.7, openingHours: '"08:00-20:00"', status: i === 1 ? 3 : 1, rating: 4.5, totalOrders: 10, unfinishedOrders: i === 0 ? 2 : 0, totalRevenue: 1000000, commissionRate: 20, depositAmount: 1000000, serviceRadiusKm: 5, maxCapacity: 50, imageUrls: [], serviceAreaIds: ['30000000-0000-4000-8000-000000000001'], contractStartDate: '2026-10-31T17:00:00Z', contractEndDate: null, slaDocUrl: null }))
   const current = profileFields(merchants[0])
   const state = { merchants, requests: [{ id: requestId, merchantId, merchantName: merchants[0].businessName, status: 1, current, proposed: { ...current, businessName: 'Updated Ben Thanh Laundry' }, changedFields: ['BusinessName'], createdAt: '2026-11-07T12:00:00Z' }], calls: [], writes: [], listError: false, createUnknown: false, updateUnknown: false, lockConflict: false, changeBeforeSave: false, reads: {}, uploads: 0 }
-  await page.route('**/api/**', (route) => {
+  await page.route('**/api/**', async (route) => {
     const req = route.request(), path = new URL(req.url()).pathname.replace(/^\/api/, '')
     const body = /application\/json/.test(req.headers()['content-type'] || '') ? req.postDataJSON() : null
     state.calls.push({ path, body })
     const ok = (data) => route.fulfill({ json: { succeeded: true, data } })
     const fail = (status, message = 'admin.invalidResponse') => route.fulfill({ status, json: { succeeded: false, message } })
     const list = (rows, query) => route.fulfill({ json: { succeeded: true, list: rows.slice((query.page - 1) * query.take, query.page * query.take), total: rows.length, currentPage: query.page, totalPages: Math.ceil(rows.length / query.take) } })
+    if (await adminUpgradeMocks(route, state, [])) {
+      return
+    }
     if (path === '/auth/me') {
       return ok({ id: 'admin-test', role: 'Admin', fullName: 'WashGo Admin', email: 'admin@example.test' })
     }

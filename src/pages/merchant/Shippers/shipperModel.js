@@ -16,9 +16,8 @@ export function readShipperQuery(params) {
     keyword: (params.get('keyword') || '').trim(),
     status: ['1', '2', '3'].includes(params.get('status')) ? params.get('status') : '',
     isActive: ['true', 'false'].includes(params.get('isActive')) ? params.get('isActive') : '',
-    ratingSort: ['asc', 'desc'].includes(params.get('ratingSort')) ? params.get('ratingSort') : '',
     page: Number.isSafeInteger(page) && page > 0 ? page : 1
   }
 }
-export const shipperFilter = (query) => ({ keyword: query.keyword || undefined, status: query.status ? Number(query.status) : undefined, isActive: query.isActive ? query.isActive === 'true' : undefined, sortBy: query.ratingSort ? [{ field: 'Rating', isDescending: query.ratingSort === 'desc' }] : undefined, page: query.page, take: SHIPPER_TAKE })
+export const shipperFilter = (query) => ({ keyword: query.keyword || undefined, status: query.status ? Number(query.status) : undefined, isActive: query.isActive ? query.isActive === 'true' : undefined, page: query.page, take: SHIPPER_TAKE })
 export const shipperSnapshot = (item) => JSON.stringify(['revision', 'fullName', 'phone', 'email', 'vehicleType', 'vehiclePlate', 'isActive', 'status', 'activeTaskCount', 'accountActive', 'identityNumber', 'identityFrontImageUrl', 'identityBackImageUrl'].map((key) => item[key]))
