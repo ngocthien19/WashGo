@@ -4,7 +4,7 @@ import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/lib/utils'
 
-export default function CatalogToolbar({ keyword, onSearch, label, placeholder, actions, embedded = false, className, formClassName }) {
+export default function CatalogToolbar({ keyword, onSearch, label, placeholder, actions, embedded = false, className, formClassName, resetKey = 0 }) {
   const id = useId()
   return (
     <div className={cn('flex min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between', !embedded && 'rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-5', className)}>
@@ -25,7 +25,7 @@ export default function CatalogToolbar({ keyword, onSearch, label, placeholder, 
         </label>
         <Input
           id={id}
-          key={keyword}
+          key={`${resetKey}:${keyword}`}
           name="keyword"
           type="search"
           defaultValue={keyword}

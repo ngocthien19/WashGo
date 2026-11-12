@@ -203,6 +203,7 @@
     }
   },
   "common": {
+    "confirm": "Xác nhận",
     "photos": "Hình ảnh",
     "noPhotos": "Chưa có ảnh hiển thị",
     "photoUnavailable": "Không tải được ảnh",
@@ -378,7 +379,134 @@
     "forgotPasswordTitle": "Quên mật khẩu?"
   },
   "admin": {
+    "reconcile": {
+      "confirm": "Tôi đã kiểm tra căn cứ và xác nhận tỷ lệ lịch sử này.",
+      "title": "Đối chiếu hoa hồng",
+      "hint": "Chỉ xác nhận tỷ lệ từ hợp đồng hoặc bằng chứng đã kiểm tra. Tỷ lệ hiện tại của Merchant không chứng minh tỷ lệ lịch sử. Các khoản đã vào kỳ đối soát không thể sửa tại đây.",
+      "rate": "Tỷ lệ xác minh (%)",
+      "rateRequired": "Nhập tỷ lệ từ 0 đến 100, tối đa 2 chữ số thập phân.",
+      "evidence": "Căn cứ xác minh",
+      "evidenceRequired": "Nhập căn cứ từ 10 đến 1000 ký tự.",
+      "Missing": "Thiếu tỷ lệ chốt",
+      "LegacyUnverified": "Tỷ lệ cũ chưa xác minh",
+      "locked": "Đã vào kỳ đối soát"
+    },
+    "reviews": {
+      "actionsNamed": "Thao tác đánh giá đơn {{code}}",
+      "view": "Xem chi tiết",
+      "description": "Theo dõi và kiểm duyệt đánh giá trải nghiệm dịch vụ WashGo trên từng đơn hàng.",
+      "detail": "Chi tiết đánh giá",
+      "detailHint": "Nội dung khách hàng gửi và thông tin phục vụ kiểm duyệt nội bộ.",
+      "readOnlyDetail": "Đang hiển thị dữ liệu từ danh sách. Chưa thể xác minh chi tiết mới nhất để xử lý đánh giá này.",
+      "internalInfo": "Thông tin nội bộ",
+      "customerName": "Khách hàng",
+      "merchantName": "Merchant phụ trách",
+      "criteria": "Tiêu chí dịch vụ",
+      "distribution": "Phân bố số sao",
+      "qualityStars": "Chất lượng giặt",
+      "speedStars": "Thời gian xử lý",
+      "attitudeStars": "Trải nghiệm phục vụ",
+      "packagingStars": "Đóng gói",
+      "comment": "Nhận xét",
+      "noComment": "Không có nhận xét",
+      "media": "Ảnh và video đính kèm",
+      "noMedia": "Không có ảnh hoặc video đính kèm.",
+      "mediaCount": "{{images}} ảnh · {{videos}} video",
+      "visible": "Đang hiển thị",
+      "hidden": "Đã ẩn",
+      "hide": "Ẩn đánh giá",
+      "show": "Hiển thị lại",
+      "reason": "Lý do ẩn",
+      "reasonHint": "Nhập lý do ẩn đánh giá...",
+      "reasonRequired": "Vui lòng nhập lý do ẩn đánh giá.",
+      "reasonLong": "Lý do tối đa 500 ký tự.",
+      "confirmRequired": "Vui lòng xác nhận thao tác.",
+      "confirm": "Tôi đã kiểm tra các đánh giá và xác nhận thao tác này.",
+      "actionHint": "Đã chọn {{count}} đánh giá. Thao tác chỉ thay đổi trạng thái hiển thị, giữ nguyên nội dung khách hàng gửi.",
+      "bulk": "Xử lý đánh giá hàng loạt",
+      "selected": "Đã chọn {{count}} đánh giá trên trang này",
+      "clearSelection": "Bỏ chọn đánh giá",
+      "selectPage": "Chọn tất cả đánh giá trên trang này",
+      "selectNamed": "Chọn đánh giá đơn {{code}}",
+      "viewNamed": "Xem đánh giá đơn {{code}}",
+      "skipped": "Không áp dụng thao tác này",
+      "notReady": "Chức năng xử lý chưa sẵn sàng cho các đánh giá đã chọn. Bạn vẫn có thể xem dữ liệu hiện có.",
+      "unavailable": "Danh sách đánh giá hiện chưa sẵn sàng. Vui lòng thử lại sau.",
+      "summaryPending": "Thống kê đang được cập nhật. Các số liệu không được suy ra từ riêng trang đang xem.",
+      "unknown": "Chưa xác định được kết quả xử lý. Vui lòng tra cứu trước khi thực hiện thêm thao tác trên các đánh giá này.",
+      "lookupHint": "Tra cứu chỉ đọc kết quả của yêu cầu đã gửi và không gửi lại thao tác.",
+      "stale": "Đánh giá đã thay đổi. Hãy đóng cửa sổ, cập nhật danh sách và kiểm tra lại.",
+      "resultsHint": "Đã nhận kết quả xử lý. Xem trạng thái từng đánh giá bên trên.",
+      "done": "Đã xử lý",
+      "outcomes": { "Changed": "Đã thay đổi", "Unchanged": "Đã ở trạng thái yêu cầu", "Skipped": "Đã bỏ qua", "Failed": "Không thành công", "Succeeded": "Thành công" },
+      "total": "Tổng đánh giá",
+      "average": "Điểm trung bình đang hiển thị",
+      "search": "Tìm kiếm đánh giá",
+      "searchHint": "Mã đơn, tên khách hàng hoặc nhận xét...",
+      "selectedMerchant": "Merchant đã chọn",
+      "stars": "Số sao",
+      "status": "Trạng thái hiển thị",
+      "dateRange": "Khoảng thời gian đánh giá",
+      "results": "đánh giá tìm thấy",
+      "empty": "Chưa có đánh giá phù hợp với bộ lọc.",
+      "order": "Đơn hàng",
+      "created": "Ngày đánh giá",
+      "actions": "Thao tác"
+    },
+    "sync": {
+      "batchOutcomes": "Đã đổi {{changed}}; giữ nguyên {{unchanged}}; bỏ qua {{skipped}}; lỗi {{failed}}.",
+      "snapshotLines": "Dòng chụp khi chốt kỳ đối soát.",
+      "legacyLines": "Kỳ cũ: các dòng được tính lại từ nguồn hiện tại để tham khảo; số tiền kỳ đã chốt giữ nguyên.",
+      "missingVersion": "Thiếu phiên bản dữ liệu. Đóng và tải lại trước khi thao tác.",
+      "processing": "Thao tác đang xử lý hoặc chưa xác định được kết quả.",
+      "batchUnknown": "Chưa xác định kết quả. Kiểm tra kết quả trước khi thực hiện yêu cầu khác; không gửi lại thao tác này.",
+      "batchResult": "Đã xử lý: {{succeeded}} thành công, {{failed}} không thành công.",
+      "checkResult": "Kiểm tra kết quả",
+      "settingsHistory": "Lịch sử cấu hình",
+      "uploadDocument": "Chọn tài liệu",
+      "removeDocument": "Gỡ tài liệu",
+      "documentRemoval": "Tài liệu sẽ được gỡ khi lưu hồ sơ.",
+      "merchantCreated": "Đã tạo Merchant. Gửi email: {{delivery}}.",
+      "delivery": {
+        "0": "chưa xác định",
+        "1": "máy chủ thư đã tiếp nhận",
+        "2": "không thành công"
+      },
+      "coverage": "Chờ đối soát: {{count}} đơn chưa có tỷ lệ hoa hồng đã chốt (giá trị {{amount}}).",
+      "carryForward": "Bù trừ từ kỳ trước",
+      "periodPayout": "Thu nhập phát sinh trong kỳ",
+      "settlementLines": "Giao dịch trong kỳ đối soát",
+      "cannotCreate": "Kỳ này chưa thể tạo đối soát. Kiểm tra dữ liệu và các kỳ đã chốt.",
+      "cancelExpired": "Hủy đơn quá hạn",
+      "cancelHint": "Kiểm tra phí hủy và khoản hoàn dự kiến trước khi xác nhận. Hệ thống chỉ hủy đơn chờ gửi đã quá hạn.",
+      "cancelReason": "Lý do hủy",
+      "cancelConfirm": "Tôi xác nhận hủy đơn theo các khoản tiền đã hiển thị.",
+      "cancelled": "Đã hủy đơn quá hạn gửi đồ.",
+      "depositExpired": "Quá hạn gửi đồ",
+      "depositDeadline": "Hạn gửi đồ",
+      "compensationFilter": "Trạng thái bồi thường",
+      "searchFinance": "Tìm theo Merchant, mã đơn hoặc chứng từ",
+      "dateBasis": "Lọc ngày theo",
+      "dateBases": {
+        "period": "Kỳ đối soát",
+        "paid": "Ngày chi trả",
+        "created": "Ngày tạo yêu cầu",
+        "reviewed": "Ngày duyệt",
+        "refunded": "Ngày hoàn tiền"
+      },
+      "paidAmount": "Tiền đã thu",
+      "feeAmount": "Phí hủy",
+      "refundAmount": "Tiền cần hoàn",
+      "feeOutstanding": "Phí còn phải thu",
+      "promotionUsages": "Lịch sử sử dụng mã",
+      "reverted": "Đã hoàn lượt",
+      "applied": "Đã sử dụng",
+      "compensationPercent": "Tỷ lệ bồi thường đã áp dụng",
+      "paymentProof": "Minh chứng chi trả",
+      "promotionUsageRange": "Thời gian lịch sử sử dụng mã"
+    },
     "workspaceSync": {
+      "sessionStale": "Phiên này đã kết thúc. Danh sách đã được cập nhật.",
       "activeCustomers": "Khách hàng đang hoạt động",
       "snapshotAt": "KPI cập nhật lúc {{date}}. Biểu đồ và danh sách có thể có thời điểm cập nhật khác.",
       "auditValues": "Chi tiết thay đổi đã lọc",
@@ -396,8 +524,24 @@
       "severity": "Mức độ",
       "alertResults": "Danh sách cảnh báo · {{count}} kết quả",
       "availableBoxes": "Còn {{count}}/{{total}} ô trống",
-      "severities": { "1": "Thấp", "2": "Trung bình", "3": "Cao" },
-      "alertTypes": { "1": "Quá hạn phân công", "2": "Quá hạn thu gom", "3": "Quá hạn xử lý", "4": "Quá hạn trả đồ", "5": "Khách quá hạn lấy đồ", "6": "Quá hạn thanh toán", "7": "Quá hạn gửi đồ", "8": "Locker gần đầy", "9": "Khiếu nại chờ xử lý quá hạn", "10": "Hợp đồng sắp hết hạn", "11": "Hợp đồng đã hết hạn" },
+      "severities": {
+        "1": "Thấp",
+        "2": "Trung bình",
+        "3": "Cao"
+      },
+      "alertTypes": {
+        "1": "Quá hạn phân công",
+        "2": "Quá hạn thu gom",
+        "3": "Quá hạn xử lý",
+        "4": "Quá hạn trả đồ",
+        "5": "Khách quá hạn lấy đồ",
+        "6": "Quá hạn thanh toán",
+        "7": "Quá hạn gửi đồ",
+        "8": "Locker gần đầy",
+        "9": "Khiếu nại chờ xử lý quá hạn",
+        "10": "Hợp đồng sắp hết hạn",
+        "11": "Hợp đồng đã hết hạn"
+      },
       "invalidName": "Họ tên cần từ 2 đến 100 ký tự.",
       "invalidPhone": "Số điện thoại gồm 10 chữ số, bắt đầu bằng 0.",
       "changed": "Hồ sơ đã thay đổi. Đóng và cập nhật dữ liệu trước khi chỉnh sửa lại.",
@@ -406,7 +550,10 @@
       "save": "Lưu thay đổi",
       "profileHint": "Cập nhật họ tên, số điện thoại và ảnh đại diện. Email, vai trò và trạng thái chỉ xem.",
       "avatarHint": "Một ảnh JPG, PNG hoặc WEBP, tối đa 5 MB. Xóa ảnh hiện tại để chọn ảnh mới.",
-      "accountStatuses": { "Active": "Đang hoạt động", "Locked": "Đã khóa" },
+      "accountStatuses": {
+        "Active": "Đang hoạt động",
+        "Locked": "Đã khóa"
+      },
       "passwordRules": "Mật khẩu mới từ 8–128 ký tự, có chữ hoa, chữ thường và số; khác mật khẩu hiện tại.",
       "passwordMatch": "Xác nhận mật khẩu mới chưa khớp.",
       "currentPassword": "Mật khẩu hiện tại",
@@ -438,8 +585,25 @@
       "filterTooLong": "Bộ lọc tối đa 200 ký tự.",
       "changedFields": "Các trường đã thay đổi",
       "result": "Kết quả",
-      "results": { "1": "Thành công", "2": "Thất bại", "3": "Bị từ chối" },
-      "auditFields": { "keyword": "Từ khóa", "actorId": "Mã người thao tác", "actorRole": "Vai trò người thao tác", "module": "Phân hệ", "action": "Thao tác", "resourceType": "Loại đối tượng", "resourceId": "Mã định danh đối tượng", "resourceCode": "Mã đối tượng", "actorName": "Người thao tác", "reason": "Lý do", "errorCode": "Mã lỗi", "correlationId": "Mã truy vết" }
+      "results": {
+        "1": "Thành công",
+        "2": "Thất bại",
+        "3": "Bị từ chối"
+      },
+      "auditFields": {
+        "keyword": "Từ khóa",
+        "actorId": "Mã người thao tác",
+        "actorRole": "Vai trò người thao tác",
+        "module": "Phân hệ",
+        "action": "Thao tác",
+        "resourceType": "Loại đối tượng",
+        "resourceId": "Mã định danh đối tượng",
+        "resourceCode": "Mã đối tượng",
+        "actorName": "Người thao tác",
+        "reason": "Lý do",
+        "errorCode": "Mã lỗi",
+        "correlationId": "Mã truy vết"
+      }
     },
     "services": {
       "bulk": "Thao tác hàng loạt",
@@ -773,7 +937,7 @@
       },
       "createHint": "Tạo tài khoản Merchant và hồ sơ cửa hàng. Hệ thống sẽ thử gửi thông tin đăng nhập qua email.",
       "editHint": "Thay đổi được cập nhật trực tiếp vào hồ sơ Merchant. Khóa tài khoản dùng thao tác riêng.",
-      "commissionHint": "Để trống hoa hồng khi tạo để dùng cấu hình hệ thống; khi sửa, để trống sẽ giữ tỷ lệ hiện tại. Số giấy phép và liên kết tài liệu được nhập trực tiếp, ảnh bên trên chỉ là ảnh cửa hàng.",
+      "commissionHint": "Để trống hoa hồng khi tạo để dùng cấu hình hệ thống; khi sửa, để trống sẽ giữ tỷ lệ hiện tại. Giấy phép, hợp đồng và SLA được lưu dưới dạng tài liệu riêng tư.",
       "areaHint": "Hiện đã phân công {{count}} vùng phục vụ. Lưu hồ sơ giữ nguyên các phân công này; thiết lập vùng và độ ưu tiên được quản lý riêng.",
       "save": "Lưu thông tin",
       "saving": "Đang lưu…",
@@ -839,6 +1003,7 @@
     "loading": "Đang tải dữ liệu…",
     "invalidResponse": "Dữ liệu hệ thống chưa hợp lệ. Vui lòng thử lại.",
     "nav": {
+      "reviews": "Quản lý đánh giá",
       "overview": "Dashboard",
       "merchants": "Quản lý Merchant",
       "orders": "Quản lý đơn hàng",
@@ -924,7 +1089,7 @@
         "list": "Các mã đã chọn",
         "eligible": "Dự kiến áp dụng thao tác",
         "skipped": "Bỏ qua: trạng thái đã phù hợp hoặc mã có lượt sử dụng",
-        "affected": "Dự kiến xử lý {{count}} mã; BE sẽ kiểm tra điều kiện mới nhất.",
+        "affected": "Dự kiến xử lý {{count}} mã.",
         "unavailable": "Chức năng đang chờ BE bổ sung API hàng loạt. Chưa thể xác nhận; hệ thống không gọi từng API riêng để xử lý."
       },
       "create": "Thêm khuyến mãi",
@@ -1121,6 +1286,7 @@
     "finance": {
       "description": "Theo dõi thu – hoàn tiền, hoa hồng, đối soát Merchant và yêu cầu hoàn tiền.",
       "tabs": {
+        "commissionReview": "Đối chiếu hoa hồng",
         "revenue": "Tổng quan thu – hoàn",
         "commissions": "Hoa hồng Merchant",
         "settlements": "Kỳ đối soát",
@@ -1162,8 +1328,8 @@
       },
       "breakdown": "Chi tiết đối soát",
       "orderCount": "Số đơn có tiền giặt đã thu: {{count}}",
-      "currentRate": "Tỷ lệ Merchant hiện tại: {{value}}% (tham khảo; số hoa hồng do BE tính theo đơn).",
-      "commissionHint": "Số liệu theo BE, chưa phải tiền đã chi trả. Cần kiểm tra hoàn tiền khác kỳ và đơn cũ thiếu tỷ lệ hoa hồng trước khi chốt: BE hiện có thể chưa phản ánh đủ các điều chỉnh này.",
+      "currentRate": "Tỷ lệ Merchant hiện tại: {{value}}% (tham khảo; số hoa hồng do hệ thống tính theo đơn).",
+      "commissionHint": "Hoa hồng được tính theo tỷ lệ đã chốt của từng đơn; khoản hoàn được điều chỉnh trong kỳ hoàn tiền. Thu nhập tính được chưa phải tiền đã chuyển cho Merchant. Đơn thiếu tỷ lệ chốt cần đối soát trước khi tạo kỳ.",
       "detail": "Xem chi tiết",
       "create": "Tạo kỳ đối soát",
       "createHint": "Chọn một Merchant và khoảng ngày đã kết thúc, xem số liệu trước khi xác nhận chốt kỳ. Kỳ đã tạo được lưu cố định và không được trùng khoảng với kỳ trước.",
@@ -1191,7 +1357,9 @@
       "noteHint": "Nhập ghi chú xem xét; bắt buộc khi từ chối, tối đa 1000 ký tự...",
       "settlementStatuses": {
         "1": "Chờ chi trả",
-        "2": "Đã chi trả"
+        "2": "Đã chi trả",
+        "3": "Chuyển bù kỳ sau",
+        "4": "Không phát sinh chi trả"
       },
       "refundStatuses": {
         "1": "Chờ duyệt",
@@ -1202,7 +1370,7 @@
       "settlementHint": "Số liệu được chốt tại thời điểm tạo kỳ; các giao dịch phát sinh sau đó không tự cập nhật kỳ này.",
       "refundHint": "Xem nội dung yêu cầu và kết quả xử lý hoàn tiền.",
       "manualHint": "Chỉ ghi nhận sau khi đã chuyển tiền thực tế bên ngoài hệ thống. Nút này không thực hiện giao dịch ngân hàng.",
-      "snapshotRate": "Tỷ lệ tham khảo khi tạo kỳ: {{value}}% (hoa hồng thực tế do BE tính theo từng đơn).",
+      "snapshotRate": "Tỷ lệ tham khảo khi tạo kỳ: {{value}}% (hoa hồng thực tế do hệ thống tính theo từng đơn).",
       "rejectHint": "Nhập lý do từ chối để lưu kết quả xem xét yêu cầu hoàn tiền.",
       "reviewHint": "Duyệt chỉ xác nhận yêu cầu hợp lệ; hoàn tiền thực tế và ghi nhận mã tham chiếu là bước riêng.",
       "confirmTransferred": "Tôi xác nhận đã chuyển đúng số tiền và mã tham chiếu là chính xác.",
@@ -1313,7 +1481,10 @@
     }
   },
   "merchant": {
+    "reviewSync": {"title": "Đánh giá dịch vụ", "search": "Tìm trong nhận xét...", "pendingContent": "Nội dung và media chỉ hiển thị sau khi được kiểm duyệt."},
     "orderFinance": {
+      "settledNetAmount": "Thu sau hoàn thuộc kỳ đã chi trả",
+      "unsettledNetAmount": "Thu sau hoàn còn chờ đối soát",
       "collectedLaundryAmount": "Tiền giặt đã thu",
       "refundedAmount": "Tiền đã hoàn",
       "commissionOnCollected": "Hoa hồng trên tiền đã thu sau hoàn",
@@ -2434,6 +2605,7 @@
       "back": "Danh sách khiếu nại"
     },
     "rating": {
+      "notPublic": "Đánh giá đã gửi, hiện không hiển thị công khai.",
       "photos": "Ảnh đánh giá",
       "title": "Đánh giá dịch vụ",
       "viewTitle": "Xem đánh giá của bạn",
@@ -2984,6 +3156,10 @@
     "reloadCounts": "Tải lại số lượng"
   },
   "shipper": {
+    "sync": {
+      "joined": "Ngày tham gia", "updated": "Cập nhật hồ sơ gần nhất",
+      "chart": "Lượt lấy và trả đồ đã hoàn tất", "performance": "Hiệu suất trong kỳ", "onTime": "Tỷ lệ hoàn tất đúng hạn", "duration": "Thời gian thực hiện trung bình", "sample": "{{count}} đúng hạn / {{total}} lượt có SLA", "durationSample": "{{count}} lượt có dữ liệu thời gian", "previous": "Lượt hoàn tất kỳ trước", "eventDetail": "Chi tiết lượt giao nhận", "deadline": "Hạn nhiệm vụ", "eventStatus": "Trạng thái đơn khi hoàn tất", "captured": "Thông tin được ghi nhận tại thời điểm hoàn tất.", "legacy": "Dữ liệu cũ: thông tin hiện có có thể được khôi phục từ lịch sử.", "currentImages": "Ảnh trạm là ảnh hiện tại, không phải ảnh chụp lịch sử.", "cancelledReturn": "Loại trả đồ", "cancelledOnly": "Trả đồ đơn đã hủy", "normalOnly": "Các lượt còn lại", "sort": "Sắp xếp theo", "oldest": "Hoàn tất cũ nhất", "taskStatus": "Trạng thái nhiệm vụ", "assignedRange": "Ngày phân công", "statuses": { "1": "Đã phân công", "2": "Hoàn tất", "3": "Đã phân công lại", "4": "Đã hủy" }, "export": "Xuất CSV"
+    },
     "media": {
       "lockerPhoto": "Ảnh trạm locker {{number}}",
       "servicePhoto": "Ảnh dịch vụ {{number}}",
