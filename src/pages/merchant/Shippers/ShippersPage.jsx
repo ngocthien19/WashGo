@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Truck, Plus, RefreshCw, Eye, RotateCcw, Pencil, Trash2, LockKeyhole, LockKeyholeOpen, MoreHorizontal, Star, ClipboardPlus, X } from 'lucide-react'
+import { Truck, Plus, RefreshCw, Eye, RotateCcw, Pencil, Trash2, LockKeyhole, LockKeyholeOpen, MoreHorizontal, ClipboardPlus, X } from 'lucide-react'
 import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '~/components/ui/dropdown-menu'
 import { Checkbox } from '~/components/ui/checkbox'
@@ -193,15 +193,7 @@ export default function ShippersPage() {
             {t('merchant.shippers.results')}
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            <div className="workspace-filters w-56">
-              <SelectField
-                label={t('merchant.shipperSync.sortRating')}
-                value={query.ratingSort}
-                onValueChange={(ratingSort) => update({ ratingSort })}
-                options={['', 'desc', 'asc'].map((value) => ({ value, label: t(`merchant.shipperSync.sort.${value || 'default'}`) }))}
-              />
-            </div>
-            {(query.keyword || query.status || query.isActive || query.ratingSort) && (
+            {(query.keyword || query.status || query.isActive) && (
               <Button
                 variant="ghost"
                 onClick={() => setParams({})}
@@ -235,10 +227,10 @@ export default function ShippersPage() {
                       onCheckedChange={(checked) => setSelection({ source: data, ids: checked ? rows.map((row) => row.id) : [] })}
                     />
                   </TableHead>
-                  {['fullName', 'vehicleType', 'workState', 'status', 'activeTaskCount', 'totalDeliveries', 'rating', 'actions'].map((key) => (
+                  {['fullName', 'vehicleType', 'workState', 'status', 'activeTaskCount', 'totalDeliveries', 'actions'].map((key) => (
                     <TableHead
                       key={key}
-                      className={key === 'actions' ? 'sticky right-0 z-20 w-32 min-w-32 border-l border-border bg-[color-mix(in_srgb,var(--primary)_8%,var(--card))] text-center shadow-[-1px_0_0_var(--border)] dark:bg-[color-mix(in_srgb,var(--primary)_12%,var(--card))]' : key === 'rating' ? 'min-w-28' : ''}
+                      className={key === 'actions' ? 'sticky right-0 z-20 w-32 min-w-32 border-l border-border bg-[color-mix(in_srgb,var(--primary)_8%,var(--card))] text-center shadow-[-1px_0_0_var(--border)] dark:bg-[color-mix(in_srgb,var(--primary)_12%,var(--card))]' : ''}
                     >
                       {t(`merchant.shippers.${key}`)}
                     </TableHead>
@@ -306,13 +298,6 @@ export default function ShippersPage() {
                     </TableCell>
                     <TableCell className="font-semibold">
                       {shipper.totalDeliveries ?? '—'}
-                    </TableCell>
-                    <TableCell className="min-w-28 whitespace-nowrap font-semibold text-amber-600 dark:text-amber-300">
-                      <Star
-                        className="mr-1.5 inline-block size-4 fill-current align-[-2px]"
-                        aria-hidden="true"
-                      />
-                      {shipper.hasRating === false ? '—' : shipper.rating ?? '—'}
                     </TableCell>
                     <TableCell className="sticky right-0 z-10 w-32 min-w-32 border-l border-border bg-card text-center shadow-[-1px_0_0_var(--border)] dark:bg-card">
                       <DropdownMenu>

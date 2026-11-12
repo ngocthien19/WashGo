@@ -1,3 +1,4 @@
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useCallback, useState } from 'react'
 import { SelectField } from '~/components/ui/select'
 import TablePagination from '~/components/Pagination/TablePagination'
@@ -91,6 +92,12 @@ export default function SlaAlerts({ revision }) {
               />
             </div>
           </div>
+          <ClearFiltersButton
+            active={alertType}
+            onClear={() => {
+              setAlertType(''); setPage(1)
+            }}
+          />
           <div className="overflow-hidden rounded-xl border border-border">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-primary/5 px-4 py-3">
               <h3 className="flex items-center gap-2 font-semibold">

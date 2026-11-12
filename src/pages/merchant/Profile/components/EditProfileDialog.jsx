@@ -66,7 +66,7 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
       }
       const urls = await images.upload()
       submitting = true
-      const request = await merchantProfileApi.requestUpdate({ ...payload, taxCode: payload.taxCode !== (shop.taxCode || '').trim() ? payload.taxCode : undefined, businessLicenseDocumentId: license?.fileId, removeBusinessLicenseDocument: removeLicense || undefined, operationId: crypto.randomUUID(), ...(hasCoordinates(mapCenter) ? mapCenter : {}), openingHours: payload.openingHours || null, imageUrls: [...existing, ...urls] })
+      const request = await merchantProfileApi.requestUpdate({ ...payload, taxCode: payload.taxCode !== (shop.taxCode || '').trim() ? payload.taxCode : undefined, businessLicenseDocumentId: license?.fileId, removeBusinessLicenseDocument: removeLicense || undefined, expectedMerchantVersion: current.version, operationId: crypto.randomUUID(), ...(hasCoordinates(mapCenter) ? mapCenter : {}), openingHours: payload.openingHours || null, imageUrls: [...existing, ...urls] })
       notify.success('merchant.shop.submitted')
       onSubmitted(request)
     } catch (failure) {

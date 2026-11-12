@@ -116,6 +116,9 @@ async function setup(page, options = {}) {
       const incident = state.incidents.find((item) => path === `/incident/${item.id}`)
       return route.fulfill({ status: incident ? 200 : 404, json: incident ? envelope(incident) : { succeeded: false, message: 'customer.incidents.invalidResponse' } })
     }
+    if (path.startsWith('/rating/operations/')) {
+      return route.fulfill({ status: 404, json: { succeeded: false } })
+    }
     if (path === `/rating/order/${id}`) {
       return route.fulfill({ status: state.ratingLookupFailure ? 500 : 200, json: state.ratingLookupFailure ? { succeeded: false, message: 'customer.rating.invalidResponse' } : envelope(state.rating) })
     }
@@ -623,7 +626,7 @@ test('completed orders can submit a rating with optional criteria and uploaded p
   await expect(dialog.getByText('Thank you! Your rating has been saved.', { exact: true })).toBeVisible()
   expect(state.uploadCalls).toBe(1)
   expect(state.ratingCalls).toHaveLength(1)
-  expect(state.ratingCalls[0]).toEqual({ orderId: id, overallStars: 5, qualityStars: 4, speedStars: null, attitudeStars: null, packagingStars: null, comment: 'Clean and carefully packed', imageUrls: ['/uploads/customer-test/rating.png'], videoUrls: [] })
+  expect(state.ratingCalls[0]).toEqual({ operationId: expect.any(String), orderId: id, overallStars: 5, qualityStars: 4, speedStars: null, attitudeStars: null, packagingStars: null, comment: 'Clean and carefully packed', imageUrls: ['/uploads/customer-test/rating.png'], videoUrls: [] })
   await expect(dialog.getByRole('button', { name: 'Submit rating', exact: true })).toHaveCount(0)
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
   await page.reload()

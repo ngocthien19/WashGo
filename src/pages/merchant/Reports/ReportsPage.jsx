@@ -1,3 +1,4 @@
+import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -113,6 +114,10 @@ export default function ReportsPage() {
             ))}
           </div>
         </div>
+        <ClearFiltersButton
+          active={custom || range.mode !== 'month'}
+          onClear={() => choosePeriod('month')}
+        />
         {custom && (
           <DateRangeFilter
             key={`${shown?.current.fromLocalDate || '?'}-${shown?.current.toLocalDate || '?'}`}

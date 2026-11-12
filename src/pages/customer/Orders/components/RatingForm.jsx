@@ -22,6 +22,7 @@ export default function RatingForm({ orderId, onSaved, onBusy, onClose }) {
   const [uncertain, setUncertain] = useState(false)
   const [error, setError] = useState('')
   const lock = useRef(false)
+  const operation = useRef(null)
   const setField = (key, value) => {
     setValues((current) => ({ ...current, [key]: value }))
     if (error === 'customer.rating.starsRequired' && key.endsWith('Stars')) {
@@ -46,13 +47,21 @@ export default function RatingForm({ orderId, onSaved, onBusy, onClose }) {
     try {
       const imageUrls = await selection.upload()
       const videoUrls = await videos.upload()
+      operation.current = crypto.randomUUID()
       posting = true
       const rating = await customerRatingApi.create({
-        orderId, overallStars: values.overallStars, comment: values.comment.trim() || null,
+        orderId, operationId: operation.current, overallStars: values.overallStars, comment: values.comment.trim() || null,
         ...Object.fromEntries(RATING_CONFIG.CRITERIA.map((key) => [key, values[key] || null])), imageUrls, videoUrls
       })
       onSaved(rating)
     } catch (failure) {
+      if (failure.response?.status === 409 && failure.response?.data?.meta?.code === 'AlreadyRated') {
+        const saved = await customerRatingApi.getByOrder(orderId).catch(() => null)
+        if (saved) {
+          onSaved(saved); return
+        }
+        setUncertain(true); setError('customer.rating.uncertain'); return
+      }
       const unknown = posting && (!failure.response?.status || failure.response.status >= 500)
       setUncertain(unknown)
       setError(unknown ? 'customer.rating.uncertain' : getApiError(failure))
@@ -70,12 +79,16 @@ export default function RatingForm({ orderId, onSaved, onBusy, onClose }) {
     setBusy(true)
     onBusy(true)
     try {
-      const rating = await customerRatingApi.getByOrder(orderId)
+      let rating = null
+      if (operation.current) {
+        rating = await customerRatingApi.operation(operation.current, orderId).catch(() => null)
+      }
+      rating ||= await customerRatingApi.getByOrder(orderId)
       if (rating) {
         onSaved(rating)
       } else {
-        setUncertain(false)
-        setError('customer.rating.notSaved')
+        setUncertain(true)
+        setError('customer.rating.uncertain')
       }
     } catch (failure) {
       setError(getApiError(failure))

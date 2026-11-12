@@ -1,11 +1,23 @@
 import authorizedAxios from '~/utils/authorizedAxios'
 import { CUSTOMER_API_ENDPOINTS, ORDER_STATUSES } from '~/utils/constants'
 
+// Defense in depth for legacy responses; the backend must enforce the same role policy.
+export const customerOrderView = value => {
+  if (!value || !value.orderCode) {
+    return value
+  }
+  const result = Object.fromEntries(Object.entries(value).filter(([key]) => !/^(merchant|shipper)/i.test(key)))
+  if (Array.isArray(result.timeline)) {
+    result.timeline = result.timeline.map(row => ['Merchant', 'Shipper'].includes(row.actorRole) ? { ...row, actorId: null, actorName: 'WashGo' } : row)
+  }
+  return result
+}
+
 const unwrap = ({ data }) => {
   if (data?.succeeded !== true || !data.data) {
     throw new Error(data?.message || 'customer.order.invalidResponse')
   }
-  return data.data
+  return customerOrderView(data.data)
 }
 
 export const customerOrderApi = {
@@ -23,7 +35,7 @@ export const customerOrderApi = {
     if (data?.succeeded !== true || !Array.isArray(data.list) || !Number.isFinite(data.total) || !Number.isInteger(data.currentPage)) {
       throw new Error(data?.message || 'customer.orders.invalidResponse')
     }
-    return data
+    return { ...data, list: data.list.map(customerOrderView) }
   }),
   cancellationQuote: (id, signal) => authorizedAxios.get(`${CUSTOMER_API_ENDPOINTS.ORDERS}/${encodeURIComponent(id)}/cancellation-quote`, { signal }).then(unwrap).then((quote) => {
     if (quote.orderId !== id || typeof quote.canCancel !== 'boolean'

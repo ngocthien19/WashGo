@@ -7,11 +7,24 @@ beforeEach(() => vi.clearAllMocks())
 const envelope = (data) => ({ data: { succeeded: true, data } })
 
 describe('customer orders API', () => {
+  it('removes partner identity from customer list and detail while preserving order and paging data', async () => {
+    const order = { id: 'order-id', orderCode: 'WG-123', status: 12, merchantId: 'private', merchantName: 'PRIVATE', merchantEmail: 'private@example.test', shipperName: 'PRIVATE', timeline: [{ actorRole: 'Merchant', actorId: 'private', actorName: 'PRIVATE', status: 4 }] }
+    authorizedAxios.get.mockResolvedValue(envelope(order))
+    const detail = await customerOrderApi.get('order-id')
+    expect(detail).not.toHaveProperty('merchantEmail')
+    expect(detail).not.toHaveProperty('merchantId')
+    expect(detail).not.toHaveProperty('shipperName')
+    expect(detail.timeline[0]).toMatchObject({ actorId: null, actorName: 'WashGo', status: 4 })
+    authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, list: [order], total: 7, currentPage: 2, totalPages: 7 } })
+    const page = await customerOrderApi.list({ page: 2, take: 1 })
+    expect(page).toMatchObject({ total: 7, currentPage: 2, totalPages: 7 })
+    expect(page.list[0]).not.toHaveProperty('merchantName')
+  })
   it('posts to the scoped mine endpoint and keeps server paging metadata', async () => {
     const result = { succeeded: true, list: [], total: 0, currentPage: 1, totalPages: 0 }
     authorizedAxios.post.mockResolvedValue({ data: result })
     const signal = new AbortController().signal
-    await expect(customerOrderApi.list({ page: 1, take: 6 }, signal)).resolves.toBe(result)
+    await expect(customerOrderApi.list({ page: 1, take: 6 }, signal)).resolves.toEqual(result)
     expect(authorizedAxios.post).toHaveBeenCalledWith('/wash-order/mine', { page: 1, take: 6 }, { signal })
     authorizedAxios.post.mockResolvedValue({ data: { succeeded: false, list: [] } })
     await expect(customerOrderApi.list({})).rejects.toThrow()
