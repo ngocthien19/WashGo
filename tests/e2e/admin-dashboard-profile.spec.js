@@ -1,6 +1,19 @@
 import { test, expect } from '@playwright/test'
 import { setupAdmin as setup } from './helpers/adminSession'
 
+test('new backend: session pages retain the current logical session outside the page', async ({ page }) => {
+  const state = await setup(page)
+  const current = state.sessions[0], other = state.sessions[1]
+  state.sessions = [...Array.from({ length: 20 }, (_, index) => ({ ...other, id: `device-${index}`, userAgent: `Other device ${index}` })), current]
+  await page.goto('/admin/profile')
+  await expect(page.getByText('Current browser', { exact: true })).toBeVisible()
+  await page.getByRole('heading', { name: 'Signed-in sessions', exact: true }).locator('..').getByRole('button', { name: 'Page 2', exact: true }).click()
+  await expect.poll(() => state.calls.filter(row => row.path === '/auth/sessions').at(-1)?.query.page).toBe('2')
+  await expect(page.getByText('Other device 10', { exact: true })).toBeVisible()
+  await expect(page.getByText('Current browser', { exact: true })).toBeVisible()
+  expect(state.revokes).toBe(0)
+})
+
 test('admin dashboard uses real scoped aggregates and a distinct shared workspace', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/admin')
@@ -90,7 +103,7 @@ test('Admin profile saves owned avatar and exact version, updates header identit
   await dialog.getByLabel('Add photos', { exact: true }).setInputFiles({ name: 'avatar.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jf1cAAAAASUVORK5CYII=', 'base64') })
   await dialog.getByRole('button', { name: 'Save changes', exact: true }).click()
   await expect(dialog).toHaveCount(0)
-  expect(state.savedRaw).toContain('"expectedVersion":63935071200123457')
+  expect(JSON.parse(state.savedRaw).expectedVersion).toBe('63935071200123457')
   expect(state.savedRaw).not.toMatch(/"(?:role|email|userId|id)":/)
   expect(state.profile.avatar).toBe('/uploads/mock/admin-avatar.png')
   await expect(page.getByRole('button', { name: 'Open account menu', exact: true })).toContainText('Updated Admin')
@@ -166,23 +179,29 @@ test('revoking other sessions requires confirmation and keeps the current sessio
 
 test('system audit filters and details are read-only; personal activities never send an actor override', async ({ page }) => {
   const state = await setup(page)
+  state.activity.details = { changed: 'phone', actorId: 'hidden-actor-id', nested: { resourceId: 'hidden-resource-id', note: 'Visible note' } }
   await page.goto('/admin/profile')
   await expect(page.getByText('AdminProfile · Update', { exact: true })).toBeVisible()
   expect(state.auditQueries[0]).toMatchObject({ personal: true, query: { page: '1', take: '5' } })
   expect(state.auditQueries[0].query).not.toHaveProperty('actorId')
   await page.goto('/admin/settings?tab=audit')
   await expect(page.getByRole('tab', { name: 'Activity log', exact: true })).toHaveAttribute('aria-selected', 'true')
-  await page.getByRole('textbox', { name: 'Module', exact: true }).fill('Auth')
+  await page.getByRole('combobox', { name: 'Module', exact: true }).click()
+  await page.getByRole('option', { name: 'Auth', exact: true }).click()
   await page.getByRole('textbox', { name: 'Keyword', exact: true }).fill('sign')
-  await page.getByRole('button', { name: 'Apply filters', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Apply filters', exact: true })).toHaveCount(0)
   await expect.poll(() => state.auditQueries.at(-1).query.module).toBe('Auth')
-  await page.getByRole('combobox', { name: 'Result', exact: true }).selectOption('3')
+  await page.getByRole('combobox', { name: 'Result', exact: true }).click()
+  await page.getByRole('option', { name: 'Denied', exact: true }).click()
   await expect.poll(() => state.auditQueries.at(-1).query.result).toBe(3)
   await page.getByRole('button', { name: 'Next page', exact: true }).click()
   await expect.poll(() => state.auditQueries.at(-1).query.page).toBe(2)
   await page.getByRole('button', { name: 'Activity details', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await expect(dialog).toContainText('request-safe')
+  await expect(dialog).not.toContainText('hidden-actor-id')
+  await expect(dialog).not.toContainText('hidden-resource-id')
+  await expect(dialog).toContainText('Visible note')
   await expect(dialog).toContainText('phone')
   expect(state.calls.filter(call => call.path.startsWith('/admin/audit-logs') && ['PUT', 'DELETE'].includes(call.method))).toHaveLength(0)
 })
