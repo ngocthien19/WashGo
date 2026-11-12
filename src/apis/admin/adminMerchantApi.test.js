@@ -1,22 +1,16 @@
-import { expect, it, vi } from 'vitest'
+import { beforeEach, expect, it, vi } from 'vitest'
 import { adminMerchantApi } from './adminMerchantApi'
 import authorizedAxios from '~/utils/authorizedAxios'
-import { merchantDefaults } from '~/pages/admin/Merchants/merchantModel'
-
-vi.mock('~/utils/authorizedAxios', () => ({ default: { post: vi.fn() } }))
-
-const merchant = (city) => ({ ...merchantDefaults(), id: '10000000-0000-4000-8000-000000000001', city, latitude: 10.77, longitude: 106.7, commissionRate: 20, status: 1, totalRevenue: 0, totalOrders: 0, unfinishedOrders: 0, imageUrls: [], serviceAreaIds: [] })
-it('collects exact distinct city values across all pages rather than visible table results', async () => {
-  authorizedAxios.post.mockReset()
-  authorizedAxios.post.mockResolvedValueOnce({ data: { succeeded: true, list: Array.from({ length: 100 }, () => merchant('HCM')), total: 101, currentPage: 1 } })
-    .mockResolvedValueOnce({ data: { succeeded: true, list: [merchant('Da Nang')], total: 101, currentPage: 2 } })
-  const controller = new AbortController()
-  expect(await adminMerchantApi.cities(controller.signal)).toEqual(['Da Nang', 'HCM'])
-  expect(authorizedAxios.post).toHaveBeenNthCalledWith(2, '/merchant/filter', { page: 2, take: 100 }, { signal: controller.signal })
+vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
+beforeEach(() => vi.clearAllMocks())
+it('loads city options from the scoped distinct endpoint without reading Merchant profiles', async () => {
+  authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: ['Da Nang', 'HCM'] } })
+  const signal = new AbortController().signal
+  expect(await adminMerchantApi.cities(signal)).toEqual(['Da Nang', 'HCM'])
+  expect(authorizedAxios.get).toHaveBeenCalledWith('/merchant/cities', { signal })
+  expect(authorizedAxios.post).not.toHaveBeenCalled()
 })
-it('reports city loading failures without presenting a partial list', async () => {
-  authorizedAxios.post.mockReset()
-  authorizedAxios.post.mockResolvedValueOnce({ data: { succeeded: true, list: Array.from({ length: 100 }, () => merchant('HCM')), total: 101, currentPage: 1 } })
-    .mockRejectedValueOnce(new Error('Failed to load the next page'))
-  await expect(adminMerchantApi.cities()).rejects.toThrow('Failed to load the next page')
+it('does not present an invalid city response as valid options', async () => {
+  authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: [null] } })
+  await expect(adminMerchantApi.cities()).rejects.toThrow('admin.invalidResponse')
 })

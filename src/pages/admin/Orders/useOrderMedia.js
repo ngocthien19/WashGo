@@ -6,7 +6,7 @@ import { isId } from '../Merchants/merchantModel'
 export const mediaKey = (kind, id) => `${kind}:${id}`
 export default function useOrderMedia(order) {
   const jobs = useMemo(() => {
-    if (!order) {
+    if (!order || Array.isArray(order.merchantImageUrls) && Array.isArray(order.lockerImageUrls) && Array.isArray(order.returnLockerImageUrls) && order.items.every(item => Array.isArray(item.serviceImageUrls))) {
       return []
     }
     const items = [['merchant', order.merchantId], ['locker', order.lockerId], ['locker', order.returnLockerId], ...order.items.map(item => ['service', item.serviceId])]

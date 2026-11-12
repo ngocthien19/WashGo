@@ -431,6 +431,7 @@ export default function LockersPage() {
       {modal?.kind === 'bulk' && (
         <LockerBulkDialog
           lockers={modal.lockers}
+          onSaved={saved}
           onClose={() => setModal(null)}
         />
       )}

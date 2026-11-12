@@ -9,7 +9,7 @@ export function readAdminOrdersQuery(params) {
   if (!validRange(from, to)) {
     from = ''; to = ''
   }
-  return { ...readOrdersQuery(params), from, to, tab: params.get('tab') === 'waiting' ? 'waiting' : 'all', overdue: params.get('overdue') === 'true', merchantId: isId(params.get('merchantId')) ? params.get('merchantId') : '', lockerId: isId(params.get('lockerId')) ? params.get('lockerId') : '' }
+  return { ...readOrdersQuery(params), depositExpired: params.get('depositExpired') === 'true', from, to, tab: params.get('tab') === 'waiting' ? 'waiting' : 'all', overdue: params.get('overdue') === 'true', merchantId: isId(params.get('merchantId')) ? params.get('merchantId') : '', lockerId: isId(params.get('lockerId')) ? params.get('lockerId') : '' }
 }
 export function writeAdminOrdersQuery(query) {
   const params = writeOrdersQuery(query)
@@ -21,12 +21,16 @@ export function writeAdminOrdersQuery(query) {
   if (query.tab === 'waiting') {
     params.set('tab', 'waiting')
   }
+  if (query.depositExpired) {
+    params.set('depositExpired', 'true')
+  }
   if (query.overdue) {
     params.set('overdue', 'true')
   }
   return params
 }
 export const scopeFilter = (query) => ({
+  overdueType: query.depositExpired ? 'DepositExpired' : undefined,
   keyword: query.keyword || undefined, paymentStatus: query.paymentStatus ? Number(query.paymentStatus) : undefined,
   merchantId: query.merchantId || undefined, lockerId: query.lockerId || undefined,
   fromDate: query.from ? Math.floor(Date.parse(`${query.from}T00:00:00+07:00`) / 1000) : undefined,
@@ -35,6 +39,5 @@ export const scopeFilter = (query) => ({
 export const listFilter = (query) => ({ ...buildOrdersFilter(query), ...scopeFilter(query), take: TAKE })
 export const waitingFilter = (query) => ({ page: query.page, take: TAKE, fromDate: scopeFilter(query).fromDate, toDate: scopeFilter(query).toDate, overdueOnly: query.overdue || undefined })
 export const canAssignMerchant = (order) => order.status === 2 && !order.merchantId
-// The server remains authoritative; use its clock for this provisional UI guard.
-export const canStore = (order) => order.status === 10 && !order.movedToStorageAt && Number.isFinite(Date.parse(order.serverNow)) && Number.isFinite(Date.parse(order.pickupDeadline)) && Date.parse(order.serverNow) > Date.parse(order.pickupDeadline) + 72 * 60 * 60 * 1000
+export const canStore = order => order.allowedActions?.canMoveToStorage === true
 export const unknownResult = (error) => Boolean(error.uncertain || !error.response || error.response.status >= 500)

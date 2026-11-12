@@ -1,3 +1,4 @@
+import BusinessLicenseField from '~/components/documents/BusinessLicenseField'
 import { lazy, Suspense, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -16,8 +17,8 @@ import MerchantDialogHeader from './MerchantDialogHeader'
 
 const AddressPicker = lazy(() => import('~/components/maps/AddressPickerDialog'))
 const fields = {
-  basic: ['businessName', 'email', 'phone', 'taxCode', 'businessLicense', 'openingHours'],
-  contract: ['depositAmount', 'commissionRate', 'maxCapacity', 'contractStartDate', 'contractEndDate', 'slaDocUrl'],
+  basic: ['businessName', 'email', 'phone', 'taxCode', 'openingHours'],
+  contract: ['depositAmount', 'commissionRate', 'maxCapacity', 'contractStartDate', 'contractEndDate'],
   region: ['address', 'city', 'latitude', 'longitude', 'serviceRadiusKm']
 }
 const required = ['businessName', 'email', 'phone', 'address', 'city', 'latitude', 'longitude', 'depositAmount', 'maxCapacity', 'serviceRadiusKm']
@@ -28,11 +29,12 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
   const { t } = useTranslation()
   const [tab, setTab] = useState('basic'), [mapOpen, setMapOpen] = useState(false)
   const [pending, setPending] = useState(false), [uncertain, setUncertain] = useState(false), [error, setError] = useState('')
+  const [documents, setDocuments] = useState({}), [documentBusy, setDocumentBusy] = useState(false)
   const locked = useRef(false)
   const images = useImages(5, merchant?.imageUrls || [])
   const { register, handleSubmit, getValues, setValue, formState: { errors } } = useForm({ resolver: yupResolver(merchantSchema), defaultValues: merchantDefaults(merchant) })
   const submit = async (values) => {
-    if (locked.current || uncertain) {
+    if (locked.current || uncertain || documentBusy) {
       return
     }
     locked.current = true; setPending(true); setError('')
@@ -43,16 +45,21 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
       }
       const urls = await images.upload()
       const body = merchantPayload(values, merchant, urls)
-      if (merchant && JSON.stringify(body) === JSON.stringify(merchantPayload(merchantDefaults(merchant), merchant, merchant.imageUrls || []))) {
+      if (merchant && !Object.keys(documents).length && JSON.stringify(body) === JSON.stringify(merchantPayload(merchantDefaults(merchant), merchant, merchant.imageUrls || []))) {
         setError('admin.merchants.noChanges'); return
       }
       // Recheck after upload, since it can take time. The server still needs a revision guard.
       if (merchant && merchantSnapshot(await adminMerchantApi.detail(merchant.id)) !== merchantSnapshot(merchant)) {
         setError('admin.merchants.changed'); return
       }
+      for (const [kind, change] of Object.entries(documents)) {
+        const field = { 1: 'BusinessLicenseDocument', 2: 'ContractDocument', 3: 'SlaDocument' }[kind]
+        body[field[0].toLowerCase() + field.slice(1) + 'Id'] = change.value?.fileId || null
+        body['remove' + field] = change.removed
+      }
       writing = true
       const saved = await adminMerchantApi[merchant ? 'update' : 'create'](body)
-      notify.success(merchant ? 'admin.merchants.updated' : 'admin.merchants.created')
+      notify.success(merchant ? 'admin.merchants.updated' : 'admin.sync.merchantCreated', { delivery: t(`admin.sync.delivery.${saved.credentialDelivery ?? 0}`) })
       onSaved(saved)
     } catch (failure) {
       const unknown = writing && unknownWrite(failure)
@@ -106,7 +113,7 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
                 role="tab"
                 aria-selected={tab === key}
                 variant="ghost"
-                disabled={pending || uncertain}
+                disabled={pending || uncertain || documentBusy}
                 onClick={() => setTab(key)}
                 className={`h-12 shrink-0 rounded-none border-x-0 border-t-0 border-b-2 bg-transparent px-3 text-base font-medium hover:bg-transparent dark:hover:bg-transparent ${tab === key ? 'border-b-primary text-primary hover:text-primary' : 'border-b-transparent text-muted-foreground hover:text-foreground'}`}
               >
@@ -115,7 +122,7 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
             ))}
           </div>
           <fieldset
-            disabled={pending || uncertain}
+            disabled={pending || uncertain || documentBusy}
             className="grid gap-4 sm:grid-cols-2"
           >
             {fields[tab].map((key) => (
@@ -201,6 +208,21 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
                 )}
               </div>
             )}
+            {(tab === 'basic' ? [1] : tab === 'contract' ? [2, 3] : []).map(kind => (
+              <BusinessLicenseField
+                key={kind}
+                admin
+                kind={kind}
+                merchantId={merchant?.id}
+                label={t(`merchant.backendSync.${{ 1: 'businessLicense', 2: 'contract', 3: 'sla' }[kind]}`)}
+                current={merchant?.documents?.find(document => document.kind === kind)}
+                value={documents[kind]?.value}
+                removed={documents[kind]?.removed}
+                onChange={(value, removed) => setDocuments(current => ({ ...current, [kind]: { value, removed } }))}
+                onBusy={setDocumentBusy}
+                disabled={pending || uncertain || documentBusy}
+              />
+            ))}
             {tab === 'contract' && (
               <p className="rounded-xl bg-primary/5 p-4 text-sm leading-6 text-muted-foreground sm:col-span-2">
                 {t('admin.merchants.commissionHint')}
@@ -244,7 +266,7 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
             <Button
               type="submit"
               className="h-11 px-6 text-base font-semibold"
-              disabled={pending || uncertain || !!images.error}
+              disabled={pending || uncertain || documentBusy || !!images.error}
             >
               <Save size={18} />
               {t(pending ? 'admin.merchants.saving' : 'admin.merchants.save')}

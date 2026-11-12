@@ -1,3 +1,4 @@
+import PrivateDocumentCard from '~/components/documents/PrivateDocumentCard'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Store, LockKeyhole, LockKeyholeOpen, Contact, FileBadge, MapPin, Handshake, Package, Clock, Wallet } from 'lucide-react'
@@ -72,7 +73,7 @@ function Detail({ merchant, onClose }) {
                   size={18}
                   className="mb-3"
                 />
-                <p className="text-xs leading-5">
+                <p className="text-base leading-5">
                   {t(`admin.merchants.${key}`)}
                 </p>
                 <p className="mt-2 break-words text-xl font-semibold tabular-nums">
@@ -82,13 +83,22 @@ function Detail({ merchant, onClose }) {
             ))}
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
+            {merchant.documents?.map(document => (
+              <PrivateDocumentCard
+                key={document.fileId}
+                document={document}
+                label={t(`merchant.backendSync.${{ 1: 'businessLicense', 2: 'contract', 3: 'sla' }[document.kind]}`)}
+              />
+            ))}
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
             {groups.map(({ key: groupKey, icon: Icon, fields }) => (
               <section
                 key={groupKey}
                 className="min-w-0 rounded-2xl border border-border bg-card p-4"
               >
-                <h3 className="mb-4 flex items-center gap-2 border-b border-border pb-3 text-sm font-semibold">
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <h3 className="-mx-4 -mt-4 mb-4 flex items-center gap-3 rounded-t-2xl border-b border-primary/15 bg-primary/5 p-4 text-base font-semibold">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <Icon size={17} />
                   </span>
                   {t(`admin.merchants.detailGroups.${groupKey}`)}
@@ -99,10 +109,10 @@ function Detail({ merchant, onClose }) {
                       key={key}
                       className="min-w-0"
                     >
-                      <dt className="text-xs text-muted-foreground">
+                      <dt className="text-base text-muted-foreground">
                         {t(`admin.merchants.fields.${key}`)}
                       </dt>
-                      <dd className="mt-1 whitespace-pre-wrap break-words text-sm leading-6">
+                      <dd className="mt-1 whitespace-pre-wrap break-words text-base leading-6">
                         {['businessLicense', 'openingHours'].includes(key) ? displayJsonText(merchant[key]) || '—' : key === 'slaDocUrl' && merchant[key] && safeDocumentUrl(merchant[key]) ? (
                           <a
                             className="text-primary underline"
@@ -121,7 +131,7 @@ function Detail({ merchant, onClose }) {
             ))}
           </div>
           {merchant.rejectionReason && (
-            <p className="rounded-xl bg-rose-500/10 p-4 text-sm font-semibold text-rose-700 dark:text-rose-300">
+            <p className="rounded-xl bg-rose-500/10 p-4 text-base font-semibold text-rose-700 dark:text-rose-300">
               {t('admin.merchants.reason')}
               :
               {' '}
@@ -160,7 +170,7 @@ function StatusDialog({ merchant, onClose, onSaved }) {
         setError('admin.merchants.changed'); setBlocked(true); return
       }
       writing = true
-      await adminMerchantApi.status(merchant.id, locking ? 3 : 1, locking ? reason.trim() : null, locking && confirmed)
+      await adminMerchantApi.status(merchant.id, locking ? 3 : 1, locking ? reason.trim() : null, locking && confirmed, merchant.version)
       notify.success(locking ? 'admin.merchants.locked' : 'admin.merchants.unlocked'); onSaved()
     } catch (failure) {
       const unknown = writing && unknownWrite(failure)

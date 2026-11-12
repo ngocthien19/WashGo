@@ -1,6 +1,23 @@
 import { expect, test } from '@playwright/test'
 import { setupAdminOrders, orderId, merchantId, serviceId } from './helpers/adminOrderSession'
 
+test('backend sync: expired deposit cancellation reviews fees and sends guarded reason once', async ({ page }) => {
+  const state = await setupAdminOrders(page, { status: 1 })
+  state.orders[0].isDepositExpired = true
+  await page.goto(`/admin/orders/${orderId}`)
+  await page.getByRole('button', { name: 'Cancel expired order', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toContainText('15,000')
+  await expect(dialog).toContainText('35,000')
+  await dialog.getByRole('textbox', { name: 'Cancellation reason', exact: true }).fill('Customer did not deposit items')
+  await dialog.getByRole('checkbox').check()
+  await dialog.getByRole('button', { name: 'Cancel expired order', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes).toHaveLength(1)
+  expect(state.writes[0].body).toMatchObject({ reason: 'Customer did not deposit items', expectedRevision: 1, expectedStatus: 1, expectedFeeAmount: 15000, operationId: expect.any(String) })
+  expect(state.orders[0].status).toBe(12)
+})
+
 test('Admin filters, summary and paging use server data and preserve URL', async ({ page }) => {
   const state = await setupAdminOrders(page, { merchant: true })
   await page.goto('/admin/orders?page=2')
@@ -43,7 +60,7 @@ test('assigning a Merchant requires a chosen candidate and refreshes the waiting
   await dialog.getByRole('button', { name: 'Confirm assignment', exact: true }).click()
   await expect(dialog).toHaveCount(0)
   await expect(page.getByRole('table').getByText('WG-ADMIN-01', { exact: true })).toHaveCount(0)
-  expect(state.writes[0].body).toEqual({ merchantId })
+  expect(state.writes[0].body).toMatchObject({ merchantId })
 })
 test('batch suggestions need explicit confirmation and omit orders with no candidate', async ({ page }) => {
   const state = await setupAdminOrders(page)
@@ -57,7 +74,7 @@ test('batch suggestions need explicit confirmation and omit orders with no candi
   expect(state.writes).toHaveLength(0)
   await dialog.getByRole('button', { name: 'Assign 1 orders', exact: true }).click()
   await expect(dialog).toHaveCount(0)
-  expect(state.writes[0].body).toEqual({ assignments: [{ orderId, merchantId }] })
+  expect(state.writes[0].body).toMatchObject({ assignments: [{ orderId, merchantId }] })
   await expect(page.getByRole('button', { name: 'Suggest merchants', exact: true })).toHaveCount(0)
 })
 test('unknown assignment blocks duplicate writes and stale data never writes', async ({ page }) => {
@@ -102,7 +119,7 @@ test('storage transfer validates fields and sends only the supported payload', a
   await dialog.getByRole('textbox', { name: 'Storage reference', exact: true }).fill('A-001')
   await dialog.getByRole('button', { name: 'Confirm storage transfer', exact: true }).click()
   await expect(dialog).toHaveCount(0)
-  expect(state.writes[0].body).toEqual({ orderId, storageLocation: 'Warehouse A', storageReference: 'A-001', note: null })
+  expect(state.writes[0].body).toMatchObject({ orderId, storageLocation: 'Warehouse A', storageReference: 'A-001', note: null })
   await expect(page.getByRole('button', { name: 'Record storage transfer', exact: true })).toHaveCount(0)
 })
 test('mobile dark layout keeps sticky actions and selection clears on paging', async ({ page }) => {
@@ -138,7 +155,7 @@ test('failed list can retry and a missing Merchant candidate cannot be submitted
 
 test('order photos, distinct drop-off and pickup panels, and payment badges use real sources consistently', async ({ page }) => {
   const state = await setupAdminOrders(page, { merchant: true })
-  state.orders[0].customerAvatarUrl = '/mock/customer.png'
+  Object.assign(state.orders[0], { customerAvatarUrl: '/mock/customer.png', merchantImageUrls: ['/mock/merchant.png'], merchantPhoneNumber: '02812345678', lockerImageUrls: ['/mock/locker.png'], returnLockerImageUrls: [] })
   state.orders[0].items[0].serviceId = serviceId
   await page.goto('/admin/orders')
   const row = page.getByRole('row').filter({ hasText: 'WG-ADMIN-01' })
@@ -166,4 +183,37 @@ test('order photos, distinct drop-off and pickup panels, and payment badges use 
   await expect(page.getByRole('heading', { name: 'Drop-off', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Pickup', exact: true })).toBeVisible()
   expect(await page.getByText('Unpaid', { exact: true }).evaluate(el => getComputedStyle(el).backgroundColor)).toBe(badgeColor)
+})
+
+
+test('Admin order presentation keeps overdue filtering grouped and uses stored commission and shipper contact', async ({ page }) => {
+  const state = await setupAdminOrders(page, { merchant: true })
+  Object.assign(state.orders[0], { commissionRateApplied: 20, commissionStatus: 'Locked', commissionBaseAmount: 50000, commissionAmount: 10000, merchantNetAmount: 40000, collectedLaundryAmount: 50000, refundedAmount: 0, commissionOnCollected: 10000, merchantPayoutOnCollected: 40000, shipperId: '44444444-4444-4444-8444-444444444444', shipperName: 'Test Driver', shipperAvatarUrl: '/mock/driver.png', shipperPhone: '0908888888' })
+  state.orders[1].commissionRateApplied = 0
+  await page.goto('/admin/orders')
+  const filters = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Filters', exact: true }) })
+  await filters.getByRole('checkbox', { name: 'Deposit overdue', exact: true }).click()
+  await expect(filters.getByRole('checkbox', { name: 'Deposit overdue', exact: true })).toBeChecked()
+  await expect(page).toHaveURL(/depositExpired=true/)
+  await expect.poll(() => state.calls.filter(call => call.path === '/wash-order/filter').at(-1).body.overdueType).toBe('DepositExpired')
+  await filters.getByRole('checkbox', { name: 'Deposit overdue', exact: true }).click()
+  await expect(filters.getByRole('checkbox', { name: 'Deposit overdue', exact: true })).not.toBeChecked()
+  const row = page.getByRole('row').filter({ hasText: 'WG-ADMIN-01' })
+  await expect(row).toContainText('20%')
+  await expect(page.getByRole('row').filter({ hasText: 'WG-ADMIN-02' })).toContainText('0%')
+  for (const name of ['Test Customer', 'Test Laundry', 'Test Locker']) {
+    expect(await row.getByText(name, { exact: true }).evaluate(el => getComputedStyle(el).fontSize)).toBe('16px')
+  }
+  await row.getByRole('link', { name: 'WG-ADMIN-01', exact: true }).click()
+  await expect(page.getByRole('img', { name: 'Test Driver', exact: true })).toHaveAttribute('src', /driver.png$/)
+  await expect(page.getByText('0908888888', { exact: true })).toBeVisible()
+  const delivery = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Delivery information', exact: true }) })
+  const address = delivery.getByText('123 Test Street', { exact: true }).first()
+  await expect(address).toBeVisible()
+  expect(await address.locator('..').getByText('Test Locker', { exact: true }).count()).toBe(1)
+  const commission = page.getByRole('heading', { name: 'Order commission', exact: true }).locator('..')
+  await expect(commission).toContainText('20%')
+  await expect(commission).toContainText('10,000')
+  await expect(commission).toContainText('40,000')
+  expect(state.writes).toHaveLength(0)
 })

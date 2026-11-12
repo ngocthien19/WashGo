@@ -1,7 +1,8 @@
+import CancelExpiredDialog from './components/CancelExpiredDialog'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ClipboardList, RefreshCw, Eye, MoreHorizontal, Store, WandSparkles, X } from 'lucide-react'
+import { ClipboardList, RefreshCw, Eye, MoreHorizontal, Store, WandSparkles, X, ListFilter } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
 import { Checkbox } from '~/components/ui/checkbox'
@@ -20,7 +21,7 @@ import Reveal from '~/components/motion/Reveal'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminOrderApi } from '~/apis/admin/adminOrderApi'
 import { ADMIN_ROUTES, ORDER_STATUS_OPTIONS, ORDER_SORT_OPTIONS, PAYMENT_STATUSES } from '~/utils/constants'
-import { formatCurrency, formatDateTime, formatDurationMinutes } from '~/utils/formats'
+import { formatCurrency, formatDateTime, formatDurationMinutes, formatNumber } from '~/utils/formats'
 import { TAKE, readAdminOrdersQuery, writeAdminOrdersQuery, listFilter, scopeFilter, waitingFilter } from './ordersModel'
 import MerchantAssignmentDialog from './components/MerchantAssignmentDialog'
 
@@ -62,7 +63,7 @@ export default function OrdersPage() {
   const [params, setParams] = useSearchParams()
   const query = useMemo(() => readAdminOrdersQuery(params), [params])
   const waiting = query.tab === 'waiting'
-  const [revision, setRevision] = useState(0), [selection, setSelection] = useState({ data: null, ids: [] }), [assignment, setAssignment] = useState(null)
+  const [cancelId, setCancelId] = useState(null), [revision, setRevision] = useState(0), [selection, setSelection] = useState({ data: null, ids: [] }), [assignment, setAssignment] = useState(null)
   const load = useCallback(signal => waiting ? adminOrderApi.waiting(waitingFilter(query), signal) : adminOrderApi.list(listFilter(query), signal), [query, waiting])
   const resource = useCatalogResource(load, revision)
   const loadMerchants = useCallback(signal => adminOrderApi.lookup('/merchant/filter', 'businessName', signal), [])
@@ -72,8 +73,8 @@ export default function OrdersPage() {
   const merchantMedia = new Map((merchants.data || []).map(item => [item.value, item.imageUrls]))
   const merchantPhones = new Map((merchants.data || []).map(item => [item.value, item.phone]))
   const lockerMedia = new Map((lockers.data || []).map(item => [item.value, item.imageUrls]))
-  const { keyword, paymentStatus, from, to, merchantId, lockerId } = query
-  const summaryFilter = useMemo(() => scopeFilter({ keyword, paymentStatus, from, to, merchantId, lockerId }), [keyword, paymentStatus, from, to, merchantId, lockerId])
+  const { keyword, paymentStatus, from, to, merchantId, lockerId, depositExpired } = query
+  const summaryFilter = useMemo(() => scopeFilter({ keyword, paymentStatus, from, to, merchantId, lockerId, depositExpired }), [keyword, paymentStatus, from, to, merchantId, lockerId, depositExpired])
   const loadSummary = useCallback(signal => adminOrderApi.summary(summaryFilter, signal), [summaryFilter])
   const summary = useCatalogResource(loadSummary, revision)
   const rows = resource.data?.list || []
@@ -138,6 +139,21 @@ export default function OrdersPage() {
         ))}
       </div>
       <section className="workspace-filters space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <h2 className="flex items-center gap-2 border-b border-primary/15 pb-3 text-base font-semibold">
+          <ListFilter className="size-5 text-primary" />
+          {t('customer.filters')}
+        </h2>
+        {!waiting && (
+          <label className={`flex w-fit cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-base ${query.depositExpired ? 'border-primary/40 bg-primary/10 text-primary' : 'border-primary/15 bg-primary/5'}`}>
+            <input
+              type="checkbox"
+              className="size-5 cursor-pointer accent-primary"
+              checked={query.depositExpired}
+              onChange={event => update({ depositExpired: event.target.checked })}
+            />
+            {t('admin.sync.depositExpired')}
+          </label>
+        )}
         {waiting ? (
           <label className="flex w-fit items-center gap-3 text-sm">
             <Checkbox
@@ -207,7 +223,7 @@ export default function OrdersPage() {
           onApply={update}
           className="space-y-3 border-t border-border pt-4"
         />
-        {(query.keyword || query.status || query.paymentStatus || query.from || query.to || query.overdue || query.merchantId || query.lockerId) && (
+        {(query.keyword || query.status || query.paymentStatus || query.from || query.to || query.overdue || query.depositExpired || query.merchantId || query.lockerId) && (
           <Button
             variant="ghost"
             className="h-11"
@@ -282,12 +298,12 @@ export default function OrdersPage() {
                       />
                     </TableHead>
                   )}
-                  {(waiting ? ['code', 'locker', 'services', 'deposited', 'wait'] : ['code', 'customer', 'merchant', 'locker', 'status', 'payment', 'amount']).map(key => (
+                  {(waiting ? ['code', 'locker', 'services', 'deposited', 'wait'] : ['code', 'customer', 'merchant', 'locker', 'status', 'payment', 'amount', 'commissionRate']).map(key => (
                     <TableHead
                       key={key}
                       className={`${headerBg} py-4 ${key === 'locker' ? 'min-w-[340px]' : key === 'merchant' ? 'min-w-[250px]' : key === 'customer' ? 'min-w-[220px]' : ''}`}
                     >
-                      {t(`admin.orderManagement.columns.${key}`)}
+                      {t(key === 'commissionRate' ? 'merchant.sync.commissionRate' : `admin.orderManagement.columns.${key}`)}
                     </TableHead>
                   ))}
                   <TableHead className={`${headerBg} sticky right-0 z-20 w-24 border-l border-border text-center`}>
@@ -334,7 +350,7 @@ export default function OrdersPage() {
                               className="size-11"
                             />
                             <div>
-                              <p className="font-semibold">
+                              <p className="text-base font-semibold">
                                 {row.customerName || '—'}
                               </p>
                               <p className="mt-1 text-xs text-muted-foreground">
@@ -352,7 +368,7 @@ export default function OrdersPage() {
                               className="size-11"
                             />
                             <div className="min-w-0">
-                              <p className="font-semibold">
+                              <p className="text-base font-semibold">
                                 {row.merchantName || t('admin.orderManagement.unassigned')}
                               </p>
                               {row.merchantId && (
@@ -372,7 +388,7 @@ export default function OrdersPage() {
                           name={row.lockerName}
                         />
                         <div>
-                          <p className="font-semibold">
+                          <p className="text-base font-semibold">
                             {row.lockerName}
                           </p>
                           <p className="mt-1 text-xs text-muted-foreground">
@@ -414,6 +430,9 @@ export default function OrdersPage() {
                         <TableCell className="font-semibold tabular-nums">
                           {formatCurrency(row.finalAmount)}
                         </TableCell>
+                        <TableCell className="font-semibold tabular-nums">
+                          {row.commissionStatus !== 'Missing' && Number.isFinite(row.commissionRateApplied) && row.commissionRateApplied >= 0 && row.commissionRateApplied <= 100 ? `${formatNumber(row.commissionRateApplied)}%` : '—'}
+                        </TableCell>
                       </>
                     )}
                     <TableCell className="sticky right-0 z-10 border-l border-border bg-card text-center">
@@ -434,6 +453,15 @@ export default function OrdersPage() {
                             <Eye size={16} />
                             {t('admin.merchants.details')}
                           </DropdownMenuItem>
+                          {row.allowedActions?.canCancelExpiredDeposit && (
+                            <DropdownMenuItem
+                              onClick={() => setCancelId(row.id)}
+                              className="text-destructive"
+                            >
+                              <X size={16} />
+                              {t('admin.sync.cancelExpired')}
+                            </DropdownMenuItem>
+                          )}
                           {waiting && (
                             <DropdownMenuItem onClick={() => setAssignment({ id: row.id })}>
                               <Store size={16} />
@@ -458,6 +486,15 @@ export default function OrdersPage() {
           </>
         )}
       </section>
+      {cancelId && (
+        <CancelExpiredDialog
+          id={cancelId}
+          onClose={() => setCancelId(null)}
+          onSaved={() => {
+            setCancelId(null); refresh()
+          }}
+        />
+      )}
       {assignment && (
         <MerchantAssignmentDialog
           {...assignment}

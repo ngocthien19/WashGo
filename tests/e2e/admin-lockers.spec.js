@@ -7,6 +7,22 @@ const menu = async (page, action) => {
 }
 const save = dialog => dialog.getByRole('button', { name: 'Save locker', exact: true }).click()
 
+test('backend sync: partial Locker batch returns one aggregate result without individual mutations', async ({ page }) => {
+  const state = await setup(page)
+  state.lockers[0].canDelete = false
+  await page.goto('/admin/lockers')
+  await page.getByRole('checkbox', { name: 'Select all lockers on this page', exact: true }).check()
+  await page.getByRole('button', { name: 'Bulk actions', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('tab', { name: 'Delete in bulk', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Delete in bulk', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes).toHaveLength(1)
+  expect(state.writes[0].path).toBe('/locker/batch')
+  expect(state.writes[0].body.items).toHaveLength(12)
+  await expect(page.getByText('Processed: 11 successful, 1 unsuccessful.', { exact: true })).toBeVisible()
+})
+
 test('an operational alert deep link opens the right Locker and closes without losing list filters', async ({ page }) => {
   const state = await setup(page)
   await page.goto(`/admin/lockers?page=2&locker=${lockerId}`)
@@ -43,10 +59,9 @@ test('checkboxes select only the current page and bulk preview never calls indiv
   await page.getByRole('button', { name: 'Bulk actions', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByRole('img')).toHaveCount(12)
-  await expect(dialog.getByRole('button', { name: 'Change status in bulk', exact: true })).toBeDisabled()
+  await expect(dialog.getByRole('button', { name: 'Change status in bulk', exact: true })).toBeEnabled()
   await dialog.getByRole('tab', { name: 'Delete in bulk', exact: true }).click()
-  await expect(dialog.getByRole('button', { name: 'Delete in bulk', exact: true })).toBeDisabled()
-  await expect(dialog.getByRole('status')).toContainText('currently unavailable')
+  await expect(dialog.getByRole('button', { name: 'Delete in bulk', exact: true })).toBeEnabled()
   expect(state.reads).toBe(0)
   expect(state.writes).toHaveLength(0)
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()

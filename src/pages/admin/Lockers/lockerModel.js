@@ -10,7 +10,7 @@ export const adminLockerFilter = query => ({ ...lockerFilter(query), city: query
 export const writeAdminLockerQuery = query => Object.fromEntries(Object.entries(query).filter(([key, value]) => value !== '' && !(key === 'page' && value === 1) && !(key === 'sort' && value === 'code')).map(([key, value]) => [key, String(value)]))
 export const unknownLockerWrite = error => Boolean(error.uncertain || !error.response || error.response.status >= 500 || error.response.status === 408)
 export const lockerSnapshot = locker => JSON.stringify([
-  ...['id', 'code', 'name', 'address', 'ward', 'district', 'city', 'latitude', 'longitude', 'lockerType', 'status', 'description', 'serviceAreaId'].map(key => locker[key] ?? null),
+  ...['version', 'id', 'code', 'name', 'address', 'ward', 'district', 'city', 'latitude', 'longitude', 'lockerType', 'status', 'description', 'serviceAreaId'].map(key => locker[key] ?? null),
   locker.imageUrls || [], [...(locker.merchants || [])].sort((a, b) => a.priority - b.priority).map(m => [m.merchantId, m.priority]),
   [...(locker.boxes || [])].sort((a, b) => a.id.localeCompare(b.id)).map(b => [b.id, b.boxNumber, b.size, b.status])
 ])
@@ -33,7 +33,7 @@ export const lockerPayload = (values, locker, merchantIds, imageUrls) => {
   Object.assign(body, { latitude: Number(values.latitude), longitude: Number(values.longitude), lockerType: Number(values.lockerType), imageUrls,
     merchantIds, district: locker?.district || '', serviceAreaId: locker?.serviceAreaId || null })
   if (locker) {
-    return { ...body, id: locker.id, status: Number(values.status) }
+    return { ...body, id: locker.id, expectedVersion: locker.version, status: Number(values.status) }
   }
   return { ...body, code: values.code.trim(), boxCount: Number(values.boxCount), defaultBoxSize: Number(values.defaultBoxSize) }
 }

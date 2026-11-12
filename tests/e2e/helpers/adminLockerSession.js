@@ -1,3 +1,4 @@
+import { adminUpgradeMocks } from './adminUpgradeMocks'
 import { merchantSession } from './merchantSession'
 
 export const lockerId = '50000000-0000-4000-8000-000000000001'
@@ -20,6 +21,9 @@ export async function setupAdminLockers(page, options = {}) {
     const ok = data => route.fulfill({ json: { succeeded: true, data } })
     const fail = (status, message = 'admin.invalidResponse') => route.fulfill({ status, json: { succeeded: false, message } })
     const list = (rows, query) => route.fulfill({ json: { succeeded: true, list: rows.slice((query.page - 1) * query.take, query.page * query.take), total: rows.length, currentPage: query.page } })
+    if (await adminUpgradeMocks(route, state, [])) {
+      return
+    }
     if (path === '/auth/me') {
       return ok({ id: 'admin-test', fullName: 'Test Admin', role: 'Admin', email: 'admin@example.test' })
     }
