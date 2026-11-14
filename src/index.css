@@ -56,6 +56,19 @@ label:has([data-slot="checkbox"][data-disabled]) {
   color: var(--workspace-filter-text);
   font-weight: 500;
 }
+
+.workspace-sidebar-label {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 300ms ease-in-out, opacity 300ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-sidebar-label {
+    transition: none;
+  }
+}
 .dark .workspace-filters {
   --workspace-filter-text: var(--foreground);
 }

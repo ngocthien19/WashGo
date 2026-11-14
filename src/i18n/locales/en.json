@@ -3498,6 +3498,8 @@
     "storageReturn": "Return from storage"
   },
   "storage": {
+    "filters": "Filters",
+    "searchLabel": "Search by order code",
     "title": "Storage and redelivery",
     "customerTitle": "WashGo is keeping your items",
     "customerHint": "Track your items and request redelivery to a locker. WashGo will notify you after the items are placed in a compartment. Pay any outstanding amount in the order payment section.",

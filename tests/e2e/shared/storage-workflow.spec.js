@@ -106,6 +106,61 @@ async function setup(page, role, options = {}) {
 }
 
 for (const role of ['Admin', 'Merchant']) {
+  test(`${role} storage search suggests all pages and selects a matching order`, async ({ page }) => {
+    const state = await setup(page, role)
+    await page.route('**/api/storage/filter', async route => {
+      const body = route.request().postDataJSON()
+      state.queries.push(body)
+      const rows = Array.from({ length: body.page === 2 ? 1 : 6 }, (_, index) => ({ ...state.cycle, orderId: `order-${body.page}-${index}`, orderCode: `WG-${body.page}-${index}` }))
+      await route.fulfill({ json: { succeeded: true, list: rows, total: 7, currentPage: body.page, totalPages: 2 } })
+    })
+    await page.goto(`/${role.toLowerCase()}/storage`)
+    const search = page.getByRole('combobox', { name: 'Search by order code', exact: true })
+    await expect(search).toBeVisible()
+    await search.fill('W')
+    await expect(page.getByRole('option')).toHaveCount(7)
+    await expect.poll(() => state.queries.some(query => query.keyword === 'w' && query.page === 2)).toBe(true)
+    await expect(page.getByRole('option').first().getByText('WG-1-0', { exact: true })).toHaveClass(/font-bold/)
+    await expect(page.getByRole('option').first()).not.toContainText('INTERNAL')
+    await search.fill('WG')
+    await search.press('Backspace')
+    await expect(search).toHaveValue('W')
+    await page.getByRole('option', { name: /WG-2-0/ }).click()
+    await expect(search).toHaveValue('WG-2-0')
+    await expect(page.getByRole('option')).toHaveCount(0)
+    await expect.poll(() => state.queries.at(-1)?.keyword).toBe('WG-2-0')
+  })
+
+  test(`${role} storage filters stay labelled and usable on desktop and mobile`, async ({ page }) => {
+    const state = await setup(page, role)
+    await page.setViewportSize({ width: 1440, height: 1000 })
+    await page.goto(`/${role.toLowerCase()}/storage`)
+    const search = page.getByRole('combobox', { name: 'Search by order code', exact: true })
+    const searchForm = page.getByRole('search', { name: 'Search by order code', exact: true })
+    const status = page.getByRole('combobox', { name: 'Storage state', exact: true })
+    await expect(search).toBeVisible()
+    await expect(status).toBeVisible()
+    await expect(page.getByText('Storage state', { exact: true })).toBeVisible()
+    let searchBox = await searchForm.boundingBox(), statusBox = await status.boundingBox()
+    expect(statusBox.x).toBeGreaterThan(searchBox.x + searchBox.width)
+    expect(Math.abs(statusBox.y - searchBox.y)).toBeLessThan(6)
+    await search.fill('WG-STORAGE')
+    await search.press('Enter')
+    await expect.poll(() => state.queries.at(-1)?.keyword).toBe('WG-STORAGE')
+    for (const dark of [false, true]) {
+      await page.evaluate(dark => document.documentElement.classList.toggle('dark', dark), dark)
+      await page.setViewportSize({ width: 390, height: 844 })
+      await expect(search).toBeVisible()
+      searchBox = await searchForm.boundingBox(); statusBox = await status.boundingBox()
+      expect(statusBox.y).toBeGreaterThan(searchBox.y + searchBox.height)
+      expect(statusBox.x + statusBox.width).toBeLessThanOrEqual(390)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+    }
+    await status.click()
+    await expect(page.getByRole('option', { name: 'All', exact: true })).toBeVisible()
+    await page.keyboard.press('Escape')
+  })
+
   test(`${role} assigns only listed Shippers with revision and explicit confirmation`, async ({ page }) => {
     const state = await setup(page, role, { dark: true })
     state.cycle.state = 1

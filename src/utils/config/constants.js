@@ -303,7 +303,7 @@ export const LANGUAGE_OPTIONS = [
 export const PASSWORD_REQUIREMENTS_HINT = 'common.charactersWithUppercaseAndLowercaseLettersAndNumbers'
 
 export const GOOGLE_SIGN_IN = {
-  CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
+  CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '',
   SCRIPT_URL: 'https://accounts.google.com/gsi/client',
   LOAD_TIMEOUT_MS: 15000,
   BUTTON_MAX_WIDTH: 400

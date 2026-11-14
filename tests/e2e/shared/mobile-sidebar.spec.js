@@ -72,6 +72,20 @@ for (const config of roles) {
       await expect(page.locator('aside')).toBeVisible()
       await page.getByRole('button', { name: 'Collapse navigation', exact: true }).click()
       await expect(page.locator('aside')).toHaveCSS('width', '80px')
+      await expect(content).toHaveCSS('margin-left', '80px')
+      await expect(page.locator('header').first()).toHaveCSS('margin-left', '80px')
+      const expandedWidth = config.role === 'Admin' ? '288px' : '256px'
+      const expand = page.getByRole('button', { name: 'Expand navigation', exact: true })
+      await expect(expand).toHaveAttribute('aria-expanded', 'false')
+      await expand.click()
+      await expect(page.locator('aside')).toHaveCSS('width', expandedWidth)
+      await expect(content).toHaveCSS('margin-left', expandedWidth)
+      await page.emulateMedia({ reducedMotion: 'reduce' })
+      await page.getByRole('button', { name: 'Collapse navigation', exact: true }).click()
+      await expect(page.locator('aside')).toHaveCSS('width', '80px')
+      await expect(page.locator('aside')).toHaveCSS('transition-property', 'none')
+      await expand.click()
+      await expect(content).toHaveCSS('margin-left', expandedWidth)
     }
   })
 }

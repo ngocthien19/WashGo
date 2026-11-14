@@ -69,7 +69,8 @@ export default function GoogleSignInButton({ onSuccess }) {
         googleIdentity.renderButton(container, {
           type: 'standard',
           theme: theme === THEME_MODES.DARK ? 'filled_black' : 'outline',
-          size: 'large',
+          // Google disables account personalization for medium standard buttons.
+          size: 'medium',
           text: 'signin_with',
           shape: 'rectangular',
           locale: i18n.resolvedLanguage,
@@ -121,7 +122,7 @@ export default function GoogleSignInButton({ onSuccess }) {
       )}
       <div
         ref={containerRef}
-        className={`flex justify-center [&_iframe]:cursor-pointer [&_[role=button]]:cursor-pointer ${configured ? 'min-h-11' : 'hidden'} ${pending ? 'pointer-events-none opacity-50' : ''}`}
+        className={`flex items-center justify-center [zoom:1.25] [&_iframe]:cursor-pointer [&_[role=button]]:cursor-pointer ${configured ? 'min-h-10' : 'hidden'} ${pending ? 'pointer-events-none opacity-50' : ''}`}
         aria-busy={pending}
         inert={pending ? true : undefined}
         data-testid="google-sign-in"

@@ -2,7 +2,7 @@ import { useLayoutEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Store, UserRound, Menu, ChevronDown, LogOut, Bell, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Store, UserRound, Menu, ChevronDown, LogOut, Bell, ChevronLeft } from 'lucide-react'
 import Brand from '~/components/Brand/Brand'
 import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import LanguageSwitcher from '~/components/LanguageSwitcher/LanguageSwitcher'
@@ -66,17 +66,18 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
               aria-current={enabled && (key === 'overview' ? pathname === navHref(key) : pathname.startsWith(navHref(key))) ? 'page' : undefined}
               aria-label={t(`${prefix}.nav.${key}`)}
 
-              className={`flex w-full items-center ${enabled ? 'hover:bg-primary/12 hover:text-primary focus-visible:bg-primary/12 focus-visible:text-primary' : 'pointer-events-none opacity-45'} ${compact ? 'justify-center px-0' : 'gap-3 px-4'} rounded-xl py-3 text-base font-semibold ${enabled && (key === 'overview' ? pathname === navHref(key) : pathname.startsWith(navHref(key))) ? 'bg-primary/12 text-primary' : 'text-muted-foreground'}`}
+              className={`flex w-full items-center overflow-hidden px-4 transition-[gap,background-color,color] duration-300 ease-in-out motion-reduce:transition-none ${enabled ? 'hover:bg-primary/12 hover:text-primary focus-visible:bg-primary/12 focus-visible:text-primary' : 'pointer-events-none opacity-45'} ${compact ? 'gap-0' : 'gap-3'} rounded-xl py-3 text-base font-semibold ${enabled && (key === 'overview' ? pathname === navHref(key) : pathname.startsWith(navHref(key))) ? 'bg-primary/12 text-primary' : 'text-muted-foreground'}`}
             >
               <Icon
                 size={19}
                 className="shrink-0"
               />
-              {!compact && (
-                <span className={admin ? 'whitespace-nowrap' : undefined}>
-                  {t(`${prefix}.nav.${key}`)}
-                </span>
-              )}
+              <span
+                className={`workspace-sidebar-label ${compact ? 'max-w-0 opacity-0' : 'max-w-64 opacity-100'}`}
+                aria-hidden={compact || undefined}
+              >
+                {t(`${prefix}.nav.${key}`)}
+              </span>
             </Link>
           </NavTooltip>
         ))}
@@ -94,10 +95,15 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
         onClick={logout}
         aria-label={t(pending ? 'common.signingOut' : 'common.signOut')}
 
-        className={`h-12 w-full rounded-xl text-base text-destructive hover:bg-destructive/10 hover:text-destructive ${compact ? 'justify-center px-0' : 'justify-start gap-3 px-4'}`}
+        className={`h-12 w-full justify-start overflow-hidden rounded-xl px-4 text-base text-destructive transition-[gap,background-color,color] duration-300 ease-in-out motion-reduce:transition-none hover:bg-destructive/10 hover:text-destructive ${compact ? 'gap-0' : 'gap-3'}`}
       >
         <LogOut size={19} />
-        {!compact && t(pending ? 'common.signingOut' : 'common.signOut')}
+        <span
+          className={`workspace-sidebar-label ${compact ? 'max-w-0 opacity-0' : 'max-w-64 opacity-100'}`}
+          aria-hidden={compact || undefined}
+        >
+          {t(pending ? 'common.signingOut' : 'common.signOut')}
+        </span>
       </Button>
     </NavTooltip>
   )
@@ -107,7 +113,7 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
       resolveHref={resolveNotificationHref}
     >
       <div className="min-h-dvh bg-background text-foreground">
-        <header className={`sticky top-0 z-40 border-b border-border ${admin || prefix === 'shipper' ? 'bg-card' : 'bg-card/95'} backdrop-blur-md ${collapsed ? 'lg:ml-20' : admin ? 'lg:ml-72' : 'lg:ml-64'}`}>
+        <header className={`sticky top-0 z-40 border-b border-border transition-[margin-left] duration-300 ease-in-out motion-reduce:transition-none ${admin || prefix === 'shipper' ? 'bg-card' : 'bg-card/95'} backdrop-blur-md ${collapsed ? 'lg:ml-20' : admin ? 'lg:ml-72' : 'lg:ml-64'}`}>
           <div className="flex min-h-20 items-center justify-between gap-3 px-4 sm:px-6">
             <div className="flex items-center gap-3 lg:hidden">
               <Button
@@ -192,7 +198,7 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
         >
           {nav(true)}
         </MobileSidebar>
-        <aside className={`group/sidebar fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border ${admin ? 'bg-indigo-50/70 dark:bg-indigo-950/30' : 'bg-card'} lg:flex ${collapsed ? 'w-20' : admin ? 'w-72' : 'w-64'}`}>
+        <aside className={`group/sidebar fixed inset-y-0 left-0 z-45 hidden flex-col border-r border-border transition-[width] duration-300 ease-in-out motion-reduce:transition-none ${admin ? 'bg-indigo-50/70 dark:bg-indigo-950/30' : 'bg-card'} lg:flex ${collapsed ? 'w-20' : admin ? 'w-72' : 'w-64'}`}>
           <div className="flex h-20 shrink-0 items-center justify-center border-b border-border px-4">
             <NavTooltip
               content="WashGo"
@@ -201,11 +207,12 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
               <Brand
                 to={homeHref}
                 label="WashGo"
-                wordmarkClassName={collapsed ? 'hidden' : undefined}
+                className={`transition-[gap] duration-300 ease-in-out motion-reduce:transition-none ${collapsed ? 'gap-0' : 'gap-2'}`}
+                wordmarkClassName={`workspace-sidebar-label ${collapsed ? 'max-w-0 opacity-0' : 'max-w-32 opacity-100'}`}
               />
             </NavTooltip>
           </div>
-          <div className="absolute -right-3 top-24 z-10 opacity-0 transition-opacity group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100 focus-within:opacity-100">
+          <div className="absolute -right-3 top-24 z-50 opacity-0 transition-opacity motion-reduce:transition-none group-hover/sidebar:opacity-100 group-focus-within/sidebar:opacity-100 focus-within:opacity-100">
             <NavTooltip
               content={t(collapsed ? `${prefix}.expandNavigation` : `${prefix}.collapseNavigation`)}
               show
@@ -213,12 +220,15 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
               <Button
                 variant="outline"
                 size="icon"
-                className="size-6 rounded-full bg-card shadow-sm"
+                className="size-6 rounded-full border-slate-400 bg-slate-200 text-slate-800 shadow-md hover:bg-slate-300 aria-expanded:bg-slate-200 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600 dark:aria-expanded:bg-slate-700"
                 aria-label={t(collapsed ? `${prefix}.expandNavigation` : `${prefix}.collapseNavigation`)}
                 aria-expanded={!collapsed}
-                onClick={() => setCollapsed(!collapsed)}
+                onClick={() => setCollapsed(value => !value)}
               >
-                {collapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
+                <ChevronLeft
+                  size={13}
+                  className={`transition-transform duration-300 ease-in-out motion-reduce:transition-none ${collapsed ? 'rotate-180' : 'rotate-0'}`}
+                />
               </Button>
             </NavTooltip>
           </div>
@@ -229,7 +239,7 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
             {logoutButton(collapsed)}
           </div>
         </aside>
-        <main className={`min-w-0 p-4 sm:p-6 lg:p-8 ${collapsed ? 'lg:ml-20' : admin ? 'lg:ml-72' : 'lg:ml-64'}`}>
+        <main className={`min-w-0 p-4 transition-[margin-left] duration-300 ease-in-out motion-reduce:transition-none sm:p-6 lg:p-8 ${collapsed ? 'lg:ml-20' : admin ? 'lg:ml-72' : 'lg:ml-64'}`}>
           <Outlet context={{ ...context, logout, logoutPending: pending }} />
         </main>
       </div>

@@ -3498,6 +3498,8 @@
     "storageReturn": "Giao lại từ lưu giữ"
   },
   "storage": {
+    "filters": "Bộ lọc",
+    "searchLabel": "Tìm kiếm theo mã đơn hàng",
     "title": "Lưu giữ và giao lại đồ",
     "customerTitle": "Đồ được WashGo lưu giữ",
     "customerHint": "Theo dõi đồ của bạn và yêu cầu giao lại locker. Khi đồ đã được đặt vào ô, WashGo sẽ thông báo để bạn đến nhận. Thanh toán các khoản còn thiếu tại phần thanh toán của đơn hàng.",
