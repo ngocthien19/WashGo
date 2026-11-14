@@ -1,5 +1,26 @@
 # React + Vite
 
+## Docker (frontend only)
+
+From `wash-go`, run:
+
+```sh
+docker compose up -d --build
+```
+
+Open `http://localhost:5173`. The image builds with Node and serves the production SPA through Nginx. Deep links support refresh; `/api` requests, uploaded media and SignalR WebSockets are proxied to the existing backend. This Compose file does not start or modify the backend/database.
+
+Defaults: `FE_PORT=5173`, `BACKEND_URL=http://host.docker.internal:5000` (the backend's published port on the host). Override them in a frontend `.env`, or through shell environment variables. `BACKEND_URL` must be an origin without a trailing slash/path; `localhost` inside the frontend container refers to that container, so use `host.docker.internal` to reach your host. An HTTPS upstream must present a trusted certificate.
+
+Optional: copy `.env.example` to `.env` and set the public `VITE_GOOGLE_CLIENT_ID` to match the backend. `VITE_*` settings are compiled into the frontend; rebuild after changing them. No backend secrets belong in this file or in build arguments. The container always uses `/api`, with `BACKEND_URL` configured at runtime. For Google sign-in, allow `http://localhost:5173` in the OAuth client's JavaScript origins.
+
+```sh
+docker compose logs -f frontend
+docker compose down
+```
+
+The health check uses `/healthz` for frontend readiness, independently of backend availability. Build contexts exclude `.env` files, dependencies and test output. The configuration follows the [official Nginx image](https://hub.docker.com/_/nginx) template mechanism.
+
 ## Frontend tests
 
 - `npm test`: unit and integration tests using Vitest, jsdom and React Testing Library.
