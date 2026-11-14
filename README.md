@@ -24,9 +24,13 @@ docker compose --env-file .env.local up -d --build
 
 Open `http://localhost:5173`. The image builds with Node and serves the production SPA through Nginx. Deep links support refresh; `/api` requests, uploaded media and SignalR WebSockets are proxied to the existing backend. This Compose file does not start or modify the backend/database.
 
-Defaults: `FE_PORT=5173`, `BACKEND_URL=http://host.docker.internal:5000` (the backend's published port on the host). Override them in a frontend `.env`, or through shell environment variables. `BACKEND_URL` must be an origin without a trailing slash/path; `localhost` inside the frontend container refers to that container, so use `host.docker.internal` to reach your host. An HTTPS upstream must present a trusted certificate.
+The Nginx configuration is embedded directly in `Dockerfile`; no separate configuration file is needed. The standard Nginx entrypoint fills `BACKEND_URL` when the container starts.
 
-Set the public `VITE_GOOGLE_CLIENT_ID` in `.env.local` to match the backend. Compose requires the explicit `--env-file .env.local` flag; without it, Compose reads `.env`, while Vite reads `.env.local` automatically. `VITE_*` settings are compiled into the frontend; rebuild after changing them. No backend secrets belong in this file or in build arguments. The container always uses `/api`, with `BACKEND_URL` configured at runtime. For Google sign-in, allow `http://localhost:5173` in the OAuth client's JavaScript origins.
+Defaults: `FE_PORT=5173`, `BACKEND_URL=http://host.docker.internal:5000` (the backend's published port on the host). Override them in `.env.local` using the command above, or through shell environment variables. `BACKEND_URL` must be an origin without a trailing slash/path; `localhost` inside the frontend container refers to that container, so use `host.docker.internal` to reach your host. An HTTPS upstream must present a trusted certificate.
+
+Set the public `VITE_GOOGLE_CLIENT_ID` in `.env.local` to match the backend. `npm run dev` reads this file automatically; Docker Compose requires `--env-file .env.local` to pass the same value as a build argument. Vite embeds this public ID into the built app, so no custom startup script or runtime config file is needed. Vercel uses its own build-time `VITE_GOOGLE_CLIENT_ID` environment variable. No backend secrets belong in frontend env files or build arguments. For Google sign-in, allow `http://localhost:5173` in the OAuth client's JavaScript origins.
+
+After changing the Docker Google client ID or another `VITE_*` setting, run `docker compose --env-file .env.local up -d --build frontend` to rebuild and recreate the frontend. Recreating the container alone does not update values embedded in the image. Docker always uses `/api` and defaults to the local backend on port 5000.
 
 If Google logs `The given origin is not allowed for the given client ID`, edit that Web OAuth client in Google Cloud and add `http://localhost` and `http://localhost:5173` under **Authorized JavaScript origins**. Add the deployed frontend origin there for production as well. Backend environment variables do not configure this Google-side allowlist.
 
