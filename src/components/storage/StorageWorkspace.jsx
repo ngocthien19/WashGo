@@ -1,7 +1,7 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useId, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Warehouse, RefreshCw } from 'lucide-react'
+import { Warehouse, RefreshCw, ListFilter } from 'lucide-react'
 import { storageApi } from '~/apis/storage/storageApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
@@ -13,15 +13,21 @@ import { SelectField } from '~/components/ui/select'
 import { Button } from '~/components/ui/button'
 import { ADMIN_ROUTES, MERCHANT_ROUTES } from '~/utils/config/constants'
 import { dateRangeFilter } from '~/utils/format/dateRange'
+import { loadSuggestionPages } from '~/utils/search/searchSuggestions'
 import StorageCycleCard from './StorageCycleCard'
 import StorageActionDialog from './StorageActionDialog'
 
 export default function StorageWorkspace({ role }) {
   const { t } = useTranslation()
+  const stateId = useId()
   const [query, setQuery] = useState({ keyword: '', state: '', from: '', to: '', page: 1 })
   const [revision, setRevision] = useState(0), [action, setAction] = useState(null)
   const filter = { keyword: query.keyword || undefined, state: query.state ? Number(query.state) : undefined, ...dateRangeFilter(query), page: query.page, take: 12 }
   const key = JSON.stringify(filter)
+  const loadSuggestions = useCallback(async (keyword, signal) => {
+    const rows = await loadSuggestionPages(storageApi.filter, JSON.parse(key), keyword.slice(0, 100), signal)
+    return rows.map(row => ({ id: row.orderId, label: row.orderCode, fields: [row.orderCode, t(`storage.states.${row.state}`)] }))
+  }, [key, t])
   const resource = useCatalogResource(useCallback(signal => storageApi.filter(JSON.parse(key), signal), [key]), revision)
   const summary = useCatalogResource(useCallback(signal => storageApi.summary(signal), []), revision)
   const update = values => setQuery(current => ({ ...current, ...values, page: 1 }))
@@ -63,22 +69,48 @@ export default function StorageWorkspace({ role }) {
           ))}
         </dl>
       )}
-      <section className="space-y-4 rounded-2xl border border-border bg-card p-5">
-        <CatalogToolbar
-          embedded
-          keyword={query.keyword}
-          onSearch={keyword => update({ keyword: keyword.slice(0, 100) })}
-          label={t('storage.search')}
-          placeholder={t('storage.search')}
-          actions={(
+      <section className="workspace-filters min-w-0 space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <h2 className="flex items-center gap-2 font-semibold">
+          <ListFilter
+            size={18}
+            className="text-primary"
+          />
+          {t('storage.filters')}
+        </h2>
+        <div className="grid min-w-0 items-end gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <div className="grid min-w-0 gap-2">
+            <p
+              className="text-sm text-muted-foreground"
+              aria-hidden="true"
+            >
+              {t('storage.searchLabel')}
+            </p>
+            <CatalogToolbar
+              loadSuggestions={loadSuggestions}
+              embedded
+              keyword={query.keyword}
+              onSearch={keyword => update({ keyword: keyword.slice(0, 100) })}
+              label={t('storage.searchLabel')}
+              placeholder={t('storage.search')}
+              formClassName="h-11 rounded-xl p-1 pl-3 [&_input]:h-8 [&_button]:size-8"
+            />
+          </div>
+          <div className="grid min-w-0 gap-2">
+            <label
+              htmlFor={stateId}
+              className="text-sm text-muted-foreground"
+            >
+              {t('storage.state')}
+            </label>
             <SelectField
+              id={stateId}
               label={t('storage.state')}
               value={query.state}
               options={[{ value: '', label: t('common.all') }, ...[1, 2, 3, 4, 5, 6].map(value => ({ value: String(value), label: t(`storage.states.${value}`) }))]}
               onValueChange={state => update({ state })}
             />
-          )}
-        />
+          </div>
+        </div>
         <DateRangeFilter
           key={`${query.from}:${query.to}`}
           from={query.from}
