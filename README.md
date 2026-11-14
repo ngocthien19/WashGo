@@ -1,18 +1,34 @@
 # React + Vite
 
+## Backend connection
+
+`npm run dev` uses the local backend at `http://localhost:5000`. Browser requests stay on `/api`; Vite forwards them to the backend without that prefix, including uploads and SignalR. HTTPS certificates are verified when using an HTTPS upstream.
+
+`npm run build` loads the public `.env.production` and calls `https://washgo-be-staging.onrender.com` directly. The backend must allow the deployed frontend origin through CORS. Docker keeps its explicit build-time `VITE_API_URL=/api` and runtime `BACKEND_URL=http://host.docker.internal:5000`, so Docker also uses port 5000 on your host.
+
+Copy `.env.example` to `.env.local` to customize development settings and restart Vite after editing them. `.env.production` overrides the shared local API value during a production build; `.env.production.local` or shell variables can override the production endpoint if needed. E2E mode defaults to an unused loopback port and uses mocked APIs, independently of staging.
+
+## Source organization
+
+- `src/utils/`: `auth`, `config`, `dashboard`, `format`, `http`, `media`, `notifications`, `orders`, and `search`; tests stay beside their modules.
+- `src/apis/`: role-specific clients plus shared `location`, `files`, `notifications`, `orders`, and `storage` clients. Cross-client contract tests live in `__tests__`.
+- `tests/e2e/`: `admin`, `customer`, `merchant`, `shipper`, and `shared` flows; shared mock/session helpers remain in `helpers`. Playwright discovers all folders recursively.
+
 ## Docker (frontend only)
 
-From `wash-go`, run:
+From `wash-go`, copy `.env.example` to `.env.local`, set the public Google client ID if needed, then run:
 
 ```sh
-docker compose up -d --build
+docker compose --env-file .env.local up -d --build
 ```
 
 Open `http://localhost:5173`. The image builds with Node and serves the production SPA through Nginx. Deep links support refresh; `/api` requests, uploaded media and SignalR WebSockets are proxied to the existing backend. This Compose file does not start or modify the backend/database.
 
 Defaults: `FE_PORT=5173`, `BACKEND_URL=http://host.docker.internal:5000` (the backend's published port on the host). Override them in a frontend `.env`, or through shell environment variables. `BACKEND_URL` must be an origin without a trailing slash/path; `localhost` inside the frontend container refers to that container, so use `host.docker.internal` to reach your host. An HTTPS upstream must present a trusted certificate.
 
-Optional: copy `.env.example` to `.env` and set the public `VITE_GOOGLE_CLIENT_ID` to match the backend. `VITE_*` settings are compiled into the frontend; rebuild after changing them. No backend secrets belong in this file or in build arguments. The container always uses `/api`, with `BACKEND_URL` configured at runtime. For Google sign-in, allow `http://localhost:5173` in the OAuth client's JavaScript origins.
+Set the public `VITE_GOOGLE_CLIENT_ID` in `.env.local` to match the backend. Compose requires the explicit `--env-file .env.local` flag; without it, Compose reads `.env`, while Vite reads `.env.local` automatically. `VITE_*` settings are compiled into the frontend; rebuild after changing them. No backend secrets belong in this file or in build arguments. The container always uses `/api`, with `BACKEND_URL` configured at runtime. For Google sign-in, allow `http://localhost:5173` in the OAuth client's JavaScript origins.
+
+If Google logs `The given origin is not allowed for the given client ID`, edit that Web OAuth client in Google Cloud and add `http://localhost` and `http://localhost:5173` under **Authorized JavaScript origins**. Add the deployed frontend origin there for production as well. Backend environment variables do not configure this Google-side allowlist.
 
 ```sh
 docker compose logs -f frontend
