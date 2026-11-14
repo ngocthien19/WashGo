@@ -273,7 +273,7 @@
       "customer": {
         "private": {
           "title": "Order storage update",
-          "content": "WashGo updated your storage or redelivery status. View the order for the next step."
+          "content": "WashGo is keeping your items. View the order to check payments, storage fees and request redelivery to a locker."
         }
       }
     }
