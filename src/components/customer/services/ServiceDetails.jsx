@@ -1,3 +1,5 @@
+import ResourceGallery from '~/components/ResourceThumbnail/ResourceGallery'
+import { catalogImages } from '~/apis/customer/customerCatalogApi'
 import { useTranslation } from 'react-i18next'
 import { useCallback } from 'react'
 import { AlignLeft, ClipboardList, Clock3, Hash } from 'lucide-react'
@@ -53,6 +55,11 @@ export default function ServiceDetails({ id, onClose }) {
           </div>
         ) : (
           <div className="min-h-0 space-y-6 overflow-y-auto p-6 sm:p-7">
+            <ResourceGallery
+              urls={catalogImages(service)}
+              imageLabel="catalogUi.photo"
+              thumbnails
+            />
             <div className="grid items-start gap-5 sm:grid-cols-[minmax(0,1fr)_auto]">
               <div className="min-w-0">
                 <span className="inline-flex items-center gap-2 rounded-lg border border-primary/15 bg-primary/8 px-3 py-1.5 text-xs font-semibold text-primary">
@@ -123,7 +130,7 @@ export default function ServiceDetails({ id, onClose }) {
         <div className="flex shrink-0 justify-end border-t border-border bg-muted/20 px-6 py-4">
           <Button
             variant="secondary"
-            className="h-10 rounded-xl px-6"
+            className="h-12 rounded-xl px-6 text-base"
             onClick={onClose}
           >
             {t('customer.close')}

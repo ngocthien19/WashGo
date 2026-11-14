@@ -8,6 +8,25 @@
     "empty": "Không tìm thấy gợi ý phù hợp. Bạn vẫn có thể nhấn Enter để tìm kiếm.",
     "error": "Chưa tải được gợi ý. Bạn vẫn có thể nhấn Enter hoặc nút tìm kiếm."
   },
+  "catalogUi": {
+    "discountPercent": "Giảm {{amount}}%",
+    "minimumOrder": "Đơn từ <value>{{amount}}</value>",
+    "maximumDiscount": "Giảm tối đa <value>{{amount}}</value>",
+    "estimatedSaving": "Dự kiến giảm {{amount}} cho đơn này",
+    "promotionEnds": "Hết hạn: <value>{{date}}</value>",
+    "promotionUsesLeft": "Bạn còn <value>{{count}}</value> lượt sử dụng",
+    "nearbyOptIn": "Chia sẻ vị trí để tìm thêm locker gần bạn ngoài các trạm đang hiển thị ở trên.",
+    "feedbackTitle": "Khách hàng nói về WashGo",
+    "feedbackDescription": "Trải nghiệm thực tế về dịch vụ chăm sóc đồ của WashGo.",
+    "feedbackEmpty": "Những chia sẻ từ khách hàng sẽ được cập nhật tại đây. Cảm ơn bạn đã đồng hành cùng WashGo!",
+    "photo": "Ảnh {{number}}",
+    "noMatchingSlots": "Không có ô tủ phù hợp bộ lọc này.",
+    "compartments": "Tất cả ô tủ",
+    "availableOnly": "Hiện hệ thống chỉ cung cấp danh sách ô trống. Trạng thái các ô khác đang được cập nhật.",
+    "choosePromotion": "Chọn mã giảm giá từ WashGo",
+    "noPromotions": "Chưa có mã giảm giá cho đơn hàng này.",
+    "slotStatuses": { "1": "Trống", "2": "Đã có đồ", "3": "Đang giữ chỗ", "4": "Bảo trì" }
+  },
   "navigationDrawer": { "close": "Đóng menu điều hướng" },
   "notificationMessages": {
     "orderCreated": {

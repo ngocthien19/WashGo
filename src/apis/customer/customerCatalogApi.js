@@ -1,5 +1,6 @@
 import authorizedAxios from '~/utils/authorizedAxios'
 import { CUSTOMER_API_ENDPOINTS, CUSTOMER_CATALOG, LOCKER_AREA_PAGE_SIZE } from '~/utils/constants'
+export { suggestionImages as catalogImages } from '~/utils/searchSuggestions'
 
 const ensureSuccess = ({ data }) => {
   if (!data.succeeded) {
@@ -7,6 +8,9 @@ const ensureSuccess = ({ data }) => {
   }
   return data
 }
+
+export const lockerSlots = (locker) => Array.isArray(locker?.slots)
+  ? locker.slots : (locker?.availableSlots || []).map((slot) => ({ ...slot, status: 1 }))
 
 export const customerCatalogApi = {
   // Catalog uses PaginatedResult (list/total), unlike the data envelope for details.

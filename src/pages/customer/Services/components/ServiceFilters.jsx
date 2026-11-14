@@ -91,7 +91,7 @@ export default function ServiceFilters({ values, onChange, onReset, hasFilters, 
         <div className="mt-6 border-t border-border pt-5">
           <Button
             variant="destructive"
-            className="h-10 w-full rounded-xl disabled:opacity-65"
+            className="h-11 w-full rounded-xl disabled:opacity-65 text-base px-4"
             disabled={!hasFilters}
             onClick={onReset}
           >

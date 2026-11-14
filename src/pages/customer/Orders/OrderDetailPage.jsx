@@ -5,7 +5,8 @@ import FeePaymentAction from '~/components/customer/payments/FeePaymentAction'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Clock3, History, Info, MapPin, PackageCheck, RefreshCw, Shirt, TicketPercent, CircleCheck } from 'lucide-react'
+import { ArrowLeft, Clock3, History, Info, PackageCheck, RefreshCw, TicketPercent, CircleCheck } from 'lucide-react'
+import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 import Breadcrumb from '~/components/Breadcrumb/Breadcrumb'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import OrderStatusBadge from '~/components/customer/orders/OrderStatusBadge'
@@ -120,7 +121,10 @@ export default function OrderDetailPage() {
                         className="flex items-start justify-between gap-4 py-3 first:pt-0"
                       >
                         <div className="flex min-w-0 gap-3">
-                          <Shirt className="mt-1 size-5 shrink-0 text-primary" />
+                          <ResourceThumbnail
+                            urls={item.serviceImageUrls}
+                            name={item.serviceName}
+                          />
                           <div className="min-w-0">
                             <p className="break-words font-medium">
                               {item.serviceName}
@@ -157,7 +161,10 @@ export default function OrderDetailPage() {
                     ))}
                   </ul>
                   <div className="flex gap-3 rounded-2xl border border-primary/10 bg-primary/5 p-4">
-                    <MapPin className="mt-1 size-5 shrink-0 text-primary" />
+                    <ResourceThumbnail
+                      urls={order.lockerImageUrls}
+                      name={order.lockerName}
+                    />
                     <div className="min-w-0 space-y-2">
                       <p className="break-words font-semibold">
                         {order.lockerName}

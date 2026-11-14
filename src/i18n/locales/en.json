@@ -8,6 +8,25 @@
     "empty": "No matching suggestions. You can still press Enter to search.",
     "error": "Suggestions are unavailable. You can still press Enter or the search button."
   },
+  "catalogUi": {
+    "discountPercent": "{{amount}}% off",
+    "minimumOrder": "Minimum order: <value>{{amount}}</value>",
+    "maximumDiscount": "Up to <value>{{amount}}</value> off",
+    "estimatedSaving": "Estimated saving for this order: {{amount}}",
+    "promotionEnds": "Expires: <value>{{date}}</value>",
+    "promotionUsesLeft": "You have <value>{{count}}</value> uses left",
+    "nearbyOptIn": "Share your location to discover nearby lockers beyond the stations shown above.",
+    "feedbackTitle": "What customers say about WashGo",
+    "feedbackDescription": "Real experiences with WashGo's laundry care services.",
+    "feedbackEmpty": "Customer experiences will be shared here soon. Thank you for choosing WashGo!",
+    "photo": "Photo {{number}}",
+    "noMatchingSlots": "No compartments match this filter.",
+    "compartments": "All compartments",
+    "availableOnly": "Only available compartments are currently provided. Other compartment states are being updated.",
+    "choosePromotion": "Choose a WashGo discount",
+    "noPromotions": "No discounts are available for this order yet.",
+    "slotStatuses": { "1": "Available", "2": "Occupied", "3": "Reserved", "4": "Maintenance" }
+  },
   "navigationDrawer": { "close": "Close navigation menu" },
   "notificationMessages": {
     "orderCreated": {

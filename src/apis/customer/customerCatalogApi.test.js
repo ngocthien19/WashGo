@@ -1,12 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import authorizedAxios from '~/utils/authorizedAxios'
-import { customerCatalogApi } from './customerCatalogApi'
+import { customerCatalogApi, catalogImages, lockerSlots } from './customerCatalogApi'
 
 vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
 
 beforeEach(() => vi.resetAllMocks())
 
 describe('customer catalog API', () => {
+  it('reads both media contracts and tolerates missing or malformed legacy images', () => {
+    expect(catalogImages({ images: '["/uploads/one.png"]' })).toEqual(['/uploads/one.png'])
+    expect(catalogImages({ imageUrls: ['/uploads/new.png'], images: '["old"]' })).toEqual(['/uploads/new.png'])
+    expect(catalogImages({ images: '/uploads/legacy.png' })).toEqual(['/uploads/legacy.png'])
+    expect(catalogImages({ images: '{invalid' })).toEqual([])
+    expect(catalogImages(null)).toEqual([])
+  })
+  it('never infers occupied slots from counts and preserves explicit slot states', () => {
+    expect(lockerSlots({ availableSlotCount: 4, availableSlots: [{ id: 'one' }] })).toEqual([{ id: 'one', status: 1 }])
+    expect(lockerSlots({ slots: [{ id: 'two', status: 2 }], availableSlots: [{ id: 'one' }] })).toEqual([{ id: 'two', status: 2 }])
+  })
   it('collects distinct cities across every locker page without legacy district options', async () => {
     authorizedAxios.get
       .mockResolvedValueOnce({ data: { succeeded: true, list: [{ city: 'City B', district: 'Legacy district' }, { city: 'City A' }], totalPages: 2 } })

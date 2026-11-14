@@ -7,6 +7,7 @@ import { Button } from '~/components/ui/button'
 import FeaturedServices from './components/FeaturedServices'
 import HowItWorks from './components/HowItWorks'
 import NearbyLockers from './components/NearbyLockers'
+import CustomerFeedback from './components/CustomerFeedback'
 import hero from '~/assets/customer/locker-hero.jpg'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
@@ -14,7 +15,7 @@ import { CUSTOMER_CATALOG, HERO_MOTION, UI_MOTION } from '~/utils/constants'
 
 const loadFeaturedServices = (signal) => customerCatalogApi.getServices({
   page: CUSTOMER_CATALOG.INITIAL_PAGE,
-  take: CUSTOMER_CATALOG.FEATURED_LIMIT
+  take: 4
 }, signal)
 
 export default function HomePage() {
@@ -94,6 +95,7 @@ export default function HomePage() {
       <FeaturedServices {...featured} />
       <NearbyLockers />
       <HowItWorks />
+      <CustomerFeedback />
     </>
   )
 }

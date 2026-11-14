@@ -1,3 +1,5 @@
+import ResourceGallery from '~/components/ResourceThumbnail/ResourceGallery'
+import { catalogImages, lockerSlots } from '~/apis/customer/customerCatalogApi'
 import { useTranslation } from 'react-i18next'
 import { useCallback } from 'react'
 import { ArrowUpRight, Check, DoorOpen, Hash, Info, MapPin, PanelsTopLeft } from 'lucide-react'
@@ -54,6 +56,11 @@ export default function LockerDetails({ id, onClose }) {
             />
           ) : (
             <div className="space-y-6">
+              <ResourceGallery
+                urls={catalogImages(locker)}
+                imageLabel="catalogUi.photo"
+                thumbnails
+              />
               <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto]">
                 <div className="min-w-0">
                   <p className="mb-3 inline-flex max-w-full items-start gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-xs font-medium text-muted-foreground">
@@ -91,18 +98,23 @@ export default function LockerDetails({ id, onClose }) {
                 </div>
               )}
               <section>
+                {!Array.isArray(locker.slots) && (
+                  <p className="mb-3 text-sm text-muted-foreground">
+                    {t('catalogUi.availableOnly')}
+                  </p>
+                )}
                 <h4 className="flex items-center gap-2 font-semibold">
                   <PanelsTopLeft
                     size={18}
                     className="text-primary"
                   />
-                  {t('customer.availableCompartmentsTitle', { availableSlotCount: locker.availableSlotCount })}
+                  {Array.isArray(locker.slots) ? t('catalogUi.compartments') : t('customer.availableCompartmentsTitle', { availableSlotCount: locker.availableSlotCount })}
                 </h4>
                 <div className="mt-3 grid grid-cols-2 gap-2 min-[480px]:grid-cols-3 sm:grid-cols-6">
-                  {locker.availableSlots?.map((slot) => (
+                  {lockerSlots(locker).map((slot) => (
                     <div
                       key={slot.id}
-                      className="min-w-0 rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/8 to-card p-2.5"
+                      className={`min-w-0 rounded-xl border p-2.5 ${slot.status === 1 ? 'border-emerald-500/20 bg-emerald-500/8' : 'border-border bg-muted/40'}`}
                     >
                       <div className="mb-2 flex items-center justify-between gap-1">
                         <DoorOpen
@@ -110,11 +122,14 @@ export default function LockerDetails({ id, onClose }) {
                           strokeWidth={1.5}
                         />
                         <span className="grid size-4 shrink-0 place-items-center rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
-                          <Check size={10} />
+                          {slot.status === 1 ? <Check size={10} /> : <Info size={10} />}
                         </span>
                       </div>
                       <p className="break-words text-sm font-bold">
                         {t('customer.compartment', { slotNumber: slot.slotNumber })}
+                      </p>
+                      <p className="mt-1 text-xs font-medium text-primary">
+                        {t(`catalogUi.slotStatuses.${slot.status}`, { defaultValue: t('customer.orders.unknown') })}
                       </p>
                       <p className="mt-1 break-words text-xs text-muted-foreground">
                         {t(LOCKER_SLOT_SIZES[slot.size] || 'customer.sizeNotSpecified')}
@@ -140,7 +155,7 @@ export default function LockerDetails({ id, onClose }) {
                 />
               )}
               nativeButton={false}
-              className="h-10 rounded-xl px-4"
+              className="h-11 rounded-xl px-4 text-base"
             >
               <MapPin size={16} />
               {t('customer.openGoogleMaps')}
@@ -149,7 +164,7 @@ export default function LockerDetails({ id, onClose }) {
           )}
           <Button
             variant="secondary"
-            className="h-10 rounded-xl px-5"
+            className="h-12 rounded-xl px-5 text-base"
             onClick={onClose}
           >
             {t('customer.close')}

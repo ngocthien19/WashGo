@@ -46,7 +46,10 @@ export default function FeaturedServices({ data, loading, error, retry }) {
               retry={retry}
             />
           ) : (
-            <ServiceGrid services={services} />
+            <ServiceGrid
+              services={services}
+              className="lg:grid-cols-4"
+            />
           )}
         </div>
       </div>

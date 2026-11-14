@@ -13,21 +13,23 @@ import LockerResults from '~/components/customer/lockers/LockerResults'
 import LocationButton from '~/components/maps/LocationButton'
 import SectionGlow from './SectionGlow'
 
-export default function NearbyLockers() {
+export default function NearbyLockers({ embedded = false, excludeIds = [] }) {
   const { t } = useTranslation()
   const { position, locating, locationError, requestLocation } = useOutletContext()
-  const load = useCallback((signal) => customerCatalogApi.getLockers({
+  const excluded = excludeIds.join(',')
+  const load = useCallback((signal) => embedded && !position ? Promise.resolve(null) : customerCatalogApi.getLockers({
     page: CUSTOMER_CATALOG.INITIAL_PAGE,
-    take: CUSTOMER_CATALOG.FEATURED_LIMIT,
+    take: embedded ? Math.min(50, 4 + excluded.split(',').filter(Boolean).length) : CUSTOMER_CATALOG.FEATURED_LIMIT,
     ...position
-  }, signal), [position])
+  }, signal), [position, embedded, excluded])
   const { data, loading, error, retry } = useCatalogResource(load)
-  const lockers = data?.list || []
+  const excludedIds = new Set(excludeIds)
+  const lockers = (data?.list || []).filter((locker) => !excludedIds.has(locker.id)).slice(0, embedded ? 4 : CUSTOMER_CATALOG.FEATURED_LIMIT)
   return (
     <section
       id="lockers"
       aria-labelledby="nearby-lockers-heading"
-      className="relative isolate scroll-mt-[var(--customer-header-offset)] overflow-hidden bg-muted/35"
+      className={`relative isolate scroll-mt-[var(--customer-header-offset)] overflow-hidden bg-muted/35 ${embedded ? 'rounded-3xl border border-border' : ''}`}
     >
       <SectionGlow side="right" />
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
@@ -44,15 +46,17 @@ export default function NearbyLockers() {
               locating={locating}
               onClick={requestLocation}
             />
-            <Button
-              render={<Link to={CUSTOMER_ROUTES.LOCKERS} />}
-              nativeButton={false}
-              variant="secondary"
-              className="h-11 rounded-full px-5 text-base"
-            >
-              {t('customer.viewAllLockers')}
-              <ArrowRight className="transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />
-            </Button>
+            {!embedded && (
+              <Button
+                render={<Link to={CUSTOMER_ROUTES.LOCKERS} />}
+                nativeButton={false}
+                variant="secondary"
+                className="h-11 rounded-full px-5 text-base"
+              >
+                {t('customer.viewAllLockers')}
+                <ArrowRight className="transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />
+              </Button>
+            )}
           </div>
         </Reveal>
         {locationError && (
@@ -63,7 +67,11 @@ export default function NearbyLockers() {
             {t(locationError)}
           </p>
         )}
-        {loading || error || !lockers.length ? (
+        {embedded && !position ? (
+          <p className="rounded-2xl border border-dashed border-primary/20 bg-card p-6 text-muted-foreground">
+            {t('catalogUi.nearbyOptIn')}
+          </p>
+        ) : loading || error || !lockers.length ? (
           <CatalogFeedback
             loading={loading}
             loadingText={t('customer.loadingLockers')}

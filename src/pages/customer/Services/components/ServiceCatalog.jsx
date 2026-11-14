@@ -77,6 +77,17 @@ export default function ServiceCatalog() {
               <CatalogResultSummary
                 count={!loading && !error ? data?.total || 0 : undefined}
                 title={loading ? t('customer.loadingServices') : error ? t('customer.serviceList') : t('customer.servicesFound', { count: data?.total || 0 })}
+                searchControl={(
+                  <CatalogToolbar
+                    suggestionType="service"
+                    suggestionFilter={buildServiceFilter(query)}
+                    embedded
+                    keyword={query.keyword}
+                    label={t('customer.searchServices')}
+                    placeholder={t('customer.searchServicesByNameOrCode')}
+                    onSearch={(keyword) => setQuery({ ...query, keyword, page: CUSTOMER_CATALOG.INITIAL_PAGE })}
+                  />
+                )}
                 sortControl={(
                   <ServiceSort
                     value={query.sort}
@@ -106,6 +117,7 @@ export default function ServiceCatalog() {
             ) : (
               <ServiceGrid
                 services={services}
+                compact
                 className="lg:grid-cols-2 xl:grid-cols-3"
               />
             )}
