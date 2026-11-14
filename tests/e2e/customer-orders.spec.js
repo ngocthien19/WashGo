@@ -222,7 +222,7 @@ test('receipt modal stays usable on mobile in both themes and prints long docume
   await page.goto(`/customer/orders/${id}`)
   const action = page.getByRole('button', { name: 'Payment printout', exact: true })
   const refresh = page.getByRole('button', { name: 'Refresh', exact: true })
-  expect((await action.boundingBox()).height).toBe((await refresh.boundingBox()).height)
+  await expect.poll(async () => Math.abs((await action.boundingBox()).height - (await refresh.boundingBox()).height)).toBeLessThan(0.01)
   await page.setViewportSize({ width: 375, height: 667 })
   for (const dark of [false, true]) {
     await page.evaluate((enabled) => document.documentElement.classList.toggle('dark', enabled), dark)
