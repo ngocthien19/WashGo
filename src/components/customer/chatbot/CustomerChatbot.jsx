@@ -1,8 +1,9 @@
+import Spinner from '~/components/ui/spinner'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { Bot, Check, ChevronDown, ChevronUp, History, LoaderCircle, MapPin, Plus, Send, Trash2 } from 'lucide-react'
+import { Bot, Check, ChevronDown, ChevronUp, History, MapPin, Plus, Send, Trash2 } from 'lucide-react'
 import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -377,7 +378,10 @@ export default function CustomerChatbot({ onOpenTerms }) {
                         role="status"
                         className="flex items-center gap-2 text-sm text-muted-foreground"
                       >
-                        <LoaderCircle className="size-4 animate-spin" />
+                        <Spinner
+                          decorative
+                          className="size-4"
+                        />
                         {t('chatbot.thinking')}
                       </p>
                     )}
@@ -447,7 +451,7 @@ export default function CustomerChatbot({ onOpenTerms }) {
                         }
                       }}
                     >
-                      {geo.locating ? <LoaderCircle className="animate-spin" /> : <MapPin />}
+                      {geo.locating ? <Spinner decorative /> : <MapPin />}
                     </Button>
                     <textarea
                       {...register('message')}

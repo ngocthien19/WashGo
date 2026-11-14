@@ -1,7 +1,8 @@
+import Spinner from '~/components/ui/spinner'
 import { useTranslation } from 'react-i18next'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { FcGoogle } from 'react-icons/fc'
-import { LoaderCircle } from 'lucide-react'
+
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 import { authApi } from '~/apis/auth/authApi'
@@ -132,9 +133,9 @@ export default function GoogleSignInButton({ onSuccess }) {
           role="status"
           className="mt-2 flex items-center justify-center gap-2 text-xs text-muted-foreground"
         >
-          <LoaderCircle
+          <Spinner
+            decorative
             size={16}
-            className="animate-spin motion-reduce:animate-none"
           />
           {t('auth.signingIn')}
         </p>

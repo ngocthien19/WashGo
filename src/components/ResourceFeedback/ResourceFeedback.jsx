@@ -2,6 +2,7 @@ import { resolveMessage } from '~/i18n/messages'
 import { useTranslation } from 'react-i18next'
 import { PackageSearch, RefreshCw } from 'lucide-react'
 import { Button } from '~/components/ui/button'
+import Spinner from '~/components/ui/spinner'
 
 export default function CatalogFeedback({
   loading,
@@ -18,7 +19,10 @@ export default function CatalogFeedback({
         className="grid min-h-48 place-items-center text-sm text-muted-foreground"
       >
         <div className="flex text-base items-center gap-2">
-          <RefreshCw className="size-4 animate-spin motion-reduce:animate-none" />
+          <Spinner
+            decorative
+            className="size-5 text-primary"
+          />
           {t(loadingText)}
         </div>
       </div>

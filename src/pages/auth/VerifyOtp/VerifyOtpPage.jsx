@@ -1,3 +1,4 @@
+import Spinner from '~/components/ui/spinner'
 import { useTranslation } from 'react-i18next'
 import { AUTH_ROUTES, OTP_PURPOSE, OTP_CONFIG } from '~/utils/config/constants'
 import { formatCountdown } from '~/utils/format/formats'
@@ -168,10 +169,12 @@ export default function VerifyOtpPage() {
             onClick={resend}
             data-testid="resend-otp"
           >
-            <RotateCw
-              size={14}
-              className={resending ? 'animate-spin motion-reduce:animate-none' : ''}
-            />
+            {resending ? (
+              <Spinner
+                decorative
+                size={14}
+              />
+            ) : <RotateCw size={14} />}
             {resendLabel}
           </Button>
         </div>

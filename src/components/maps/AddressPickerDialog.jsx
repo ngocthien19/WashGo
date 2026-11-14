@@ -1,6 +1,7 @@
+import Spinner from '~/components/ui/spinner'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Check, LoaderCircle, MapPinned } from 'lucide-react'
+import { Check, MapPinned } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
@@ -113,7 +114,10 @@ export default function AddressPickerDialog({ initialCenter, onApply, onClose })
           >
             {selection?.loading ? (
               <p className="flex items-center gap-2 text-muted-foreground">
-                <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" />
+                <Spinner
+                  decorative
+                  className="size-4"
+                />
                 {t('customer.addressMap.lookingUp')}
               </p>
             ) : selection?.address ? (

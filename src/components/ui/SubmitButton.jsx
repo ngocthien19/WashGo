@@ -1,5 +1,6 @@
+import Spinner from '~/components/ui/spinner'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, LoaderCircle } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { UI_TRANSITIONS } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
@@ -15,8 +16,8 @@ export default function SubmitButton({ children, loading, disabled }) {
     >
       {loading ? (
         <>
-          <LoaderCircle
-            className="animate-spin motion-reduce:animate-none"
+          <Spinner
+            decorative
             size={18}
           />
           {t('common.processing')}
