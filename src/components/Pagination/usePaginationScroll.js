@@ -17,12 +17,13 @@ export default function usePaginationScroll(page, disabled) {
       if (!scope.isConnected || requests.get(scope) !== request) {
         return
       }
+      const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'
       // Lists with their own vertical viewport also start at their first row.
       scope.querySelectorAll('[data-pagination-scroll]').forEach((element) => {
-        element.scrollTo({ top: 0, behavior: 'instant' })
+        element.scrollTo({ top: 0, behavior })
       })
       const header = scope.querySelector('[data-pagination-header], [data-slot="table-header"]') || scope
-      header.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' })
+      header.scrollIntoView({ block: 'start', inline: 'nearest', behavior })
       requests.delete(scope)
     })
     return () => cancelAnimationFrame(frame)
