@@ -18,6 +18,13 @@ import { CUSTOMER_CATALOG, LOCKER_SLOT_SIZES, ORDER_CHOICE_STYLES } from '~/util
 import { formatDistance, formatLockerAddress } from '~/utils/formats'
 import SelectionBadge from './SelectionBadge'
 
+const slotColors = {
+  1: 'border-emerald-500/30 bg-emerald-500/5 text-emerald-700 hover:bg-emerald-500/10 hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200',
+  2: 'border-red-500/30 bg-red-500/5 text-red-700 dark:text-red-300',
+  3: 'border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-300',
+  4: 'border-border bg-muted/40 text-muted-foreground'
+}
+
 export default function OrderLocker({ locker, box, onLocker, onBox }) {
   const { t } = useTranslation()
   const { position, locating, locationError, requestLocation } = useOutletContext()
@@ -29,7 +36,7 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
   const loadDetail = useCallback((signal) => locker ? customerCatalogApi.getLocker(locker.id, signal) : Promise.resolve(null), [locker])
   const detail = useCatalogResource(loadDetail)
   const slots = lockerSlots(detail.data)
-  const visibleSlots = slots.filter((slot) => slotFilter === 'all' || (slotFilter === 'available' && slot.status === 1) || (slotFilter === 'selected' && slot.id === box?.id) || (slotFilter === 'occupied' && slot.status === 2))
+  const visibleSlots = slots.filter((slot) => slotFilter === 'all' || (slotFilter === 'available' && slot.status === 1) || (slotFilter === 'selected' && slot.id === box?.id) || (slotFilter === 'occupied' && slot.status === 2) || (slotFilter === 'reserved' && slot.status === 3))
   const lockers = list.data?.list || []
   const choose = (id) => {
     const next = lockers.find((item) => item.id === id) || (locker?.id === id ? locker : null)
@@ -177,6 +184,15 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
               <span className="size-2 rounded-full bg-red-500" />
               {t('customer.order.occupied')}
             </Button>
+            <Button
+              variant="ghost"
+              className="h-11 rounded-full border border-amber-500/25 px-3 text-base text-amber-700 aria-pressed:bg-amber-500/10 hover:bg-amber-500/15 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200"
+              aria-pressed={slotFilter === 'reserved'}
+              onClick={() => setSlotFilter('reserved')}
+            >
+              <span className="size-2 rounded-full bg-amber-500" />
+              {t('catalogUi.slotStatuses.3')}
+            </Button>
           </div>
         </div>
         <p className="mt-2 text-xs leading-6 text-muted-foreground">
@@ -228,15 +244,15 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
                 aria-pressed={box?.id === slot.id}
                 disabled={slot.status !== 1}
                 onClick={() => onBox(slot)}
-                className="relative h-auto min-h-18 min-w-0 flex-col gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-1.5 py-3 [&:hover]:bg-emerald-500/10 aria-pressed:border-violet-500 aria-pressed:bg-violet-500/8 aria-pressed:text-violet-700 aria-pressed:[&:hover]:bg-violet-500/15 dark:aria-pressed:text-violet-300 disabled:border-border disabled:bg-muted/40 disabled:text-muted-foreground disabled:opacity-100"
+                className={`relative h-auto min-h-18 min-w-0 flex-col gap-1.5 rounded-lg border px-1.5 py-3 aria-pressed:border-violet-500 aria-pressed:bg-violet-500/8 aria-pressed:text-violet-700 aria-pressed:[&:hover]:bg-violet-500/15 aria-pressed:[&:hover]:text-violet-800 dark:aria-pressed:text-violet-300 dark:aria-pressed:[&:hover]:text-violet-200 disabled:opacity-100 ${slotColors[slot.status] || slotColors[4]}`}
               >
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs">
                   {t(`catalogUi.slotStatuses.${slot.status}`, { defaultValue: t('customer.orders.unknown') })}
                 </span>
                 <span className="text-sm font-semibold">
                   {t('customer.order.boxShort', { number: slot.slotNumber })}
                 </span>
-                <span className="max-w-full whitespace-normal text-xs font-normal leading-4">
+                <span className="max-w-full whitespace-normal text-xs font-normal leading-4 opacity-80">
                   {t(LOCKER_SLOT_SIZES[slot.size] || 'customer.order.unknownSize')}
                 </span>
                 {box?.id === slot.id && (

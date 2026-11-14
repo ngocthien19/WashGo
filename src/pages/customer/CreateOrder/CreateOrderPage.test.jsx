@@ -62,6 +62,26 @@ beforeEach(() => {
 })
 
 describe('create order flow', () => {
+  it('shows all real compartment statuses but only allows selecting available compartments', async () => {
+    const user = userEvent.setup()
+    const slots = [1, 2, 3, 4].map(status => ({ id: status === 1 ? box.id : `box-${status}`, slotNumber: status, size: 2, status }))
+    customerCatalogApi.getLocker.mockResolvedValue({ ...locker, slots })
+    open()
+    await select(user)
+    for (const number of [2, 3, 4]) {
+      expect(screen.getByRole('button', { name: `Ô ${number} Tiêu chuẩn` })).toBeDisabled()
+    }
+    expect(screen.getByRole('button', { name: 'Đang giữ chỗ', exact: true })).toBeVisible()
+    expect(screen.getByText('Bảo trì', { exact: true })).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Đã có đồ', exact: true }))
+    expect(screen.getByRole('button', { name: 'Ô 2 Tiêu chuẩn' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Ô 3 Tiêu chuẩn' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Đang giữ chỗ', exact: true }))
+    expect(screen.getByRole('button', { name: 'Ô 3 Tiêu chuẩn' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Ô 2 Tiêu chuẩn' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Trống', exact: true }))
+    expect(screen.getByRole('button', { name: 'Ô 1 Tiêu chuẩn' })).toBeEnabled()
+  })
   it('shows numbered steps and filters real slots without inventing occupied data', async () => {
     const user = userEvent.setup()
     customerCatalogApi.getLocker.mockResolvedValue({ ...locker, availableSlots: [box, { id: 'other-box', slotNumber: 2, size: 3 }] })

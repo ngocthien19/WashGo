@@ -7,6 +7,12 @@ vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn
 beforeEach(() => vi.resetAllMocks())
 
 describe('customer catalog API', () => {
+  it('retains all compartment states and accepts a valid locker with no available compartments', async () => {
+    const locker = { id: 'locker', availableSlotCount: 0, availableSlots: [], slots: [2, 3, 4].map(status => ({ id: `slot-${status}`, slotNumber: status, size: 2, status })) }
+    authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: locker } })
+    expect(lockerSlots(await customerCatalogApi.getLocker('locker'))).toEqual(locker.slots)
+    expect((await customerCatalogApi.getLocker('locker')).availableSlots).toEqual([])
+  })
   it('reads both media contracts and tolerates missing or malformed legacy images', () => {
     expect(catalogImages({ images: '["/uploads/one.png"]' })).toEqual(['/uploads/one.png'])
     expect(catalogImages({ imageUrls: ['/uploads/new.png'], images: '["old"]' })).toEqual(['/uploads/new.png'])
