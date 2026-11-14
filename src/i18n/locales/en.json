@@ -32,6 +32,19 @@
       "4": "Maintenance"
     }
   },
+  "customerReviews": {
+    "loading": "Loading reviews…",
+    "invalidResponse": "Unable to load reviews. Please try again.",
+    "anonymous": "WashGo customer",
+    "total": "{{count}} published reviews",
+    "found": "{{count}} reviews found",
+    "publishedOnly": "Based on moderated, published reviews.",
+    "distribution": "Rating distribution",
+    "filter": "Filter by rating",
+    "allStars": "All ratings",
+    "stars": "{{count}} stars",
+    "noMatches": "No reviews match the selected rating yet."
+  },
   "navigationDrawer": {
     "close": "Close navigation menu"
   },
@@ -575,6 +588,11 @@
       "created": "Reviewed at",
       "actions": "Actions",
       "publish": "Publish content",
+      "publishForCustomers": "Publish for customers",
+      "publicHint": "The comment and images will be visible to WashGo customers. Check for personal information before confirming.",
+      "publicConfirm": "I have reviewed the comment and images and confirm they contain no personal or protected internal information.",
+      "publicApproved": "Approved for customers",
+      "notPublicApproved": "Not approved for customers",
       "contentTab": "Content",
       "activityTab": "Activity log",
       "back": "Back to review management",

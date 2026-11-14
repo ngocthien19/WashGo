@@ -128,6 +128,11 @@ export default function ReviewContent({ row, fresh }) {
         {' '}
         {row.contentApprovedAt ? formatDateTime(row.contentApprovedAt) : ''}
       </p>
+      <p className="font-medium">
+        {t(row.publicApprovedAt ? 'admin.reviews.publicApproved' : 'admin.reviews.notPublicApproved')}
+        {' '}
+        {row.publicApprovedAt ? formatDateTime(row.publicApprovedAt) : ''}
+      </p>
 
     </div>
   )

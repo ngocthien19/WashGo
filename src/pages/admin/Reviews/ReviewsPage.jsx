@@ -20,7 +20,7 @@ import { adminReviewApi } from '~/apis/admin/adminReviewApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { ADMIN_ROUTES } from '~/utils/constants'
 import { formatDateTime, formatNumber } from '~/utils/formats'
-import { readReviewQuery, writeReviewQuery, reviewFilter, REVIEW_TAKE, canModerate, canPublishReview } from './reviewModel'
+import { readReviewQuery, writeReviewQuery, reviewFilter, REVIEW_TAKE, canModerate, canPublishReview, canPublishForCustomers } from './reviewModel'
 import { ReviewScore, ReviewStatus } from './components/ReviewDisplay'
 import ReviewActionResults from './components/ReviewActionResults'
 import useReviewOperation, { rememberReview } from './useReviewOperation'
@@ -378,6 +378,13 @@ export default function ReviewsPage() {
                           >
                             <Eye className="size-5 text-primary" />
                             {t('admin.reviews.publish')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={!!unresolved || !canPublishForCustomers(row)}
+                            onClick={() => setAction({ rows: [row], initialAction: 'PublishForCustomers' })}
+                          >
+                            <Eye className="size-5 text-primary" />
+                            {t('admin.reviews.publishForCustomers')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
