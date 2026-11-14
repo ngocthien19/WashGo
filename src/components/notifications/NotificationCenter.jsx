@@ -1,3 +1,4 @@
+import ScrollSection from '~/components/motion/ScrollSection'
 import NotificationFilters from './NotificationFilters'
 import { notificationFilters, CUSTOMER_NOTIFICATION_TYPES } from './notificationModel'
 import { NOTIFICATION_CATEGORIES } from './notificationCatalog'
@@ -13,7 +14,7 @@ import { notificationApi } from '~/apis/notifications/notificationApi'
 import { loadSuggestionPages, resourceSuggestion } from '~/utils/search/searchSuggestions'
 const categoryIcons = { order: Package, payment: Wallet, feedback: MessageSquareWarning, refunds: Undo2, ratings: Star, services: Shirt, merchant: Store, tasks: Truck }
 
-export default function NotificationCenter({ stickyClassName = 'lg:top-24', advanced = false, types = CUSTOMER_NOTIFICATION_TYPES, descriptionKey = 'customer.notification.description', filterClassName, loadSuggestions, showResultCount = true }) {
+export default function NotificationCenter({ animate = false, stickyClassName = 'lg:top-24', advanced = false, types = CUSTOMER_NOTIFICATION_TYPES, descriptionKey = 'customer.notification.description', filterClassName, loadSuggestions, showResultCount = true }) {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
   const rawPage = Number(params.get('page') || 1)
@@ -56,103 +57,117 @@ export default function NotificationCenter({ stickyClassName = 'lg:top-24', adva
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
       <aside className={`space-y-4 lg:sticky ${stickyClassName}`}>
-        <nav
-          aria-label={t('customer.notification.filter')}
-          className="overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm"
+        <ScrollSection
+          as="div"
+          direction="left"
+          disabled={!animate}
+          className="space-y-4"
         >
-          <h2 className="-mx-4 -mt-4 mb-3 border-b border-border bg-primary/5 px-7 py-5 text-base font-bold">
-            {t('customer.notification.title')}
-          </h2>
-          <div className="flex gap-2 lg:flex-col">
-            {[false, true].map((value) => {
-              const Icon = value ? Mail : List
-              const selected = unreadOnly === value && (!advanced || value || !params.get('group'))
-              return (
-                <Button
-                  key={String(value)}
-                  variant="ghost"
-                  className={`h-11 flex-1 justify-start rounded-xl border-l-[3px] px-3 text-base font-semibold lg:flex-none ${selected ? 'border-l-primary bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary' : 'border-l-transparent text-muted-foreground'}`}
-                  aria-pressed={selected}
-                  aria-label={t(value ? 'customer.notification.unread' : 'customer.notification.all')}
-                  onClick={() => advanced && !value ? updateFilters({ unread: '', group: '', type: '' }) : changeQuery({ page: 1, unreadOnly: value })}
-                >
-                  <Icon size={17} />
-                  {t(value ? 'customer.notification.unread' : 'customer.notification.all')}
-                  {!value && advanced && (
-                    <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
-                      {total ?? '—'}
-                    </span>
-                  )}
-                  {value && unread !== null && (
-                    <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
-                      {unread}
-                    </span>
-                  )}
-                </Button>
-              )
-            })}
-          </div>
-          {advanced && (
-            <div className="mt-3 grid gap-2 border-t border-border pt-3">
-              {categories.map(({ id: group, label }) => {
-                const Icon = categoryIcons[group] || Inbox
+          <nav
+            aria-label={t('customer.notification.filter')}
+            className="overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm"
+          >
+            <h2 className="-mx-4 -mt-4 mb-3 border-b border-border bg-primary/5 px-7 py-5 text-base font-bold">
+              {t('customer.notification.title')}
+            </h2>
+            <div className="flex gap-2 lg:flex-col">
+              {[false, true].map((value) => {
+                const Icon = value ? Mail : List
+                const selected = unreadOnly === value && (!advanced || value || !params.get('group'))
                 return (
                   <Button
-                    key={group}
+                    key={String(value)}
                     variant="ghost"
-                    aria-label={t(label)}
-                    aria-pressed={params.get('group') === group}
-                    onClick={() => updateFilters({ group: params.get('group') === group ? '' : group, type: '' })}
-                    className={`h-auto min-h-11 w-full min-w-0 justify-between rounded-xl border-l-[3px] px-3 py-2 text-base font-semibold ${params.get('group') === group ? 'border-l-primary bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary' : 'border-l-transparent text-muted-foreground'}`}
+                    className={`h-11 flex-1 justify-start rounded-xl border-l-[3px] px-3 text-base font-semibold lg:flex-none ${selected ? 'border-l-primary bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary' : 'border-l-transparent text-muted-foreground'}`}
+                    aria-pressed={selected}
+                    aria-label={t(value ? 'customer.notification.unread' : 'customer.notification.all')}
+                    onClick={() => advanced && !value ? updateFilters({ unread: '', group: '', type: '' }) : changeQuery({ page: 1, unreadOnly: value })}
                   >
-                    <span className="flex min-w-0 items-center gap-2 whitespace-normal text-left leading-snug">
-                      <Icon
-                        size={17}
-                        className="shrink-0"
-                      />
-                      {t(label)}
-                    </span>
-                    <span className="ml-2 min-w-6 shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold tabular-nums text-primary">
-                      {categoryCounts.data?.find(item => item.id === group)?.total ?? '—'}
-                    </span>
+                    <Icon size={17} />
+                    {t(value ? 'customer.notification.unread' : 'customer.notification.all')}
+                    {!value && advanced && (
+                      <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                        {total ?? '—'}
+                      </span>
+                    )}
+                    {value && unread !== null && (
+                      <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                        {unread}
+                      </span>
+                    )}
                   </Button>
                 )
               })}
-              {categoryCounts.data?.some(item => item.total == null) && (
-                <Button
-                  variant="ghost"
-                  className="h-auto whitespace-normal text-xs"
-                  onClick={categoryCounts.retry}
-                  disabled={categoryCounts.loading}
-                >
-                  {t('notificationNav.reloadCounts')}
-                </Button>
-              )}
             </div>
-          )}
-        </nav>
-        <div className="hidden rounded-2xl border border-primary/15 bg-primary/5 p-5 lg:block">
-          <Inbox
-            className="mb-3 text-primary"
-            size={24}
-          />
-          <p className="text-sm leading-6 text-muted-foreground">
-            {t(descriptionKey)}
-          </p>
-        </div>
+            {advanced && (
+              <div className="mt-3 grid gap-2 border-t border-border pt-3">
+                {categories.map(({ id: group, label }) => {
+                  const Icon = categoryIcons[group] || Inbox
+                  return (
+                    <Button
+                      key={group}
+                      variant="ghost"
+                      aria-label={t(label)}
+                      aria-pressed={params.get('group') === group}
+                      onClick={() => updateFilters({ group: params.get('group') === group ? '' : group, type: '' })}
+                      className={`h-auto min-h-11 w-full min-w-0 justify-between rounded-xl border-l-[3px] px-3 py-2 text-base font-semibold ${params.get('group') === group ? 'border-l-primary bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary' : 'border-l-transparent text-muted-foreground'}`}
+                    >
+                      <span className="flex min-w-0 items-center gap-2 whitespace-normal text-left leading-snug">
+                        <Icon
+                          size={17}
+                          className="shrink-0"
+                        />
+                        {t(label)}
+                      </span>
+                      <span className="ml-2 min-w-6 shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold tabular-nums text-primary">
+                        {categoryCounts.data?.find(item => item.id === group)?.total ?? '—'}
+                      </span>
+                    </Button>
+                  )
+                })}
+                {categoryCounts.data?.some(item => item.total == null) && (
+                  <Button
+                    variant="ghost"
+                    className="h-auto whitespace-normal text-xs"
+                    onClick={categoryCounts.retry}
+                    disabled={categoryCounts.loading}
+                  >
+                    {t('notificationNav.reloadCounts')}
+                  </Button>
+                )}
+              </div>
+            )}
+          </nav>
+          <div className="hidden rounded-2xl border border-primary/15 bg-primary/5 p-5 lg:block">
+            <Inbox
+              className="mb-3 text-primary"
+              size={24}
+            />
+            <p className="text-sm leading-6 text-muted-foreground">
+              {t(descriptionKey)}
+            </p>
+          </div>
+        </ScrollSection>
       </aside>
       <div className="min-w-0 space-y-5">
         {advanced && (
-          <NotificationFilters
-            loadSuggestions={loadSuggestions || suggestions}
-            params={params}
-            change={updateFilters}
-            types={activeTypes}
-            className={filterClassName}
-          />
+          <ScrollSection
+            as="div"
+            direction="right"
+            disabled={!animate}
+          >
+            <NotificationFilters
+              loadSuggestions={loadSuggestions || suggestions}
+              params={params}
+              change={updateFilters}
+              types={activeTypes}
+              className={filterClassName}
+            />
+          </ScrollSection>
         )}
         <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
           <NotificationInbox
+            revealFrom={animate ? 'right' : undefined}
             showResultCount={showResultCount}
             page={page}
             unreadOnly={unreadOnly}

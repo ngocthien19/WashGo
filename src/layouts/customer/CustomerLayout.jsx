@@ -8,6 +8,8 @@ import NotificationProvider from '~/components/notifications/NotificationProvide
 import ServiceTerms from '~/components/customer/terms/ServiceTerms'
 import CustomerChatbot from '~/components/customer/chatbot/CustomerChatbot'
 import { useSelector } from 'react-redux'
+import CustomerPageGlow from '~/components/customer/SectionGlow/CustomerPageGlow'
+import { CUSTOMER_ROUTES } from '~/utils/config/constants'
 
 export default function CustomerLayout() {
   const { t } = useTranslation()
@@ -29,8 +31,13 @@ export default function CustomerLayout() {
       <CustomerHeader />
       <main
         id="main-content"
-        className="flex-1"
+        className="relative isolate flex-1"
       >
+        {pathname !== CUSTOMER_ROUTES.HOME && (
+          <CustomerPageGlow
+            reverse={[CUSTOMER_ROUTES.LOCKERS, CUSTOMER_ROUTES.ORDERS, CUSTOMER_ROUTES.PROFILE].some(route => pathname === route || pathname.startsWith(`${route}/`))}
+          />
+        )}
         <Outlet context={location} />
       </main>
       <CustomerFooter onOpenTerms={openTerms} />

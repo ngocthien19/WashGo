@@ -16,7 +16,7 @@ export default function NotificationsPage() {
     ...notificationFilters(params), unreadOnly: params.get('unread') === 'true'
   }), [params])
   return (
-    <div className="min-h-[70dvh] bg-muted/30">
+    <div className="min-h-[70dvh] overflow-x-clip bg-muted/30">
       <div className="mx-auto max-w-7xl space-y-7 px-4 py-8 sm:px-6 lg:px-8">
         <Breadcrumb items={[{ label: t('common.home'), to: CUSTOMER_ROUTES.HOME }, { label: t('customer.profile.allNotifications') }]} />
         <SectionHeading
@@ -26,6 +26,7 @@ export default function NotificationsPage() {
           description={t('customer.notification.description')}
         />
         <NotificationCenter
+          animate
           loadSuggestions={loadSuggestions}
           showResultCount
           advanced

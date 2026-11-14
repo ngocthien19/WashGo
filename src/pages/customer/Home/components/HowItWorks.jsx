@@ -3,7 +3,7 @@ import { ClipboardList, PackageCheck, ScanLine, WashingMachine } from 'lucide-re
 import Reveal from '~/components/motion/Reveal'
 import ScrollAccent from '~/components/motion/ScrollAccent'
 import { UI_MOTION } from '~/utils/config/constants'
-import SectionGlow from './SectionGlow'
+import SectionGlow from '~/components/customer/SectionGlow/SectionGlow'
 import stepsBackground from '~/assets/customer/laundry-steps-background.png'
 
 const steps = [

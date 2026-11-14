@@ -11,7 +11,7 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import FormField from '~/components/ui/FormField'
 import FormError from '~/components/ui/FormError'
-import Reveal from '~/components/motion/Reveal'
+import ScrollSection from '~/components/motion/ScrollSection'
 import { getApiError } from '~/utils/http/apiError'
 import { notify } from '~/utils/notifications/notifications'
 import { AUTH_LIMITS, PROFILE_LIMITS } from '~/utils/config/constants'
@@ -101,7 +101,11 @@ export default function ProfileEditor({ profile }) {
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[19rem_minmax(0,1fr)]">
-      <Reveal className="min-w-0 lg:sticky lg:top-[var(--customer-header-offset)]">
+      <ScrollSection
+        as="div"
+        direction="left"
+        className="min-w-0 lg:sticky lg:top-[var(--customer-header-offset)]"
+      >
         <AvatarEditor
           key={photoRevision}
           profile={saved}
@@ -115,13 +119,17 @@ export default function ProfileEditor({ profile }) {
             clearErrors('root')
           }}
         />
-      </Reveal>
+      </ScrollSection>
       <div className="min-w-0 space-y-6">
-        <Reveal delay={0.04}>
+        <ScrollSection
+          as="div"
+          direction="right"
+        >
           <ProfileStats profile={saved} />
-        </Reveal>
-        <Reveal
-          delay={0.08}
+        </ScrollSection>
+        <ScrollSection
+          as="div"
+          direction="right"
           className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
         >
           <form
@@ -261,7 +269,7 @@ export default function ProfileEditor({ profile }) {
               </div>
             </div>
           </form>
-        </Reveal>
+        </ScrollSection>
       </div>
       {mapOpen && (
         <Suspense fallback={(

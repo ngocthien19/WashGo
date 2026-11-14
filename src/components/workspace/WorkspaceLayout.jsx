@@ -115,7 +115,7 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
       resolveHref={resolveNotificationHref}
     >
       <div className="min-h-dvh bg-background text-foreground">
-        <header className={`sticky top-0 z-40 border-b border-border transition-[margin-left] duration-300 ease-in-out motion-reduce:transition-none ${admin || prefix === 'shipper' ? 'bg-card' : 'bg-card/95'} backdrop-blur-md ${collapsed ? 'lg:ml-20' : admin ? 'lg:ml-72' : 'lg:ml-64'}`}>
+        <header className={`sticky top-0 z-40 border-b border-border transition-none lg:transition-[margin-left] duration-300 ease-in-out motion-reduce:transition-none ${admin || prefix === 'shipper' ? 'bg-card' : 'bg-card/95'} backdrop-blur-md ${collapsed ? 'lg:ml-20' : admin ? 'lg:ml-72' : 'lg:ml-64'}`}>
           <div className="flex min-h-20 items-center justify-between gap-3 px-4 sm:px-6">
             <div className="flex items-center gap-3 lg:hidden">
               <Button
@@ -241,7 +241,7 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
             {logoutButton(collapsed)}
           </div>
         </aside>
-        <main className={`min-w-0 p-4 transition-[margin-left] duration-300 ease-in-out motion-reduce:transition-none sm:p-6 lg:p-8 ${collapsed ? 'lg:ml-20' : admin ? 'lg:ml-72' : 'lg:ml-64'}`}>
+        <main className={`min-w-0 p-4 transition-none lg:transition-[margin-left] duration-300 ease-in-out motion-reduce:transition-none sm:p-6 lg:p-8 ${collapsed ? 'lg:ml-20' : admin ? 'lg:ml-72' : 'lg:ml-64'}`}>
           <Outlet context={{ ...context, logout, logoutPending: pending }} />
         </main>
       </div>

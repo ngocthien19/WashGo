@@ -12,7 +12,7 @@ import { CUSTOMER_CATALOG, CUSTOMER_ROUTES } from '~/utils/config/constants'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import LockerResults from '~/components/customer/lockers/LockerResults'
 import LocationButton from '~/components/maps/LocationButton'
-import SectionGlow from './SectionGlow'
+import SectionGlow from '~/components/customer/SectionGlow/SectionGlow'
 
 export default function NearbyLockers({ embedded = false, excludeIds = [] }) {
   const { t } = useTranslation()

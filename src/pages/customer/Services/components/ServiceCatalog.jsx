@@ -1,3 +1,4 @@
+import ScrollSection from '~/components/motion/ScrollSection'
 import { useTranslation } from 'react-i18next'
 import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -73,7 +74,11 @@ export default function ServiceCatalog() {
             className="scroll-mt-[var(--customer-header-offset)]"
             aria-busy={loading}
           >
-            <div className="mb-6">
+            <ScrollSection
+              as="div"
+              direction="right"
+              className="mb-6"
+            >
               <CatalogResultSummary
                 count={!loading && !error ? data?.total || 0 : undefined}
                 title={loading ? t('customer.loadingServices') : error ? t('customer.serviceList') : t('customer.servicesFound', { count: data?.total || 0 })}
@@ -106,21 +111,26 @@ export default function ServiceCatalog() {
                 }))}
                 onClearFilters={clearFilters}
               />
-            </div>
-            {loading || error || !services.length ? (
-              <CatalogFeedback
-                loading={loading}
-                error={error}
-                retry={retry}
-                empty={hasFilters ? t('customer.noMatchingServicesTryAnotherKeywordOrServiceType') : undefined}
-              />
-            ) : (
-              <ServiceGrid
-                featured
-                slideDistance={24}
-                services={services}
-              />
-            )}
+            </ScrollSection>
+            <ScrollSection
+              as="div"
+              direction="right"
+            >
+              {loading || error || !services.length ? (
+                <CatalogFeedback
+                  loading={loading}
+                  error={error}
+                  retry={retry}
+                  empty={hasFilters ? t('customer.noMatchingServicesTryAnotherKeywordOrServiceType') : undefined}
+                />
+              ) : (
+                <ServiceGrid
+                  featured
+                  slideDistance={24}
+                  services={services}
+                />
+              )}
+            </ScrollSection>
             {!loading && !error && data?.totalPages > 0 && (
               <Pagination
                 className="mt-10"

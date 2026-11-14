@@ -19,7 +19,7 @@ import OrderRatingAction from './components/OrderRatingAction'
 import IncidentReportAction from '~/pages/customer/Complaints/components/IncidentReportAction'
 import DepositDeadlineNotice from './components/DepositDeadlineNotice'
 import { Button } from '~/components/ui/button'
-import Reveal from '~/components/motion/Reveal'
+import ScrollSection from '~/components/motion/ScrollSection'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { customerOrderApi } from '~/apis/customer/customerOrderApi'
 import { CUSTOMER_ROUTES, ORDER_STATUSES, PAYMENT_OPTIONS, LOCKER_SLOT_SIZES } from '~/utils/config/constants'
@@ -27,9 +27,12 @@ import { formatCurrency, formatDateTime, formatNumber } from '~/utils/format/for
 import { paymentBlockReason } from '~/pages/customer/Payment/paymentModel'
 import CancelOrderDialog from './components/CancelOrderDialog'
 
-function DetailPanel({ icon: Icon, title, children }) {
+function DetailPanel({ icon: Icon, title, children, direction = 'left' }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm">
+    <ScrollSection
+      direction={direction}
+      className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm"
+    >
       <h2 className="flex items-center gap-3 border-b border-border/70 p-5 text-lg font-semibold">
         <Icon className="size-5 text-primary" />
         {title}
@@ -37,7 +40,7 @@ function DetailPanel({ icon: Icon, title, children }) {
       <div className="space-y-5 p-5 sm:p-6">
         {children}
       </div>
-    </section>
+    </ScrollSection>
   )
 }
 
@@ -52,7 +55,7 @@ export default function OrderDetailPage() {
     document.title = `${order?.orderCode ? t('customer.orders.detailTitle', { code: order.orderCode }) : t('customer.orders.details')} | WashGo`
   }, [order?.orderCode, t])
   return (
-    <div className="min-h-[70dvh] bg-muted/30">
+    <div className="min-h-[70dvh] overflow-x-clip bg-muted/30">
       <div className="mx-auto max-w-7xl space-y-7 px-4 py-8 sm:px-6 lg:px-8">
         <Breadcrumb items={[{ label: t('common.home'), to: CUSTOMER_ROUTES.HOME }, { label: t('common.myOrders'), to: CUSTOMER_ROUTES.ORDERS }, { label: order?.orderCode || t('customer.orders.details') }]} />
         {resource.loading || resource.error ? (
@@ -97,19 +100,20 @@ export default function OrderDetailPage() {
             )}
             <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
               <div className="min-w-0 space-y-6">
-                <ReturnLockerInfo order={order} />
+                <ReturnLockerInfo
+                  order={order}
+                  animate
+                />
                 <StoragePickup
                   order={order}
                   onUpdated={resource.retry}
                 />
-                <Reveal>
-                  <DetailPanel
-                    icon={History}
-                    title={t('customer.orders.timeline')}
-                  >
-                    <OrderTimeline order={order} />
-                  </DetailPanel>
-                </Reveal>
+                <DetailPanel
+                  icon={History}
+                  title={t('customer.orders.timeline')}
+                >
+                  <OrderTimeline order={order} />
+                </DetailPanel>
                 <DetailPanel
                   icon={PackageCheck}
                   title={t('customer.order.orderDetails')}
@@ -226,7 +230,10 @@ export default function OrderDetailPage() {
                 />
               </div>
               <aside className="min-w-0 space-y-5 lg:sticky lg:top-[var(--customer-header-offset)]">
-                <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                <ScrollSection
+                  direction="right"
+                  className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+                >
                   <h2 className="bg-blue-600 p-4 text-sm font-semibold text-white">
                     {t('customer.orders.currentStatus')}
                   </h2>
@@ -266,8 +273,9 @@ export default function OrderDetailPage() {
                       )}
                     </dl>
                   </div>
-                </section>
+                </ScrollSection>
                 <DetailPanel
+                  direction="right"
                   icon={Clock3}
                   title={t('customer.orders.estimatedFinish')}
                 >
@@ -289,6 +297,7 @@ export default function OrderDetailPage() {
                   )}
                 </DetailPanel>
                 <DetailPanel
+                  direction="right"
                   icon={TicketPercent}
                   title={t('customer.order.quote')}
                 >

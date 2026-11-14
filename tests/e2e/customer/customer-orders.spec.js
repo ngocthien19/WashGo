@@ -317,6 +317,33 @@ test('order detail renders service and both locker photos supplied by its DTO', 
   }
 })
 
+test('order detail panels enter from their own side on scroll and respect reduced motion', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  const state = await setup(page)
+  state.order.timeline = [{ ...initialOrder.timeline[0], note: 'Order history information. '.repeat(160) }]
+  await page.goto(`/orders/${id}`)
+  await expect(page.getByRole('heading', { name: /Order details.*WG2611061234/ })).toBeVisible({ timeout: 15000 })
+  const panel = name => page.locator('section').filter({ has: page.getByRole('heading', { name, exact: true }) })
+  const left = panel('Order details'), right = panel('Current status')
+  await expect(left).toHaveCSS('opacity', '0')
+  await expect(right).toHaveCSS('opacity', '0')
+  expect(await left.evaluate(el => new DOMMatrix(getComputedStyle(el).transform).m41)).toBeLessThan(0)
+  expect(await right.evaluate(el => new DOMMatrix(getComputedStyle(el).transform).m41)).toBeGreaterThan(0)
+  for (const target of [left, right]) {
+    await target.scrollIntoViewIfNeeded()
+    await expect(target).toHaveCSS('opacity', '1')
+    await expect(target).toHaveCSS('transform', 'none')
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+  await expect(left).toHaveCSS('opacity', '1')
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.reload()
+  await expect(panel('Current status')).toHaveCSS('opacity', '1')
+  await expect(panel('Current status')).toHaveCSS('transform', 'none')
+})
+
 test('order detail shows real history, masks PIN and confirms server cancellation fees', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/orders')

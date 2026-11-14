@@ -68,7 +68,7 @@ it('waits through async loading and scrolls the newly mounted table header once'
   const newHeader = view.container.querySelector('thead')
   newHeader.scrollIntoView = vi.fn()
   flushFrames(); flushFrames()
-  expect(newHeader.scrollIntoView).toHaveBeenCalledExactlyOnceWith({ block: 'start', inline: 'nearest', behavior: 'instant' })
+  expect(newHeader.scrollIntoView).toHaveBeenCalledExactlyOnceWith({ block: 'start', inline: 'nearest', behavior: 'smooth' })
 })
 
 it('supports local pagination and cancels an obsolete scheduled page', () => {
@@ -145,7 +145,7 @@ it('isolates nested result regions and resets only their own vertical list', () 
   flushFrames()
   expect(outer.scrollIntoView).not.toHaveBeenCalled()
   expect(inner.scrollIntoView).toHaveBeenCalledTimes(1)
-  expect(inner.querySelector('ul').scrollTo).toHaveBeenCalledExactlyOnceWith({ top: 0, behavior: 'instant' })
+  expect(inner.querySelector('ul').scrollTo).toHaveBeenCalledExactlyOnceWith({ top: 0, behavior: 'smooth' })
 })
 
 it('does not carry a pending scroll to a replacement result region or a different route', () => {
@@ -171,4 +171,15 @@ it('ignores disabled, current-page and out-of-range navigation', () => {
   flushFrames()
   expect(change).not.toHaveBeenCalled()
   expect(header.scrollIntoView).not.toHaveBeenCalled()
+})
+
+it('keeps pagination scrolling instant when reduced motion is enabled', () => {
+  vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true })))
+  const view = render(<Region />)
+  fireEvent.click(screen.getByRole('button', { name: 'Next page', exact: true }))
+  view.rerender(<Region page={2} />)
+  const header = view.container.querySelector('thead')
+  header.scrollIntoView = vi.fn()
+  flushFrames()
+  expect(header.scrollIntoView).toHaveBeenCalledExactlyOnceWith({ block: 'start', inline: 'nearest', behavior: 'instant' })
 })

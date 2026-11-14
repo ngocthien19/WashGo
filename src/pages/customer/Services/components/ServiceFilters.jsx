@@ -1,3 +1,4 @@
+import ScrollSection from '~/components/motion/ScrollSection'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { Banknote, ChevronDown, RotateCcw, Shirt } from 'lucide-react'
@@ -67,7 +68,9 @@ export default function ServiceFilters({ values, onChange, onReset, hasFilters, 
   }
 
   return (
-    <aside
+    <ScrollSection
+      as="aside"
+      direction="left"
       aria-label={t('customer.serviceFilters')}
       className="self-start rounded-3xl border border-border/80 bg-card p-5 shadow-sm lg:sticky lg:top-[var(--customer-header-offset)] xl:p-6"
     >
@@ -100,6 +103,6 @@ export default function ServiceFilters({ values, onChange, onReset, hasFilters, 
           </Button>
         </div>
       </div>
-    </aside>
+    </ScrollSection>
   )
 }
