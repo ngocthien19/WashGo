@@ -29,7 +29,7 @@ export const USER_ROLES = {
 }
 
 export const ROLE_HOME_ROUTES = {
-  [USER_ROLES.CUSTOMER]: '/customer',
+  [USER_ROLES.CUSTOMER]: '/',
   [USER_ROLES.ADMIN]: '/admin',
   [USER_ROLES.MERCHANT]: '/merchant',
   [USER_ROLES.SHIPPER]: '/shipper'
@@ -37,18 +37,18 @@ export const ROLE_HOME_ROUTES = {
 
 export const CUSTOMER_ROUTES = {
   HOME: ROLE_HOME_ROUTES[USER_ROLES.CUSTOMER],
-  SERVICES: '/customer/services',
-  LOCKERS: '/customer/lockers',
-  CREATE_ORDER: '/customer/orders/new',
-  ORDERS: '/customer/orders',
-  ORDER_DETAIL: '/customer/orders/:orderId',
-  ORDER_RECEIPT: '/customer/orders/:orderId/receipt',
-  PAYMENT: '/customer/orders/:orderId/payment',
+  SERVICES: '/services',
+  LOCKERS: '/lockers',
+  CREATE_ORDER: '/orders/new',
+  ORDERS: '/orders',
+  ORDER_DETAIL: '/orders/:orderId',
+  ORDER_RECEIPT: '/orders/:orderId/receipt',
+  PAYMENT: '/orders/:orderId/payment',
   PAYMENT_RETURN: '/payment/return',
-  PROFILE: '/customer/profile',
-  COMPLAINTS: '/customer/complaints',
-  NOTIFICATIONS: '/customer/notifications',
-  COMPLAINT_DETAIL: '/customer/complaints/:incidentId'
+  PROFILE: '/profile',
+  COMPLAINTS: '/complaints',
+  NOTIFICATIONS: '/notifications',
+  COMPLAINT_DETAIL: '/complaints/:incidentId'
 }
 
 export const MERCHANT_ROUTES = { HOME: '/merchant', STORAGE: '/merchant/storage', ORDERS: '/merchant/orders', ORDER_DETAIL: '/merchant/orders/:orderId', SHIPPERS: '/merchant/shippers', LOCKERS: '/merchant/lockers', SERVICES: '/merchant/services', REPORTS: '/merchant/reports', PROFILE: '/merchant/profile', NOTIFICATIONS: '/merchant/notifications' }

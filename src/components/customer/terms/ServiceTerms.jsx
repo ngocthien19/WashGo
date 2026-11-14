@@ -12,9 +12,9 @@ import { customerPolicyApi } from '~/apis/customer/customerPolicyApi'
 import { formatDateTime } from '~/utils/format/formats'
 import { getApiError } from '~/utils/http/apiError'
 
-export default function ServiceTerms({ children }) {
+export default function ServiceTerms({ children, guest = false }) {
   const { t } = useTranslation()
-  const load = useCallback((signal) => customerPolicyApi.get(signal), [])
+  const load = useCallback((signal) => guest ? customerPolicyApi.getPublic(signal) : customerPolicyApi.get(signal), [guest])
   const resource = useCatalogResource(load)
   const policy = resource.data
   const [manual, setManual] = useState(false)

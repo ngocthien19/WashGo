@@ -199,7 +199,7 @@ async function setup(page, options = {}) {
 test('receipt appears only in details and rechecks payment eligibility before printing', async ({ page }) => {
   const state = await setup(page)
   state.order = { ...initialOrder, status: 12, paymentStatus: 2 }
-  await page.goto('/customer/orders')
+  await page.goto('/orders')
   const action = page.getByRole('button', { name: 'Payment printout', exact: true })
   await expect(page.getByRole('heading', { name: initialOrder.orderCode, exact: true })).toBeVisible()
   await expect(action).toHaveCount(0)
@@ -211,7 +211,7 @@ test('receipt appears only in details and rechecks payment eligibility before pr
   await expect(dialog.getByRole('alert')).toContainText('A printout is available only after the order is completed and paid.')
   await expect(dialog.getByRole('button', { name: 'Print receipt', exact: true })).toBeDisabled()
   await expect(page.locator('[data-receipt-print]')).toHaveCount(0)
-  await expect(page).toHaveURL(`/customer/orders/${id}`)
+  await expect(page).toHaveURL(`/orders/${id}`)
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
   await expect(dialog).toHaveCount(0)
 })
@@ -219,7 +219,7 @@ test('receipt appears only in details and rechecks payment eligibility before pr
 test('receipt modal stays usable on mobile in both themes and prints long documents without clipping', async ({ page }) => {
   const state = await setup(page)
   state.order = { ...initialOrder, status: 12, paymentStatus: 2, items: Array.from({ length: 30 }, (_, index) => ({ ...initialOrder.items[0], id: `item-${index}`, serviceName: `Laundry service ${index + 1}` })) }
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   const action = page.getByRole('button', { name: 'Payment printout', exact: true })
   const refresh = page.getByRole('button', { name: 'Refresh', exact: true })
   await expect(refresh).toBeVisible()
@@ -248,7 +248,7 @@ test('receipt modal stays usable on mobile in both themes and prints long docume
 
 test('desktop keeps all navigation links while tablet and mobile use the menu', async ({ page }) => {
   await setup(page)
-  await page.goto('/customer')
+  await page.goto('/')
   const nav = page.locator('header nav').first()
   const menu = page.getByRole('button', { name: 'Open navigation menu', exact: true })
   for (const width of [1024, 1100, 1279, 1440, 1585]) {
@@ -272,13 +272,13 @@ test('desktop keeps all navigation links while tablet and mobile use the menu', 
   }
   await page.locator('header button[aria-controls="customer-mobile-navigation"]').click()
   await page.locator('#customer-mobile-navigation').getByRole('link', { name: 'Đơn hàng của tôi', exact: true }).click()
-  await expect(page).toHaveURL('/customer/orders')
+  await expect(page).toHaveURL('/orders')
   await expect(page.locator('#customer-mobile-navigation')).toHaveCount(0)
 })
 
 test('my orders preserves server filters, paging, sorting, badges and error retry', async ({ page }) => {
   const state = await setup(page)
-  await page.goto('/customer/orders?status=8&paymentStatus=1&page=2')
+  await page.goto('/orders?status=8&paymentStatus=1&page=2')
   await expect(page.getByRole('heading', { name: 'WG2611069999', exact: true })).toBeVisible()
   expect(state.calls.at(-1)).toMatchObject({ status: 8, paymentStatus: 1, page: 2 })
   await page.getByRole('combobox', { name: 'Sort orders', exact: true }).click()
@@ -308,7 +308,7 @@ test('order detail renders service and both locker photos supplied by its DTO', 
   const state = await setup(page)
   const photo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMC/wCfyO0AAAAASUVORK5CYII='
   state.order = { ...state.order, lockerImageUrls: [photo], returnLockerName: 'Return station', returnLockerImageUrls: [photo], items: state.order.items.map((item) => ({ ...item, serviceImageUrls: [photo] })) }
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   for (const name of ['Everyday laundry', 'Ben Thanh Locker', 'Return station']) {
     const image = page.getByRole('img', { name, exact: true })
     await image.scrollIntoViewIfNeeded()
@@ -319,9 +319,9 @@ test('order detail renders service and both locker photos supplied by its DTO', 
 
 test('order detail shows real history, masks PIN and confirms server cancellation fees', async ({ page }) => {
   const state = await setup(page)
-  await page.goto('/customer/orders')
+  await page.goto('/orders')
   await page.getByRole('button', { name: 'Details', exact: true }).click()
-  await expect(page).toHaveURL(`/customer/orders/${id}`)
+  await expect(page).toHaveURL(`/orders/${id}`)
   await expect(page.getByText('Order recorded', { exact: true })).toBeVisible()
   await expect(page.getByText('123456', { exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: 'Show drop-off PIN', exact: true }).click()
@@ -353,7 +353,7 @@ test('order detail shows real history, masks PIN and confirms server cancellatio
 test('cancellation rejects stale eligibility and locks unknown results; payment is reachable when eligible', async ({ page }) => {
   const state = await setup(page)
   state.canCancel = false
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await page.getByRole('button', { name: 'Cancel order', exact: true }).click()
   let dialog = page.getByRole('dialog')
   await expect(dialog.getByRole('button', { name: 'Confirm cancellation', exact: true })).toBeDisabled()
@@ -371,13 +371,13 @@ test('cancellation rejects stale eligibility and locks unknown results; payment 
   state.order = { ...state.order, status: 8, actualWeightKg: 3 }
   await page.getByRole('button', { name: 'Refresh', exact: true }).click()
   await page.getByRole('button', { name: 'Pay now', exact: true }).click()
-  await expect(page).toHaveURL(`/customer/orders/${id}/payment`)
+  await expect(page).toHaveURL(`/orders/${id}/payment`)
   await expect(page.getByRole('heading', { name: 'Order payment', exact: true })).toBeVisible()
 })
 
 test('guest cannot access customer orders', async ({ page }) => {
   await setup(page, { guest: true })
-  await page.goto('/customer/orders')
+  await page.goto('/orders')
   await expect(page).toHaveURL('/login')
 })
 
@@ -397,7 +397,7 @@ async function downloadQr(page) {
 
 test('real generated QR image decodes locally and only submits after confirmation', async ({ page }) => {
   const state = await setup(page)
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   const png = await downloadQr(page)
   await page.getByRole('button', { name: 'Drop off at locker', exact: true }).click()
   const dialog = page.getByRole('dialog')
@@ -420,7 +420,7 @@ test('real generated QR image decodes locally and only submits after confirmatio
 
 test('order navigation returns to the top and the drop-off action sits beside the title', async ({ page }) => {
   const state = await setup(page)
-  await page.goto('/customer')
+  await page.goto('/')
   await page.locator('footer').scrollIntoViewIfNeeded()
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100)
   await page.locator('header nav').getByRole('link', { name: 'My orders', exact: true }).click()
@@ -476,7 +476,7 @@ test('pickup uses a private two-step session, then unlocks a safe printable rece
       window.__printCalls = (window.__printCalls || 0) + 1
     }
   })
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await expect(page).toHaveTitle('Order details WG2611061234 | WashGo')
   await page.getByRole('button', { name: 'Collect from locker', exact: true }).click()
   const dialog = page.getByRole('dialog')
@@ -494,7 +494,7 @@ test('pickup uses a private two-step session, then unlocks a safe printable rece
   await expect(dialog).toHaveCount(0)
   await page.getByRole('button', { name: 'Payment printout', exact: true }).click()
   const receipt = page.getByRole('dialog', { name: 'Payment printout', exact: true })
-  await expect(page).toHaveURL(`/customer/orders/${id}`)
+  await expect(page).toHaveURL(`/orders/${id}`)
   await expect(receipt.getByRole('heading', { name: 'Payment receipt', exact: true })).toBeVisible()
   await expect(receipt.getByText('This is not an electronic or tax invoice.', { exact: false })).toBeVisible()
   await page.getByRole('button', { name: 'Print receipt', exact: true }).click()
@@ -520,12 +520,12 @@ test('pickup button follows lifecycle and a QR session expires without completin
   const pickupButton = page.getByRole('button', { name: 'Collect from locker', exact: true })
   for (const [status, paymentStatus] of [[8, 1], [9, 2], [10, 1], [12, 2], [13, 2], [99, 2]]) {
     state.order = { ...initialOrder, status, paymentStatus }
-    await page.goto(`/customer/orders/${id}`)
+    await page.goto(`/orders/${id}`)
     await expect(page.getByRole('heading', { name: 'Order details WG2611061234', exact: true })).toBeVisible()
     await expect(pickupButton).toHaveCount(0)
   }
   state.order = { ...initialOrder, status: 10, paymentStatus: 2, returnBoxNumber: 'B-09' }
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   const png = await downloadQr(page)
   await pickupButton.click()
   const dialog = page.getByRole('dialog')
@@ -555,7 +555,7 @@ test('unknown pickup outcomes lock submission and localized tab titles include t
   const state = await setup(page)
   state.order = { ...initialOrder, status: 10, paymentStatus: 2 }
   state.pickupFailure = 503
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await page.getByRole('button', { name: 'Collect from locker', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByLabel('PIN digit 1', { exact: true }).fill('654321')
@@ -581,7 +581,7 @@ test('QR uploads reject wrong purpose and malformed images; camera starts only o
       enumerateDevices: async () => [], addEventListener() {}, removeEventListener() {}
     } })
   })
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   const wrongQr = await downloadQr(page)
   state.order = { ...initialOrder }
   await page.reload()
@@ -602,10 +602,10 @@ test('QR uploads reject wrong purpose and malformed images; camera starts only o
 
 test('receipt rejects unpaid orders and filter controls share the same horizontal center line', async ({ page }) => {
   await setup(page)
-  await page.goto(`/customer/orders/${id}/receipt`)
+  await page.goto(`/orders/${id}/receipt`)
   await expect(page.getByText('A printout is available only after the order is completed and paid.', { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Print receipt', exact: true })).toHaveCount(0)
-  await page.goto('/customer/orders')
+  await page.goto('/orders')
   for (const width of [1024, 1280, 1440]) {
     await page.setViewportSize({ width, height: 900 })
     const boxes = await Promise.all([
@@ -624,9 +624,9 @@ test('receipt rejects unpaid orders and filter controls share the same horizonta
 test('completed orders can submit a rating with optional criteria and uploaded photos, then view it', async ({ page }) => {
   const state = await setup(page)
   state.order = { ...initialOrder, status: 12, paymentStatus: 2 }
-  await page.goto('/customer/orders')
+  await page.goto('/orders')
   await expect(page.getByRole('heading', { name: 'Order list', exact: true })).toBeVisible()
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await page.getByRole('button', { name: 'Rate service', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('button', { name: 'Submit rating', exact: true }).click()
@@ -658,7 +658,7 @@ test('completed orders can submit a rating with optional criteria and uploaded p
 
 test('rating lookup errors retry safely and uncertain submissions require checking the saved rating', async ({ page }) => {
   const state = await setup(page)
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await expect(page.getByRole('heading', { name: 'Order details WG2611061234', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Rate service', exact: true })).toHaveCount(0)
   state.order = { ...initialOrder, status: 12 }
@@ -684,7 +684,7 @@ test('rating validates photos and stays usable on mobile in both languages and d
   const state = await setup(page)
   state.order = { ...initialOrder, status: 12 }
   await page.setViewportSize({ width: 375, height: 844 })
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await page.getByRole('button', { name: 'Switch to dark mode', exact: true }).click()
   await page.getByRole('button', { name: 'Rate service', exact: true }).click()
   const dialog = page.getByRole('dialog')
@@ -709,7 +709,7 @@ test('saved rating keeps its header and close action visible with long content o
   const state = await setup(page)
   state.order = { ...initialOrder, status: 12 }
   state.rating = { id: 'rating-1', orderId: id, overallStars: 5, qualityStars: 4, speedStars: 5, attitudeStars: 5, packagingStars: 4, comment: 'Carefully packed. '.repeat(50), imageUrls: [], createdOn: 1793923200 }
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   for (const width of [320, 768]) {
     await page.setViewportSize({ width, height: 667 })
     await page.evaluate((dark) => document.documentElement.classList.toggle('dark', dark), width === 320)
@@ -733,7 +733,7 @@ const completedForIncident = () => ({ ...initialOrder, status: 12, timeline: [{ 
 test('customer incident report validates evidence, submits allowed fields and opens its complaint details', async ({ page }) => {
   const state = await setup(page)
   state.order = completedForIncident()
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await page.getByRole('button', { name: 'Report an issue', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Report an issue', exact: true })
   const submit = dialog.getByRole('button', { name: 'Submit report', exact: true })
@@ -750,7 +750,7 @@ test('customer incident report validates evidence, submits allowed fields and op
   await dialog.getByLabel('Add photos', { exact: true }).setInputFiles(incidentPhoto())
   await expect(dialog.getByRole('img', { name: 'Attached photo 1', exact: true })).toBeVisible()
   await submit.click()
-  await expect(page).toHaveURL(/\/customer\/complaints\/22222222-/)
+  await expect(page).toHaveURL(/\/complaints\/22222222-/)
   await expect(page.getByRole('heading', { name: 'Complaint details', exact: true })).toBeVisible()
   await expect(page).toHaveTitle(/Complaint details - WG2611061234/)
   expect(state.incidentCalls).toEqual([{ orderId: id, type: 1, severity: 3, description: 'My shirt was damaged.', imageUrls: ['/uploads/customer-test/rating.png'], videoUrls: [], clientRequestId: expect.any(String) }])
@@ -766,10 +766,10 @@ test('customer incident report validates evidence, submits allowed fields and op
 test('customer complaint list uses real pagination, shows resolution and payout, and retries read errors', async ({ page }) => {
   const state = await setup(page)
   state.incidents = Array.from({ length: 7 }, (_, index) => ({ id: `22222222-2222-4222-8222-${String(index + 1).padStart(12, '0')}`, orderId: id, orderCode: `WG-ISSUE-${index + 1}`, type: 2, severity: 3, status: 2, description: `Lost item ${index + 1}`, createdOn: 1793923200, reviewedAt: '2026-11-06T10:00:00Z', resolutionNote: 'Compensation approved.', responsibleParty: 1, compensationAmount: 140000, itemValue: 200000, compensationStatus: 2, compensationReference: 'BANK-123', compensationPaidAt: '2026-11-06T11:00:00Z', imageUrls: [] }))
-  await page.goto('/customer/complaints?page=2')
+  await page.goto('/complaints?page=2')
   await expect(page.getByText('WG-ISSUE-7', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Previous page', exact: true }).click()
-  await expect(page).toHaveURL('/customer/complaints')
+  await expect(page).toHaveURL('/complaints')
   await expect(page.getByText('WG-ISSUE-1', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Complaint actions', exact: true }).first().click()
   await page.getByRole('menuitem', { name: 'View details', exact: true }).click()
@@ -778,11 +778,11 @@ test('customer complaint list uses real pagination, shows resolution and payout,
   await expect(page.getByText('BANK-123', { exact: true })).toBeVisible()
   await page.reload()
   await expect(page.getByText('Compensation approved.', { exact: true })).toBeVisible()
-  await page.goto('/customer/complaints/33333333-3333-4333-8333-333333333333')
+  await page.goto('/complaints/33333333-3333-4333-8333-333333333333')
   await expect(page.getByRole('alert')).toBeVisible()
   await expect(page.getByText('BANK-123', { exact: true })).toHaveCount(0)
   state.incidentListFailure = true
-  await page.goto('/customer/complaints')
+  await page.goto('/complaints')
   await expect(page.getByRole('alert')).toBeVisible()
   state.incidentListFailure = false
   state.eligibility = null
@@ -792,13 +792,13 @@ test('customer complaint list uses real pagination, shows resolution and payout,
   await expect(page.getByText('WG-ISSUE-1', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Open account menu', exact: true }).click()
   await page.getByRole('menuitem', { name: 'Manage complaints', exact: true }).click()
-  await expect(page).toHaveURL('/customer/complaints')
+  await expect(page).toHaveURL('/complaints')
 })
 
 test('customer incident submission locks unknown results and preserves uploaded URLs on a rejected retry', async ({ page }) => {
   const state = await setup(page)
   state.order = completedForIncident()
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await page.getByRole('button', { name: 'Report an issue', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Report an issue', exact: true })
   await dialog.getByRole('textbox', { name: 'Describe the issue', exact: true }).fill('Lost shirt')
@@ -821,7 +821,7 @@ test('customer incident submission locks unknown results and preserves uploaded 
 
 test('customer incident modal supports mobile, languages and expiration without inventing eligibility', async ({ page }) => {
   const state = await setup(page)
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await expect(page.getByRole('heading', { name: 'Order details WG2611061234', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Report an issue', exact: true })).toHaveCount(0)
   state.order = completedForIncident()
@@ -846,14 +846,14 @@ test('customer incident modal supports mobile, languages and expiration without 
 
 test('customer complaints shows an empty state with a way to find a completed order', async ({ page }) => {
   await setup(page)
-  await page.goto('/customer/complaints')
+  await page.goto('/complaints')
   await expect(page.getByText('You have no complaints yet.', { exact: false })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Report from an order', exact: true })).toBeVisible()
 })
 
 test('customer complaints protects guest access', async ({ page }) => {
   await setup(page, { guest: true })
-  await page.goto('/customer/complaints')
+  await page.goto('/complaints')
   await expect(page).toHaveURL(/\/login/)
 })
 
@@ -862,7 +862,7 @@ test('customer complaint rejected outcomes stay readable on mobile in both langu
   const incidentId = '22222222-2222-4222-8222-000000000001'
   state.incidents = [{ id: incidentId, orderId: id, orderCode: initialOrder.orderCode, type: 3, severity: 2, status: 3, description: 'Items need inspection. '.repeat(70), createdOn: 1793923200, reviewedAt: '2026-11-06T10:00:00Z', resolutionNote: 'Supporting photo does not match the reported item.', compensationAmount: 0, compensationStatus: 0, imageUrls: [] }]
   await page.setViewportSize({ width: 320, height: 667 })
-  await page.goto('/customer/complaints')
+  await page.goto('/complaints')
   await expect(page.getByText('Rejected', { exact: true })).toBeVisible()
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.getByRole('button', { name: 'Complaint actions', exact: true }).click()
@@ -883,7 +883,7 @@ test('complaints table stacks evidence, opens all photos, and places detail acti
   const incidentId = '22222222-2222-4222-8222-000000000001'
   state.incidents = [{ id: incidentId, orderId: id, orderCode: initialOrder.orderCode, type: 1, severity: 2, status: 1, description: 'A sleeve was torn during cleaning. '.repeat(8), createdOn: 1793923200, compensationAmount: 0, compensationStatus: 0, imageUrls: Array.from({ length: 4 }, (_, index) => `/uploads/customer-test/evidence-${index + 1}.png`) }]
   await page.setViewportSize({ width: 1440, height: 1000 })
-  await page.goto('/customer/complaints')
+  await page.goto('/complaints')
   const table = page.getByRole('table', { name: 'My complaints', exact: true })
   await expect(table).toBeVisible()
   await expect(table.getByRole('columnheader')).toHaveCount(7)
@@ -921,12 +921,12 @@ test('complaints table stacks evidence, opens all photos, and places detail acti
 test('result counts are prominent and hot toasts keep localized text, theme and dismiss controls', async ({ page }) => {
   const state = await setup(page)
   state.incidents = [{ id: '22222222-2222-4222-8222-000000000001', orderId: id, orderCode: initialOrder.orderCode, type: 1, severity: 1, status: 1, description: 'Damaged shirt', createdOn: 1793923200, imageUrls: [] }]
-  await page.goto('/customer/orders')
+  await page.goto('/orders')
   const orderCount = page.getByRole('status').filter({ hasText: '7 orders found' }).locator('strong')
   await expect(orderCount).toHaveText('7')
   await expect(orderCount).toHaveCSS('font-size', '24px')
   await expect(orderCount).toHaveCSS('font-weight', '700')
-  await page.goto('/customer/complaints')
+  await page.goto('/complaints')
   const complaintCount = page.getByRole('status').filter({ hasText: '1 complaint submitted' }).locator('strong')
   await expect(complaintCount).toHaveText('1')
   await expect(complaintCount).toHaveCSS('font-size', '24px')
@@ -954,7 +954,7 @@ test('result counts are prominent and hot toasts keep localized text, theme and 
 test('server deadline expires despite device date; workflow, prediction and return map use server fields', async ({ page }) => {
   const state = await setup(page)
   state.order = { ...initialOrder, progressPercent: 35, serverNow: '2026-11-01T10:00:00Z', depositDeadline: '2026-11-01T10:00:02Z', depositWindowMinutes: 45, predictionStatus: 'predicted', predictedFinishAt: '2026-11-08T10:00:00Z', returnLockerName: 'Riverside pickup', returnLockerAddress: '12 Riverside', returnLockerLatitude: 10.77, returnLockerLongitude: 106.7 }
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await expect(page.getByText('35%', { exact: true }).first()).toBeVisible()
   await expect(page.getByText('Estimated from historical processing data and store workload.')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Open Google Maps' })).toHaveAttribute('href', /10.77/)
@@ -970,7 +970,7 @@ test('pending complaint keeps evidence while editing, sends video messages, and 
   const state = await setup(page)
   const incidentId = '22222222-2222-4222-8222-000000000001'
   state.incidents = [{ id: incidentId, orderId: id, orderCode: initialOrder.orderCode, status: 1, canEdit: true, type: 1, severity: 1, description: 'Damaged shirt', imageUrls: ['/uploads/customer-test/rating.png'], videoUrls: [], createdOn: 1793923200, compensationAmount: 0, compensationStatus: 0 }]
-  await page.goto(`/customer/complaints/${incidentId}`)
+  await page.goto(`/complaints/${incidentId}`)
   await page.getByRole('button', { name: 'Edit complaint', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Edit complaint', exact: true })
   await dialog.getByLabel('Describe the issue', { exact: true }).fill('Updated damaged shirt description')
@@ -994,7 +994,7 @@ test('pending complaint keeps evidence while editing, sends video messages, and 
 test('cancelled locker pickup preserves cancellation and legacy storage requires WashGo verification', async ({ page }) => {
   const state = await setup(page)
   state.order = { ...initialOrder, status: 99, cancelledGoodsStatus: 1, cancelFeeAmount: 20000, cancelFeePaidAmount: 20000 }
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await page.getByRole('button', { name: 'Collect from locker', exact: true }).click()
   let dialog = page.getByRole('dialog')
   await dialog.getByLabel('PIN digit 1', { exact: true }).fill('654321')
@@ -1014,7 +1014,7 @@ test('cancelled locker pickup preserves cancellation and legacy storage requires
 test('rating uploads and displays a video, and server receipt PDF downloads without locker secrets', async ({ page }) => {
   const state = await setup(page)
   state.order = { ...initialOrder, status: 12, paymentStatus: 2 }
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await page.getByRole('button', { name: 'Rate service', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('group', { name: 'Overall rating', exact: true }).getByRole('button', { name: 'Overall rating: 5/5 stars', exact: true }).click()
@@ -1039,7 +1039,7 @@ test('cancellation fee uses its scoped endpoint and gateway return never claims 
   const state = await setup(page)
   state.order = { ...initialOrder, status: 99, cancelledGoodsStatus: 1, cancelFeeAmount: 20000, cancelFeePaidAmount: 0, cancellationFeeOutstanding: 20000 }
   await page.route('https://gateway.example.test/**', (route) => route.fulfill({ contentType: 'text/html', body: '<h1>Mock fee gateway</h1>' }))
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await expect(page.getByRole('button', { name: 'Collect from locker' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Pay cancellation fee', exact: true }).click()
   const dialog = page.getByRole('dialog')
@@ -1057,7 +1057,7 @@ test('server complaint eligibility remains authoritative when the device clock i
   await page.addInitScript(() => {
     Date.now = () => 2051222400000
   })
-  await page.goto(`/customer/orders/${id}`)
+  await page.goto(`/orders/${id}`)
   await page.getByRole('button', { name: 'Report an issue', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('textbox', { name: 'Describe the issue', exact: true }).fill('Damaged shirt with a valid server deadline')
@@ -1071,7 +1071,7 @@ test('complaint row menu edits and withdraws pending reports and detail cards al
   const state = await setup(page)
   const incidentId = '22222222-2222-4222-8222-000000000001'
   state.incidents = [{ id: incidentId, orderId: id, orderCode: initialOrder.orderCode, status: 1, canEdit: true, type: 1, severity: 1, description: 'Damaged shirt', imageUrls: ['/uploads/customer-test/rating.png'], videoUrls: [], createdOn: 1793923200, compensationAmount: 0, compensationStatus: 0 }]
-  await page.goto('/customer/complaints')
+  await page.goto('/complaints')
   await page.getByRole('button', { name: 'Complaint actions', exact: true }).click()
   await expect(page.getByRole('menuitem')).toHaveCount(3)
   await page.getByRole('menuitem', { name: 'Edit complaint', exact: true }).click()
@@ -1108,7 +1108,7 @@ test('order cards load detail ETA in the background and refresh it without expos
   await page.route(`**/api/wash-order/${id}`, async (route) => {
     await ready; await route.fulfill({ json: envelope(state.order) })
   })
-  await page.goto('/customer/orders')
+  await page.goto('/orders')
   const card = page.getByRole('article').filter({ has: page.getByRole('heading', { name: initialOrder.orderCode, exact: true }) })
   await expect(card).toBeVisible()
   await expect(card.getByText('Based on standard processing time')).toBeVisible()

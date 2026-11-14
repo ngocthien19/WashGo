@@ -66,7 +66,7 @@ async function setupResults(page, role) {
     }
     return route.fulfill({ status: 404, json: { succeeded: false } })
   })
-  return { Merchant: '/merchant/lockers', Shipper: '/shipper/history', Customer: '/customer/complaints' }[role]
+  return { Merchant: '/merchant/lockers', Shipper: '/shipper/history', Customer: '/complaints' }[role]
 }
 
 for (const role of ['Admin', 'Merchant', 'Shipper', 'Customer']) {

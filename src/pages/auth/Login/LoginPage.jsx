@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { AUTH_ROUTES, CUSTOMER_ROUTES, USER_ROLES, UI_TRANSITIONS } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
-import { Link, Navigate, useLocation } from 'react-router-dom'
+import { Link, Navigate, matchPath, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { notify } from '~/utils/notifications/notifications'
 import { authApi } from '~/apis/auth/authApi'
@@ -10,7 +10,7 @@ import AuthForm from '../components/AuthForm'
 import AuthHeading from '../components/AuthHeading'
 import AuthSwitchLink from '../components/AuthSwitchLink'
 import { loginSchema } from '../authSchemas'
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import GoogleSignInButton from './components/GoogleSignInButton'
 import AuthBrand from '../components/AuthBrand'
 import { getRoleHome } from '~/utils/auth/roles'
@@ -37,6 +37,15 @@ export default function LoginPage() {
   const dispatch = useDispatch()
   const auth = useSelector((state) => state.auth)
   const { state } = useLocation()
+  useEffect(() => {
+    if (!auth.accessToken && state?.loginRequired) {
+      notify.info('auth.signInToContinue', undefined, { id: 'sign-in-required' })
+    }
+  }, [auth.accessToken, state?.loginRequired])
+  const returnTo = auth.user?.role === USER_ROLES.CUSTOMER && typeof state?.returnTo === 'string'
+    && Object.values(CUSTOMER_ROUTES).some(path => matchPath({ path, end: true }, state.returnTo.split(/[?#]/)[0]))
+    && !state.returnTo.includes('\\')
+    ? state.returnTo : null
   const paymentReturn = auth.user?.role === USER_ROLES.CUSTOMER && typeof state?.paymentReturn === 'string'
     && (state.paymentReturn === CUSTOMER_ROUTES.PAYMENT_RETURN || state.paymentReturn.startsWith(`${CUSTOMER_ROUTES.PAYMENT_RETURN}?`))
     ? state.paymentReturn : null
@@ -51,7 +60,7 @@ export default function LoginPage() {
   if (auth.accessToken) {
     return (
       <Navigate
-        to={paymentReturn || getRoleHome(auth.user?.role) || AUTH_ROUTES.ACCOUNT}
+        to={paymentReturn || returnTo || getRoleHome(auth.user?.role) || AUTH_ROUTES.ACCOUNT}
         replace
       />
     )

@@ -406,6 +406,7 @@
     "contactAddress": "123 Đường Số 7, Phường Tân Kiểng, Quận 7, TP. HCM"
   },
   "auth": {
+    "signInToContinue": "Vui lòng đăng nhập để sử dụng chức năng này.",
     "signInDescription": "Đăng nhập để quản lý đơn hàng và chăm sóc đồ dễ dàng hơn.",
     "createAccountDescription": "Tạo tài khoản để bắt đầu trải nghiệm giặt ủi cùng WashGo.",
     "unableToCompleteTheRequest": "Không thể thực hiện yêu cầu.",

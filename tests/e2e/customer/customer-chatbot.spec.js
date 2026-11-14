@@ -76,7 +76,7 @@ async function setup(page, options = {}) {
     }
     return route.fulfill({ status: 404, json: { succeeded: false } })
   })
-  await page.goto('/customer')
+  await page.goto('/')
   await expect(page.getByRole('button', { name: 'Open WashGo assistant', exact: true })).toBeVisible()
   return state
 }
@@ -116,8 +116,8 @@ test('shared launcher stays across Customer navigation; answers are plain text a
   await expect(page.getByText('Laundry details', { exact: true })).toBeVisible()
   await page.keyboard.press('Escape')
   await page.getByRole('button', { name: 'Close WashGo assistant', exact: true }).click()
-  await page.locator('header a[href="/customer/services"]').first().click()
-  await expect(page).toHaveURL(/\/customer\/services/)
+  await page.locator('header a[href="/services"]').first().click()
+  await expect(page).toHaveURL(/\/services/)
   await openChat(page)
   await expect(page.getByText('<img src=x onerror=alert(1)> Safe answer', { exact: true })).toBeVisible()
   expect(state.sends).toHaveLength(1)
@@ -289,7 +289,7 @@ test('back to top appears after scrolling across Customer pages and respects red
   const top = page.getByRole('button', { name: 'Back to top', exact: true })
   const launcher = page.getByRole('button', { name: 'Open WashGo assistant', exact: true })
   await expect(launcher.locator('svg')).toHaveCSS('animation-name', 'none')
-  for (const path of ['/customer', '/customer/orders', '/customer/services', '/customer/lockers', '/customer/orders/new', '/customer/profile', '/customer/complaints', '/customer/notifications']) {
+  for (const path of ['/', '/orders', '/services', '/lockers', '/orders/new', '/profile', '/complaints', '/notifications']) {
     await page.goto(path)
     await expect(launcher).toBeVisible()
     // Keep the scroll geometry independent of fixture result counts.

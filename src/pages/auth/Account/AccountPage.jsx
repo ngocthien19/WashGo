@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { AUTH_ROUTES } from '~/utils/config/constants'
+import { AUTH_ROUTES, CUSTOMER_ROUTES } from '~/utils/config/constants'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate } from 'react-router-dom'
@@ -49,7 +49,7 @@ export default function AccountPage() {
   if (!hasSession) {
     return (
       <Navigate
-        to={AUTH_ROUTES.LOGIN}
+        to={auth.signedOut ? CUSTOMER_ROUTES.HOME : AUTH_ROUTES.LOGIN}
         replace
       />
     )
@@ -68,7 +68,7 @@ export default function AccountPage() {
     setError('')
     try {
       await authApi.logout(auth.refreshToken)
-      dispatch(clearSession())
+      dispatch(clearSession({ signedOut: true }))
     } catch (err) {
       setError(getApiError(err))
     } finally {

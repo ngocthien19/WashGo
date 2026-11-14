@@ -4,7 +4,7 @@ import { setupNotifications as setup, orderId, notificationId } from '../helpers
 test('customer can search safe order notification content and totals without raw storage details', async ({ page }) => {
   const state = await setup(page)
   state.items = [{ ...state.items[0], title: 'Order storage update', content: 'WashGo is keeping your items. View the order to check payments, storage fees and request redelivery to a locker.', messageKey: 'storage.customer.private', messageArgs: {}, type: 13 }]
-  await page.goto('/customer/notifications')
+  await page.goto('/notifications')
   const input = page.getByRole('combobox', { name: 'Search notification titles or content...', exact: true })
   await input.fill('STORAGE FEES')
   await expect(page.getByRole('option')).toHaveCount(1)
@@ -20,7 +20,7 @@ test('customer notification search suggests every matching title/content and rep
   const state = await setup(page)
   state.items = Array.from({ length: 11 }, (_, index) => ({ ...state.items[0], id: `suggestion-${index}`, title: `Locker update ${index + 1}`, content: 'Collect items at Ben Thanh Locker.', linkType: 'incident', isRead: true }))
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/customer/notifications')
+  await page.goto('/notifications')
   await expect(page.getByRole('status')).toContainText('11 notifications found')
   const input = page.getByRole('combobox', { name: 'Search notification titles or content...', exact: true })
   await input.fill('BEN THANH')
@@ -41,7 +41,7 @@ test('customer notification search suggests every matching title/content and rep
 
 test('bell popover anchors below the header and read/delete stay synchronized', async ({ page }) => {
   const state = await setup(page)
-  await page.goto('/customer/notifications')
+  await page.goto('/notifications')
   await expect(page.getByRole('heading', { name: 'Your laundry is ready' })).toBeVisible()
   const bell = page.getByRole('button', { name: 'Notifications', exact: true })
   await expect(bell).toContainText('1')
@@ -67,7 +67,7 @@ test('bell popover anchors below the header and read/delete stay synchronized', 
 
 test('delete all requires confirmation and Escape dismisses the bell popover', async ({ page }) => {
   const state = await setup(page)
-  await page.goto('/customer/notifications')
+  await page.goto('/notifications')
   await expect(page.getByRole('heading', { name: 'Your laundry is ready' })).toBeVisible()
   await page.getByRole('button', { name: 'Notifications', exact: true }).click()
   await expect(page.getByRole('dialog')).toBeVisible()
@@ -85,7 +85,7 @@ test('mobile list supports API filter, failure/retry and mark all without overfl
   const state = await setup(page)
   await page.setViewportSize({ width: 375, height: 812 })
   state.fail = true
-  await page.goto('/customer/notifications?unread=true')
+  await page.goto('/notifications?unread=true')
   await page.getByRole('button', { name: 'Try again', exact: true }).waitFor()
   state.fail = false
   // The hub may reconcile while the error is visible; the toolbar remains available.
@@ -103,12 +103,12 @@ test('mobile list supports API filter, failure/retry and mark all without overfl
 test('pagination persists in URL and detail action uses the correct order target', async ({ page }) => {
   const state = await setup(page)
   state.items = Array.from({ length: 11 }, (_, index) => ({ ...state.items[0], id: index === 0 ? notificationId : `notification-${index}`, title: `Update ${index + 1}`, isRead: true }))
-  await page.goto('/customer/notifications?page=2')
+  await page.goto('/notifications?page=2')
   await expect(page.getByRole('heading', { name: 'Update 11', exact: true })).toBeVisible()
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Update 11', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'View details', exact: true }).click()
-  await expect(page).toHaveURL(new RegExp(`/customer/orders/${orderId}$`))
+  await expect(page).toHaveURL(new RegExp(`/orders/${orderId}$`))
   expect(state.writes).toHaveLength(0)
 })
 
@@ -116,7 +116,7 @@ test('long notification preview scrolls independently and supports dark mode', a
   const state = await setup(page)
   const titles = ['Payment completed', 'Order cancelled', 'Laundry in progress', 'Ready for pickup', 'Complaint updated']
   state.items = [6, 10, 4, 8, 12].map((type, index) => ({ ...state.items[0], type, id: `preview-${index}`, title: titles[index], isRead: index > 1 }))
-  await page.goto('/customer/notifications')
+  await page.goto('/notifications')
   await expect(page.getByRole('heading', { name: titles[0], exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Notifications', exact: true }).click()
   const popup = page.getByRole('dialog')

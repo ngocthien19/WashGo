@@ -4,7 +4,7 @@ const roles = [
   { role: 'Admin', start: '/admin/merchants', target: '/admin/orders', open: 'Open navigation', title: 'Admin navigation' },
   { role: 'Merchant', start: '/merchant/orders', target: '/merchant/services', open: 'Open Merchant navigation', title: 'Merchant navigation' },
   { role: 'Shipper', start: '/shipper/tasks', target: '/shipper/history', open: 'Open navigation', title: 'Shipper navigation' },
-  { role: 'Customer', start: '/customer/services', target: '/customer/orders', open: 'Open navigation menu', title: 'Mobile navigation' }
+  { role: 'Customer', start: '/services', target: '/orders', open: 'Open navigation menu', title: 'Mobile navigation' }
 ]
 
 for (const config of roles) {

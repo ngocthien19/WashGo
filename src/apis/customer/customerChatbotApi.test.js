@@ -25,7 +25,7 @@ it('rejects a malformed page and leaves HTTP 503 payload available for turn reco
 it('never maps model-provided URLs or unknown card types to navigation', () => {
   expect(chatCardDestination({ type: 'Link', id: 'https://evil.test' })).toBeNull()
   expect(chatCardDestination({ type: 'Order', id: '../admin' })).toBeNull()
-  expect(chatCardDestination({ type: 'Order', id: '11111111-1111-1111-1111-111111111111', url: 'https://evil.test' })).toBe('/customer/orders/11111111-1111-1111-1111-111111111111')
+  expect(chatCardDestination({ type: 'Order', id: '11111111-1111-1111-1111-111111111111', url: 'https://evil.test' })).toBe('/orders/11111111-1111-1111-1111-111111111111')
   expect(readChatTurn({ status: 2, conversationId: 'c', messageId: 'm', requestId: 'wrong', answer: 'x' }, 'r')).toBeNull()
 })
 

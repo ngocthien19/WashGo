@@ -5,7 +5,7 @@ import i18n from '~/i18n'
 import { customerPolicyApi } from '~/apis/customer/customerPolicyApi'
 import ServiceTerms from './ServiceTerms'
 
-vi.mock('~/apis/customer/customerPolicyApi', () => ({ customerPolicyApi: { get: vi.fn(), acknowledge: vi.fn() } }))
+vi.mock('~/apis/customer/customerPolicyApi', () => ({ customerPolicyApi: { get: vi.fn(), getPublic: vi.fn(), acknowledge: vi.fn() } }))
 const policy = (accepted = false, version = 'v1') => ({ terms: { version, title: 'Terms', content: 'Server policy content', effectiveFrom: '2026-11-01T00:00:00Z' }, rules: { depositWindowMinutes: 45, cancelLatePendingPercent: 20, cancelDepositedPercent: 30, cancelCollectedPercent: 50 }, accepted, requiresAcceptance: !accepted, acceptedVersion: accepted ? version : null })
 const content = (id = 'a') => (
   <ServiceTerms key={id}>
@@ -14,6 +14,19 @@ const content = (id = 'a') => (
 )
 beforeEach(async () => {
   vi.clearAllMocks(); await i18n.changeLanguage('en')
+})
+it('guests can read public terms without requesting customer consent or acknowledging', async () => {
+  customerPolicyApi.getPublic.mockResolvedValue({ ...policy(false), requiresAcceptance: false })
+  render(<ServiceTerms guest>
+    {open => <button onClick={open}>Public terms</button>}
+  </ServiceTerms>)
+  await waitFor(() => expect(customerPolicyApi.getPublic).toHaveBeenCalled())
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  await userEvent.click(screen.getByRole('button', { name: 'Public terms' }))
+  await screen.findByText('Server policy content')
+  expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+  expect(customerPolicyApi.get).not.toHaveBeenCalled()
+  expect(customerPolicyApi.acknowledge).not.toHaveBeenCalled()
 })
 it('closing does not acknowledge; explicit acceptance posts the displayed version and survives another mount', async () => {
   const user = userEvent.setup()

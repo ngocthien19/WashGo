@@ -49,11 +49,6 @@ export default function AuthLayout() {
           )}
           data-testid={isSplitLayout ? 'auth-form-panel' : undefined}
         >
-          {!isSplitLayout && (
-            <div className="mb-8 flex justify-center">
-              <AuthBrand />
-            </div>
-          )}
           <motion.section
             key={pathname}
             className={cn(
@@ -65,6 +60,11 @@ export default function AuthLayout() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22, ease: 'easeOut' }}
           >
+            {!isSplitLayout && (
+              <div className="mb-8 flex justify-center">
+                <AuthBrand />
+              </div>
+            )}
             <Outlet context={{ flow, setFlow }} />
           </motion.section>
         </div>
