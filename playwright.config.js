@@ -16,7 +16,7 @@ export default defineConfig({
     screenshot: 'off'
   },
   webServer: {
-    command: 'npm run dev -- --port 5180 --strictPort',
+    command: 'npm run dev -- --mode e2e --port 5180 --strictPort',
     url: 'http://localhost:5180',
     reuseExistingServer: !process.env.CI
   }

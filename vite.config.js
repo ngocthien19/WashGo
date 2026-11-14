@@ -4,6 +4,9 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
 export default defineConfig(({ mode }) => ({
+  // Dev and Playwright run concurrently; their optimizers must not overwrite
+  // each other's React chunks while a browser still holds the previous graph.
+  cacheDir: path.resolve(import.meta.dirname, 'node_modules/.vite', mode),
   plugins: [
     react(),
     tailwindcss()
@@ -12,6 +15,7 @@ export default defineConfig(({ mode }) => ({
     include: ['qrcode.react', '@yudiel/react-qr-scanner', 'barcode-detector/ponyfill']
   },
   resolve: {
+    dedupe: ['react', 'react-dom'],
     alias: [
       { find: '~', replacement: path.resolve(import.meta.dirname, './src') }
     ]
