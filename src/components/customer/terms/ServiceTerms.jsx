@@ -82,14 +82,7 @@ export default function ServiceTerms({ children }) {
                 loadingText="common.loading"
               />
             ) : (
-              <>
-                <TermsContent policy={policy} />
-                {policy.accepted && (
-                  <p className="text-sm text-emerald-700 dark:text-emerald-300">
-                    {t('customer.sync.acceptedAt', { date: formatDateTime(policy.acceptedAt) })}
-                  </p>
-                )}
-              </>
+              <TermsContent policy={policy} />
             )}
             <FormError>
               {error}
@@ -109,7 +102,12 @@ export default function ServiceTerms({ children }) {
                 </span>
               </label>
             )}
-            <div className="flex flex-wrap justify-end gap-3">
+            <div className="flex items-center justify-end gap-3">
+              {policy?.accepted && (
+                <p className="mr-auto min-w-0 text-sm text-emerald-700 dark:text-emerald-300">
+                  {t('customer.sync.acceptedAt', { date: formatDateTime(policy.acceptedAt) })}
+                </p>
+              )}
               <Button
                 variant="secondary"
                 className="h-12 rounded-xl px-4 text-base font-semibold sm:px-6"

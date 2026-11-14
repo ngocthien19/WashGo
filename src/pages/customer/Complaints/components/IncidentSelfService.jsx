@@ -175,8 +175,9 @@ export function IncidentActions({ incident: summary, onSaved, menu = false }) {
               <FormError>
                 {uncertain ? 'customer.sync.uncertainMutation' : error}
               </FormError>
-              <div className="flex justify-end gap-3">
+              <div className="flex flex-wrap justify-end gap-3">
                 <Button
+                  className="h-12 text-base px-4"
                   type="button"
                   variant="secondary"
                   disabled={busy}
@@ -187,6 +188,7 @@ export function IncidentActions({ incident: summary, onSaved, menu = false }) {
                   {t('common.close')}
                 </Button>
                 <Button
+                  className="h-12 text-base px-4"
                   type="submit"
                   variant="destructive"
                   disabled={busy || uncertain}
@@ -321,7 +323,7 @@ export function IncidentMessages({ incident }) {
           <Button
             type="submit"
             disabled={busy || uncertain || !content.trim()}
-            className="justify-self-end"
+            className="justify-self-end h-11 text-base px-4"
           >
             <Send size={17} />
             {t('customer.sync.sendMessage')}

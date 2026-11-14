@@ -77,6 +77,7 @@ export default function LockerAccessCard({ order, defaultShowQr = false }) {
           <div className="flex flex-wrap gap-2">
             {qr && (
               <Button
+                className="h-11 text-base px-4"
                 variant="outline-primary"
                 onClick={() => setShowQr(!showQr)}
               >
@@ -87,7 +88,7 @@ export default function LockerAccessCard({ order, defaultShowQr = false }) {
             {showQr && qr && (
               <Button
                 variant="secondary"
-                className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-400/15 dark:text-emerald-200 dark:hover:bg-emerald-400/25"
+                className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-400/15 dark:text-emerald-200 dark:hover:bg-emerald-400/25 h-11 text-base px-4"
                 onClick={download}
               >
                 <Download size={16} />
@@ -96,6 +97,7 @@ export default function LockerAccessCard({ order, defaultShowQr = false }) {
             )}
             {pin && (
               <Button
+                className="h-11 text-base px-4"
                 variant="outline-violet"
                 onClick={copyPin}
               >

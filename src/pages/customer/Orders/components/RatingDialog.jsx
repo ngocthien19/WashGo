@@ -118,7 +118,7 @@ export default function RatingDialog({ order, resource, onClose, onSaved }) {
               <div className="flex shrink-0 justify-end border-t border-border bg-muted/25 px-5 py-4 sm:px-6">
                 <Button
                   variant="secondary"
-                  className="h-11 rounded-xl px-4"
+                  className="h-12 rounded-xl px-4 text-base"
                   onClick={onClose}
                 >
                   {t('common.close')}

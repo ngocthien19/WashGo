@@ -46,7 +46,7 @@ export default function StoragePickup({ order, onUpdated }) {
         {t('customer.sync.storageHint')}
       </p>
       <Button
-        className="justify-self-start"
+        className="justify-self-start h-12 text-base px-4"
         onClick={() => setOpen(true)}
         disabled={order.paymentStatus !== PAYMENT_STATUSES.PAID}
       >
@@ -111,8 +111,9 @@ export default function StoragePickup({ order, onUpdated }) {
               <FormError>
                 {error}
               </FormError>
-              <div className="flex justify-end gap-3">
+              <div className="flex flex-wrap justify-end gap-3">
                 <Button
+                  className="h-12 text-base px-4"
                   type="button"
                   variant="secondary"
                   disabled={busy}
@@ -121,6 +122,7 @@ export default function StoragePickup({ order, onUpdated }) {
                   {t('common.close')}
                 </Button>
                 <Button
+                  className="h-12 text-base px-4"
                   type="submit"
                   disabled={busy || unknown}
                 >

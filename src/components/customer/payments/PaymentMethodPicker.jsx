@@ -36,6 +36,7 @@ export default function PaymentMethodPicker({ value, onChange, disabled, onlineO
                 {t(option.label)}
               </span>
               <RadioGroupItem
+                className="scroll-mt-[var(--customer-header-offset,7rem)]"
                 value={String(option.value)}
                 aria-label={t(option.label)}
               />
