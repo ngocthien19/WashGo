@@ -26,6 +26,7 @@ const CustomerComplaintsPage = lazy(() => import('~/pages/customer/Complaints/Co
 const CustomerComplaintDetailPage = lazy(() => import('~/pages/customer/Complaints/ComplaintDetailPage'))
 const CustomerLayout = lazy(() => import('~/layouts/customer/CustomerLayout'))
 const CustomerNotificationsPage = lazy(() => import('~/pages/customer/Notifications/NotificationsPage'))
+const StorageWorkspace = lazy(() => import('~/components/storage/StorageWorkspace'))
 const AdminHomePage = lazy(() => import('~/pages/admin/Home/HomePage'))
 const AdminMerchantsPage = lazy(() => import('~/pages/admin/Merchants/MerchantsPage'))
 const AdminOrdersPage = lazy(() => import('~/pages/admin/Orders/OrdersPage'))
@@ -144,6 +145,10 @@ export default function App() {
                 element={<MerchantReportsPage />}
               />
               <Route
+                path={MERCHANT_ROUTES.STORAGE}
+                element={<StorageWorkspace role="Merchant" />}
+              />
+              <Route
                 path={MERCHANT_ROUTES.ORDERS}
                 element={<MerchantOrdersPage />}
               />
@@ -174,6 +179,10 @@ export default function App() {
               <Route
                 path={ADMIN_ROUTES.MERCHANTS}
                 element={<AdminMerchantsPage />}
+              />
+              <Route
+                path={ADMIN_ROUTES.STORAGE}
+                element={<StorageWorkspace role="Admin" />}
               />
               <Route
                 path={ADMIN_ROUTES.ORDERS}

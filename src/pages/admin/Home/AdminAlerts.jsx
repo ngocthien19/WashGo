@@ -61,7 +61,7 @@ export default function AdminAlerts({ revision }) {
                 onValueChange={v => {
                   setType(v); setPage(1)
                 }}
-                options={[{ value: '', label: t('common.all') }, ...Array.from({ length: 11 }, (_, i) => ({ value: String(i + 1), label: t(`admin.workspaceSync.alertTypes.${i + 1}`) }))]}
+                options={[{ value: '', label: t('common.all') }, ...Array.from({ length: 13 }, (_, i) => ({ value: String(i + 1), label: t(`admin.workspaceSync.alertTypes.${i + 1}`) }))]}
               />
             </label>
             <label className="grid gap-2">

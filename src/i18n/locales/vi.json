@@ -25,9 +25,16 @@
     "availableOnly": "Hiện hệ thống chỉ cung cấp danh sách ô trống. Trạng thái các ô khác đang được cập nhật.",
     "choosePromotion": "Chọn mã giảm giá từ WashGo",
     "noPromotions": "Chưa có mã giảm giá cho đơn hàng này.",
-    "slotStatuses": { "1": "Trống", "2": "Đã có đồ", "3": "Đang giữ chỗ", "4": "Bảo trì" }
+    "slotStatuses": {
+      "1": "Trống",
+      "2": "Đã có đồ",
+      "3": "Đang giữ chỗ",
+      "4": "Bảo trì"
+    }
   },
-  "navigationDrawer": { "close": "Đóng menu điều hướng" },
+  "navigationDrawer": {
+    "close": "Đóng menu điều hướng"
+  },
   "chatbot": {
     "open": "Mở trợ lý WashGo",
     "close": "Đóng trợ lý WashGo",
@@ -47,7 +54,11 @@
     "older": "Xem tin nhắn cũ hơn",
     "welcome": "WashGo có thể giúp gì cho bạn?",
     "intro": "Hỏi về cách sử dụng, dịch vụ, chính sách hoặc tra cứu đơn của bạn. Các thao tác đặt đơn và thanh toán vẫn cần bạn xác nhận tại trang tương ứng.",
-    "suggestions": { "guide": "Hướng dẫn nhận đồ tại locker", "services": "WashGo có những dịch vụ nào?", "lockers": "Tìm locker còn ô trống gần tôi" },
+    "suggestions": {
+      "guide": "Hướng dẫn nhận đồ tại locker",
+      "services": "WashGo có những dịch vụ nào?",
+      "lockers": "Tìm locker còn ô trống gần tôi"
+    },
     "you": "Bạn",
     "failedMessage": "Lượt trả lời này chưa thành công.",
     "thinking": "WashGo đang xử lý…",
@@ -243,6 +254,14 @@
       "customer": {
         "title": "Phản hồi khiếu nại",
         "content": "WashGo đã phản hồi khiếu nại của bạn về đơn #{{orderCode}}."
+      }
+    },
+    "storage": {
+      "customer": {
+        "private": {
+          "title": "Cập nhật lưu giữ đơn hàng",
+          "content": "WashGo đã cập nhật tình trạng lưu giữ/giao lại. Xem chi tiết đơn hàng để biết bước tiếp theo."
+        }
       }
     }
   },
@@ -535,7 +554,13 @@
       "stale": "Đánh giá đã thay đổi. Hãy đóng cửa sổ, cập nhật danh sách và kiểm tra lại.",
       "resultsHint": "Đã nhận kết quả xử lý. Xem trạng thái từng đánh giá bên trên.",
       "done": "Đã xử lý",
-      "outcomes": { "Changed": "Đã thay đổi", "Unchanged": "Đã ở trạng thái yêu cầu", "Skipped": "Đã bỏ qua", "Failed": "Không thành công", "Succeeded": "Thành công" },
+      "outcomes": {
+        "Changed": "Đã thay đổi",
+        "Unchanged": "Đã ở trạng thái yêu cầu",
+        "Skipped": "Đã bỏ qua",
+        "Failed": "Không thành công",
+        "Succeeded": "Thành công"
+      },
       "total": "Tổng đánh giá",
       "average": "Điểm trung bình đang hiển thị",
       "search": "Tìm kiếm đánh giá",
@@ -637,7 +662,9 @@
         "8": "Locker gần đầy",
         "9": "Khiếu nại chờ xử lý quá hạn",
         "10": "Hợp đồng sắp hết hạn",
-        "11": "Hợp đồng đã hết hạn"
+        "11": "Hợp đồng đã hết hạn",
+        "12": "Trễ bàn giao lưu giữ",
+        "13": "Trễ giao lại từ lưu giữ"
       },
       "invalidName": "Họ tên cần từ 2 đến 100 ký tự.",
       "invalidPhone": "Số điện thoại gồm 10 chữ số, bắt đầu bằng 0.",
@@ -1111,7 +1138,8 @@
       "finance": "Quản lý tài chính",
       "settings": "Cài đặt hệ thống",
       "profile": "Hồ sơ cá nhân",
-      "notifications": "Thông báo"
+      "notifications": "Thông báo",
+      "storage": "Lưu giữ và giao lại đồ"
     },
     "revenue": "Tổng thu sau hoàn tiền",
     "orders": "Đơn được tạo trong kỳ",
@@ -1578,7 +1606,11 @@
     }
   },
   "merchant": {
-    "reviewSync": {"title": "Đánh giá dịch vụ", "search": "Tìm trong nhận xét...", "pendingContent": "Nội dung và media chỉ hiển thị sau khi được kiểm duyệt."},
+    "reviewSync": {
+      "title": "Đánh giá dịch vụ",
+      "search": "Tìm trong nhận xét...",
+      "pendingContent": "Nội dung và media chỉ hiển thị sau khi được kiểm duyệt."
+    },
     "orderFinance": {
       "settledNetAmount": "Thu sau hoàn thuộc kỳ đã chi trả",
       "unsettledNetAmount": "Thu sau hoàn còn chờ đối soát",
@@ -2283,7 +2315,8 @@
       "services": "Quản lý dịch vụ",
       "reports": "Báo cáo",
       "profile": "Hồ sơ cửa hàng",
-      "notifications": "Thông báo"
+      "notifications": "Thông báo",
+      "storage": "Lưu giữ và giao lại đồ"
     },
     "loading": "Đang tải dữ liệu cửa hàng…",
     "invalidResponse": "Không thể xác minh dữ liệu cửa hàng. Vui lòng thử lại.",
@@ -3185,7 +3218,9 @@
         "RETURNED": "Đã trả về locker",
         "COMPLETED": "Hoàn thành",
         "MOVED_TO_STORAGE": "Đã chuyển lưu kho",
-        "CANCELLED": "Đã hủy"
+        "CANCELLED": "Đã hủy",
+        "TRANSFERRING_TO_STORAGE": "Đang chuyển đến lưu giữ",
+        "RETURNING_FROM_STORAGE": "Đang giao lại locker"
       },
       "cancel": {
         "chargedFee": "Phí hủy đã chốt",
@@ -3254,8 +3289,35 @@
   },
   "shipper": {
     "sync": {
-      "joined": "Ngày tham gia", "updated": "Cập nhật hồ sơ gần nhất",
-      "chart": "Lượt lấy và trả đồ đã hoàn tất", "performance": "Hiệu suất trong kỳ", "onTime": "Tỷ lệ hoàn tất đúng hạn", "duration": "Thời gian thực hiện trung bình", "sample": "{{count}} đúng hạn / {{total}} lượt có SLA", "durationSample": "{{count}} lượt có dữ liệu thời gian", "previous": "Lượt hoàn tất kỳ trước", "eventDetail": "Chi tiết lượt giao nhận", "deadline": "Hạn nhiệm vụ", "eventStatus": "Trạng thái đơn khi hoàn tất", "captured": "Thông tin được ghi nhận tại thời điểm hoàn tất.", "legacy": "Dữ liệu cũ: thông tin hiện có có thể được khôi phục từ lịch sử.", "currentImages": "Ảnh trạm là ảnh hiện tại, không phải ảnh chụp lịch sử.", "cancelledReturn": "Loại trả đồ", "cancelledOnly": "Trả đồ đơn đã hủy", "normalOnly": "Các lượt còn lại", "sort": "Sắp xếp theo", "oldest": "Hoàn tất cũ nhất", "taskStatus": "Trạng thái nhiệm vụ", "assignedRange": "Ngày phân công", "statuses": { "1": "Đã phân công", "2": "Hoàn tất", "3": "Đã phân công lại", "4": "Đã hủy" }, "export": "Xuất CSV"
+      "joined": "Ngày tham gia",
+      "updated": "Cập nhật hồ sơ gần nhất",
+      "chart": "Lượt lấy và trả đồ đã hoàn tất",
+      "performance": "Hiệu suất trong kỳ",
+      "onTime": "Tỷ lệ hoàn tất đúng hạn",
+      "duration": "Thời gian thực hiện trung bình",
+      "sample": "{{count}} đúng hạn / {{total}} lượt có SLA",
+      "durationSample": "{{count}} lượt có dữ liệu thời gian",
+      "previous": "Lượt hoàn tất kỳ trước",
+      "eventDetail": "Chi tiết lượt giao nhận",
+      "deadline": "Hạn nhiệm vụ",
+      "eventStatus": "Trạng thái đơn khi hoàn tất",
+      "captured": "Thông tin được ghi nhận tại thời điểm hoàn tất.",
+      "legacy": "Dữ liệu cũ: thông tin hiện có có thể được khôi phục từ lịch sử.",
+      "currentImages": "Ảnh trạm là ảnh hiện tại, không phải ảnh chụp lịch sử.",
+      "cancelledReturn": "Loại trả đồ",
+      "cancelledOnly": "Trả đồ đơn đã hủy",
+      "normalOnly": "Các lượt còn lại",
+      "sort": "Sắp xếp theo",
+      "oldest": "Hoàn tất cũ nhất",
+      "taskStatus": "Trạng thái nhiệm vụ",
+      "assignedRange": "Ngày phân công",
+      "statuses": {
+        "1": "Đã phân công",
+        "2": "Hoàn tất",
+        "3": "Đã phân công lại",
+        "4": "Đã hủy"
+      },
+      "export": "Xuất CSV"
     },
     "media": {
       "lockerPhoto": "Ảnh trạm locker {{number}}",
@@ -3394,5 +3456,111 @@
       "phone": "Nhập SĐT hợp lệ gồm 9–11 chữ số, tối đa 20 ký tự.",
       "vehiclePlate": "Biển số tối đa 20 ký tự; bắt buộc và từ 4 ký tự với xe máy/ô tô."
     }
+  },
+  "storage": {
+    "title": "Lưu giữ và giao lại đồ",
+    "customerTitle": "Đồ được WashGo lưu giữ",
+    "customerHint": "Theo dõi đồ của bạn và yêu cầu giao lại locker. Khi đồ đã được đặt vào ô, WashGo sẽ thông báo để bạn đến nhận. Thanh toán các khoản còn thiếu tại phần thanh toán của đơn hàng.",
+    "search": "Tìm theo mã đơn hàng…",
+    "searchLocker": "Tìm locker…",
+    "state": "Trạng thái lưu giữ",
+    "empty": "Chưa có đơn hàng phù hợp.",
+    "noCycles": "Chưa có lịch sử lưu giữ.",
+    "noLockers": "Không tìm thấy locker.",
+    "overdue": "Quá hạn xử lý",
+    "receipt": "Biên nhận bàn giao",
+    "proof": "Thông tin đối chiếu",
+    "reason": "Lý do",
+    "collectedAt": "Đã lấy khỏi locker",
+    "intakeAt": "Đã tiếp nhận lưu giữ",
+    "dispatchedAt": "Đã xuất giao lại",
+    "transferDeadline": "Hạn bàn giao",
+    "returnDeadline": "Hạn giao lại locker",
+    "feeTotal": "Tổng phí lưu giữ",
+    "feePaid": "Phí đã thanh toán",
+    "outstanding": "Phí còn thiếu",
+    "feeBasis": "Phí là nghĩa vụ hiện tại của toàn đơn hàng, không cộng các dòng lịch sử. Giá trị được cập nhật khi tải lại.",
+    "departBlocked": "Chưa thể xuất giao lại. Cần kiểm tra yêu cầu, báo phí và thanh toán.",
+    "shipper": "Shipper được phân công",
+    "chooseShipper": "Chọn Shipper",
+    "credential": "Phương thức xác nhận",
+    "confirmed": "Tôi đã kiểm tra thông tin và xác nhận thao tác này.",
+    "confirmHint": "Kiểm tra thông tin trước khi xác nhận. Hệ thống sẽ kiểm tra lại trạng thái khi xử lý.",
+    "simulation": "Xác nhận giao nhận được mô phỏng bằng mã nhiệm vụ; không điều khiển cửa locker thật. Chỉ xác nhận sau khi thực hiện đúng bước giao nhận.",
+    "legacyProof": "Chỉ xác nhận sau khi đã đối chiếu thực tế rằng đồ đang ở tiệm hiện tại. Nhập bằng chứng đối chiếu và lý do; không tạo lại mốc bàn giao.",
+    "confirmRequired": "Vui lòng xác nhận đã kiểm tra thông tin.",
+    "required": "Vui lòng nhập đầy đủ thông tin.",
+    "invalidPin": "PIN gồm đúng 6 chữ số.",
+    "invalidResponse": "Dữ liệu lưu giữ chưa hợp lệ. Vui lòng tải lại.",
+    "customerError": "Chưa thể xử lý yêu cầu. Đóng và tải lại thông tin, kiểm tra báo phí hoặc liên hệ WashGo.",
+    "unknown": "Chưa xác định kết quả. Kiểm tra kết quả trước; nếu vẫn chưa có, bạn có thể gửi lại đúng yêu cầu cũ. Không tạo yêu cầu mới.",
+    "replay": "Gửi lại yêu cầu cũ",
+    "reload": "Đóng và tải lại",
+    "saved": "Đã cập nhật giao nhận.",
+    "taskAction": "Giao nhận lưu giữ",
+    "chooseLocker": "Chọn locker nhận lại / Cập nhật báo phí",
+    "getQuote": "Lấy báo phí",
+    "quoteHint": "Báo phí kiểm tra trạm có thể nhận đồ. Chưa giữ ô hoặc thu tiền; tình trạng ô sẽ được kiểm tra khi giao lại. Để đổi trạm, hủy yêu cầu cũ trước khi chọn trạm khác.",
+    "expiresAt": "Báo phí có hiệu lực đến",
+    "quoteExpired": "Báo phí đã hết hạn. Vui lòng lấy báo phí mới.",
+    "legacyCustomer": "Đơn cũ cần WashGo đối chiếu trước khi yêu cầu giao lại. Vui lòng liên hệ hỗ trợ.",
+    "storageTransfer": "Chuyển đến lưu giữ",
+    "storageReturn": "Giao lại từ lưu giữ",
+    "goAvailable": "Bật sẵn sàng",
+    "goOffline": "Chuyển ngoại tuyến",
+    "workStatus": "Đổi trạng thái làm việc",
+    "workStatusHint": "Bạn chỉ có thể tự đổi Sẵn sàng hoặc Ngoại tuyến. Đang có nhiệm vụ thì không thể chuyển ngoại tuyến.",
+    "statusBlocked": "Trạng thái hiện tại hoặc nhiệm vụ đang có chưa cho phép thay đổi.",
+    "remainingAttempts": "Còn {{count}} lượt nhập mã.",
+    "lockoutUntil": "Khóa nhập mã đến {{time}}.",
+    "states": {
+      "1": "Chờ lấy đến nơi lưu giữ",
+      "2": "Đang chuyển đến nơi lưu giữ",
+      "3": "Đang được lưu giữ",
+      "4": "Đang giao lại locker",
+      "5": "Đã giao lại locker",
+      "6": "Đã hủy vòng lưu giữ"
+    },
+    "returnStates": {
+      "1": "Đã yêu cầu giao lại",
+      "2": "Đã phân công giao lại",
+      "3": "Đang giao lại",
+      "4": "Đã đặt đồ vào locker",
+      "5": "Đã hủy yêu cầu giao lại"
+    },
+    "orderStates": {
+      "ReadyToReturn": "Chờ chuyển đến lưu giữ",
+      "MovedToStorage": "Đang lưu giữ",
+      "TransferringToStorage": "Đang chuyển đến lưu giữ",
+      "ReturningFromStorage": "Đang giao lại locker"
+    },
+    "blocked": {
+      "WrongStage": "Nhiệm vụ chưa ở bước xuất giao lại.",
+      "ProfileInactive": "Hồ sơ hoặc tài khoản hiện chưa hoạt động.",
+      "StaffStatusManaged": "Trạng thái đang bận do hệ thống quản lý; chưa thể tự thay đổi.",
+      "ActiveDelivery": "Bạn đang có nhiệm vụ giao nhận; chưa thể chuyển ngoại tuyến.",
+      "ReturnRequestRequired": "Chưa có yêu cầu giao lại.",
+      "QuoteChanged": "Khách cần xác nhận báo phí mới.",
+      "PaymentRequired": "Cần thanh toán đủ trước khi xuất giao lại."
+    },
+    "actions": {
+      "assign": "Phân công Shipper",
+      "cancel-assignment": "Hủy phân công",
+      "exception": "Báo sự cố",
+      "verify-legacy": "Đối chiếu đơn lưu giữ cũ",
+      "return-request": "Xác nhận yêu cầu giao lại",
+      "cancel-return": "Hủy yêu cầu giao lại",
+      "collect": "Xác nhận lấy khỏi locker",
+      "handover": "Xác nhận bàn giao tại tiệm",
+      "depart": "Xác nhận xuất giao lại",
+      "place": "Xác nhận đặt vào locker"
+    },
+    "remainingAttempts_one": "Còn {{count}} lượt nhập mã.",
+    "remainingAttempts_other": "Còn {{count}} lượt nhập mã.",
+    "history": "Lịch sử lưu giữ và giao lại",
+    "historyHint": "Các vòng lưu giữ và giao lại của đơn hàng.",
+    "returnStation": "Locker nhận lại · Thông tin trạm hiện tại",
+    "frozenLockerFee": "Phí locker đã chốt của vòng này",
+    "frozenWarehouseFee": "Phí lưu giữ đã chốt của vòng này"
   }
 }

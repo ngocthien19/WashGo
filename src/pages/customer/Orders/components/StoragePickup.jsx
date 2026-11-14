@@ -1,138 +1,265 @@
-import { useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Warehouse, PackageCheck } from 'lucide-react'
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
+import { Warehouse } from 'lucide-react'
+import { storageApi } from '~/apis/storageApi'
+import { customerCatalogApi, catalogImages } from '~/apis/customer/customerCatalogApi'
+import useCatalogResource from '~/hooks/useCatalogResource'
+import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
+import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
+import Pagination from '~/components/Pagination/Pagination'
+import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
+import StorageActionDialog from '~/components/storage/StorageActionDialog'
+import StorageCycleCard from '~/components/storage/StorageCycleCard'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
-import { customerOrderApi } from '~/apis/customer/customerOrderApi'
-import { ORDER_STATUSES, PAYMENT_STATUSES } from '~/utils/constants'
-import { getApiError } from '~/utils/apiError'
-import { formatCurrency } from '~/utils/formats'
+import { formatCurrency, formatDateTime } from '~/utils/formats'
 
-export default function StoragePickup({ order, onUpdated }) {
+function ReturnRequest({ order, onUpdated }) {
   const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
-  const [note, setNote] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [unknown, setUnknown] = useState(false)
-  const [error, setError] = useState('')
-  const lock = useRef(false)
-  if (order.status !== ORDER_STATUSES.MOVED_TO_STORAGE) {
-    return null
+  const [page, setPage] = useState(1), [keyword, setKeyword] = useState(''), [historyPage, setHistoryPage] = useState(1)
+  const [choosing, setChoosing] = useState(false), [selected, setSelected] = useState(null), [quote, setQuote] = useState(null)
+  const [action, setAction] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('')
+  const cycles = useCatalogResource(useCallback(signal => storageApi.cycles(order.id, historyPage, signal), [order.id, historyPage]), order.revision)
+  const lockers = useCatalogResource(useCallback(signal => choosing ? customerCatalogApi.getLockers({ page, take: 8, keyword: keyword || undefined }, signal) : Promise.resolve({ list: [], totalPages: 0 }), [choosing, page, keyword]))
+  const targetId = cycles.data?.list[0]?.returnLockerId
+  const target = useCatalogResource(useCallback(signal => targetId ? customerCatalogApi.getLocker(targetId, signal) : Promise.resolve(null), [targetId]))
+  const current = cycles.data?.list.find(row => row.canRequestReturn || row.canCancelReturn)
+  const pending = storageApi.hasPending(order.id)
+  const done = () => {
+    setAction(null); setQuote(null); setChoosing(false); cycles.retry(); onUpdated()
   }
-  const close = () => {
-    if (!busy) {
-      setOpen(false); setUnknown(false); setError(''); onUpdated()
+  const getQuote = async () => {
+    if (busy || !selected) {
+      return
+    }
+    setBusy(true); setError(''); setQuote(null)
+    try {
+      setQuote(await storageApi.quote(order.id, selected.id))
+    } catch {
+      setError('storage.customerError')
+    } finally {
+      setBusy(false)
     }
   }
   return (
-    <section className="grid gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5">
-      <h2 className="flex items-center gap-2 text-lg font-bold">
-        <Warehouse className="size-5 text-amber-600" />
-        {t('customer.sync.storageTitle')}
+    <section className="space-y-4 rounded-2xl border border-primary/20 bg-card p-5">
+      <h2 className="flex items-center gap-3 text-lg font-bold">
+        <Warehouse className="text-primary" />
+        {t([13, 14, 15].includes(order.status) ? 'storage.customerTitle' : 'storage.history')}
       </h2>
-      <p className="font-semibold">
-        {order.storageLocation || t('customer.sync.storageUnknown')}
-      </p>
-      {order.storageReference && (
-        <p className="text-sm">
-          {order.storageReference}
-        </p>
-      )}
       <p className="text-sm text-muted-foreground">
-        {t('customer.sync.storageFees', { due: formatCurrency(order.overdueFeeTotal), paid: formatCurrency(order.storageFeeTotal) })}
+        {t([13, 14, 15].includes(order.status) ? 'storage.customerHint' : 'storage.historyHint')}
       </p>
-      <p className="text-sm leading-6 text-muted-foreground">
-        {t('customer.sync.storageHint')}
-      </p>
-      <Button
-        className="justify-self-start h-12 text-base px-4"
-        onClick={() => setOpen(true)}
-        disabled={order.paymentStatus !== PAYMENT_STATUSES.PAID}
-      >
-        <PackageCheck size={18} />
-        {t('customer.sync.storageConfirm')}
-      </Button>
-      {open && (
-        <Dialog
-          open
-          onOpenChange={(next) => {
-            if (!next) {
-              close()
-            }
-          }}
+      {cycles.loading || cycles.error ? <ResourceFeedback {...cycles} /> : (
+        <div
+          data-pagination-scope
+          className="space-y-4"
         >
-          <DialogContent
-            className="max-w-lg"
-            closeLabel="common.close"
-          >
-            <DialogTitle className="text-xl font-bold">
-              {t('customer.sync.storageConfirm')}
-            </DialogTitle>
-            <DialogDescription className="mt-3 text-base leading-6">
-              {t('customer.sync.storageConfirmHint')}
-            </DialogDescription>
-            <form
-              className="mt-5 grid gap-4"
-              onSubmit={async (event) => {
-                event.preventDefault()
-                if (lock.current || unknown) {
-                  return
-                }
-                lock.current = true; setBusy(true); setError('')
-                let posting = false
-                try {
-                  const fresh = await customerOrderApi.get(order.id)
-                  if (fresh.status !== ORDER_STATUSES.MOVED_TO_STORAGE || fresh.paymentStatus !== PAYMENT_STATUSES.PAID) {
-                    throw new Error('customer.sync.storageChanged')
-                  }
-                  posting = true
-                  await customerOrderApi.pickupStorage(order.id, note.trim() || null)
-                  setOpen(false); onUpdated()
-                } catch (failure) {
-                  const uncertain = posting && (!failure.response || failure.response.status >= 500)
-                  setUnknown(uncertain); setError(uncertain ? 'customer.sync.uncertainMutation' : getApiError(failure))
-                } finally {
-                  lock.current = false; setBusy(false)
-                }
+          {cycles.data.list.map(row => (
+            <StorageCycleCard
+              key={row.id}
+              row={row}
+              role="Customer"
+            />
+          ))}
+          {!cycles.data.list.length && (
+            <p>
+              {t(order.storageWorkflowVersion === 0 ? 'storage.legacyCustomer' : 'storage.noCycles')}
+            </p>
+          )}
+          <Pagination
+            currentPage={historyPage}
+            totalPages={cycles.data.totalPages}
+            onPageChange={setHistoryPage}
+          />
+        </div>
+      )}
+      {targetId && (
+        <section className="space-y-3 rounded-xl border border-border p-4">
+          <h3 className="font-semibold">
+            {t('storage.returnStation')}
+          </h3>
+          {target.loading || target.error ? <ResourceFeedback {...target} /> : (
+            <div className="flex items-start gap-3">
+              <ResourceThumbnail
+                urls={catalogImages(target.data)}
+                name={target.data?.name}
+              />
+              <div>
+                <strong>
+                  {target.data?.name || '\u2014'}
+                </strong>
+                <p className="text-sm text-muted-foreground">
+                  {target.data?.address}
+                </p>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+      {pending ? (
+        <Button onClick={() => setAction('return-request')}>
+          {t('admin.sync.checkResult')}
+        </Button>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          {current?.canRequestReturn && (
+            <Button
+              className="h-11"
+              onClick={() => {
+                setChoosing(value => !value); setQuote(null)
               }}
             >
-              <label className="grid gap-2 font-semibold">
-                {t('customer.sync.optionalNote')}
-                <textarea
-                  value={note}
-                  onChange={(event) => setNote(event.target.value)}
-                  maxLength={500}
-                  disabled={busy || unknown}
-                  placeholder={t('customer.sync.optionalNote')}
-                  className="min-h-24 rounded-xl border border-input bg-background p-3 font-normal"
-                />
-              </label>
-              <FormError>
-                {error}
-              </FormError>
-              <div className="flex flex-wrap justify-end gap-3">
-                <Button
-                  className="h-12 text-base px-4"
-                  type="button"
-                  variant="secondary"
-                  disabled={busy}
-                  onClick={close}
-                >
-                  {t('common.close')}
-                </Button>
-                <Button
-                  className="h-12 text-base px-4"
-                  type="submit"
-                  disabled={busy || unknown}
-                >
-                  {t('customer.sync.storageConfirm')}
-                </Button>
+              {t('storage.chooseLocker')}
+            </Button>
+          )}
+          {current?.canCancelReturn && (
+            <Button
+              className="h-11"
+              variant="outline"
+              onClick={() => setAction('cancel-return')}
+            >
+              {t('storage.actions.cancel-return')}
+            </Button>
+          )}
+        </div>
+      )}
+      {choosing && !pending && (
+        <div
+          data-pagination-scope
+          className="space-y-4 border-t border-border pt-4"
+        >
+          <CatalogToolbar
+            embedded
+            keyword={keyword}
+            onSearch={value => {
+              setKeyword(value); setPage(1)
+            }}
+            label={t('storage.chooseLocker')}
+            placeholder={t('storage.searchLocker')}
+          />
+          <p className="text-sm text-muted-foreground">
+            {t('storage.quoteHint')}
+          </p>
+          {lockers.loading || lockers.error ? <ResourceFeedback {...lockers} /> : (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {lockers.data.list.map(locker => (
+                  <button
+                    key={locker.id}
+                    type="button"
+                    aria-pressed={selected?.id === locker.id}
+                    disabled={busy || current?.canCancelReturn && current.returnLockerId !== locker.id}
+                    className={`flex items-start gap-3 rounded-xl border p-3 text-left ${selected?.id === locker.id ? 'border-primary bg-primary/10' : 'border-border hover:bg-muted'}`}
+                    onClick={() => {
+                      setSelected(locker); setQuote(null); setError('')
+                    }}
+                  >
+                    <ResourceThumbnail
+                      urls={catalogImages(locker)}
+                      name={locker.name}
+                    />
+                    <span className="min-w-0">
+                      <strong className="block">
+                        {locker.name}
+                      </strong>
+                      <span className="text-sm text-muted-foreground">
+                        {locker.address}
+                      </span>
+                    </span>
+                  </button>
+                ))}
               </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+              {!lockers.data.list.length && <ResourceFeedback empty="storage.noLockers" />}
+              <Pagination
+                currentPage={page}
+                totalPages={lockers.data.totalPages}
+                onPageChange={setPage}
+              />
+            </>
+          )}
+          <FormError>
+            {error}
+          </FormError>
+          <Button
+            className="h-11"
+            disabled={busy || !selected || cycles.loading || !current}
+            onClick={getQuote}
+          >
+            {t('storage.getQuote')}
+          </Button>
+          {quote && (
+            <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+              <strong>
+                {selected.name}
+              </strong>
+              <p>
+                {selected.address}
+              </p>
+              <p>
+                {t('storage.feeTotal')}
+                :
+                {' '}
+                <strong>
+                  {formatCurrency(quote.feeTotal)}
+                </strong>
+              </p>
+              <p>
+                {t('storage.outstanding')}
+                :
+                {' '}
+                <strong>
+                  {formatCurrency(quote.outstanding)}
+                </strong>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {t('storage.expiresAt')}
+                :
+                {' '}
+                {formatDateTime(quote.expiresAt)}
+              </p>
+              <Button
+                className="h-11"
+                onClick={() => setAction('return-request')}
+              >
+                {t('storage.actions.return-request')}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+      {action && (
+        <StorageActionDialog
+          order={order}
+          cycle={current}
+          action={action}
+          role="Customer"
+          quote={action === 'return-request' ? quote : undefined}
+          onClose={done}
+          onSaved={done}
+        />
       )}
     </section>
   )
+}
+export default function StoragePickup(props) {
+  const { t } = useTranslation()
+  const [expanded, setExpanded] = useState(false)
+  if ([13, 14, 15].includes(props.order.status) || expanded) {
+    return (
+      <ReturnRequest
+        key={props.order.id}
+        {...props}
+      />
+    )
+  }
+  return props.order.storageWorkflowVersion >= 1 && [10, 11, 12, 99].includes(props.order.status) ? (
+    <Button
+      variant="outline"
+      className="h-11"
+      onClick={() => setExpanded(true)}
+    >
+      {t('storage.history')}
+    </Button>
+  ) : null
 }

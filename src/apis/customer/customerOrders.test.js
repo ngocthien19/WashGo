@@ -8,12 +8,14 @@ const envelope = (data) => ({ data: { succeeded: true, data } })
 
 describe('customer orders API', () => {
   it('removes partner identity from customer list and detail while preserving order and paging data', async () => {
-    const order = { id: 'order-id', orderCode: 'WG-123', status: 12, merchantId: 'private', merchantName: 'PRIVATE', merchantEmail: 'private@example.test', shipperName: 'PRIVATE', timeline: [{ actorRole: 'Merchant', actorId: 'private', actorName: 'PRIVATE', status: 4 }] }
+    const order = { id: 'order-id', orderCode: 'WG-123', status: 12, merchantId: 'private', merchantName: 'PRIVATE', merchantEmail: 'private@example.test', shipperName: 'PRIVATE', storageLocation: 'PRIVATE SHOP', storageReference: 'PRIVATE RECEIPT', timeline: [{ actorRole: 'Merchant', actorId: 'private', actorName: 'PRIVATE', status: 4 }] }
     authorizedAxios.get.mockResolvedValue(envelope(order))
     const detail = await customerOrderApi.get('order-id')
     expect(detail).not.toHaveProperty('merchantEmail')
     expect(detail).not.toHaveProperty('merchantId')
     expect(detail).not.toHaveProperty('shipperName')
+    expect(detail).not.toHaveProperty('storageLocation')
+    expect(detail).not.toHaveProperty('storageReference')
     expect(detail.timeline[0]).toMatchObject({ actorId: null, actorName: 'WashGo', status: 4 })
     authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, list: [order], total: 7, currentPage: 2, totalPages: 7 } })
     const page = await customerOrderApi.list({ page: 2, take: 1 })

@@ -39,5 +39,4 @@ export const scopeFilter = (query) => ({
 export const listFilter = (query) => ({ ...buildOrdersFilter(query), ...scopeFilter(query), take: TAKE })
 export const waitingFilter = (query) => ({ page: query.page, take: TAKE, fromDate: scopeFilter(query).fromDate, toDate: scopeFilter(query).toDate, overdueOnly: query.overdue || undefined })
 export const canAssignMerchant = (order) => order.status === 2 && !order.merchantId
-export const canStore = order => order.allowedActions?.canMoveToStorage === true
 export const unknownResult = (error) => Boolean(error.uncertain || !error.response || error.response.status >= 500)

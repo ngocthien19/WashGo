@@ -25,9 +25,16 @@
     "availableOnly": "Only available compartments are currently provided. Other compartment states are being updated.",
     "choosePromotion": "Choose a WashGo discount",
     "noPromotions": "No discounts are available for this order yet.",
-    "slotStatuses": { "1": "Available", "2": "Occupied", "3": "Reserved", "4": "Maintenance" }
+    "slotStatuses": {
+      "1": "Available",
+      "2": "Occupied",
+      "3": "Reserved",
+      "4": "Maintenance"
+    }
   },
-  "navigationDrawer": { "close": "Close navigation menu" },
+  "navigationDrawer": {
+    "close": "Close navigation menu"
+  },
   "chatbot": {
     "open": "Open WashGo assistant",
     "close": "Close WashGo assistant",
@@ -47,7 +54,11 @@
     "older": "Load older messages",
     "welcome": "How can WashGo help?",
     "intro": "Ask about services, policies, using WashGo or your orders. Ordering and payment still require your confirmation on the relevant page.",
-    "suggestions": { "guide": "How do I collect laundry at a locker?", "services": "What services does WashGo offer?", "lockers": "Find lockers with available slots near me" },
+    "suggestions": {
+      "guide": "How do I collect laundry at a locker?",
+      "services": "What services does WashGo offer?",
+      "lockers": "Find lockers with available slots near me"
+    },
     "you": "You",
     "failedMessage": "This reply was unsuccessful.",
     "thinking": "WashGo is working…",
@@ -243,6 +254,14 @@
       "customer": {
         "title": "Complaint reply",
         "content": "WashGo replied to your complaint about order #{{orderCode}}."
+      }
+    },
+    "storage": {
+      "customer": {
+        "private": {
+          "title": "Order storage update",
+          "content": "WashGo updated your storage or redelivery status. View the order for the next step."
+        }
       }
     }
   },
@@ -535,7 +554,13 @@
       "stale": "This review has changed. Close this window, refresh the list and review it again.",
       "resultsHint": "Processing results received. Check the outcome of each review above.",
       "done": "Processed",
-      "outcomes": { "Changed": "Changed", "Unchanged": "Already in the requested state", "Skipped": "Skipped", "Failed": "Failed", "Succeeded": "Succeeded" },
+      "outcomes": {
+        "Changed": "Changed",
+        "Unchanged": "Already in the requested state",
+        "Skipped": "Skipped",
+        "Failed": "Failed",
+        "Succeeded": "Succeeded"
+      },
       "total": "Total reviews",
       "average": "Visible review average",
       "search": "Search reviews",
@@ -637,7 +662,9 @@
         "8": "Locker nearly full",
         "9": "Pending complaint overdue",
         "10": "Contract expiring",
-        "11": "Contract expired"
+        "11": "Contract expired",
+        "12": "Storage transfer overdue",
+        "13": "Storage return overdue"
       },
       "invalidName": "Full name must contain 2 to 100 characters.",
       "invalidPhone": "Phone number must contain 10 digits starting with 0.",
@@ -1111,7 +1138,8 @@
       "finance": "Finance management",
       "settings": "System settings",
       "profile": "Personal profile",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "storage": "Storage and redelivery"
     },
     "revenue": "Receipts after refunds",
     "orders": "Orders created in period",
@@ -1578,7 +1606,11 @@
     }
   },
   "merchant": {
-    "reviewSync": {"title": "Service reviews", "search": "Search review comments...", "pendingContent": "Comments and media are available after moderation."},
+    "reviewSync": {
+      "title": "Service reviews",
+      "search": "Search review comments...",
+      "pendingContent": "Comments and media are available after moderation."
+    },
     "orderFinance": {
       "settledNetAmount": "Net receipts in paid settlements",
       "unsettledNetAmount": "Net receipts awaiting settlement",
@@ -2283,7 +2315,8 @@
       "services": "Service management",
       "reports": "Reports",
       "profile": "Store profile",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "storage": "Storage and redelivery"
     },
     "loading": "Loading store data…",
     "invalidResponse": "Unable to verify store data. Please try again.",
@@ -3185,7 +3218,9 @@
         "RETURNED": "Returned to locker",
         "COMPLETED": "Completed",
         "MOVED_TO_STORAGE": "Moved to storage",
-        "CANCELLED": "Cancelled"
+        "CANCELLED": "Cancelled",
+        "TRANSFERRING_TO_STORAGE": "Transferring to storage",
+        "RETURNING_FROM_STORAGE": "Returning to locker"
       },
       "cancel": {
         "chargedFee": "Confirmed cancellation fee",
@@ -3254,8 +3289,35 @@
   },
   "shipper": {
     "sync": {
-      "joined": "Date joined", "updated": "Last profile update",
-      "chart": "Completed collections and returns", "performance": "Performance in period", "onTime": "On-time completion rate", "duration": "Average assignment duration", "sample": "{{count}} on time / {{total}} events with SLA", "durationSample": "{{count}} events with duration data", "previous": "Completions in previous period", "eventDetail": "Delivery event details", "deadline": "Task deadline", "eventStatus": "Order status at completion", "captured": "Information captured at completion.", "legacy": "Legacy record: available data may have been reconstructed.", "currentImages": "Locker images show the current resource, not a historical photo.", "cancelledReturn": "Return category", "cancelledOnly": "Cancelled order returns", "normalOnly": "Other deliveries", "sort": "Sort by", "oldest": "Oldest completion first", "taskStatus": "Task status", "assignedRange": "Assignment date", "statuses": { "1": "Assigned", "2": "Completed", "3": "Reassigned", "4": "Cancelled" }, "export": "Export CSV"
+      "joined": "Date joined",
+      "updated": "Last profile update",
+      "chart": "Completed collections and returns",
+      "performance": "Performance in period",
+      "onTime": "On-time completion rate",
+      "duration": "Average assignment duration",
+      "sample": "{{count}} on time / {{total}} events with SLA",
+      "durationSample": "{{count}} events with duration data",
+      "previous": "Completions in previous period",
+      "eventDetail": "Delivery event details",
+      "deadline": "Task deadline",
+      "eventStatus": "Order status at completion",
+      "captured": "Information captured at completion.",
+      "legacy": "Legacy record: available data may have been reconstructed.",
+      "currentImages": "Locker images show the current resource, not a historical photo.",
+      "cancelledReturn": "Return category",
+      "cancelledOnly": "Cancelled order returns",
+      "normalOnly": "Other deliveries",
+      "sort": "Sort by",
+      "oldest": "Oldest completion first",
+      "taskStatus": "Task status",
+      "assignedRange": "Assignment date",
+      "statuses": {
+        "1": "Assigned",
+        "2": "Completed",
+        "3": "Reassigned",
+        "4": "Cancelled"
+      },
+      "export": "Export CSV"
     },
     "media": {
       "lockerPhoto": "Locker station photo {{number}}",
@@ -3394,5 +3456,111 @@
       "phone": "Enter a valid phone with 9–11 digits, up to 20 characters.",
       "vehiclePlate": "Plate: up to 20 characters; required and at least 4 characters for motorbikes/cars."
     }
+  },
+  "storage": {
+    "title": "Storage and redelivery",
+    "customerTitle": "WashGo is keeping your items",
+    "customerHint": "Track your items and request redelivery to a locker. WashGo will notify you after the items are placed in a compartment. Pay any outstanding amount in the order payment section.",
+    "search": "Search by order code…",
+    "searchLocker": "Search lockers…",
+    "state": "Storage state",
+    "empty": "No matching orders.",
+    "noCycles": "No storage history yet.",
+    "noLockers": "No lockers found.",
+    "overdue": "Overdue",
+    "receipt": "Handover receipt",
+    "proof": "Verification reference",
+    "reason": "Reason",
+    "collectedAt": "Collected from locker",
+    "intakeAt": "Storage intake",
+    "dispatchedAt": "Dispatched for redelivery",
+    "transferDeadline": "Handover deadline",
+    "returnDeadline": "Redelivery deadline",
+    "feeTotal": "Total storage fees",
+    "feePaid": "Storage fees paid",
+    "outstanding": "Outstanding storage fees",
+    "feeBasis": "Fees show the current obligation for the entire order. Do not add history rows together. Reload to update.",
+    "departBlocked": "Dispatch is not available. Check the request, accepted quote and payment.",
+    "shipper": "Assigned Shipper",
+    "chooseShipper": "Choose a Shipper",
+    "credential": "Confirmation method",
+    "confirmed": "I have checked the details and confirm this action.",
+    "confirmHint": "Check the details before confirming. The system will check the current state again.",
+    "simulation": "Delivery confirmation is simulated using task credentials; it does not control a physical locker door. Confirm only after completing the corresponding handover step.",
+    "legacyProof": "Confirm only after verifying outside the system that the items are at the current shop. Enter the verification reference and reason; no handover date will be invented.",
+    "confirmRequired": "Please confirm that you checked the details.",
+    "required": "Please complete the required information.",
+    "invalidPin": "The PIN must contain exactly 6 digits.",
+    "invalidResponse": "Invalid storage data. Please reload.",
+    "customerError": "Unable to process the request. Close and reload, check the quote or contact WashGo.",
+    "unknown": "The outcome is unknown. Check the result first. If it is still unavailable, explicitly replay the same request. Do not create a new request.",
+    "replay": "Replay the same request",
+    "reload": "Close and reload",
+    "saved": "Delivery updated.",
+    "taskAction": "Storage delivery",
+    "chooseLocker": "Choose a return locker / Refresh quote",
+    "getQuote": "Get quote",
+    "quoteHint": "The quote checks whether this station can receive your items. It does not reserve a compartment or take payment. Availability is checked on delivery. Cancel the previous request before changing stations.",
+    "expiresAt": "Quote valid until",
+    "quoteExpired": "The quote expired. Get a new quote.",
+    "legacyCustomer": "WashGo must verify this older order before redelivery. Please contact support.",
+    "storageTransfer": "Transfer to storage",
+    "storageReturn": "Return from storage",
+    "goAvailable": "Go available",
+    "goOffline": "Go offline",
+    "workStatus": "Change work status",
+    "workStatusHint": "You can switch between Available and Offline. You cannot go offline while assigned to an active task.",
+    "statusBlocked": "Your current status or active tasks prevent this change.",
+    "remainingAttempts": "{{count}} credential attempts remaining.",
+    "lockoutUntil": "Credential entry locked until {{time}}.",
+    "states": {
+      "1": "Awaiting collection for storage",
+      "2": "In transit to storage",
+      "3": "Stored",
+      "4": "Returning to locker",
+      "5": "Delivered back to locker",
+      "6": "Storage cycle cancelled"
+    },
+    "returnStates": {
+      "1": "Redelivery requested",
+      "2": "Redelivery assigned",
+      "3": "Redelivery in transit",
+      "4": "Placed in locker",
+      "5": "Redelivery request cancelled"
+    },
+    "orderStates": {
+      "ReadyToReturn": "Awaiting storage transfer",
+      "MovedToStorage": "Stored",
+      "TransferringToStorage": "Transferring to storage",
+      "ReturningFromStorage": "Returning to locker"
+    },
+    "blocked": {
+      "WrongStage": "This task is not at the dispatch stage.",
+      "ProfileInactive": "Your profile or account is inactive.",
+      "StaffStatusManaged": "Your busy status is managed by the system and cannot be changed here.",
+      "ActiveDelivery": "You have an active delivery task and cannot go offline yet.",
+      "ReturnRequestRequired": "A redelivery request is required.",
+      "QuoteChanged": "The customer must accept a new quote.",
+      "PaymentRequired": "Full payment is required before dispatch."
+    },
+    "actions": {
+      "assign": "Assign Shipper",
+      "cancel-assignment": "Cancel assignment",
+      "exception": "Report an exception",
+      "verify-legacy": "Verify older stored order",
+      "return-request": "Confirm redelivery request",
+      "cancel-return": "Cancel redelivery request",
+      "collect": "Confirm collection from locker",
+      "handover": "Confirm shop handover",
+      "depart": "Confirm dispatch for redelivery",
+      "place": "Confirm placement in locker"
+    },
+    "remainingAttempts_one": "{{count}} credential attempts remaining.",
+    "remainingAttempts_other": "{{count}} credential attempts remaining.",
+    "history": "Storage and redelivery history",
+    "historyHint": "Storage and redelivery cycles for this order.",
+    "returnStation": "Return locker · Current station information",
+    "frozenLockerFee": "Frozen locker fees for this cycle",
+    "frozenWarehouseFee": "Frozen storage fees for this cycle"
   }
 }

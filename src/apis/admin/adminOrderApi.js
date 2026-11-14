@@ -120,6 +120,5 @@ export const adminOrderApi = {
   cancelExpired: (quote, reason) => {
     const body = { reason, expectedRevision: quote.revision, expectedStatus: quote.status, expectedFeeAmount: quote.feeAmount, operationId: newOperationId() }
     return orderWrite(`/wash-order/${quote.orderId}/cancel-expired-deposit`, body, quote.orderId, 'CancelExpiredDeposit', value => value?.id === quote.orderId && value.status === 12)
-  },
-  store: (id, values, order) => orderWrite('/wash-order/move-to-storage', { orderId: id, storageLocation: values.storageLocation.trim(), storageReference: values.storageReference.trim(), note: values.note?.trim() || null, expectedRevision: order.revision, expectedStatus: order.status, operationId: newOperationId() }, id, 'MoveToStorage', data => data?.id === id && data.status === 13)
+  }
 }

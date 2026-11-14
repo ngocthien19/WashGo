@@ -1,3 +1,4 @@
+import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
 import Reveal from '~/components/motion/Reveal'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -147,6 +148,13 @@ export default function OrderDetailPage() {
               </p>
             ))}
           </div>
+          {([10, 13, 14, 15].includes(order.status) || order.storageWorkflowVersion >= 1 && [11, 12, 99].includes(order.status)) && (
+            <StorageOrderPanel
+              order={order}
+              role="Merchant"
+              onUpdated={done}
+            />
+          )}
           <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
             <div className="min-w-0 space-y-6">
               <Panel

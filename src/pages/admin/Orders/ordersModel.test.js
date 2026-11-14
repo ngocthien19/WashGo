@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { readAdminOrdersQuery, writeAdminOrdersQuery, listFilter, waitingFilter, scopeFilter, canAssignMerchant, canStore } from './ordersModel'
+import { readAdminOrdersQuery, writeAdminOrdersQuery, listFilter, waitingFilter, scopeFilter, canAssignMerchant } from './ordersModel'
 
 it('keeps all-order and waiting filters separate with Vietnam day boundaries', () => {
   const query = readAdminOrdersQuery(new URLSearchParams('tab=waiting&keyword=WG&status=4&from=2026-11-08&to=2026-11-08&overdue=true'))
@@ -15,9 +15,4 @@ it('offers Merchant assignment only for unassigned deposited orders', () => {
   expect(canAssignMerchant({ status: 2, merchantId: null })).toBe(true)
   expect(canAssignMerchant({ status: 1 })).toBe(false)
   expect(canAssignMerchant({ status: 2, merchantId: 'merchant' })).toBe(false)
-})
-it('uses server capability for storage, including changes to policy timing', () => {
-  expect(canStore({ allowedActions: { canMoveToStorage: true } })).toBe(true)
-  expect(canStore({ allowedActions: { canMoveToStorage: false }, status: 10, serverNow: '2099-01-01' })).toBe(false)
-  expect(canStore({ status: 10 })).toBe(false)
 })
