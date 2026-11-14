@@ -9,7 +9,7 @@ import { customerProfileApi } from '~/apis/customer/customerProfileApi'
 import { TooltipProvider } from '~/components/ui/tooltip'
 import ProfileEditor from './ProfileEditor'
 
-vi.mock('~/components/motion/Reveal', () => ({
+vi.mock('~/components/motion/ScrollSection', () => ({
   default: ({ children }) => (
     <div>
       {children}
