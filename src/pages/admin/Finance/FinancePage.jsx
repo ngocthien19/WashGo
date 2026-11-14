@@ -188,204 +188,209 @@ export default function FinancePage() {
           </Button>
         </div>
       )}
-      {query.tab === 'commissionReview' ? (
-        <CommissionReview
-          key={query.merchantId}
-          merchantId={query.merchantId}
-        />
-      ) : resource.loading || resource.error || !resource.data ? (
-        <ResourceFeedback
-          {...resource}
-          loadingText="merchant.loading"
-        />
-      ) : (
-        <>
-          {report && (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                {[['totalRevenue', Wallet], ['laundryRevenue', Shirt], ['refundedAmount', Undo2], ['paidOrderCount', Banknote]].map(([key, Icon], index) => (
-                  <StatCard
-                    key={key}
-                    label={t(`admin.finance.kpis.${key}`)}
-                    value={key === 'paidOrderCount' ? report[key] : formatCurrency(report[key])}
-                    icon={Icon}
-                    className={['border-l-primary', 'border-l-emerald-500', 'border-l-red-500', 'border-l-violet-500'][index]}
-                    iconClassName={['bg-primary/10 text-primary', 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300', 'bg-red-500/10 text-red-700 dark:text-red-300', 'bg-violet-500/10 text-violet-700 dark:text-violet-300'][index]}
-                  />
-                ))}
-              </div>
-              <section className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
-                <h2 className="-mx-5 -mt-5 flex items-center gap-3 rounded-t-2xl border-b border-primary/15 bg-primary/5 px-5 py-4 text-lg font-semibold">
-                  <TrendingUp className="size-5 text-primary" />
-                  {t('admin.finance.cashflow')}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {t('admin.finance.cashflowHint')}
-                </p>
-                <div className="rounded-xl border border-primary/10 bg-primary/3 p-3 sm:p-4">
-                  <RevenueChart
-                    data={report.daily}
-                    hourly={report.hourly}
-                    range={query}
-                  />
-                </div>
-                <dl className="grid gap-4 sm:grid-cols-3">
-                  {['storageFeeRevenue', 'cancellationFeeRevenue', 'totalRevenue'].map(key => (
-                    <div
+      <div
+        data-pagination-scope
+        className="space-y-6"
+      >
+        {query.tab === 'commissionReview' ? (
+          <CommissionReview
+            key={query.merchantId}
+            merchantId={query.merchantId}
+          />
+        ) : resource.loading || resource.error || !resource.data ? (
+          <ResourceFeedback
+            {...resource}
+            loadingText="merchant.loading"
+          />
+        ) : (
+          <>
+            {report && (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  {[['totalRevenue', Wallet], ['laundryRevenue', Shirt], ['refundedAmount', Undo2], ['paidOrderCount', Banknote]].map(([key, Icon], index) => (
+                    <StatCard
                       key={key}
-                      className="rounded-xl bg-muted/30 p-4"
-                    >
-                      <dt className="text-sm font-medium">
-                        {t(`admin.finance.kpis.${key}`)}
-                      </dt>
-                      <dd className="mt-2 text-xl font-semibold">
-                        {formatCurrency(report[key])}
-                      </dd>
-                    </div>
+                      label={t(`admin.finance.kpis.${key}`)}
+                      value={key === 'paidOrderCount' ? report[key] : formatCurrency(report[key])}
+                      icon={Icon}
+                      className={['border-l-primary', 'border-l-emerald-500', 'border-l-red-500', 'border-l-violet-500'][index]}
+                      iconClassName={['bg-primary/10 text-primary', 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300', 'bg-red-500/10 text-red-700 dark:text-red-300', 'bg-violet-500/10 text-violet-700 dark:text-violet-300'][index]}
+                    />
                   ))}
-                </dl>
-              </section>
-              <FinanceTable
-                key={`merchants:${params}`}
-                rows={report.byMerchant}
-                label="admin.finance.merchantResults"
-                rowKey={row => row.merchantId || 'unassigned'}
-                columns={[{ key: 'merchant', label: 'admin.complaints.merchant', className: 'min-w-72', render: merchantCell }, { key: 'count', label: 'admin.finance.orders', render: row => formatNumber(row.paidOrderCount) }, { key: 'revenue', label: 'admin.finance.kpis.totalRevenue', render: row => formatCurrency(row.revenue) }]}
-              />
-              <section className="overflow-hidden rounded-2xl border border-primary/20 bg-card shadow-sm">
-                <header className="flex items-start gap-3 border-b border-primary/15 bg-primary/5 p-5">
-                  <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                    <Shirt className="size-6" />
-                  </span>
-                  <div className="min-w-0 space-y-2">
-                    <h2 className="text-lg font-semibold">
-                      {t('admin.finance.services')}
-                    </h2>
-                    <p className="text-base leading-6 text-muted-foreground">
-                      {t('admin.finance.serviceHint')}
-                    </p>
+                </div>
+                <section className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+                  <h2 className="-mx-5 -mt-5 flex items-center gap-3 rounded-t-2xl border-b border-primary/15 bg-primary/5 px-5 py-4 text-lg font-semibold">
+                    <TrendingUp className="size-5 text-primary" />
+                    {t('admin.finance.cashflow')}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {t('admin.finance.cashflowHint')}
+                  </p>
+                  <div className="rounded-xl border border-primary/10 bg-primary/3 p-3 sm:p-4">
+                    <RevenueChart
+                      data={report.daily}
+                      hourly={report.hourly}
+                      range={query}
+                    />
                   </div>
-                </header>
+                  <dl className="grid gap-4 sm:grid-cols-3">
+                    {['storageFeeRevenue', 'cancellationFeeRevenue', 'totalRevenue'].map(key => (
+                      <div
+                        key={key}
+                        className="rounded-xl bg-muted/30 p-4"
+                      >
+                        <dt className="text-sm font-medium">
+                          {t(`admin.finance.kpis.${key}`)}
+                        </dt>
+                        <dd className="mt-2 text-xl font-semibold">
+                          {formatCurrency(report[key])}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
                 <FinanceTable
-                  embedded
-                  key={`services:${params}`}
-                  rows={report.byService}
-                  rowKey={row => row.serviceId}
-                  label="admin.finance.serviceResults"
-                  columns={[{ key: 'service', label: 'admin.finance.service', className: 'min-w-72', render: row => row.serviceName }, { key: 'quantity', label: 'admin.finance.quantity', render: row => formatNumber(row.quantity) }, { key: 'amount', label: 'admin.finance.listValue', render: row => formatCurrency(row.amount) }]}
+                  key={`merchants:${params}`}
+                  rows={report.byMerchant}
+                  label="admin.finance.merchantResults"
+                  rowKey={row => row.merchantId || 'unassigned'}
+                  columns={[{ key: 'merchant', label: 'admin.complaints.merchant', className: 'min-w-72', render: merchantCell }, { key: 'count', label: 'admin.finance.orders', render: row => formatNumber(row.paidOrderCount) }, { key: 'revenue', label: 'admin.finance.kpis.totalRevenue', render: row => formatCurrency(row.revenue) }]}
+                />
+                <section className="overflow-hidden rounded-2xl border border-primary/20 bg-card shadow-sm">
+                  <header className="flex items-start gap-3 border-b border-primary/15 bg-primary/5 p-5">
+                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                      <Shirt className="size-6" />
+                    </span>
+                    <div className="min-w-0 space-y-2">
+                      <h2 className="text-lg font-semibold">
+                        {t('admin.finance.services')}
+                      </h2>
+                      <p className="text-base leading-6 text-muted-foreground">
+                        {t('admin.finance.serviceHint')}
+                      </p>
+                    </div>
+                  </header>
+                  <FinanceTable
+                    embedded
+                    key={`services:${params}`}
+                    rows={report.byService}
+                    rowKey={row => row.serviceId}
+                    label="admin.finance.serviceResults"
+                    columns={[{ key: 'service', label: 'admin.finance.service', className: 'min-w-72', render: row => row.serviceName }, { key: 'quantity', label: 'admin.finance.quantity', render: row => formatNumber(row.quantity) }, { key: 'amount', label: 'admin.finance.listValue', render: row => formatCurrency(row.amount) }]}
+                  />
+                </section>
+              </>
+            )}
+            {query.tab === 'commissions' && (
+              <section className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {['netRevenue', 'commissionAmount', 'payoutAmount'].map(key => (
+                    <StatCard
+                      key={key}
+                      icon={Wallet}
+                      label={t(`admin.finance.fields.${key}`)}
+                      value={resource.data.commissionComplete === false && key !== 'netRevenue' ? '—' : formatCurrency(resource.data[key])}
+                    />
+                  ))}
+                </div>
+                <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
+                  {t('admin.finance.commissionHint')}
+                </p>
+                <FinanceTable
+                  key={params.toString()}
+                  rows={resource.data.list}
+                  pagination={{ page: query.page, total: resource.data.total, totalPages: resource.data.totalPages, onChange: page => update({ page }) }}
+                  rowKey={row => row.merchantId}
+                  label="admin.finance.commissionResults"
+                  minWidth="min-w-[1600px]"
+                  columns={[{ key: 'merchant', label: 'admin.complaints.merchant', className: 'min-w-72', render: merchantCell }, ...['grossRevenue', 'refundedAmount', 'netRevenue', 'commissionAmount', 'payoutAmount'].map(moneyColumn), { key: 'orders', label: 'admin.finance.orders', render: row => formatNumber(row.paidOrderCount) }, { key: 'actions', label: 'customer.incidents.actions', render: row => (
+                    <Button
+                      variant="secondary"
+                      className="h-11 px-4"
+                      onClick={() => setModal({ kind: 'commissionDetail', value: row })}
+                    >
+                      <Eye size={18} />
+                      {t('admin.finance.detail')}
+                    </Button>
+                  ) }]}
                 />
               </section>
-            </>
-          )}
-          {query.tab === 'commissions' && (
-            <section className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-3">
-                {['netRevenue', 'commissionAmount', 'payoutAmount'].map(key => (
-                  <StatCard
-                    key={key}
-                    icon={Wallet}
-                    label={t(`admin.finance.fields.${key}`)}
-                    value={resource.data.commissionComplete === false && key !== 'netRevenue' ? '—' : formatCurrency(resource.data[key])}
-                  />
-                ))}
-              </div>
-              <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
-                {t('admin.finance.commissionHint')}
-              </p>
+            )}
+            {query.tab === 'settlements' && (
               <FinanceTable
-                key={params.toString()}
                 rows={resource.data.list}
+                label="admin.finance.settlementResults"
+                minWidth="min-w-[1650px]"
                 pagination={{ page: query.page, total: resource.data.total, totalPages: resource.data.totalPages, onChange: page => update({ page }) }}
-                rowKey={row => row.merchantId}
-                label="admin.finance.commissionResults"
-                minWidth="min-w-[1600px]"
-                columns={[{ key: 'merchant', label: 'admin.complaints.merchant', className: 'min-w-72', render: merchantCell }, ...['grossRevenue', 'refundedAmount', 'netRevenue', 'commissionAmount', 'payoutAmount'].map(moneyColumn), { key: 'orders', label: 'admin.finance.orders', render: row => formatNumber(row.paidOrderCount) }, { key: 'actions', label: 'customer.incidents.actions', render: row => (
-                  <Button
-                    variant="secondary"
-                    className="h-11 px-4"
-                    onClick={() => setModal({ kind: 'commissionDetail', value: row })}
-                  >
-                    <Eye size={18} />
-                    {t('admin.finance.detail')}
-                  </Button>
-                ) }]}
-              />
-            </section>
-          )}
-          {query.tab === 'settlements' && (
-            <FinanceTable
-              rows={resource.data.list}
-              label="admin.finance.settlementResults"
-              minWidth="min-w-[1650px]"
-              pagination={{ page: query.page, total: resource.data.total, totalPages: resource.data.totalPages, onChange: page => update({ page }) }}
-              columns={[{ key: 'merchant', label: 'admin.complaints.merchant', className: 'min-w-72', render: merchantCell }, { key: 'period', label: 'admin.finance.period', className: 'min-w-60', render: row => (
-                <div>
-                  {formatDateTime(row.periodFrom, 'Asia/Ho_Chi_Minh')}
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {formatDateTime(row.periodTo, 'Asia/Ho_Chi_Minh')}
-                  </p>
-                </div>
-              ) }, ...['netRevenue', 'commissionAmount', 'payoutAmount'].map(moneyColumn), { key: 'status', label: 'admin.finance.status', className: 'min-w-44 whitespace-nowrap', render: row => (
-                <span className={`rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(row.status)}`}>
-                  {t(`admin.finance.settlementStatuses.${row.status}`)}
-                </span>
-              ) }, { key: 'actions', label: 'customer.incidents.actions', render: row => actionMenu(row) }]}
-            />
-          )}
-          {query.tab === 'refunds' && (
-            <FinanceTable
-              key={`refunds:${params}`}
-              rows={resource.data.list}
-              pagination={{ page: query.page, total: resource.data.total, totalPages: resource.data.totalPages, onChange: page => update({ page }) }}
-              label="admin.finance.refundResults"
-              minWidth="min-w-[1250px]"
-              columns={[{ key: 'order', label: 'admin.complaints.columns.order', className: 'min-w-48', render: row => (
-                <Link
-                  to={`${ADMIN_ROUTES.ORDERS}/${row.orderId}`}
-                  className="font-semibold text-primary"
-                >
-                  {row.orderCode || t('customer.incidents.relatedOrder')}
-                </Link>
-              ) }, { key: 'customer', label: 'admin.complaints.customer', className: 'min-w-52', render: row => (
-                <div className="flex items-center gap-3">
-                  <UserAvatar
-                    avatar={row.customerAvatarUrl}
-                    fullName={row.customerName}
-                    className="size-11"
-                  />
-                  <div className="min-w-0">
-                    <p className="font-semibold">
-                      {row.customerName || '—'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {row.customerEmail || '—'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {row.customerPhoneNumber || '—'}
+                columns={[{ key: 'merchant', label: 'admin.complaints.merchant', className: 'min-w-72', render: merchantCell }, { key: 'period', label: 'admin.finance.period', className: 'min-w-60', render: row => (
+                  <div>
+                    {formatDateTime(row.periodFrom, 'Asia/Ho_Chi_Minh')}
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {formatDateTime(row.periodTo, 'Asia/Ho_Chi_Minh')}
                     </p>
                   </div>
-                </div>
-              ) }, { key: 'amount', label: 'admin.finance.refundAmount', className: 'min-w-44 whitespace-nowrap', render: row => formatCurrency(row.amount) }, { key: 'reason', label: 'admin.finance.reason', className: 'min-w-72 max-w-96', render: row => (
-                <p className="whitespace-pre-wrap break-words">
-                  {row.reason}
-                </p>
-              ) }, { key: 'status', label: 'admin.finance.status', className: 'min-w-44 whitespace-nowrap', render: row => (
-                <span className={`rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(row.status)}`}>
-                  {t(`admin.finance.refundStatuses.${row.status}`)}
-                </span>
-              ) }, { key: 'created', label: 'customer.incidents.createdAt', className: 'min-w-48', render: row => formatDateTime(row.createdOn) }, { key: 'actions', label: 'customer.incidents.actions', render: row => actionMenu(row, true) }]}
-            />
-          )}
-          {query.tab === 'settlements' && !resource.data.list.length && query.page > 1 && (
-            <Button
-              variant="outline"
-              onClick={() => update({ page: 1 })}
-            >
-              {t('admin.promotions.firstPage')}
-            </Button>
-          )}
-        </>
-      )}
+                ) }, ...['netRevenue', 'commissionAmount', 'payoutAmount'].map(moneyColumn), { key: 'status', label: 'admin.finance.status', className: 'min-w-44 whitespace-nowrap', render: row => (
+                  <span className={`rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(row.status)}`}>
+                    {t(`admin.finance.settlementStatuses.${row.status}`)}
+                  </span>
+                ) }, { key: 'actions', label: 'customer.incidents.actions', render: row => actionMenu(row) }]}
+              />
+            )}
+            {query.tab === 'refunds' && (
+              <FinanceTable
+                key={`refunds:${params}`}
+                rows={resource.data.list}
+                pagination={{ page: query.page, total: resource.data.total, totalPages: resource.data.totalPages, onChange: page => update({ page }) }}
+                label="admin.finance.refundResults"
+                minWidth="min-w-[1250px]"
+                columns={[{ key: 'order', label: 'admin.complaints.columns.order', className: 'min-w-48', render: row => (
+                  <Link
+                    to={`${ADMIN_ROUTES.ORDERS}/${row.orderId}`}
+                    className="font-semibold text-primary"
+                  >
+                    {row.orderCode || t('customer.incidents.relatedOrder')}
+                  </Link>
+                ) }, { key: 'customer', label: 'admin.complaints.customer', className: 'min-w-52', render: row => (
+                  <div className="flex items-center gap-3">
+                    <UserAvatar
+                      avatar={row.customerAvatarUrl}
+                      fullName={row.customerName}
+                      className="size-11"
+                    />
+                    <div className="min-w-0">
+                      <p className="font-semibold">
+                        {row.customerName || '—'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {row.customerEmail || '—'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {row.customerPhoneNumber || '—'}
+                      </p>
+                    </div>
+                  </div>
+                ) }, { key: 'amount', label: 'admin.finance.refundAmount', className: 'min-w-44 whitespace-nowrap', render: row => formatCurrency(row.amount) }, { key: 'reason', label: 'admin.finance.reason', className: 'min-w-72 max-w-96', render: row => (
+                  <p className="whitespace-pre-wrap break-words">
+                    {row.reason}
+                  </p>
+                ) }, { key: 'status', label: 'admin.finance.status', className: 'min-w-44 whitespace-nowrap', render: row => (
+                  <span className={`rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(row.status)}`}>
+                    {t(`admin.finance.refundStatuses.${row.status}`)}
+                  </span>
+                ) }, { key: 'created', label: 'customer.incidents.createdAt', className: 'min-w-48', render: row => formatDateTime(row.createdOn) }, { key: 'actions', label: 'customer.incidents.actions', render: row => actionMenu(row, true) }]}
+              />
+            )}
+            {query.tab === 'settlements' && !resource.data.list.length && query.page > 1 && (
+              <Button
+                variant="outline"
+                onClick={() => update({ page: 1 })}
+              >
+                {t('admin.promotions.firstPage')}
+              </Button>
+            )}
+          </>
+        )}
+      </div>
       {modal && (modal.kind === 'create' ? (
         <SettlementEditor
           merchants={merchants.data || []}

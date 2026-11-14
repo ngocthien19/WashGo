@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import { CUSTOMER_CATALOG, SERVICE_PRICE_RANGES, SERVICE_TYPES } from '~/utils/constants'
@@ -16,7 +16,6 @@ import { buildServiceFilter, initialServiceQuery, readServiceQuery, writeService
 
 export default function ServiceCatalog() {
   const { t } = useTranslation()
-  const resultsRef = useRef(null)
   const [searchParams, setSearchParams] = useSearchParams()
   const query = useMemo(() => readServiceQuery(searchParams), [searchParams])
   const load = useCallback((signal) => customerCatalogApi.getServices(buildServiceFilter(query), signal), [query])
@@ -69,14 +68,8 @@ export default function ServiceCatalog() {
           hasFilters={hasFilters}
         />
         <div className="min-w-0 space-y-6">
-          <CatalogToolbar
-            keyword={query.keyword}
-            label={t('customer.searchServices')}
-            placeholder={t('customer.searchServicesByNameOrCode')}
-            onSearch={(keyword) => setQuery({ ...query, keyword, page: CUSTOMER_CATALOG.INITIAL_PAGE })}
-          />
           <div
-            ref={resultsRef}
+            data-pagination-scope
             className="scroll-mt-[var(--customer-header-offset)]"
             aria-busy={loading}
           >
@@ -123,7 +116,6 @@ export default function ServiceCatalog() {
                 totalPages={data.totalPages}
                 onPageChange={(page) => {
                   setQuery((current) => ({ ...current, page }))
-                  resultsRef.current?.scrollIntoView({ behavior: 'instant', block: 'start' })
                 }}
               />
             )}

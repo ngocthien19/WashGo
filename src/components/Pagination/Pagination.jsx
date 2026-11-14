@@ -3,9 +3,11 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { getPaginationItems } from '~/utils/formats'
 import { cn } from '~/lib/utils'
+import usePaginationScroll from './usePaginationScroll'
 
 export default function Pagination({ currentPage, totalPages, onPageChange, disabled = false, className }) {
   const { t } = useTranslation()
+  const { navigationRef, prepareScroll } = usePaginationScroll(currentPage, disabled)
   const pageCount = Number.isSafeInteger(totalPages) ? Math.max(0, totalPages) : 0
   const page = Math.min(pageCount, Math.max(1, Number.isSafeInteger(currentPage) ? currentPage : 1))
   if (!pageCount) {
@@ -14,12 +16,14 @@ export default function Pagination({ currentPage, totalPages, onPageChange, disa
 
   const changePage = (next) => {
     if (!disabled && next >= 1 && next <= pageCount && next !== page) {
+      prepareScroll(next)
       onPageChange(next)
     }
   }
 
   return (
     <nav
+      ref={navigationRef}
       aria-label={t('common.pagination')}
       className={cn('flex flex-wrap items-center justify-center gap-1.5 sm:gap-2', className)}
     >

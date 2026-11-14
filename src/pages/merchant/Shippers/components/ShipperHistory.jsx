@@ -17,7 +17,10 @@ function HistoryContent({ id, audit }) {
   const resource = useCatalogResource(load)
   const items = audit ? resource.data : resource.data?.list
   return (
-    <div className="mt-4 space-y-4">
+    <div
+      data-pagination-scope
+      className="mt-4 space-y-4"
+    >
       {!audit && (
         <div className="workspace-filters grid gap-3 sm:grid-cols-2">
           {['taskType', 'status'].map((key) => (

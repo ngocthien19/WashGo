@@ -124,7 +124,10 @@ export default function AuditPanel({ personal = false, settings = false, resourc
     onLoadingChange?.(resource.loading)
   }, [onLoadingChange, resource.loading])
   return (
-    <section className="min-w-0 space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <section
+      data-pagination-scope
+      className="min-w-0 space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm"
+    >
       <div className="-mx-5 -mt-5 flex flex-wrap items-center justify-between gap-3 rounded-t-2xl border-b border-primary/15 bg-primary/5 p-5">
         <h2 className="flex items-center gap-2 text-lg font-bold">
           <History className="size-5 text-primary" />

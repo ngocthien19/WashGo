@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ClipboardList, Plus, RefreshCw } from 'lucide-react'
@@ -25,7 +25,6 @@ export default function OrdersPage() {
   const resource = useCatalogResource(load)
   const { data, loading, error, retry } = resource
   const estimates = useOrderEstimates(data?.list)
-  const results = useRef(null)
   const setQuery = (patch) => setParams(writeOrdersQuery({ ...query, ...patch, page: patch.page || 1 }))
   useEffect(() => {
     document.title = `${t('common.myOrders')} | WashGo`
@@ -100,7 +99,7 @@ export default function OrdersPage() {
           </div>
         </div>
         <div
-          ref={results}
+          data-pagination-scope
           aria-busy={loading}
           className="scroll-mt-[var(--customer-header-offset)] space-y-5"
         >
@@ -144,7 +143,6 @@ export default function OrdersPage() {
               totalPages={data.totalPages}
               onPageChange={(page) => {
                 setQuery({ page })
-                results.current?.scrollIntoView({ behavior: 'instant', block: 'start' })
               }}
             />
           )}

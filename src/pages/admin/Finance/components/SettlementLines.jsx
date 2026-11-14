@@ -13,7 +13,10 @@ export default function SettlementLines({ id, initial }) {
   const resource = useCatalogResource(load)
   const data = page === 1 && initial ? initial : resource.data
   return (
-    <section className="min-w-0 space-y-4">
+    <section
+      data-pagination-scope
+      className="min-w-0 space-y-4"
+    >
       <h2 className="rounded-xl border border-primary/15 bg-primary/5 p-4 text-lg font-semibold">
         {t('admin.sync.settlementLines')}
       </h2>

@@ -52,7 +52,10 @@ export default function ComplaintMessages({ incident, onChanged }) {
     }
   }
   return (
-    <section className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <section
+      data-pagination-scope
+      className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm"
+    >
       <header className="-mx-5 -mt-5 flex items-center justify-between gap-3 rounded-t-2xl border-b border-primary/10 bg-primary/5 px-5 py-4">
         <h2 className="text-lg font-semibold">
           {t('customer.sync.messages')}
@@ -86,7 +89,10 @@ export default function ComplaintMessages({ incident, onChanged }) {
           loadingText="merchant.loading"
         />
       ) : (
-        <div className="max-h-[32rem] space-y-3 overflow-y-auto pr-1">
+        <div
+          data-pagination-scroll
+          className="max-h-[32rem] space-y-3 overflow-y-auto pr-1"
+        >
           {resource.data?.list.map(message => (
             <article
               key={message.id}

@@ -150,7 +150,10 @@ export default function AccountSecurity({ revision = 0 }) {
     }
   }
   return (
-    <section className="mt-7 min-w-0 space-y-5 rounded-xl border border-border pb-5">
+    <section
+      data-pagination-scope
+      className="mt-7 min-w-0 space-y-5 rounded-xl border border-border pb-5"
+    >
       <h2 className="flex items-center gap-3 rounded-t-xl border-b border-primary/15 bg-primary/5 p-5 text-lg font-bold">
         <ShieldCheck className="size-5 text-primary" />
         {t('admin.profile.security')}

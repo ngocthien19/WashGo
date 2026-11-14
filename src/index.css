@@ -5,6 +5,16 @@
 
 @custom-variant dark (&:is(.dark *));
 
+[data-pagination-scope],
+[data-pagination-scope] [data-slot="table-header"],
+[data-pagination-header] {
+  scroll-margin-top: var(--pagination-scroll-offset, var(--customer-header-offset, 6rem));
+}
+
+[role="dialog"] {
+  --pagination-scroll-offset: 1rem;
+}
+
 input[type="checkbox"]:not(:disabled),
 label:has(input[type="checkbox"]:not(:disabled)),
 label:has([data-slot="checkbox"]:not([data-disabled])) {

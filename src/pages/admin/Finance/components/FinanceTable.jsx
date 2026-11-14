@@ -10,7 +10,10 @@ export default function FinanceTable({ columns, rows, label, pagination, rowKey 
   const page = pagination?.page || Math.min(localPage, Math.max(1, Math.ceil(rows.length / TAKE)))
   const visible = pagination ? rows : rows.slice((page - 1) * TAKE, page * TAKE)
   return (
-    <div className={embedded ? 'overflow-hidden' : 'overflow-hidden rounded-2xl border border-border bg-card shadow-sm'}>
+    <div
+      data-pagination-scope={pagination ? undefined : ''}
+      className={embedded ? 'overflow-hidden' : 'overflow-hidden rounded-2xl border border-border bg-card shadow-sm'}
+    >
       <p className="border-b border-border p-5">
         <strong className="mr-2 text-2xl">
           {pagination?.total ?? rows.length}

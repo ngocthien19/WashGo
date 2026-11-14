@@ -81,6 +81,7 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
   }
   return (
     <motion.div
+      data-pagination-scope
       initial={reduceMotion ? false : { y: 6 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.18, ease: 'easeOut' }}

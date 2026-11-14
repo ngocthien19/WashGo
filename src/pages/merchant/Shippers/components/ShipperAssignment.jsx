@@ -77,6 +77,7 @@ export default function ShipperAssignment({ onClose }) {
       }}
     >
       <DialogContent
+        data-pagination-scope
         closeLabel="common.close"
         className="max-w-2xl border-primary/15"
       >

@@ -66,10 +66,13 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
           lockers={locker && !lockers.some((item) => item.id === locker.id) ? [...lockers, locker] : lockers}
           selectedId={locker?.id}
           selectionVersion={selectionVersion}
-          onSelect={(id) => id === locker?.id ? setSelectionVersion((value) => value + 1) : choose(id)}
+          onSelect={choose}
           position={position}
         />
-        <div className="min-w-0 space-y-3">
+        <div
+          data-pagination-scope
+          className="min-w-0 space-y-3"
+        >
           {list.loading || list.error || !lockers.length ? (
             <CatalogFeedback
               {...list}
