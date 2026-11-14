@@ -1,4 +1,5 @@
 {
+  "navigationDrawer": { "close": "Đóng menu điều hướng" },
   "notificationMessages": {
     "orderCreated": {
       "customer": {

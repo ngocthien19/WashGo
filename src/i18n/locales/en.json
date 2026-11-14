@@ -1,4 +1,5 @@
 {
+  "navigationDrawer": { "close": "Close navigation menu" },
   "notificationMessages": {
     "orderCreated": {
       "customer": {

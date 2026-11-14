@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -12,6 +12,7 @@ import NotificationBell from '~/components/notifications/NotificationBell'
 import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
 import NavTooltip from './NavTooltip'
+import MobileSidebar from '~/components/navigation/MobileSidebar'
 import { authApi } from '~/apis/auth/authApi'
 import { clearSession } from '~/redux/auth/authSlice'
 import { notify } from '~/utils/notifications'
@@ -26,16 +27,6 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [pending, setPending] = useState(false)
-  useEffect(() => {
-    const desktop = window.matchMedia('(min-width: 1024px)')
-    const changed = () => {
-      if (desktop.matches) {
-        setMobileOpen(false)
-      }
-    }
-    desktop.addEventListener('change', changed)
-    return () => desktop.removeEventListener('change', changed)
-  }, [])
   useLayoutEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [pathname])
@@ -125,6 +116,8 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
                 className="lg:hidden"
                 aria-label={t(`${prefix}.openNavigation`)}
                 aria-expanded={mobileOpen}
+                aria-controls="workspace-mobile-navigation"
+                aria-haspopup="dialog"
                 onClick={() => setMobileOpen(!mobileOpen)}
               >
                 <Menu size={20} />
@@ -188,15 +181,17 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
               </DropdownMenu>
             </div>
           </div>
-          {mobileOpen && (
-            <div className="max-h-[70dvh] overflow-y-auto border-t border-border p-4 lg:hidden">
-              {nav(true)}
-              <div className="mt-4 border-t border-border pt-3">
-                {logoutButton()}
-              </div>
-            </div>
-          )}
         </header>
+        <MobileSidebar
+          open={mobileOpen}
+          onOpenChange={setMobileOpen}
+          title={t(`${prefix}.navigation`)}
+          homeHref={homeHref}
+          id="workspace-mobile-navigation"
+          footer={logoutButton()}
+        >
+          {nav(true)}
+        </MobileSidebar>
         <aside className={`group/sidebar fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border ${admin ? 'bg-indigo-50/70 dark:bg-indigo-950/30' : 'bg-card'} lg:flex ${collapsed ? 'w-20' : admin ? 'w-72' : 'w-64'}`}>
           <div className="flex h-20 shrink-0 items-center justify-center border-b border-border px-4">
             <NavTooltip
