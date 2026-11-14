@@ -23,6 +23,33 @@ The health check uses `/healthz` for frontend readiness, independently of backen
 
 ## Frontend tests
 
+### CI pipeline
+
+`.github/workflows/frontend-ci.yml` follows the backend pipeline: pull requests and pushes to `main`, plus manual runs. It runs a Node22 production build, whitespace/PowerShell syntax checks and ESLint, the complete unit/integration suite, all Playwright tests across three Chromium shards, a full-history Gitleaks scan and npm audit including dev/transitive dependencies. Secrets or High/Critical vulnerabilities fail the security gate; scanner/network errors also fail. Docker packaging waits for every gate and then checks the built image with an isolated mock upstream. It does not publish an image or deploy, matching the backend workflow's current scope.
+
+Actions and the secret-scanner image are pinned to immutable revisions, checkout credentials are not persisted, and the workflow only has `contents: read`. No real accounts, application secrets or BE/database services are needed. Browser API fallthrough is directed to an unused loopback port. Reports (JUnit, browser HTML/traces, redacted security results and Docker logs) are retained as GitHub artifacts for 14 days. The build artifact contains only `dist`.
+
+Run the equivalent checks locally (PowerShell for the `.ps1` commands):
+
+```sh
+npm ci
+npm run lint
+npm run test:ci
+npm run build
+npx playwright install chromium
+npm run test:e2e:ci
+```
+
+```powershell
+./tools/ci/Analyze.ps1
+./tools/ci/Security.ps1
+./tests/ci/Run-DockerSmoke.ps1
+```
+
+Security and Docker smoke require Docker. The latter uses an isolated `washgo-fe-ci-*` project and host port 5380 (override with `-Port`), excludes the developer `.env`, tests SPA refresh/assets/API prefix/query/Bearer/WebSocket forwarding, and removes its containers/network in `finally`. It never contacts the real backend. `-ImageTag <tag> -SkipBuild` checks an already-built image. Local reports live in ignored `tests/ci/results/`, `playwright-report/` and `test-results/`. Set `CI=true` to enable the same Playwright HTML/JUnit reporters, retries and fresh Vite server as GitHub; normal local browser defaults remain unchanged.
+
+The initial lockfile refresh fixes the existing High findings without a forced major upgrade. Low/Moderate findings remain visible in the audit artifact; they are not suppressed. The pipeline has no registry/deployment credentials. Configure a separate deployment target only when deployment is requested.
+
 - `npm test`: unit and integration tests using Vitest, jsdom and React Testing Library.
 - `npm run test:watch`: rerun affected unit/integration tests while editing.
 - `npm run test:e2e`: Playwright browser flows with mocked backend responses; starts Vite on port 5180.

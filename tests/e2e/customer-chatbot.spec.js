@@ -232,6 +232,7 @@ test('mobile dark layout fits, keyboard closes with focus restored, and geolocat
   const launcherBox = await page.getByRole('button', { name: 'Open WashGo assistant', exact: true }).boundingBox()
   await openChat(page)
   const panel = page.getByRole('dialog', { name: 'WashGo assistant', exact: true })
+  await expect(panel).toHaveCSS('transform', 'none')
   const box = await panel.boundingBox()
   expect(box.x).toBeGreaterThanOrEqual(0)
   expect(box.x + box.width).toBeLessThanOrEqual(390)

@@ -6,6 +6,7 @@ const id = 'a0000000-0000-4000-8000-000000000001'
 async function setup(page, options = {}) {
   await merchantSession(page, { role: 'Admin', ...options })
   const promotion = { id, code: 'SAVE20', description: 'Save on your laundry', discountType: 1, discountValue: 20, minOrderAmount: 100000, maxDiscountAmount: 30000, startAt: '2026-11-01T00:00:45Z', endAt: '2026-12-01T00:00:00Z', usageLimit: 100, usageLimitPerCustomer: 1, usedCount: options.used || 0, isActive: true, status: 2 }
+  promotion.canChangeCode = promotion.usedCount === 0
   const state = { promotion, filters: [], writes: [], reads: 0, stale: false, unknown: false, removed: false }
   await page.route('**/api/**', async route => {
     const req = route.request(), url = new URL(req.url()), path = url.pathname.replace(/^\/api/, ''), body = /application\/json/.test(req.headers()['content-type'] || '') ? req.postDataJSON() : undefined

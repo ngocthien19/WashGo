@@ -319,6 +319,8 @@ test('customer edits profile, retries errors and saves an uploaded photo without
     'My profile', 'My orders', 'Manage complaints', 'All notifications', 'Sign out'
   ])
   await page.getByRole('menuitem', { name: 'My profile', exact: true }).click()
+  await expect(page).toHaveURL('/customer/profile')
+  await expect(page.getByRole('heading', { name: 'My profile', exact: true })).toBeVisible()
   await expect(page.getByRole('alert')).toContainText('Unable to load or update your profile')
   await page.getByRole('button', { name: 'Try again', exact: true }).click()
   const form = page.getByRole('form', { name: 'Personal information', exact: true })

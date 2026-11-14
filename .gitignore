@@ -13,7 +13,11 @@ dist-ssr
 test-results
 playwright-report
 coverage
+tests/ci/results/
 *.local
+.env
+.env.*
+!.env.example
 
 # Editor directories and files
 .vscode/*

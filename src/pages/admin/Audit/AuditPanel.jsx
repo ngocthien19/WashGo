@@ -126,7 +126,7 @@ export default function AuditPanel({ personal = false, settings = false, resourc
     if (!autoApply || keyword.trim().length > 200) {
       return
     }
-    const timeout = setTimeout(() => setQuery(current => current.keyword === keyword.trim() ? current : { ...current, keyword: keyword.trim(), page: 1 }), 350)
+    const timeout = setTimeout(() => setQuery(current => (current.keyword || '') === keyword.trim() ? current : { ...current, keyword: keyword.trim(), page: 1 }), 350)
     return () => clearTimeout(timeout)
   }, [autoApply, keyword])
   useEffect(() => {
