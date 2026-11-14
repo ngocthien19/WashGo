@@ -7,7 +7,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: 'list',
+  reporter: process.env.CI ? [['line'], ['html', { open: 'never' }], ['junit', { outputFile: 'tests/ci/results/e2e.xml' }]] : 'list',
   use: {
     baseURL: 'http://localhost:5180',
     browserName: 'chromium',

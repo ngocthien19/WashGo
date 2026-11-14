@@ -1,0 +1,186 @@
+name: Frontend CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+  # Browser tests use API mocks; never fall through to a developer backend.
+  API_PROXY_TARGET: http://127.0.0.1:9
+
+jobs:
+  build:
+    name: Production build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: frontend-dist
+          path: dist/
+          retention-days: 14
+          if-no-files-found: error
+
+  analyze:
+    name: Analyze code
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Whitespace and script syntax
+        shell: pwsh
+        env:
+          CI_BASE_COMMIT: ${{ github.event.pull_request.base.sha }}
+        run: ./tools/ci/Analyze.ps1 -BaseCommit $env:CI_BASE_COMMIT
+      - name: ESLint
+        run: |
+          mkdir -p tests/ci/results
+          npm run lint -- --format json --output-file tests/ci/results/eslint.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: frontend-analysis
+          path: tests/ci/results/eslint.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+  unit:
+    name: Unit and integration tests
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run test:ci
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: frontend-unit-tests
+          path: tests/ci/results/unit.xml
+          retention-days: 14
+          if-no-files-found: ignore
+
+  e2e:
+    name: Browser tests (${{ matrix.shard }}/3)
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run all browser flows with mocked APIs
+        run: npm run test:e2e:ci -- --shard=${{ matrix.shard }}/3
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: frontend-browser-tests-${{ matrix.shard }}
+          path: |
+            playwright-report/
+            test-results/
+            tests/ci/results/e2e.xml
+          retention-days: 14
+          if-no-files-found: ignore
+
+  security:
+    name: Secret and dependency scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Scan Git history and all npm dependencies
+        shell: pwsh
+        run: ./tools/ci/Security.ps1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: frontend-security-redacted
+          path: tests/ci/results/security/
+          retention-days: 14
+          if-no-files-found: ignore
+
+  docker:
+    name: Docker package and proxy smoke
+    needs: [build, analyze, unit, e2e, security]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Build deployable image without publishing
+        env:
+          CI_IMAGE_TAG: washgo-fe:ci-${{ github.sha }}
+        run: |
+          mkdir -p tests/ci/results
+          docker build --tag "$CI_IMAGE_TAG" .
+          docker image inspect "$CI_IMAGE_TAG" --format '{{.Id}}' > tests/ci/results/image-id.txt
+      - name: Isolated SPA, assets, API and WebSocket checks
+        shell: pwsh
+        env:
+          CI_IMAGE_TAG: washgo-fe:ci-${{ github.sha }}
+          CI_PROJECT_NAME: washgo-fe-ci-${{ github.run_id }}-${{ github.run_attempt }}
+        run: ./tests/ci/Run-DockerSmoke.ps1 -ImageTag $env:CI_IMAGE_TAG -ProjectName $env:CI_PROJECT_NAME -SkipBuild
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: frontend-docker-smoke
+          path: |
+            tests/ci/results/image-id.txt
+            tests/ci/results/docker-result.txt
+            tests/ci/results/containers.log
+          retention-days: 14
+          if-no-files-found: ignore
