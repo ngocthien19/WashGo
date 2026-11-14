@@ -1,3 +1,4 @@
+import ScrollSection from '~/components/motion/ScrollSection'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Warehouse } from 'lucide-react'
@@ -42,7 +43,7 @@ function ReturnRequest({ order, onUpdated }) {
     }
   }
   return (
-    <section className="space-y-4 rounded-2xl border border-primary/20 bg-card p-5">
+    <ScrollSection className="space-y-4 rounded-2xl border border-primary/20 bg-card p-5">
       <h2 className="flex items-center gap-3 text-lg font-bold">
         <Warehouse className="text-primary" />
         {t([13, 14, 15].includes(order.status) ? 'storage.customerTitle' : 'storage.history')}
@@ -239,7 +240,7 @@ function ReturnRequest({ order, onUpdated }) {
           onSaved={done}
         />
       )}
-    </section>
+    </ScrollSection>
   )
 }
 export default function StoragePickup(props) {
