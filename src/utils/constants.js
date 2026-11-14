@@ -1,3 +1,14 @@
+export const CHATBOT_CONFIG = {
+  ENDPOINT: '/customer/chatbot/conversations',
+  CONVERSATION_TAKE: 20,
+  MESSAGE_TAKE: 30,
+  MAX_MESSAGE_LENGTH: 2000,
+  TIMEOUT_MS: 65000,
+  PROCESSING: 1,
+  COMPLETED: 2,
+  FAILED: 3
+}
+
 export const AUTH_ROUTES = {
   ROOT: '/',
   LOGIN: '/login',

@@ -6,6 +6,7 @@ import CustomerFooter from './components/CustomerFooter'
 import useCustomerLocation from '~/hooks/useGeolocation'
 import NotificationProvider from '~/components/notifications/NotificationProvider'
 import ServiceTerms from '~/components/customer/terms/ServiceTerms'
+import CustomerChatbot from '~/components/customer/chatbot/CustomerChatbot'
 import { useSelector } from 'react-redux'
 
 export default function CustomerLayout() {
@@ -38,6 +39,10 @@ export default function CustomerLayout() {
               <Outlet context={location} />
             </main>
             <CustomerFooter onOpenTerms={openTerms} />
+            <CustomerChatbot
+              key={userId}
+              onOpenTerms={openTerms}
+            />
           </div>
         )}
       </ServiceTerms>
