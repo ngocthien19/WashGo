@@ -6,7 +6,7 @@ import { Button } from '~/components/ui/button'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import ServiceGrid from '~/components/customer/services/ServiceGrid'
 import { CUSTOMER_ROUTES } from '~/utils/config/constants'
-import SectionGlow from './SectionGlow'
+import SectionGlow from '~/components/customer/SectionGlow/SectionGlow'
 import ScrollAccent from '~/components/motion/ScrollAccent'
 
 export default function FeaturedServices({ data, loading, error, retry }) {

@@ -11,7 +11,7 @@ import { formatNumber } from '~/utils/format/formats'
 import ScrollAccent from '~/components/motion/ScrollAccent'
 import FeedbackCard from './FeedbackCard'
 import AllFeedbackDialog from './AllFeedbackDialog'
-import SectionGlow from './SectionGlow'
+import SectionGlow from '~/components/customer/SectionGlow/SectionGlow'
 
 const loadPreview = signal => customerReviewApi.list({ take: CUSTOMER_REVIEWS.TAKE }, signal)
 
