@@ -321,7 +321,7 @@ test('finance filters are readable and aligned while preview identifies its Merc
   await page.setViewportSize({ width: 1440, height: 1100 })
   const state = await setup(page)
   await page.goto('/admin/finance')
-  const filters = page.getByRole('heading', { name: 'Filters', exact: true }).locator('..')
+  const filters = page.locator('section.workspace-filters')
   await expect(filters.locator('p.tabular-nums')).toHaveClass(/text-muted-foreground/)
   await expect(filters.locator('p.tabular-nums').locator('..')).not.toHaveClass(/bg-primary/)
   expect(await filters.getByRole('combobox', { name: 'Merchant', exact: true }).evaluate(el => getComputedStyle(el).fontSize)).toBe('14px')
@@ -339,7 +339,7 @@ test('finance filters are readable and aligned while preview identifies its Merc
   }
   expect(boxes[0].y).toBeCloseTo(boxes[1].y, 0)
   expect(boxes[1].y).toBeCloseTo(boxes[2].y, 0)
-  const search = filters.getByRole('search').getByRole('combobox')
+  const search = filters.locator('input[name="keyword"]')
   expect(await search.evaluate(el => getComputedStyle(el).fontSize)).toBe('14px')
   await search.fill('bank-reference')
   await search.press('Enter')

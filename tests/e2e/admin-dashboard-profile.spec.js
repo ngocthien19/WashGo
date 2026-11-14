@@ -78,7 +78,7 @@ test('custom dates anchor below the control and persist after reload', async ({ 
   await popup.getByLabel('To date', { exact: true }).fill('2026-11-07')
   await popup.getByRole('button', { name: 'Apply', exact: true }).click()
   await expect(page).toHaveURL(/period=custom/)
-  await expect.poll(() => state.calls.filter((call) => call.path === '/finance/revenue-report').at(-1)?.body).toEqual({ fromDate: 1793466000, toDate: 1794070799 })
+  await expect.poll(() => state.calls.filter((call) => call.path === '/finance/revenue-report').at(-1)?.body).toEqual({ fromDate: 1793466000, toDate: 1794070799, granularity: 'day' })
   await page.reload()
   await expect(page.getByRole('heading', { name: 'System overview', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Custom', exact: true })).toHaveAttribute('aria-pressed', 'true')
