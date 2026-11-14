@@ -76,14 +76,22 @@ async function confirm(dialog) {
 }
 
 test('backend sync: settings history paginates independently and saving carries the reviewed opaque version', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.clock.install({ time: new Date('2026-11-14T09:00:00Z') })
   const state = await setup(page)
   state.history = Array.from({ length: 12 }, (_, i) => ({ id: `10000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`, module: 'SystemSetting', action: `UpdateCommission ${i + 1}`, actorName: 'Test Admin', resourceType: 'SystemSetting', result: 1, occurredAt: '2026-11-11T00:00:00Z', changedFields: [] }))
   await page.goto('/admin/settings')
+  await expect(page.getByRole('heading', { name: 'System settings', exact: true })).toBeVisible()
+  await page.clock.pauseAt(new Date('2026-11-14T10:00:00Z'))
   await page.getByRole('tab', { name: 'Settings history', exact: true }).click()
   await expect(page.getByText('SystemSetting · UpdateCommission 10', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Next page', exact: true }).click()
   await expect(page.getByText('SystemSetting · UpdateCommission 12', { exact: true })).toBeVisible()
+  // Flush the initial empty-keyword debounce after navigating, without a real-time race.
+  await page.clock.runFor(400)
   expect(state.historyQueries.at(-1)).toMatchObject({ page: 2, take: 10 })
+  await expect(page.getByText('SystemSetting · UpdateCommission 12', { exact: true })).toBeVisible()
+  await page.clock.resume()
   await page.getByRole('tab', { name: 'Default commission', exact: true }).click()
   await page.getByLabel('Default commission rate', { exact: true }).fill('0')
   const dialog = await review(page)
