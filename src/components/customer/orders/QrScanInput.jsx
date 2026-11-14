@@ -25,6 +25,7 @@ export default function QrScanInput({ onCode, onClear, disabled, hasCode }) {
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         <Button
+          className="h-11 text-base px-4"
           variant="outline-primary"
           disabled={disabled || reading}
           onClick={() => {
@@ -35,6 +36,7 @@ export default function QrScanInput({ onCode, onClear, disabled, hasCode }) {
           {t(camera ? 'customer.orders.scan.stopCamera' : 'customer.orders.scan.camera')}
         </Button>
         <Button
+          className="h-11 text-base px-4"
           variant="outline-violet"
           disabled={disabled || reading}
           onClick={() => input.current?.click()}

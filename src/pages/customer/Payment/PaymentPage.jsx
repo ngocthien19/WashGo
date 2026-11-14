@@ -51,12 +51,14 @@ export default function PaymentPage() {
               {t('customer.sync.feeReturnHint')}
             </p>
             <Button
+              className="h-11 text-base px-4"
               variant="outline"
               onClick={resource.retry}
             >
               {t('customer.payment.refresh')}
             </Button>
             <Button
+              className="h-11 text-base px-4"
               render={<Link to={CUSTOMER_ROUTES.ORDER_DETAIL.replace(':orderId', order.id)} />}
               nativeButton={false}
             >
@@ -183,6 +185,7 @@ function PaymentCheckout({ order, returned, refresh, pendingRequests }) {
           )}
           <div className="flex flex-wrap gap-3">
             <Button
+              className="h-11 text-base px-4"
               variant="outline"
               disabled={busy}
               onClick={refresh}
@@ -191,6 +194,7 @@ function PaymentCheckout({ order, returned, refresh, pendingRequests }) {
               {t('customer.payment.refresh')}
             </Button>
             <Button
+              className="h-11 text-base px-4"
               variant="outline-violet"
               render={<Link to={CUSTOMER_ROUTES.ORDERS} />}
               nativeButton={false}

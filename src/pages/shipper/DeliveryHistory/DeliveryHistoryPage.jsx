@@ -80,6 +80,9 @@ export default function DeliveryHistoryPage() {
       />
       <section className="workspace-filters space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
         <CatalogToolbar
+          suggestionSource={shipperDeliveryApi.list}
+          suggestionKind="delivery"
+          suggestionFilter={historyFilter(query)}
           embedded
           resetKey={reset}
           keyword={query.keyword}
@@ -157,7 +160,10 @@ export default function DeliveryHistoryPage() {
           {t('shipper.sync.export')}
         </Button>
       </div>
-      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <section
+        data-pagination-scope
+        className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+      >
         <div className="flex flex-wrap items-center justify-between gap-3 p-5">
           <p className="text-sm">
             <strong className="mr-2 text-2xl font-bold tabular-nums">

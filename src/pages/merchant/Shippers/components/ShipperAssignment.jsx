@@ -77,6 +77,7 @@ export default function ShipperAssignment({ onClose }) {
       }}
     >
       <DialogContent
+        data-pagination-scope
         closeLabel="common.close"
         className="max-w-2xl border-primary/15"
       >
@@ -91,6 +92,8 @@ export default function ShipperAssignment({ onClose }) {
         </DialogDescription>
         <div className="workspace-filters mt-5 grid items-center gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-[2fr_1fr]">
           <CatalogToolbar
+            suggestionSource={merchantOrderApi.list}
+            suggestionFilter={{ ...query, take: 6, paymentStatus: query.status === 9 ? 2 : undefined, sortBy: [{ field: 'CreatedOn', isDescending: true }] }}
             resetKey={resetVersion}
             embedded
             keyword={query.keyword}

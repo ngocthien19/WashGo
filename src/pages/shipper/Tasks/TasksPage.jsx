@@ -77,6 +77,9 @@ export default function TasksPage() {
             {t('shipper.tasks.search')}
           </p>
           <CatalogToolbar
+            suggestionSource={shipperTaskApi.list}
+            suggestionKind="task"
+            suggestionFilter={taskFilter(query)}
             embedded
             resetKey={reset}
             keyword={query.keyword}
@@ -143,7 +146,10 @@ export default function TasksPage() {
           {t('shipper.deliveryHistory.invalidUrlDates')}
         </p>
       )}
-      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <section
+        data-pagination-scope
+        className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+      >
         <p className="p-5 text-sm">
           <strong className="mr-2 text-2xl font-bold">
             {loading ? '…' : error ? '—' : formatNumber(data?.total)}

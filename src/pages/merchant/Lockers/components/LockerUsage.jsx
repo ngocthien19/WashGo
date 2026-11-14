@@ -23,7 +23,10 @@ export default function LockerUsage({ locker, api = merchantLockerApi, orderBase
   const load = useCallback((signal) => api.history(locker.id, { page: query.page, take: HISTORY_TAKE, boxId: query.boxId || undefined, ...dateRangeFilter(query) }, signal), [api, locker.id, query])
   const resource = useCatalogResource(load)
   return (
-    <div className="grid gap-5">
+    <div
+      data-pagination-scope
+      className="grid gap-5"
+    >
       <div className="workspace-filters grid gap-4 rounded-2xl border border-border bg-muted/20 p-4">
         <label className="grid gap-2 text-sm text-muted-foreground">
           <span>

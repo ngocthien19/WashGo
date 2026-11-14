@@ -44,7 +44,10 @@ export default function ComplaintsPage() {
   const first = data?.list.length ? (data.currentPage - 1) * (data.pageSize || INCIDENT_CONFIG.PAGE_SIZE) + 1 : 0
   return (
     <div className="min-h-[70dvh] bg-muted/30">
-      <div className="mx-auto max-w-7xl space-y-7 px-4 py-8 sm:px-6 lg:px-8">
+      <div
+        data-pagination-scope
+        className="mx-auto max-w-7xl space-y-7 px-4 py-8 sm:px-6 lg:px-8"
+      >
         <Breadcrumb items={[{ label: t('common.home'), to: CUSTOMER_ROUTES.HOME }, { label: t('customer.incidents.title') }]} />
         <div className="flex flex-wrap items-center justify-between gap-4">
           <SectionHeading
@@ -91,82 +94,84 @@ export default function ComplaintsPage() {
             empty="customer.incidents.empty"
           />
         ) : (
-          <Reveal className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-            <Table
-              aria-label={t('customer.incidents.title')}
-              className="min-w-[1080px]"
-            >
-              <TableHeader>
-                <TableRow>
-                  {['customer.incidents.relatedOrder', 'customer.incidents.type', 'customer.incidents.severity', 'customer.incidents.statusLabel', 'customer.incidents.evidence', 'customer.incidents.compensation', 'customer.incidents.actions'].map((label) => (
-                    <TableHead key={label}>
-                      {t(label)}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.list.map((incident) => (
-                  <TableRow key={incident.id}>
-                    <TableCell className="whitespace-nowrap">
-                      <Link
-                        className={`${TEXT_LINK_STYLES} font-bold`}
-                        to={CUSTOMER_ROUTES.ORDER_DETAIL.replace(':orderId', incident.orderId)}
-                      >
-                        {incident.orderCode}
-                      </Link>
-                      <p className="mt-1.5 text-xs text-muted-foreground">
-                        {formatDateTime(incident.createdOn)}
-                      </p>
-                    </TableCell>
-                    <TableCell className="min-w-56 max-w-72">
-                      <p className="font-semibold">
-                        {t(`customer.incidents.types.${incident.type}`, { defaultValue: t('customer.orders.unknown') })}
-                      </p>
-                      <p className="mt-1.5 line-clamp-2 break-words text-xs leading-6 text-muted-foreground">
-                        {incident.description}
-                      </p>
-                    </TableCell>
-                    <TableCell>
-                      <span className="whitespace-nowrap text-sm font-semibold">
-                        {t(`customer.incidents.severities.${incident.severity}`, { defaultValue: t('customer.orders.unknown') })}
-                      </span>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <IncidentStatusBadge status={incident.status} />
-                    </TableCell>
-                    <TableCell>
-                      <CustomerImageStack urls={incident.imageUrls} />
-                      {!!incident.videoUrls?.length && (
-                        <p className="mt-2 text-xs text-primary">
-                          {t('customer.sync.videoCount', { count: incident.videoUrls.length })}
-                        </p>
-                      )}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {incident.compensationAmount > 0 ? (
-                        <div className="space-y-1">
-                          <p className="font-bold text-emerald-700 dark:text-emerald-300">
-                            {formatCurrency(incident.compensationAmount)}
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {t(`customer.incidents.compensationStatus.${incident.compensationStatus ?? 0}`)}
-                          </p>
-                        </div>
-                      ) : <span className="text-muted-foreground">—</span>}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <IncidentActions
-                        incident={incident}
-                        onSaved={retry}
-                        menu
-                      />
-                    </TableCell>
+          <div data-pagination-header>
+            <Reveal className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+              <Table
+                aria-label={t('customer.incidents.title')}
+                className="min-w-[1080px]"
+              >
+                <TableHeader>
+                  <TableRow>
+                    {['customer.incidents.relatedOrder', 'customer.incidents.type', 'customer.incidents.severity', 'customer.incidents.statusLabel', 'customer.incidents.evidence', 'customer.incidents.compensation', 'customer.incidents.actions'].map((label) => (
+                      <TableHead key={label}>
+                        {t(label)}
+                      </TableHead>
+                    ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Reveal>
+                </TableHeader>
+                <TableBody>
+                  {data.list.map((incident) => (
+                    <TableRow key={incident.id}>
+                      <TableCell className="whitespace-nowrap">
+                        <Link
+                          className={`${TEXT_LINK_STYLES} font-bold`}
+                          to={CUSTOMER_ROUTES.ORDER_DETAIL.replace(':orderId', incident.orderId)}
+                        >
+                          {incident.orderCode}
+                        </Link>
+                        <p className="mt-1.5 text-xs text-muted-foreground">
+                          {formatDateTime(incident.createdOn)}
+                        </p>
+                      </TableCell>
+                      <TableCell className="min-w-56 max-w-72">
+                        <p className="font-semibold">
+                          {t(`customer.incidents.types.${incident.type}`, { defaultValue: t('customer.orders.unknown') })}
+                        </p>
+                        <p className="mt-1.5 line-clamp-2 break-words text-xs leading-6 text-muted-foreground">
+                          {incident.description}
+                        </p>
+                      </TableCell>
+                      <TableCell>
+                        <span className="whitespace-nowrap text-sm font-semibold">
+                          {t(`customer.incidents.severities.${incident.severity}`, { defaultValue: t('customer.orders.unknown') })}
+                        </span>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <IncidentStatusBadge status={incident.status} />
+                      </TableCell>
+                      <TableCell>
+                        <CustomerImageStack urls={incident.imageUrls} />
+                        {!!incident.videoUrls?.length && (
+                          <p className="mt-2 text-xs text-primary">
+                            {t('customer.sync.videoCount', { count: incident.videoUrls.length })}
+                          </p>
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {incident.compensationAmount > 0 ? (
+                          <div className="space-y-1">
+                            <p className="font-bold text-emerald-700 dark:text-emerald-300">
+                              {formatCurrency(incident.compensationAmount)}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {t(`customer.incidents.compensationStatus.${incident.compensationStatus ?? 0}`)}
+                            </p>
+                          </div>
+                        ) : <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <IncidentActions
+                          incident={incident}
+                          onSaved={retry}
+                          menu
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Reveal>
+          </div>
         )}
         {!loading && !error && data?.totalPages > 0 && (
           <Pagination

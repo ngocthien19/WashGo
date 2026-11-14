@@ -35,7 +35,7 @@ export default function OrderReceiptPage() {
           {order && <ReceiptDownload orderId={orderId} />}
           {order && (
             <Button
-              className="h-11 rounded-xl px-4"
+              className="h-12 rounded-xl px-4 text-base"
               onClick={() => window.print()}
             >
               <Printer size={16} />

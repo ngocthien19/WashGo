@@ -13,7 +13,7 @@ export default function ServiceSort({ value, onChange }) {
         render={(
           <Button
             variant="outline"
-            className="h-10 min-w-44 justify-between gap-3 rounded-xl"
+            className="h-11 min-w-44 justify-between gap-3 rounded-xl text-base px-4"
             aria-label={t('customer.serviceCatalog.sortServices')}
           />
         )}

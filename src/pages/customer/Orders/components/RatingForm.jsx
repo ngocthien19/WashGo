@@ -172,6 +172,7 @@ export default function RatingForm({ orderId, onSaved, onBusy, onClose }) {
         </FormError>
         {uncertain && (
           <Button
+            className="h-11 text-base px-4"
             variant="outline"
             onClick={checkSaved}
             disabled={busy}
@@ -184,7 +185,7 @@ export default function RatingForm({ orderId, onSaved, onBusy, onClose }) {
       <div className="flex shrink-0 justify-end gap-2 border-t border-border bg-muted/25 px-5 py-4 sm:px-6">
         <Button
           variant="secondary"
-          className="h-11 rounded-xl px-4"
+          className="h-12 rounded-xl px-4 text-base"
           onClick={onClose}
           disabled={busy}
         >
@@ -192,7 +193,7 @@ export default function RatingForm({ orderId, onSaved, onBusy, onClose }) {
         </Button>
         <Button
           type="submit"
-          className="h-11 rounded-xl px-4"
+          className="h-12 rounded-xl px-4 text-base"
           disabled={busy || uncertain}
         >
           <Send size={16} />

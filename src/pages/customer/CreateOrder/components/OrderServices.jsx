@@ -1,7 +1,9 @@
+import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
+import { catalogImages } from '~/apis/customer/customerCatalogApi'
 import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Shirt, Trash2, Info, ListChecks, ChevronDown } from 'lucide-react'
+import { Trash2, Info, ListChecks, ChevronDown, Clock3 } from 'lucide-react'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import CatalogToolbar from '~/components/customer/catalog/CatalogToolbar'
@@ -27,8 +29,12 @@ export default function OrderServices({ items, onChange }) {
   }
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[1fr_22rem]">
-      <div className="min-w-0 space-y-5">
+      <div
+        data-pagination-scope
+        className="min-w-0 space-y-5"
+      >
         <CatalogToolbar
+          suggestionType="service"
           keyword={query.keyword}
           onSearch={(keyword) => setQuery({ keyword, page: 1 })}
           label={t('customer.order.findServices')}
@@ -45,7 +51,7 @@ export default function OrderServices({ items, onChange }) {
             retry={retry}
           />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {data.list.map((service) => (
               <article
                 key={service.id}
@@ -85,13 +91,23 @@ export default function OrderServices({ items, onChange }) {
                 {selected.has(service.id) && (
                   <SelectionBadge />
                 )}
-                <Shirt className="order-choice-primary mb-4 size-10 rounded-xl bg-primary/10 p-2 text-primary" />
+                <ResourceThumbnail
+                  urls={catalogImages(service)}
+                  name={service.name}
+                  className="mb-4 aspect-square h-auto w-full"
+                />
                 <h2 className="line-clamp-2 pr-6 text-base font-semibold [overflow-wrap:anywhere]">
                   {service.name}
                 </h2>
                 <p className="order-choice-muted mt-2 line-clamp-2 text-xs leading-6 text-muted-foreground">
-                  {service.description || t('customer.order.serviceFallback')}
+                  {service.description || service.unit}
                 </p>
+                {service.estimatedDurationHours > 0 && (
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Clock3 className="size-4" />
+                    {t('customer.estimatedHours', { estimatedDurationHours: service.estimatedDurationHours })}
+                  </p>
+                )}
                 <p className="text-base order-choice-primary mt-5 font-semibold text-primary">
                   {formatCurrency(isWeightService(service) ? service.unitPrice : service.pricePerItem ?? service.unitPrice)}
                   <span className="order-choice-muted ml-1 text-xs font-normal text-muted-foreground">
@@ -133,7 +149,11 @@ export default function OrderServices({ items, onChange }) {
               className="space-y-4 rounded-xl border border-border/70 bg-muted/20 p-4"
             >
               <div className="flex items-start gap-2.5">
-                <Shirt className="size-8 shrink-0 rounded-lg bg-primary/8 p-1.5 text-primary" />
+                <ResourceThumbnail
+                  urls={catalogImages(service)}
+                  name={service.name}
+                  className="size-12"
+                />
                 <span className="min-w-0 flex-1 line-clamp-2 text-base font-medium leading-6 [overflow-wrap:anywhere]">
                   {service.name}
                 </span>

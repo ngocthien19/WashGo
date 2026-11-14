@@ -102,6 +102,8 @@ export default function OrdersPage() {
             {t('merchant.orders.search')}
           </p>
           <CatalogToolbar
+            suggestionSource={merchantOrderApi.list}
+            suggestionFilter={buildMerchantOrdersFilter(query)}
             embedded
             keyword={query.keyword}
             label={t('merchant.orders.search')}
@@ -138,6 +140,7 @@ export default function OrdersPage() {
         />
       </section>
       <section
+        data-pagination-scope
         className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
         aria-busy={loading}
       >

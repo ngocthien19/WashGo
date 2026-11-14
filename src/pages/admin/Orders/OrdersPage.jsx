@@ -169,6 +169,8 @@ export default function OrdersPage() {
                 {t('admin.orderManagement.search')}
               </p>
               <CatalogToolbar
+                suggestionSource={waiting ? adminOrderApi.waiting : adminOrderApi.list}
+                suggestionFilter={waiting ? waitingFilter(query) : listFilter(query)}
                 embedded
                 keyword={query.keyword}
                 label={t('admin.orderManagement.search')}
@@ -257,7 +259,10 @@ export default function OrdersPage() {
           </div>
         </div>
       )}
-      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <section
+        data-pagination-scope
+        className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+      >
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border p-5">
           <p>
             <strong className="mr-2 text-2xl tabular-nums">

@@ -113,6 +113,9 @@ export default function ServicesPage() {
                 {t('merchant.services.search')}
               </p>
               <CatalogToolbar
+                suggestionSource={merchantServiceApi[query.tab]}
+                suggestionFilter={serviceFilter(query)}
+                suggestionKind="service"
                 embedded
                 keyword={query.keyword}
                 label={t('merchant.services.search')}
@@ -153,6 +156,7 @@ export default function ServicesPage() {
             </div>
           </section>
           <section
+            data-pagination-scope
             className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
             aria-busy={loading}
           >

@@ -18,7 +18,10 @@ export default function AdminAlerts({ revision }) {
   const resource = useCatalogResource(useCallback(signal => adminWorkspaceApi.alerts({ page, take, type: type || undefined, severity: severity || undefined }, signal), [page, type, severity]), revision)
   const value = resource.data
   return (
-    <section className="overflow-hidden rounded-2xl border border-amber-500/20 bg-card shadow-sm">
+    <section
+      data-pagination-scope
+      className="overflow-hidden rounded-2xl border border-amber-500/20 bg-card shadow-sm"
+    >
       <h2 className="flex items-center gap-3 border-b border-primary/15 bg-primary/5 p-5 text-lg font-bold">
         <TriangleAlert className="size-5 shrink-0 text-amber-600" />
         {t('admin.workspaceSync.alerts')}

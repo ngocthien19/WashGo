@@ -28,7 +28,10 @@ export default function SlaAlerts({ revision }) {
   }, [page, alertType]), revision)
   const alerts = resource.data
   return (
-    <section className="overflow-hidden rounded-2xl border border-amber-500/25 bg-card shadow-sm">
+    <section
+      data-pagination-scope
+      className="overflow-hidden rounded-2xl border border-amber-500/25 bg-card shadow-sm"
+    >
       <h2 className="flex items-center gap-3 border-b border-amber-500/15 bg-amber-500/5 p-5 text-lg font-bold">
         <TriangleAlert
           size={21}
@@ -117,7 +120,10 @@ export default function SlaAlerts({ revision }) {
                   {t('merchant.sync.noAlerts')}
                 </p>
               ) : (
-                <ul className="max-h-96 divide-y divide-border overflow-y-auto">
+                <ul
+                  data-pagination-scroll
+                  className="max-h-96 divide-y divide-border overflow-y-auto"
+                >
                   {alerts.priorityOrders.map((item) => (
                     <li
                       key={`${item.orderId}-${item.alertType}`}

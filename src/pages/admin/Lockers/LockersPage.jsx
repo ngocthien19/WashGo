@@ -107,6 +107,9 @@ export default function LockersPage() {
             {t('merchant.lockers.search')}
           </p>
           <CatalogToolbar
+            suggestionSource={adminLockerApi.list}
+            suggestionFilter={adminLockerFilter(query)}
+            suggestionKind="locker"
             embedded
             keyword={query.keyword}
             label={t('merchant.lockers.search')}
@@ -187,6 +190,7 @@ export default function LockersPage() {
         </div>
       )}
       <section
+        data-pagination-scope
         className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
         aria-busy={loading}
       >

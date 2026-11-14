@@ -255,6 +255,7 @@ export default function LockerMap({ lockers, selectedId, selectionVersion = 0, o
             {t('customer.theMapBackgroundCouldNotLoadTryAgainOr')}
           </p>
           <Button
+            className="h-11 text-base px-4"
             variant="outline"
             onClick={() => {
               loaded.current = false

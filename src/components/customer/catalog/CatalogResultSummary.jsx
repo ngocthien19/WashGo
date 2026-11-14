@@ -3,7 +3,7 @@ import { X } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { formatNumber } from '~/utils/formats'
 
-export default function CatalogResultSummary({ title, count, range, sortControl, actions, icon: Icon, filters = [], onRemoveFilter, onClearFilters }) {
+export default function CatalogResultSummary({ title, count, range, sortControl, searchControl, actions, icon: Icon, filters = [], onRemoveFilter, onClearFilters }) {
   const { t } = useTranslation()
   return (
     <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm">
@@ -33,6 +33,11 @@ export default function CatalogResultSummary({ title, count, range, sortControl,
             {title}
           </p>
         </div>
+        {searchControl && (
+          <div className="min-w-0 basis-full sm:basis-52 sm:flex-1">
+            {searchControl}
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm">
           {actions}
           {sortControl && (
@@ -77,7 +82,7 @@ export default function CatalogResultSummary({ title, count, range, sortControl,
           ))}
           <Button
             variant="destructive"
-            className="h-8 rounded-full px-3"
+            className="h-11 rounded-full px-3 text-base"
             onClick={onClearFilters}
           >
             {t('customer.clearAllFilters')}

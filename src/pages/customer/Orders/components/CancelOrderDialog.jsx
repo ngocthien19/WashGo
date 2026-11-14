@@ -131,6 +131,7 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled }) {
           </FormError>
           <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
             <Button
+              className="h-12 text-base px-4"
               variant="secondary"
               disabled={isSubmitting}
               onClick={onClose}
@@ -138,6 +139,7 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled }) {
               {t('common.close')}
             </Button>
             <Button
+              className="h-12 text-base px-4"
               type="submit"
               variant="destructive"
               disabled={isSubmitting || unknown || quote.loading || !!quote.error || !quote.data?.canCancel}

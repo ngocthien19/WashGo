@@ -91,7 +91,7 @@ export default function OrderCard({ order, estimate }) {
                 render={<Link to={CUSTOMER_ROUTES.ORDER_DETAIL.replace(':orderId', order.id)} />}
                 nativeButton={false}
                 variant="secondary"
-                className="h-10 rounded-xl"
+                className="h-11 rounded-xl text-base px-4"
               >
                 {t('customer.orders.details')}
               </Button>
@@ -99,7 +99,7 @@ export default function OrderCard({ order, estimate }) {
                 <Button
                   render={<Link to={CUSTOMER_ROUTES.PAYMENT.replace(':orderId', order.id)} />}
                   nativeButton={false}
-                  className="h-10 rounded-xl"
+                  className="h-11 rounded-xl text-base px-4"
                 >
                   {t('customer.orders.pay')}
                 </Button>

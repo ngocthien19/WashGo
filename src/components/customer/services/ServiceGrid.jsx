@@ -1,3 +1,5 @@
+import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
+import { catalogImages } from '~/apis/customer/customerCatalogApi'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { ArrowRight, Clock3 } from 'lucide-react'
@@ -5,11 +7,10 @@ import { Button } from '~/components/ui/button'
 import Reveal from '~/components/motion/Reveal'
 import { SERVICE_TYPES, UI_MOTION } from '~/utils/constants'
 import { formatCurrency } from '~/utils/formats'
-import ServiceIcon from './ServiceIcon'
 import ServiceDetails from './ServiceDetails'
 import { cn } from '~/lib/utils'
 
-export default function ServiceGrid({ services, className }) {
+export default function ServiceGrid({ services, className, compact = false }) {
   const { t } = useTranslation()
   const [selectedId, setSelectedId] = useState(null)
 
@@ -22,13 +23,15 @@ export default function ServiceGrid({ services, className }) {
             key={service.id}
             delay={index * UI_MOTION.STAGGER}
             lift
-            className="group relative flex min-w-0 flex-col overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-sm transition-[border-color,box-shadow] delay-0 duration-200 ease-in-out hover:border-primary/45 hover:shadow-xl hover:shadow-primary/7 motion-reduce:transition-none sm:p-7"
+            className={cn('group relative flex min-w-0 flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-[border-color,box-shadow] delay-0 duration-200 ease-in-out hover:border-primary/45 hover:shadow-xl hover:shadow-primary/7 motion-reduce:transition-none', compact ? 'p-5' : 'p-6 sm:p-7')}
           >
             <div className="pointer-events-none absolute -right-10 -top-10 size-36 rounded-full bg-primary/5" />
-            <div className="relative mb-6 flex items-center justify-between gap-3">
-              <span className="grid size-14 shrink-0 place-items-center rounded-2xl border border-primary/15 bg-primary/10 text-primary">
-                <ServiceIcon type={service.serviceType} />
-              </span>
+            <div className={cn('relative flex flex-col items-start gap-3', compact ? 'mb-4' : 'mb-5')}>
+              <ResourceThumbnail
+                urls={catalogImages(service)}
+                name={service.name}
+                className={cn('aspect-square h-auto w-full rounded-2xl', compact && 'max-w-56 self-center')}
+              />
               <span className="rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
                 {t(SERVICE_TYPES.find((type) => type.value === String(service.serviceType))?.label || 'customer.laundry')}
               </span>
@@ -36,14 +39,16 @@ export default function ServiceGrid({ services, className }) {
             <h3 className="line-clamp-2 break-words text-lg font-bold leading-7 [overflow-wrap:anywhere]">
               {service.name}
             </h3>
-            <p className="mt-2 line-clamp-2 min-h-12 break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">
-              {service.description || t('customer.viewDetailsToLearnMoreAboutThisService')}
-            </p>
+            {service.description && (
+              <p className="mt-2 line-clamp-2 break-words text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">
+                {service.description}
+              </p>
+            )}
             <p className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
               <Clock3 size={14} />
               {service.estimatedDurationHours > 0 ? t('customer.estimatedHours', { estimatedDurationHours: service.estimatedDurationHours }) : t('customer.durationNotAvailableYet')}
             </p>
-            <div className="mt-6 flex flex-1 items-end justify-between gap-3 border-t border-border/70 pt-5">
+            <div className={cn('flex flex-1 items-end justify-between gap-3 border-t border-border/70', compact ? 'mt-4 pt-4' : 'mt-6 pt-5')}>
               <p className="min-w-0 break-words text-lg font-bold text-primary">
                 {formatCurrency(service.unitPrice)}
                 <span className="text-xs font-normal text-muted-foreground">

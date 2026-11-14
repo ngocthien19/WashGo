@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import { MapPin } from 'lucide-react'
 import { getLockerMapLink } from '~/utils/formats'
+import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 
 export default function ReturnLockerInfo({ order }) {
   const { t } = useTranslation()
   if (order.status === 99 && order.cancelledGoodsStatus === 1) {
-    order = { ...order, returnLockerName: order.lockerName, returnBoxNumber: order.boxNumber, returnLockerAddress: order.lockerAddress, returnLockerLatitude: order.lockerLatitude, returnLockerLongitude: order.lockerLongitude }
+    order = { ...order, returnLockerName: order.lockerName, returnLockerImageUrls: order.lockerImageUrls, returnBoxNumber: order.boxNumber, returnLockerAddress: order.lockerAddress, returnLockerLatitude: order.lockerLatitude, returnLockerLongitude: order.lockerLongitude }
   }
   if (!order.returnLockerName) {
     return null
@@ -20,15 +21,23 @@ export default function ReturnLockerInfo({ order }) {
         />
         {t('customer.sync.returnLocker')}
       </h3>
-      <p className="font-semibold">
-        {order.returnLockerName}
-        {order.returnBoxNumber ? ` · ${t('customer.order.box', { number: order.returnBoxNumber })}` : ''}
-      </p>
-      {order.returnLockerAddress && (
-        <p className="text-muted-foreground">
-          {order.returnLockerAddress}
-        </p>
-      )}
+      <div className="flex items-start gap-3">
+        <ResourceThumbnail
+          urls={order.returnLockerImageUrls}
+          name={order.returnLockerName}
+        />
+        <div className="min-w-0 space-y-2">
+          <p className="break-words font-semibold">
+            {order.returnLockerName}
+            {order.returnBoxNumber ? ` · ${t('customer.order.box', { number: order.returnBoxNumber })}` : ''}
+          </p>
+          {order.returnLockerAddress && (
+            <p className="break-words leading-6 text-muted-foreground">
+              {order.returnLockerAddress}
+            </p>
+          )}
+        </div>
+      </div>
       {href && (
         <a
           href={href}

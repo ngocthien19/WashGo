@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CreditCard } from 'lucide-react'
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 import { customerPaymentApi } from '~/apis/customer/customerPaymentApi'
@@ -52,27 +52,24 @@ export default function FeePaymentAction({ order }) {
           }}
         >
           <DialogContent
-            className="max-w-lg"
+            className="max-w-lg p-0 sm:p-0"
             closeLabel="common.close"
           >
-            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
-              <CreditCard className="text-primary" />
-              {t(title)}
-            </DialogTitle>
-            <DialogDescription className="mt-3 text-base leading-6">
-              {order.orderCode}
-              {' '}
-              ·
-              {' '}
-              {t('customer.sync.feeServerAmount')}
-            </DialogDescription>
-            {cancellation && (
-              <p className="mt-4 text-lg font-bold text-primary">
-                {formatCurrency(order.cancellationFeeOutstanding)}
-              </p>
-            )}
+            <DialogHeader className="mx-0 mt-0 px-6 pr-14 sm:mx-0 sm:mt-0 sm:px-6">
+              <DialogTitle className="flex items-center gap-3 text-xl font-bold">
+                <CreditCard className="text-primary" />
+                {t(title)}
+              </DialogTitle>
+              <DialogDescription className="mt-3 text-base leading-6 text-muted-foreground">
+                {order.orderCode}
+                {' '}
+                ·
+                {' '}
+                {t('customer.sync.feeServerAmount')}
+              </DialogDescription>
+            </DialogHeader>
             <form
-              className="mt-5 grid gap-5"
+              className="grid gap-5 p-6"
               onSubmit={async (event) => {
                 event.preventDefault()
                 if (lock.current || unknown) {
@@ -97,6 +94,11 @@ export default function FeePaymentAction({ order }) {
                 }
               }}
             >
+              {cancellation && (
+                <p className="text-xl font-bold text-primary">
+                  {formatCurrency(order.cancellationFeeOutstanding)}
+                </p>
+              )}
               <PaymentMethodPicker
                 value={method}
                 onChange={setMethod}
@@ -106,10 +108,11 @@ export default function FeePaymentAction({ order }) {
               <FormError>
                 {error}
               </FormError>
-              <div className="flex justify-end gap-3">
+              <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
                 <Button
                   type="button"
                   variant="secondary"
+                  className="h-12 rounded-xl px-5 text-base font-semibold"
                   disabled={busy}
                   onClick={() => setOpen(false)}
                 >
@@ -117,6 +120,7 @@ export default function FeePaymentAction({ order }) {
                 </Button>
                 <Button
                   type="submit"
+                  className="h-12 rounded-xl px-5 text-base font-semibold"
                   disabled={busy || unknown}
                 >
                   {t('customer.payment.pay')}

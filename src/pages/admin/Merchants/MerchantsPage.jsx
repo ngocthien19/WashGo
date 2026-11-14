@@ -197,6 +197,9 @@ export default function MerchantsPage() {
                 {t('admin.merchants.searchLabel')}
               </p>
               <CatalogToolbar
+                suggestionSource={adminMerchantApi[merchants ? 'list' : 'requests']}
+                suggestionFilter={merchantFilter(query)}
+                suggestionKind="merchant"
                 embedded
                 keyword={query.keyword}
                 onSearch={(keyword) => update({ keyword })}
@@ -269,7 +272,10 @@ export default function MerchantsPage() {
           </div>
         )}
       </section>
-      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <section
+        data-pagination-scope
+        className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+      >
         <div className="border-b border-border px-5 py-5 text-base">
           <strong className="mr-2 text-2xl tabular-nums">
             {resource.data ? formatNumber(resource.data.total) : '—'}

@@ -340,6 +340,7 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
                 </Button>
                 {expired ? (
                   <Button
+                    className="h-11 text-base px-4"
                     variant="outline"
                     onClick={() => {
                       setSession(null)

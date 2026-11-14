@@ -123,6 +123,8 @@ export default function PromotionsPage() {
             {t('admin.promotions.search')}
           </p>
           <CatalogToolbar
+            suggestionSource={adminPromotionApi.list}
+            suggestionFilter={filter(query)}
             resetKey={resetVersion}
             embedded
             label={t('admin.promotions.search')}
@@ -188,6 +190,7 @@ export default function PromotionsPage() {
         </div>
       )}
       <section
+        data-pagination-scope
         className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
         aria-busy={resource.loading}
       >

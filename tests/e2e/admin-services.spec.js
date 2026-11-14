@@ -2,6 +2,22 @@ import { adminUpgradeMocks } from './helpers/adminUpgradeMocks'
 import { expect, test } from '@playwright/test'
 import { merchantSession } from './helpers/merchantSession'
 const id = 'a0000000-0000-4000-8000-000000000001', proposalId = 'b0000000-0000-4000-8000-000000000001', merchantId = 'c0000000-0000-4000-8000-000000000001'
+
+test('Admin search suggestions keep catalog/proposal scope and highlight matching fields', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto('/admin/services')
+  const search = page.getByRole('search').getByRole('combobox')
+  await search.fill('svc_test')
+  const option = page.getByRole('option').filter({ hasText: 'Everyday wash' })
+  await expect(option).toBeVisible()
+  await expect(option.getByText('SVC_TEST', { exact: true })).toHaveCSS('font-weight', '700')
+  await expect(option).toContainText('50,000')
+  await expect.poll(() => state.filters.at(-1)?.keyword).toBe('svc_test')
+  await search.press('ArrowDown')
+  await search.press('Enter')
+  await expect(page).toHaveURL(/keyword=Everyday\+wash/)
+  expect(state.writes).toHaveLength(0)
+})
 async function setup(page, options = {}) {
   await merchantSession(page, { role: 'Admin', ...options })
   const service = { id, merchantId, code: 'SVC_TEST', name: 'Everyday wash', description: 'Careful cleaning', unitPrice: 50000, pricePerKg: null, pricePerItem: null, estimatedDurationHours: 24, serviceType: 1, unit: 'kg', isActive: true, approvalStatus: 2, imageUrls: [] }

@@ -5,6 +5,41 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@keyframes chat-halo {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 28%, transparent); }
+  70% { box-shadow: 0 0 0 22px transparent; }
+}
+
+@keyframes chat-wiggle {
+  0%, 24%, 100% { transform: rotate(0); }
+  4%, 12%, 20% { transform: rotate(-12deg); }
+  8%, 16% { transform: rotate(12deg); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .chat-launcher-highlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    animation: chat-halo 2.8s ease-out infinite;
+  }
+  .chat-launcher-highlight > svg {
+    animation: chat-wiggle 3.6s ease-in-out infinite;
+  }
+}
+
+[data-pagination-scope],
+[data-pagination-scope] [data-slot="table-header"],
+[data-pagination-header] {
+  scroll-margin-top: var(--pagination-scroll-offset, var(--customer-header-offset, 6rem));
+}
+
+[role="dialog"] {
+  --pagination-scroll-offset: 1rem;
+}
+
 input[type="checkbox"]:not(:disabled),
 label:has(input[type="checkbox"]:not(:disabled)),
 label:has([data-slot="checkbox"]:not([data-disabled])) {

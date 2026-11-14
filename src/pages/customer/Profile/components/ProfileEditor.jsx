@@ -133,14 +133,14 @@ export default function ProfileEditor({ profile }) {
                 <ContactRound className="size-5 text-primary" />
                 {t('customer.profile.formTitle')}
               </h2>
-              <p className="mt-1 text-xs leading-6 text-muted-foreground">
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 {t('customer.profile.formHint')}
               </p>
             </div>
             <fieldset
               disabled={isSubmitting}
               aria-busy={isSubmitting}
-              className="min-w-0 space-y-3 p-5 sm:p-7"
+              className="min-w-0 space-y-3 p-5 text-base [&_input]:text-base [&_label]:text-base [&_p]:text-sm sm:p-7"
             >
               <div className="grid gap-x-5 sm:grid-cols-2">
                 <FormField
@@ -194,7 +194,7 @@ export default function ProfileEditor({ profile }) {
                   <Button
                     type="button"
                     variant="outline-violet"
-                    className="h-9 rounded-xl px-3"
+                    className="h-10 rounded-xl px-3 text-base"
                     onClick={() => setMapOpen(true)}
                   >
                     <MapPinned size={16} />

@@ -144,6 +144,8 @@ export default function ReviewsPage() {
               {t('admin.reviews.search')}
             </p>
             <CatalogToolbar
+              suggestionSource={adminReviewApi.list}
+              suggestionFilter={reviewFilter(query)}
               resetKey={resetVersion}
               embedded
               keyword={query.keyword}
@@ -226,6 +228,7 @@ export default function ReviewsPage() {
         </div>
       )}
       <section
+        data-pagination-scope
         className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
         aria-busy={resource.loading}
       >

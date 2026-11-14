@@ -20,7 +20,10 @@ export default function PartnerReviews() {
   const resource = useCatalogResource(useCallback(signal => merchantReviewApi.list({ ...dateRangeFilter(query), keyword: query.keyword || undefined, stars: query.stars ? Number(query.stars) : undefined, page: query.page, take: 5 }, signal), [query]))
   const update = patch => setQuery(current => ({ ...current, ...patch, page: 1 }))
   return (
-    <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+    <section
+      data-pagination-scope
+      className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+    >
       <h2 className="flex items-center gap-3 border-b border-primary/15 bg-primary/5 p-5 text-lg font-bold">
         <Star className="text-primary" />
         {t('merchant.reviewSync.title')}
@@ -29,6 +32,8 @@ export default function PartnerReviews() {
         <div className="workspace-filters space-y-4 rounded-xl border border-border p-4">
           <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
             <CatalogToolbar
+              suggestionSource={merchantReviewApi.list}
+              suggestionFilter={{ ...dateRangeFilter(query), stars: query.stars ? Number(query.stars) : undefined, take: 5 }}
               embedded
               resetKey={reset}
               keyword={query.keyword}

@@ -100,6 +100,9 @@ export default function ShippersPage() {
             {t('merchant.shippers.search')}
           </p>
           <CatalogToolbar
+            suggestionSource={merchantShipperApi.list}
+            suggestionFilter={shipperFilter(query)}
+            suggestionKind="shipper"
             embedded
             keyword={query.keyword}
             label={t('merchant.shippers.search')}
@@ -180,6 +183,7 @@ export default function ShippersPage() {
         </div>
       )}
       <section
+        data-pagination-scope
         className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
         aria-busy={loading}
       >

@@ -18,7 +18,10 @@ export default function PromotionUsages({ id }) {
   const load = useCallback(signal => adminPromotionApi.usages(id, { page, take: 10, ...dateRangeFilter(range), isReverted: reverted === '' ? undefined : reverted === 'true' }, signal), [id, page, range, reverted])
   const resource = useCatalogResource(load)
   return (
-    <section className="space-y-4 rounded-2xl border border-border bg-card p-5">
+    <section
+      data-pagination-scope
+      className="space-y-4 rounded-2xl border border-border bg-card p-5"
+    >
       <h2 className="-mx-5 -mt-5 flex items-center gap-3 rounded-t-2xl border-b border-primary/15 bg-primary/5 p-5 text-lg font-semibold">
         <History className="size-5 text-primary" />
         {t('admin.sync.promotionUsages')}

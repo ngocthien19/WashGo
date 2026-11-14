@@ -1,6 +1,29 @@
 import { test, expect } from '@playwright/test'
 import { setupNotifications as setup, orderId, notificationId } from './helpers/notificationSession'
 
+test('customer notification search suggests every matching title/content and reports filtered totals', async ({ page }) => {
+  const state = await setup(page)
+  state.items = Array.from({ length: 11 }, (_, index) => ({ ...state.items[0], id: `suggestion-${index}`, title: `Locker update ${index + 1}`, content: 'Collect items at Ben Thanh Locker.', linkType: 'incident', isRead: true }))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/customer/notifications')
+  await expect(page.getByRole('status')).toContainText('11 notifications found')
+  const input = page.getByRole('combobox', { name: 'Search notification titles or content...', exact: true })
+  await input.fill('BEN THANH')
+  await expect(page.getByRole('option')).toHaveCount(11)
+  const option = page.getByRole('option').filter({ hasText: 'Locker update 10' })
+  await option.scrollIntoViewIfNeeded()
+  await expect(option.getByText('Collect items at Ben Thanh Locker.', { exact: true })).toHaveCSS('font-weight', '700')
+  await expect(option.getByText('Locker update 10', { exact: true })).toHaveCSS('font-weight', '400')
+  await option.click()
+  await expect(page).toHaveURL(/keyword=Locker\+update\+10/)
+  await expect(page.getByRole('status')).toContainText('1 notification found')
+  await input.fill('No matching notification')
+  await input.press('Enter')
+  await expect(page.getByRole('status').filter({ hasText: '0 notifications found' })).toBeVisible()
+  expect(state.writes).toHaveLength(0)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
+
 test('bell popover anchors below the header and read/delete stay synchronized', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/customer/notifications')

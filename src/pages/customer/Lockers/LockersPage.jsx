@@ -1,4 +1,5 @@
 import Breadcrumb from '~/components/Breadcrumb/Breadcrumb'
+import NearbyLockers from '~/pages/customer/Home/components/NearbyLockers'
 import { useTranslation } from 'react-i18next'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOutletContext, useSearchParams } from 'react-router-dom'
@@ -22,7 +23,6 @@ export default function LockersPage() {
   const { position, locating, locationError, requestLocation } = useOutletContext()
   const [sort, setSort] = useState(position ? 'nearest' : 'name')
   const [params, setParams] = useSearchParams()
-  const resultsRef = useRef(null)
   const active = useRef(true)
   const query = useMemo(() => {
     const page = Number(params.get('page'))
@@ -89,7 +89,7 @@ export default function LockersPage() {
         render={(
           <Button
             variant="outline"
-            className="group h-10 min-w-36 justify-between rounded-xl"
+            className="group h-11 min-w-36 justify-between rounded-xl text-base px-4"
           />
         )}
         aria-label={t('customer.sortLockers')}
@@ -149,6 +149,8 @@ export default function LockersPage() {
           city={query.city}
           search={(
             <CatalogToolbar
+              suggestionType="locker"
+              suggestionFilter={{ city: query.city || undefined }}
               embedded
               keyword={query.keyword}
               label={t('customer.searchLockers')}
@@ -170,7 +172,7 @@ export default function LockersPage() {
           </p>
         )}
         <section
-          ref={resultsRef}
+          data-pagination-scope
           aria-label={t('customer.lockerSearchResults')}
           aria-busy={loading}
           className="scroll-mt-[var(--customer-header-offset)] space-y-5"
@@ -207,11 +209,14 @@ export default function LockersPage() {
               totalPages={data.totalPages}
               onPageChange={(page) => {
                 setQuery({ page })
-                resultsRef.current?.scrollIntoView({ behavior: 'instant', block: 'start' })
               }}
             />
           )}
         </section>
+        <NearbyLockers
+          embedded
+          excludeIds={lockers.map((locker) => locker.id)}
+        />
       </div>
     </div>
   )

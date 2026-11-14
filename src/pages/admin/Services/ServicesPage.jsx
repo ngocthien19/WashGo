@@ -153,6 +153,9 @@ export default function ServicesPage() {
             {t('admin.services.search')}
           </p>
           <CatalogToolbar
+            suggestionSource={adminServiceApi[query.tab]}
+            suggestionFilter={filter(query)}
+            suggestionKind="service"
             resetKey={resetVersion}
             embedded
             label={t('admin.services.search')}
@@ -239,6 +242,7 @@ export default function ServicesPage() {
         </div>
       )}
       <section
+        data-pagination-scope
         className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
         aria-busy={resource.loading}
       >

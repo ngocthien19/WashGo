@@ -4,6 +4,20 @@ import { merchantSession } from './helpers/merchantSession'
 const id = '77777777-7777-4777-8777-777777777777'
 const proposalId = '88888888-8888-4888-8888-888888888888'
 
+test('Merchant search suggestions use owned catalog images and keep manual search', async ({ page }) => {
+  const state = await setup(page, { images: true, dark: true })
+  await page.goto('/merchant/services')
+  const search = page.getByRole('search').getByRole('combobox')
+  await search.fill('svc-test')
+  const option = page.getByRole('option').filter({ hasText: 'Everyday service' })
+  await expect(option).toBeVisible()
+  await expect(option.getByRole('img')).toBeVisible()
+  await expect(option.getByText('SVC-TEST', { exact: true })).toHaveCSS('font-weight', '700')
+  await option.click()
+  await expect(page).toHaveURL(/keyword=Everyday\+service/)
+  expect(state.writes).toHaveLength(0)
+})
+
 test('service tabs navigate and the detail modal displays returned photos', async ({ page }) => {
   await setup(page, { images: true })
   await page.goto('/merchant/services')
@@ -106,8 +120,8 @@ test('shared catalog filters, server statistics and paging persist through reloa
   const summary = page.getByRole('region', { name: 'Shared catalog and my proposal statistics' })
   await expect(summary.getByRole('heading', { name: 'Shared services', exact: true }).locator('..')).toContainText('10')
   await expect(summary.getByRole('heading', { name: 'Pending proposals', exact: true }).locator('..')).toContainText('3')
-  await page.getByRole('searchbox', { name: 'Search services' }).fill('Everyday')
-  await page.getByRole('searchbox', { name: 'Search services' }).press('Enter')
+  await page.getByRole('combobox', { name: 'Search services' }).fill('Everyday')
+  await page.getByRole('combobox', { name: 'Search services' }).press('Enter')
   await expect.poll(() => state.lists.at(-1)?.body.keyword).toBe('Everyday')
   await page.getByRole('combobox', { name: 'Availability', exact: true }).click()
   await page.getByRole('option', { name: 'Inactive', exact: true }).click()
@@ -181,7 +195,7 @@ test('proposal status/type filters and rejected reasons use the owned proposal A
   await page.goto('/merchant/services?tab=proposals&state=3&type=2&page=2')
   await expect(page.getByRole('table')).toContainText('Please revise the price')
   expect(state.lists.at(-1)).toMatchObject({ path: '/service-proposal/filter', body: { status: 3, requestType: 2, page: 2 } })
-  await expect(page.getByRole('searchbox', { name: 'Search services' })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Search services' })).toBeVisible()
   await page.getByRole('combobox', { name: 'Proposal type', exact: true }).click()
   await expect(page.getByRole('option', { name: 'Delete', exact: true })).toHaveCount(0)
   await expect(page.getByRole('option', { name: 'New service', exact: true })).toBeVisible()
@@ -219,8 +233,8 @@ test('sorting and proposal search/filtering are server-side and summary stays gl
   expect(state.summaryCalls).toBe(1)
   await action(page, 'My proposals for this service')
   await expect.poll(() => state.lists.at(-1)?.body.serviceId).toBe(id)
-  await page.getByRole('searchbox', { name: 'Search services' }).fill('Revised')
-  await page.getByRole('searchbox', { name: 'Search services' }).press('Enter')
+  await page.getByRole('combobox', { name: 'Search services' }).fill('Revised')
+  await page.getByRole('combobox', { name: 'Search services' }).press('Enter')
   await expect.poll(() => state.lists.at(-1)?.body.keyword).toBe('Revised')
   await page.reload()
   await expect(page.getByRole('table')).toBeVisible()

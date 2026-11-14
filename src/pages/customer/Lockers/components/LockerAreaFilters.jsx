@@ -67,6 +67,7 @@ export default function LockerAreaFilters({ city, hasFilters, onApply, onReset, 
             {t('customer.unableToLoadAreasYouCanStillSearchFor')}
           </p>
           <Button
+            className="h-11 text-base px-4"
             variant="outline"
             onClick={retry}
           >

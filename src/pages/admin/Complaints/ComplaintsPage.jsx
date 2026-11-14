@@ -85,6 +85,8 @@ export default function ComplaintsPage() {
             {t('admin.complaints.search')}
           </p>
           <CatalogToolbar
+            suggestionSource={adminComplaintApi.list}
+            suggestionFilter={filter(query)}
             resetKey={resetVersion}
             embedded
             label={t('admin.complaints.search')}
@@ -153,6 +155,7 @@ export default function ComplaintsPage() {
         />
       </section>
       <section
+        data-pagination-scope
         className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
         aria-busy={resource.loading}
       >

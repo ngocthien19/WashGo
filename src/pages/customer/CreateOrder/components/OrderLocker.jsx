@@ -1,8 +1,10 @@
+import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
+import { catalogImages, lockerSlots } from '~/apis/customer/customerCatalogApi'
 import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useCallback, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { MapPin, PanelsTopLeft, RefreshCw } from 'lucide-react'
+import { PanelsTopLeft, RefreshCw } from 'lucide-react'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import CatalogToolbar from '~/components/customer/catalog/CatalogToolbar'
@@ -21,23 +23,27 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
   const { position, locating, locationError, requestLocation } = useOutletContext()
   const [query, setQuery] = useState({ keyword: '', page: 1 })
   const [selectionVersion, setSelectionVersion] = useState(0)
-  const [slotFilter, setSlotFilter] = useState('available')
+  const [slotFilter, setSlotFilter] = useState('all')
   const load = useCallback((signal) => customerCatalogApi.getLockers({ ...query, take: CUSTOMER_CATALOG.PAGE_SIZE, ...position }, signal), [query, position])
   const list = useCatalogResource(load)
   const loadDetail = useCallback((signal) => locker ? customerCatalogApi.getLocker(locker.id, signal) : Promise.resolve(null), [locker])
   const detail = useCatalogResource(loadDetail)
+  const slots = lockerSlots(detail.data)
+  const visibleSlots = slots.filter((slot) => slotFilter === 'all' || (slotFilter === 'available' && slot.status === 1) || (slotFilter === 'selected' && slot.id === box?.id) || (slotFilter === 'occupied' && slot.status === 2))
   const lockers = list.data?.list || []
   const choose = (id) => {
-    const next = lockers.find((item) => item.id === id)
+    const next = lockers.find((item) => item.id === id) || (locker?.id === id ? locker : null)
     if (next) {
       onLocker(next)
-      setSlotFilter('available')
+      setSlotFilter('all')
       setSelectionVersion((value) => value + 1)
     }
   }
   return (
     <div className="space-y-6">
       <CatalogToolbar
+        suggestionType="locker"
+        suggestionFilter={position || {}}
         keyword={query.keyword}
         label={t('customer.order.findLockers')}
         placeholder={t('customer.order.findLockers')}
@@ -66,10 +72,13 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
           lockers={locker && !lockers.some((item) => item.id === locker.id) ? [...lockers, locker] : lockers}
           selectedId={locker?.id}
           selectionVersion={selectionVersion}
-          onSelect={(id) => id === locker?.id ? setSelectionVersion((value) => value + 1) : choose(id)}
+          onSelect={choose}
           position={position}
         />
-        <div className="min-w-0 space-y-3">
+        <div
+          data-pagination-scope
+          className="min-w-0 space-y-3"
+        >
           {list.loading || list.error || !lockers.length ? (
             <CatalogFeedback
               {...list}
@@ -84,7 +93,11 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
               onClick={() => choose(item.id)}
               className={`relative h-auto w-full items-start justify-start gap-3 whitespace-normal rounded-2xl border border-border bg-card p-4 text-left ${ORDER_CHOICE_STYLES}`}
             >
-              <MapPin className="order-choice-primary mt-1 text-primary" />
+              <ResourceThumbnail
+                urls={catalogImages(item)}
+                name={item.name}
+                className="size-16"
+              />
               <span className="min-w-0 flex-1 space-y-2">
                 <span className="flex justify-between gap-2">
                   <span className="text-base line-clamp-2 font-semibold [overflow-wrap:anywhere]">
@@ -130,9 +143,17 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
             className="flex flex-wrap gap-2"
           >
             <Button
+              variant="outline"
+              className="h-11 rounded-full px-4 text-base"
+              aria-pressed={slotFilter === 'all'}
+              onClick={() => setSlotFilter('all')}
+            >
+              {t('common.all')}
+            </Button>
+            <Button
               variant="ghost"
               aria-pressed={slotFilter === 'available'}
-              className="rounded-full border border-emerald-500/20 px-3 text-emerald-700 aria-pressed:bg-emerald-500/10 [&:hover]:bg-emerald-500/15 [&:hover]:text-emerald-800 dark:text-emerald-300 dark:[&:hover]:text-emerald-200"
+              className="rounded-full border border-emerald-500/20 px-3 text-emerald-700 aria-pressed:bg-emerald-500/10 [&:hover]:bg-emerald-500/15 [&:hover]:text-emerald-800 dark:text-emerald-300 dark:[&:hover]:text-emerald-200 h-11 text-base"
               onClick={() => setSlotFilter('available')}
             >
               <span className="size-2 rounded-full bg-emerald-500" />
@@ -141,7 +162,7 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
             <Button
               variant="ghost"
               aria-pressed={slotFilter === 'selected'}
-              className="rounded-full border border-violet-500/20 px-3 text-violet-700 aria-pressed:bg-violet-500/10 [&:hover]:bg-violet-500/15 [&:hover]:text-violet-800 dark:text-violet-300 dark:[&:hover]:text-violet-200"
+              className="rounded-full border border-violet-500/20 px-3 text-violet-700 aria-pressed:bg-violet-500/10 [&:hover]:bg-violet-500/15 [&:hover]:text-violet-800 dark:text-violet-300 dark:[&:hover]:text-violet-200 h-11 text-base"
               onClick={() => setSlotFilter('selected')}
             >
               <span className="size-2 rounded-full bg-violet-500" />
@@ -149,7 +170,7 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
             </Button>
             <Button
               variant="ghost"
-              className="rounded-full border border-red-500/20 px-3 text-red-700 aria-pressed:bg-red-500/10 [&:hover]:bg-red-500/15 [&:hover]:text-red-800 dark:text-red-300 dark:[&:hover]:text-red-200"
+              className="rounded-full border border-red-500/20 px-3 text-red-700 aria-pressed:bg-red-500/10 [&:hover]:bg-red-500/15 [&:hover]:text-red-800 dark:text-red-300 dark:[&:hover]:text-red-200 h-11 text-base"
               aria-pressed={slotFilter === 'occupied'}
               onClick={() => setSlotFilter('occupied')}
             >
@@ -157,10 +178,6 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
               {t('customer.order.occupied')}
             </Button>
           </div>
-          <ClearFiltersButton
-            active={slotFilter !== 'available'}
-            onClear={() => setSlotFilter('available')}
-          />
         </div>
         <p className="mt-2 text-xs leading-6 text-muted-foreground">
           {locker ? `${locker.name} · ${t('customer.order.reservationNote')}` : t('customer.order.chooseLockerFirst')}
@@ -168,7 +185,7 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
         {locker && (
           <Button
             variant="secondary"
-            className="mt-4 h-9"
+            className="mt-4 h-11 text-base px-4"
             disabled={detail.loading}
             onClick={detail.retry}
           >
@@ -176,7 +193,12 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
             {t('customer.order.refreshBoxes')}
           </Button>
         )}
-        {locker && (detail.loading || detail.error || !detail.data?.availableSlots?.length ? (
+        {locker && !detail.loading && detail.data && !Array.isArray(detail.data.slots) && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            {t('catalogUi.availableOnly')}
+          </p>
+        )}
+        {locker && (detail.loading || detail.error || !slots.length ? (
           <div className="mt-4">
             <CatalogFeedback
               {...detail}
@@ -190,23 +212,27 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
             aria-label={t('customer.order.chooseBox')}
             className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12"
           >
-            {(slotFilter === 'occupied' || (slotFilter === 'selected' && !detail.data.availableSlots.some((slot) => slot.id === box?.id))) && (
+            {!visibleSlots.length && (
               <p
                 role="status"
-                className="col-span-full rounded-xl bg-violet-500/5 p-5 text-sm text-muted-foreground"
+                className="col-span-full text-sm text-muted-foreground"
               >
-                {t(slotFilter === 'occupied' ? 'customer.order.occupiedUnavailable' : 'customer.order.noSelectedBox')}
+                {t('catalogUi.noMatchingSlots')}
               </p>
             )}
-            {detail.data.availableSlots.filter((slot) => slotFilter === 'available' || (slotFilter === 'selected' && slot.id === box?.id)).map((slot) => (
+            {visibleSlots.map((slot) => (
               <Button
                 key={slot.id}
                 variant="ghost"
                 aria-label={`${t('customer.order.box', { number: slot.slotNumber })} ${t(LOCKER_SLOT_SIZES[slot.size] || 'customer.order.unknownSize')}`}
                 aria-pressed={box?.id === slot.id}
+                disabled={slot.status !== 1}
                 onClick={() => onBox(slot)}
-                className="relative h-auto min-h-18 min-w-0 flex-col gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-1.5 py-3 [&:hover]:bg-emerald-500/10 aria-pressed:border-violet-500 aria-pressed:bg-violet-500/8 aria-pressed:text-violet-700 aria-pressed:[&:hover]:bg-violet-500/15 dark:aria-pressed:text-violet-300"
+                className="relative h-auto min-h-18 min-w-0 flex-col gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-1.5 py-3 [&:hover]:bg-emerald-500/10 aria-pressed:border-violet-500 aria-pressed:bg-violet-500/8 aria-pressed:text-violet-700 aria-pressed:[&:hover]:bg-violet-500/15 dark:aria-pressed:text-violet-300 disabled:border-border disabled:bg-muted/40 disabled:text-muted-foreground disabled:opacity-100"
               >
+                <span className="text-xs text-muted-foreground">
+                  {t(`catalogUi.slotStatuses.${slot.status}`, { defaultValue: t('customer.orders.unknown') })}
+                </span>
                 <span className="text-sm font-semibold">
                   {t('customer.order.boxShort', { number: slot.slotNumber })}
                 </span>

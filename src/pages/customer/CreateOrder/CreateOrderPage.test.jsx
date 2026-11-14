@@ -9,7 +9,7 @@ import { notify } from '~/utils/notifications'
 
 vi.mock('~/utils/notifications', () => ({ notify: { success: vi.fn(), error: vi.fn() } }))
 
-vi.mock('~/apis/customer/customerCatalogApi', () => ({ customerCatalogApi: { getServices: vi.fn(), getLockers: vi.fn(), getLocker: vi.fn() } }))
+vi.mock('~/apis/customer/customerCatalogApi', async (importOriginal) => ({ ...await importOriginal(), customerCatalogApi: { getServices: vi.fn(), getLockers: vi.fn(), getLocker: vi.fn() } }))
 vi.mock('~/apis/customer/customerOrderApi', () => ({ customerOrderApi: { quote: vi.fn(), create: vi.fn() } }))
 vi.mock('~/components/customer/lockers/LockerMap', () => ({ default: () => null }))
 vi.mock('~/components/motion/Reveal', () => ({ default: ({ children }) => children }))
@@ -17,7 +17,7 @@ vi.mock('~/components/motion/Reveal', () => ({ default: ({ children }) => childr
 const service = { id: 'service', name: 'Test wash', unit: 'kg', unitPrice: 30000 }
 const box = { id: 'box', slotNumber: 1, size: 2 }
 const locker = { id: 'locker', name: 'Test locker', availableSlotCount: 1, availableSlots: [box] }
-const baseQuote = { totalAmount: 30000, discountAmount: 0, finalAmount: 30000, availablePromotions: [] }
+const baseQuote = { totalAmount: 30000, discountAmount: 0, finalAmount: 30000, availablePromotions: ['BAD', 'OLD'].map((code) => ({ id: code, code, isEligible: true, estimatedDiscountAmount: 1000 })) }
 const deferred = () => {
   let resolve
   const promise = new Promise((done) => {
@@ -75,7 +75,7 @@ describe('create order flow', () => {
     expect(screen.getByRole('button', { name: 'Ô 1 Tiêu chuẩn' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.queryByRole('button', { name: 'Ô 2 Lớn' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Đã có đồ', exact: true }))
-    expect(screen.getByText('Thông tin ô đã có đồ đang được cập nhật. Bạn có thể chọn Trống để tiếp tục.')).toBeVisible()
+    expect(screen.getByText('Không có ô tủ phù hợp bộ lọc này.')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Ô 1 Tiêu chuẩn' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Trống', exact: true }))
     expect(screen.getByRole('button', { name: 'Ô 2 Lớn' })).toBeVisible()
@@ -119,10 +119,10 @@ describe('create order flow', () => {
     const user = userEvent.setup()
     open()
     await confirm(user)
-    await user.type(screen.getByLabelText('Mã giảm giá'), 'BAD')
-    expect(screen.getByRole('button', { name: 'Xác nhận tạo đơn' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Chọn mã giảm giá từ WashGo' }))
     customerOrderApi.quote.mockRejectedValueOnce(new Error('customer.order.invalidPromotion'))
-    await user.click(screen.getByRole('button', { name: 'Áp dụng / Cập nhật giá' }))
+    await user.click(screen.getByRole('button', { name: /BAD/ }))
+    await user.click(screen.getByRole('button', { name: 'Áp dụng', exact: true }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Mã giảm giá không tồn tại.')
     expect(screen.getByRole('button', { name: 'Xác nhận tạo đơn' })).toBeDisabled()
     await user.click(screen.getByRole('button', { name: 'Bỏ mã giảm giá' }))
@@ -135,8 +135,9 @@ describe('create order flow', () => {
     open()
     await confirm(user)
     customerOrderApi.quote.mockReturnValueOnce(old.promise)
-    await user.type(screen.getByLabelText('Mã giảm giá'), 'OLD')
-    await user.click(screen.getByRole('button', { name: 'Áp dụng / Cập nhật giá' }))
+    await user.click(screen.getByRole('button', { name: 'Chọn mã giảm giá từ WashGo' }))
+    await user.click(screen.getByRole('button', { name: /OLD/ }))
+    await user.click(screen.getByRole('button', { name: 'Áp dụng', exact: true }))
     await user.click(screen.getByRole('button', { name: 'Bỏ mã giảm giá' }))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Xác nhận tạo đơn' })).toBeEnabled())
     await act(async () => old.resolve({ ...baseQuote, finalAmount: 1, appliedPromotion: { code: 'OLD' } }))

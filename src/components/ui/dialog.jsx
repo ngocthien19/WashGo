@@ -28,7 +28,7 @@ export function DialogHeader({ children, tone = 'info', className }) {
   )
 }
 
-export function DialogContent({ children, className, closeLabel = 'common.closeServiceDetails', ready = true }) {
+export function DialogContent({ children, className, closeLabel = 'common.closeServiceDetails', ready = true, ...props }) {
   const { t } = useTranslation()
   const reduceMotion = useReducedMotion()
   const transition = { duration: reduceMotion ? 0 : UI_MOTION.MODAL_DURATION, ease: UI_MOTION.EASE }
@@ -49,6 +49,7 @@ export function DialogContent({ children, className, closeLabel = 'common.closeS
         )}
       />
       <DialogPrimitive.Popup
+        {...props}
         className={cn('fixed left-1/2 top-1/2 z-50 max-h-[85dvh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-border bg-card p-6 text-foreground shadow-xl outline-none sm:p-8', className)}
         render={(
           <motion.div

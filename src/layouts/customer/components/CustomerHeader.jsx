@@ -17,6 +17,7 @@ import { cn } from '~/lib/utils'
 import Brand from '~/components/Brand/Brand'
 import CustomerAvatar from '~/components/UserAvatar/UserAvatar'
 import NotificationBell from '~/components/notifications/NotificationBell'
+import MobileSidebar from '~/components/navigation/MobileSidebar'
 
 export default function CustomerHeader() {
   const { t } = useTranslation()
@@ -48,7 +49,7 @@ export default function CustomerHeader() {
   const navigation = (mobile = false) => (
     <nav
       aria-label={mobile ? t('customer.mobileNavigation') : t('customer.mainNavigation')}
-      className={cn('gap-1', mobile ? 'flex flex-col border-t border-border px-4 py-3' : 'hidden items-center lg:flex')}
+      className={cn('gap-1', mobile ? 'flex flex-col' : 'hidden items-center lg:flex')}
     >
       {CUSTOMER_NAVIGATION.map((item) => item.pending ? (
         <span
@@ -171,6 +172,7 @@ export default function CustomerHeader() {
             className="size-9 lg:hidden"
             aria-label={t('customer.openNavigationMenu')}
             aria-expanded={mobileOpen}
+            aria-haspopup="dialog"
             aria-controls="customer-mobile-navigation"
             onClick={() => setMobileOpen((value) => !value)}
           >
@@ -178,14 +180,26 @@ export default function CustomerHeader() {
           </Button>
         </div>
       </div>
-      {mobileOpen && (
-        <div
-          id="customer-mobile-navigation"
-          className="lg:hidden"
-        >
-          {navigation(true)}
-        </div>
-      )}
+      <MobileSidebar
+        open={mobileOpen}
+        onOpenChange={setMobileOpen}
+        title={t('customer.mobileNavigation')}
+        homeHref={CUSTOMER_ROUTES.HOME}
+        id="customer-mobile-navigation"
+        footer={(
+          <Button
+            variant="ghost"
+            className="h-12 w-full justify-start gap-3 rounded-xl px-4 text-base text-destructive hover:bg-destructive/10 hover:text-destructive"
+            disabled={pending}
+            onClick={logout}
+          >
+            <LogOut size={19} />
+            {t(pending ? 'common.signingOut' : 'common.signOut')}
+          </Button>
+        )}
+      >
+        {navigation(true)}
+      </MobileSidebar>
     </header>
   )
 }

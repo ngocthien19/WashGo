@@ -1,3 +1,14 @@
+export const CHATBOT_CONFIG = {
+  ENDPOINT: '/customer/chatbot/conversations',
+  CONVERSATION_TAKE: 20,
+  MESSAGE_TAKE: 30,
+  MAX_MESSAGE_LENGTH: 2000,
+  TIMEOUT_MS: 65000,
+  PROCESSING: 1,
+  COMPLETED: 2,
+  FAILED: 3
+}
+
 export const AUTH_ROUTES = {
   ROOT: '/',
   LOGIN: '/login',
@@ -121,8 +132,8 @@ export const PAYMENT_OPTIONS = [
 ]
 export const ORDER_PANEL_HEADER_STYLES = 'flex items-center gap-3 border-b border-border/60 bg-primary/5 p-5'
 
-// Order choices deliberately keep a light blue surface in both themes.
-export const ORDER_CHOICE_STYLES = 'transition-[background-color,border-color,box-shadow,color] delay-0 duration-200 ease-in-out motion-reduce:transition-none [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])]:border-blue-400 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])]:bg-blue-50 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])]:text-slate-900 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])_.order-choice-muted]:text-slate-600 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])_.order-choice-primary]:text-blue-600 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])_.order-choice-availability]:text-emerald-700'
+// Order choices use a pale light surface and a subdued dark surface.
+export const ORDER_CHOICE_STYLES = 'transition-[background-color,border-color,box-shadow,color] delay-0 duration-200 ease-in-out motion-reduce:transition-none [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])]:border-blue-400 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])]:bg-blue-50 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])]:text-slate-900 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])_.order-choice-muted]:text-slate-600 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])_.order-choice-primary]:text-blue-600 [&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])_.order-choice-availability]:text-emerald-700 dark:[&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])]:bg-[#293747] dark:[&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])]:border-primary/50 dark:[&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])]:text-foreground dark:[&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])_.order-choice-muted]:text-muted-foreground dark:[&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])_.order-choice-primary]:text-primary dark:[&&:is(:hover:not([data-hover-suppressed=true]),[aria-pressed=true],[data-selected=true])_.order-choice-availability]:text-emerald-300'
 
 export const IMAGE_UPLOAD = {
   ENDPOINT: '/files/images',
@@ -168,6 +179,8 @@ export const SERVICE_TYPES = [
   { value: '4', label: 'common.blanketWash' },
   { value: '5', label: 'common.shoeCleaning' }
 ]
+
+export const SEARCH_SUGGESTIONS = { MIN_QUERY_LENGTH: 1, DEBOUNCE_MS: 300, PAGE_SIZE: 50 }
 
 export const CUSTOMER_CATALOG = {
   PAGE_SIZE: 6,

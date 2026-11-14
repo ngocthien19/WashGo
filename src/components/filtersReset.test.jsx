@@ -47,7 +47,7 @@ describe('clear all filters', () => {
     await user.type(from, '2026-11-01')
     await user.click(screen.getByRole('button', { name: 'Xóa tất cả', exact: true }))
     expect(changed).toHaveBeenLastCalledWith(expected)
-    expect(screen.getByRole('searchbox')).toHaveValue('')
+    expect(screen.getByRole('search').querySelector('input')).toHaveValue('')
     expect(screen.getByLabelText('Từ ngày')).toHaveValue('')
     expect(screen.queryByRole('button', { name: 'Xóa tất cả', exact: true })).not.toBeInTheDocument()
   })
@@ -72,7 +72,7 @@ describe('clear all filters', () => {
     expect(changed).toHaveBeenLastCalledWith(readQuery(new URLSearchParams({ tab })))
     expect(screen.queryByRole('button', { name: 'Xóa tất cả', exact: true })).not.toBeInTheDocument()
     if (tab !== 'revenue') {
-      expect(screen.getByRole('searchbox')).toHaveValue('')
+      expect(screen.getByRole('search').querySelector('input')).toHaveValue('')
       expect(screen.getByLabelText('Từ ngày')).toHaveValue('')
     }
   })

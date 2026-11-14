@@ -19,6 +19,8 @@ Object.defineProperty(window, 'matchMedia', {
 })
 
 // Layout observers have no dimensions in jsdom; real layout is covered by Playwright.
+Element.prototype.scrollIntoView = vi.fn()
+Element.prototype.scrollTo = vi.fn()
 globalThis.ResizeObserver = class {
   observe() {}
   unobserve() {}

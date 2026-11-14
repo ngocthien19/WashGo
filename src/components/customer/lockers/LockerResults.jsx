@@ -1,3 +1,5 @@
+import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
+import { catalogImages } from '~/apis/customer/customerCatalogApi'
 import { useTranslation } from 'react-i18next'
 import { useRef, useState } from 'react'
 import { MapPin, ArrowUpRight, Navigation } from 'lucide-react'
@@ -48,9 +50,11 @@ export default function LockerResults({ lockers, position }) {
               >
                 <article className={cn('min-w-0 rounded-2xl border bg-card p-4 shadow-sm transition-[border-color,box-shadow] delay-0 duration-200 ease-in-out hover:shadow-md motion-reduce:transition-none', selectedId === locker.id ? 'border-primary/60 ring-1 ring-primary/15' : 'border-border/70')}>
                   <div className="flex items-start gap-3">
-                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                      <MapPin size={20} />
-                    </span>
+                    <ResourceThumbnail
+                      urls={catalogImages(locker)}
+                      name={locker.name}
+                      className="size-14"
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="min-w-0 flex-1 line-clamp-2 font-semibold [overflow-wrap:anywhere]">

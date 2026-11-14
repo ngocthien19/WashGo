@@ -20,14 +20,15 @@ export default function OrderTimeline({ order }) {
       steps.push(ORDER_STATUS_OPTIONS.find((step) => Number(step.value) === status) || { value: String(status), label: 'customer.orders.unknown' })
     }
   }
-  const rows = steps.flatMap((step) => {
-    const recorded = events.filter((event) => event.status === Number(step.value))
-    return (recorded.length ? recorded : [null]).map((event, index) => ({
+  // This is a workflow summary, not the audit log. Match BE's first-reached milestone.
+  const rows = steps.map((step) => {
+    const event = events.find((event) => event.status === Number(step.value))
+    return {
       step,
       event,
-      current: Number(step.value) === currentStatus && index === Math.max(0, recorded.length - 1),
-      key: event?.id || `${step.value}-${index}`
-    }))
+      current: Number(step.value) === currentStatus,
+      key: step.value
+    }
   })
   return (
     <ol

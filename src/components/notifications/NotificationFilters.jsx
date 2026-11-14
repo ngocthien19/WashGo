@@ -6,7 +6,7 @@ import { SelectField } from '~/components/ui/select'
 import DateRangeFilter from '~/components/DateRangeFilter/DateRangeFilter'
 import { CUSTOMER_NOTIFICATION_TYPES } from './notificationModel'
 
-export default function NotificationFilters({ params, change, types = CUSTOMER_NOTIFICATION_TYPES, className = '' }) {
+export default function NotificationFilters({ params, change, types = CUSTOMER_NOTIFICATION_TYPES, className = '', loadSuggestions }) {
   const { t } = useTranslation()
   const [resetVersion, setResetVersion] = useState(0)
   return (
@@ -17,6 +17,7 @@ export default function NotificationFilters({ params, change, types = CUSTOMER_N
             {t('notificationNav.search')}
           </span>
           <CatalogToolbar
+            loadSuggestions={loadSuggestions}
             resetKey={resetVersion}
             embedded
             label={t('customer.sync.searchNotifications')}

@@ -19,7 +19,7 @@ async function setup(page, dark = false) {
         state.writes.push(route.request().postDataJSON())
         state.accepted = true
       }
-      return route.fulfill({ json: { succeeded: true, data: { terms: { version: state.version, title: 'Terms of service', content: 'Server policy content', effectiveFrom: '2026-11-01T00:00:00Z' }, rules: { depositWindowMinutes: 45 }, accepted: state.accepted, requiresAcceptance: !state.accepted, acceptedVersion: state.accepted ? state.version : null } } })
+      return route.fulfill({ json: { succeeded: true, data: { terms: { version: state.version, title: 'Terms of service', content: 'Server policy content', effectiveFrom: '2026-11-01T00:00:00Z' }, rules: { depositWindowMinutes: 45 }, accepted: state.accepted, acceptedAt: state.accepted ? '2026-11-07T14:14:00Z' : null, requiresAcceptance: !state.accepted, acceptedVersion: state.accepted ? state.version : null } } })
     }
     if (path === '/notification/filter') {
       return route.fulfill({ json: { succeeded: true, data: { items: [], total: 0, page: 1, take: 12, unreadTotal: 0, counts: [] } } })
@@ -67,6 +67,16 @@ test('server acceptance survives reload; closing does not accept and a new versi
   await page.locator('footer').getByRole('button', { name: 'Terms of service', exact: true }).click()
   await expect(dialog).toBeVisible()
   await expect(dialog.getByRole('button', { name: 'I agree to the terms' })).toHaveCount(0)
+  const accepted = dialog.getByText(/^Accepted at /)
+  const close = dialog.getByRole('button', { name: 'Close', exact: true }).last()
+  for (const width of [1280, 375]) {
+    await page.setViewportSize({ width, height: 812 })
+    await expect(accepted).toBeInViewport()
+    const acceptedBox = await accepted.boundingBox(), closeBox = await close.boundingBox()
+    expect(acceptedBox.x + acceptedBox.width).toBeLessThanOrEqual(closeBox.x)
+    expect(Math.abs(acceptedBox.y + acceptedBox.height / 2 - closeBox.y - closeBox.height / 2)).toBeLessThan(2)
+    expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+  }
   await page.keyboard.press('Escape')
   state.version = 'v2'; state.accepted = false
   await page.reload()

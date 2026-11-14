@@ -12,6 +12,7 @@ export default function ShipperActivities({ revision = 0 }) {
   const resource = useCatalogResource(useCallback(signal => shipperWorkspaceApi.activities({ page, take: 5 }, signal), [page]), revision)
   return (
     <ShipperPanel
+      data-pagination-scope
       title={t('admin.workspaceSync.audit')}
       icon={History}
     >

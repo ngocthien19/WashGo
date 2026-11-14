@@ -80,13 +80,13 @@ export default function OrderReceiptDialog({ orderId, onClose }) {
             />
             <Button
               variant="secondary"
-              className="h-11 rounded-xl px-4"
+              className="h-12 rounded-xl px-4 text-base"
               onClick={onClose}
             >
               {t('common.close')}
             </Button>
             <Button
-              className="h-11 rounded-xl px-4"
+              className="h-12 rounded-xl px-4 text-base"
               disabled={!printable || resource.loading || !!resource.error}
               onClick={() => window.print()}
             >
