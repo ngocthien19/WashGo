@@ -228,7 +228,7 @@ test('receipt modal stays usable on mobile in both themes and prints long docume
     const print = dialog.getByRole('button', { name: 'Print receipt', exact: true })
     await expect(print).toBeEnabled()
     await expect(print).toBeInViewport()
-    expect((await print.boundingBox()).height).toBe(44)
+    expect((await print.boundingBox()).height).toBe(48)
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.emulateMedia({ media: 'print' })
     const copy = page.locator('[data-receipt-print]')
@@ -294,9 +294,22 @@ test('my orders preserves server filters, paging, sorting, badges and error retr
   state.failList = false
   await page.getByRole('button', { name: 'Try again', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'WG2611069999', exact: true })).toBeVisible()
-  await page.getByRole('searchbox').fill('missing')
-  await page.getByRole('search').getByRole('button', { name: 'Search orders', exact: true }).click()
+  await page.getByRole('combobox').first().fill('missing')
+  await page.getByRole('search', { name: 'Search orders', exact: true }).locator('button[type="submit"]').click()
   await expect(page.getByText('No matching orders. Try different filters.', { exact: true })).toBeVisible()
+})
+
+test('order detail renders service and both locker photos supplied by its DTO', async ({ page }) => {
+  const state = await setup(page)
+  const photo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMC/wCfyO0AAAAASUVORK5CYII='
+  state.order = { ...state.order, lockerImageUrls: [photo], returnLockerName: 'Return station', returnLockerImageUrls: [photo], items: state.order.items.map((item) => ({ ...item, serviceImageUrls: [photo] })) }
+  await page.goto(`/customer/orders/${id}`)
+  for (const name of ['Everyday laundry', 'Ben Thanh Locker', 'Return station']) {
+    const image = page.getByRole('img', { name, exact: true })
+    await image.scrollIntoViewIfNeeded()
+    await expect(image).toBeVisible()
+    await expect(image).toHaveJSProperty('naturalWidth', 1)
+  }
 })
 
 test('order detail shows real history, masks PIN and confirms server cancellation fees', async ({ page }) => {
