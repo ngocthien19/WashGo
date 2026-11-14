@@ -1,4 +1,4 @@
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 
 export const newOperationId = () => crypto.randomUUID()
 export function versionGuard(version, operationId = newOperationId()) {

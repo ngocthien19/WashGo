@@ -1,5 +1,5 @@
 import { newOperationId, versionGuard } from './adminWrite'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { isId } from '~/pages/admin/Merchants/merchantModel'
 
 const invalid = () => new Error('admin.invalidResponse')

@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { DEFAULT_LANGUAGE, LANGUAGE_OPTIONS } from '~/utils/constants'
+import { DEFAULT_LANGUAGE, LANGUAGE_OPTIONS } from '~/utils/config/constants'
 
 const preferencesSlice = createSlice({
   name: 'preferences',

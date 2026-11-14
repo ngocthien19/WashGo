@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { Button } from '~/components/ui/button'
-import { formatNumber } from '~/utils/formats'
+import { formatNumber } from '~/utils/format/formats'
 
 export default function CatalogResultSummary({ title, count, range, sortControl, searchControl, actions, icon: Icon, filters = [], onRemoveFilter, onClearFilters }) {
   const { t } = useTranslation()

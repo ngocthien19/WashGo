@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { NOTIFICATION_CATEGORIES, notificationTypesFor } from './notificationCatalog'
 import { notificationFilters } from './notificationModel'
-import { adminNotificationHref } from '~/utils/adminNotifications'
+import { adminNotificationHref } from '~/utils/notifications/adminNotifications'
 import { merchantNotificationHref } from '~/pages/merchant/Notifications/notificationModel'
 const id = '11111111-1111-4111-8111-111111111111'
 

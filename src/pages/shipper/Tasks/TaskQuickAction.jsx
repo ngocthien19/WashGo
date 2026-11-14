@@ -1,4 +1,4 @@
-import { storageApi } from '~/apis/storageApi'
+import { storageApi } from '~/apis/storage/storageApi'
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'

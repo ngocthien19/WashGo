@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Banknote, ChevronDown, RotateCcw, Shirt } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
-import { SERVICE_PRICE_RANGES, SERVICE_TYPES, UI_TRANSITIONS } from '~/utils/constants'
+import { SERVICE_PRICE_RANGES, SERVICE_TYPES, UI_TRANSITIONS } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 
 function FilterOptions({ id, title, icon: Icon, options, values, onChange }) {

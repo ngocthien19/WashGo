@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { formatCurrency, formatDateTime } from '~/utils/formats'
+import { formatCurrency, formatDateTime } from '~/utils/format/formats'
 
 export default function OrderReceiptDocument({ order: receipt }) {
   const { t } = useTranslation()

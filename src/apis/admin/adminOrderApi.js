@@ -1,8 +1,8 @@
 import { newOperationId } from './adminWrite'
-import authorizedAxios from '~/utils/authorizedAxios'
-import { orderManagementApi } from '~/apis/orderManagementApi'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { orderManagementApi } from '~/apis/orders/orderManagementApi'
 import { isId } from '~/pages/admin/Merchants/merchantModel'
-import { orderStatusCounts } from '~/utils/orderGroups'
+import { orderStatusCounts } from '~/utils/orders/orderGroups'
 
 const invalid = () => new Error('admin.invalidResponse')
 const waiting = (item) => isId(item?.id) && typeof item.orderCode === 'string' && Number.isInteger(item.waitingMinutes) && item.waitingMinutes >= 0 && Array.isArray(item.services)

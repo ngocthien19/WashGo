@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { LOCKER_MAP } from '~/utils/constants'
+import { LOCKER_MAP } from '~/utils/config/constants'
 
 export default function useGeolocation() {
   const [position, setPosition] = useState(null)

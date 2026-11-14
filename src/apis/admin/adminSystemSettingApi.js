@@ -1,5 +1,5 @@
 import { adminWrite, versionGuard } from './adminWrite'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { settingPayload, validSettings } from '~/pages/admin/SystemSettings/settingModel'
 
 const unwrap = response => {

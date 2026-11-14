@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { cn } from '~/lib/utils'
-import { getImageUrl, getInitials } from '~/utils/formats'
+import { getImageUrl, getInitials } from '~/utils/format/formats'
 
 export default function UserAvatar({ avatar, fullName, className, alt = '' }) {
   const [failedSource, setFailedSource] = useState('')

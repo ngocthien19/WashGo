@@ -8,8 +8,8 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import TablePagination from '~/components/Pagination/TablePagination'
 import { SelectField } from '~/components/ui/select'
-import { formatDateTime, formatDurationMinutes } from '~/utils/formats'
-import { ADMIN_ROUTES } from '~/utils/constants'
+import { formatDateTime, formatDurationMinutes } from '~/utils/format/formats'
+import { ADMIN_ROUTES } from '~/utils/config/constants'
 
 export default function AdminAlerts({ revision }) {
   const { t } = useTranslation()

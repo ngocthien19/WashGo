@@ -1,8 +1,8 @@
-import { readOrdersQuery, writeOrdersQuery, buildOrdersFilter } from '~/utils/ordersQuery'
+import { readOrdersQuery, writeOrdersQuery, buildOrdersFilter } from '~/utils/orders/ordersQuery'
 import { PAGE_SIZE } from './orderModel'
 
-import { validDay, validRange } from '~/utils/dateRange'
-export { validDay, validRange } from '~/utils/dateRange'
+import { validDay, validRange } from '~/utils/format/dateRange'
+export { validDay, validRange } from '~/utils/format/dateRange'
 export const readMerchantOrdersQuery = (params) => {
   let from = validDay(params.get('from') || '') ? params.get('from') : ''
   let to = validDay(params.get('to') || '') ? params.get('to') : ''

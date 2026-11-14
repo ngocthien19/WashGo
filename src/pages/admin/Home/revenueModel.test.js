@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { revenuePoints } from './revenueModel'
 import { validateRevenue } from '~/apis/admin/adminDashboardApi'
-import { dashboardRange } from '~/utils/dashboardQuery'
+import { dashboardRange } from '~/utils/dashboard/dashboardQuery'
 
 it('fills dates with no transactions and retains negative refund days', () => {
   expect(revenuePoints([{ date: '2026-11-01', revenue: 50 }, { date: '2026-11-03', revenue: -20 }], { from: '2026-11-01', to: '2026-11-03' })).toEqual([

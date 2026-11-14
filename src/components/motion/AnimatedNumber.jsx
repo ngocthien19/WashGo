@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { animate, useReducedMotion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { formatNumber } from '~/utils/formats'
+import { formatNumber } from '~/utils/format/formats'
 
 export default function AnimatedNumber({ value, decimals = 0 }) {
   const text = useRef(null)

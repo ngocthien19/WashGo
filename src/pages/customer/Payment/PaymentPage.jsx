@@ -10,9 +10,9 @@ import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import PaymentMethodPicker from '~/components/customer/payments/PaymentMethodPicker'
 import { customerPaymentApi } from '~/apis/customer/customerPaymentApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
-import { CUSTOMER_ROUTES, ORDER_PAYMENT_METHODS, PAYMENT_STATUSES } from '~/utils/constants'
-import { formatCurrency } from '~/utils/formats'
-import { getApiError } from '~/utils/apiError'
+import { CUSTOMER_ROUTES, ORDER_PAYMENT_METHODS, PAYMENT_STATUSES } from '~/utils/config/constants'
+import { formatCurrency } from '~/utils/format/formats'
+import { getApiError } from '~/utils/http/apiError'
 import { onlinePaymentMethod, paymentBlockReason, paymentRedirectUrl, returnedOrderCode, returnedFee } from './paymentModel'
 
 export default function PaymentPage() {

@@ -11,7 +11,7 @@ import CustomerFeedback from './components/CustomerFeedback'
 import hero from '~/assets/customer/locker-hero.jpg'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
-import { CUSTOMER_CATALOG, HERO_MOTION, UI_MOTION } from '~/utils/constants'
+import { CUSTOMER_CATALOG, HERO_MOTION, UI_MOTION } from '~/utils/config/constants'
 
 const loadFeaturedServices = (signal) => customerCatalogApi.getServices({
   page: CUSTOMER_CATALOG.INITIAL_PAGE,

@@ -10,9 +10,9 @@ import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminServiceApi } from '~/apis/admin/adminServiceApi'
-import { formatDateTime } from '~/utils/formats'
-import { notify } from '~/utils/notifications'
-import { getApiError } from '~/utils/apiError'
+import { formatDateTime } from '~/utils/format/formats'
+import { notify } from '~/utils/notifications/notifications'
+import { getApiError } from '~/utils/http/apiError'
 import { snapshot, proposalSnapshot, unknownWrite, approvalClass } from '../serviceModel'
 
 export default function ServiceRecordDialog({ id, kind, onClose, onSaved, merchants = [] }) {

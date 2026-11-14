@@ -6,7 +6,7 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import TablePagination from '~/components/Pagination/TablePagination'
 import ShipperPanel from '../components/ShipperPanel'
-import { formatDateTime } from '~/utils/formats'
+import { formatDateTime } from '~/utils/format/formats'
 export default function ShipperActivities({ revision = 0 }) {
   const { t } = useTranslation(), [page, setPage] = useState(1)
   const resource = useCatalogResource(useCallback(signal => shipperWorkspaceApi.activities({ page, take: 5 }, signal), [page]), revision)

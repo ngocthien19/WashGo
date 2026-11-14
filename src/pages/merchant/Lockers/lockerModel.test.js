@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { readLockerQuery, lockerFilter } from './lockerModel'
-import { dateRangeFilter, validRange } from '~/utils/dateRange'
+import { dateRangeFilter, validRange } from '~/utils/format/dateRange'
 it('validates URL filters and sends only supported locker sorting', () => {
   const query = readLockerQuery(new URLSearchParams('keyword= LK &status=2&page=3&sort=nameDesc'))
   expect(lockerFilter(query)).toMatchObject({ keyword: 'LK', status: 2, page: 3, take: 12, sortBy: [{ field: 'Name', isDescending: true }] })

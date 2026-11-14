@@ -4,7 +4,7 @@ import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/lib/utils'
 import SuggestedSearch from './SuggestedSearch'
-import { loadSuggestionPages, resourceSuggestion } from '~/utils/searchSuggestions'
+import { loadSuggestionPages, resourceSuggestion } from '~/utils/search/searchSuggestions'
 
 export default function CatalogToolbar({ keyword, onSearch, label, placeholder, actions, embedded = false, className, formClassName, resetKey = 0, loadSuggestions, suggestionSource, suggestionFilter = {}, suggestionKind = 'record' }) {
   const id = useId()

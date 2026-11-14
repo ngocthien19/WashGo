@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useTheme } from '~/hooks/useTheme'
-import { THEME_MODES } from '~/utils/constants'
+import { THEME_MODES } from '~/utils/config/constants'
 
 export default function ThemeProvider({ children }) {
   const { theme } = useTheme()

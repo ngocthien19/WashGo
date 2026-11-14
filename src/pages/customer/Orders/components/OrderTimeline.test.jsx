@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import { beforeEach, expect, it } from 'vitest'
 import i18n from '~/i18n'
 import OrderTimeline from './OrderTimeline'
-import { formatDateTime } from '~/utils/formats'
+import { formatDateTime } from '~/utils/format/formats'
 
 beforeEach(async () => {
   await i18n.changeLanguage('en')

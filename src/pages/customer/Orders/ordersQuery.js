@@ -1,1 +1,1 @@
-export { initialOrdersQuery, readOrdersQuery, writeOrdersQuery, buildOrdersFilter } from '~/utils/ordersQuery'
+export { initialOrdersQuery, readOrdersQuery, writeOrdersQuery, buildOrdersFilter } from '~/utils/orders/ordersQuery'

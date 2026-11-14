@@ -1,5 +1,5 @@
 import { adminWrite, versionGuard, newOperationId } from './adminWrite'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { adminLockerApi } from './adminLockerApi'
 import { validateRevenue } from './adminDashboardApi'
 import { isId } from '~/pages/admin/Merchants/merchantModel'

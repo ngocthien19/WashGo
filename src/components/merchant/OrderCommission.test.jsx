@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { beforeEach, expect, it } from 'vitest'
 import i18n from '~/i18n'
-import { formatCurrency } from '~/utils/formats'
+import { formatCurrency } from '~/utils/format/formats'
 import OrderCommission from './OrderCommission'
 
 beforeEach(async () => {

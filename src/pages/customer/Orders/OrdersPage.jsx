@@ -13,7 +13,7 @@ import { SelectField } from '~/components/ui/select'
 import { customerOrderApi } from '~/apis/customer/customerOrderApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import useOrderEstimates from '~/hooks/customer/useOrderEstimates'
-import { CUSTOMER_ROUTES, ORDER_LIST, ORDER_SORT_OPTIONS, ORDER_STATUS_OPTIONS, PAYMENT_STATUSES } from '~/utils/constants'
+import { CUSTOMER_ROUTES, ORDER_LIST, ORDER_SORT_OPTIONS, ORDER_STATUS_OPTIONS, PAYMENT_STATUSES } from '~/utils/config/constants'
 import OrderCard from './components/OrderCard'
 import { buildOrdersFilter, initialOrdersQuery, readOrdersQuery, writeOrdersQuery } from './ordersQuery'
 

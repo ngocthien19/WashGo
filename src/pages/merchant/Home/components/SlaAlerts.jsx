@@ -10,8 +10,8 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import AnimatedNumber from '~/components/motion/AnimatedNumber'
 import { Button } from '~/components/ui/button'
-import { MERCHANT_ROUTES } from '~/utils/constants'
-import { formatDateTime, formatDurationMinutes } from '~/utils/formats'
+import { MERCHANT_ROUTES } from '~/utils/config/constants'
+import { formatDateTime, formatDurationMinutes } from '~/utils/format/formats'
 
 export default function SlaAlerts({ revision }) {
   const { t } = useTranslation()

@@ -1,5 +1,5 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { AUTH_API_ENDPOINTS, GOOGLE_ADMIN_PORTAL_MESSAGE } from '~/utils/constants'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { AUTH_API_ENDPOINTS, GOOGLE_ADMIN_PORTAL_MESSAGE } from '~/utils/config/constants'
 
 const unwrap = ({ data }) => {
   if (!data.succeeded) {

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { CircleMarker, MapContainer, TileLayer, Tooltip as MapTooltip, useMapEvents } from 'react-leaflet'
 import { Crosshair, RefreshCw } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
-import { ADDRESS_MAP, LOCKER_MAP } from '~/utils/constants'
+import { ADDRESS_MAP, LOCKER_MAP } from '~/utils/config/constants'
 import { Button } from '~/components/ui/button'
 import MapZoomControls from './MapZoomControls'
 

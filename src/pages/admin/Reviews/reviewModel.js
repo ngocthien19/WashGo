@@ -1,6 +1,6 @@
 import * as yup from 'yup'
 import { isId } from '~/pages/admin/Merchants/merchantModel'
-import { dateRangeFilter, validRange } from '~/utils/dateRange'
+import { dateRangeFilter, validRange } from '~/utils/format/dateRange'
 
 export const REVIEW_TAKE = 12
 export const readReviewQuery = params => {

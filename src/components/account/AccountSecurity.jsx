@@ -13,9 +13,9 @@ import FormError from '~/components/ui/FormError'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { getApiError } from '~/utils/apiError'
-import { notify } from '~/utils/notifications'
-import { formatDateTime } from '~/utils/formats'
+import { getApiError } from '~/utils/http/apiError'
+import { notify } from '~/utils/notifications/notifications'
+import { formatDateTime } from '~/utils/format/formats'
 
 const schema = yup.object({ currentPassword: yup.string().required('admin.workspaceSync.currentPasswordRequired'), newPassword: yup.string().min(8, 'admin.workspaceSync.passwordRules').max(128, 'admin.workspaceSync.passwordRules').matches(/[A-Z]/, 'admin.workspaceSync.passwordRules').matches(/[a-z]/, 'admin.workspaceSync.passwordRules').matches(/\d/, 'admin.workspaceSync.passwordRules').notOneOf([yup.ref('currentPassword')], 'admin.workspaceSync.passwordRules').required('admin.workspaceSync.passwordRules'), confirmNewPassword: yup.string().oneOf([yup.ref('newPassword')], 'admin.workspaceSync.passwordMatch').required('admin.workspaceSync.passwordMatch'), revokeOtherSessions: yup.boolean() })
 function PasswordDialog({ onClose, onSaved }) {

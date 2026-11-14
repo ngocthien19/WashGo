@@ -1,8 +1,8 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { merchantReportApi } from './merchantReportApi'
 import { reportFixture } from '../../../tests/e2e/helpers/merchantReportData'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
 const range = { mode: 'custom', from: '2026-11-01', to: '2026-11-07' }
 const response = (data) => ({ data: { succeeded: true, data } })

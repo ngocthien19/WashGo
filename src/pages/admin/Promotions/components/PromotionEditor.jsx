@@ -9,8 +9,8 @@ import { Input } from '~/components/ui/input'
 import { Checkbox } from '~/components/ui/checkbox'
 import { SelectField } from '~/components/ui/select'
 import { adminPromotionApi } from '~/apis/admin/adminPromotionApi'
-import { notify } from '~/utils/notifications'
-import { getApiError } from '~/utils/apiError'
+import { notify } from '~/utils/notifications/notifications'
+import { getApiError } from '~/utils/http/apiError'
 import { defaults, payload, promotionSchema, snapshot, unknownWrite } from '../promotionModel'
 
 export default function PromotionEditor({ value, onClose, onSaved }) {

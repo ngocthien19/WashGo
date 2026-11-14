@@ -5,9 +5,9 @@ import { QrCode, Eye, EyeOff, KeyRound, Copy } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 import { shipperTaskApi } from '~/apis/shipper/shipperTaskApi'
-import { getApiError } from '~/utils/apiError'
+import { getApiError } from '~/utils/http/apiError'
 import { matchesTaskQr } from './taskModel'
-import { notify } from '~/utils/notifications'
+import { notify } from '~/utils/notifications/notifications'
 
 export default function TaskCredential({ order }) {
   const { t } = useTranslation()

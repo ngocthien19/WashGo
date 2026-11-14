@@ -1,4 +1,4 @@
-import { CHATBOT_CONFIG as CONFIG, CUSTOMER_ROUTES, ORDER_STATUS_OPTIONS, ORDER_STATUSES } from '~/utils/constants'
+import { CHATBOT_CONFIG as CONFIG, CUSTOMER_ROUTES, ORDER_STATUS_OPTIONS, ORDER_STATUSES } from '~/utils/config/constants'
 
 export const chatOrderStatusKey = (value) => {
   const name = Object.keys(ORDER_STATUSES).find((key) => key.replaceAll('_', '').toLowerCase() === String(value).toLowerCase())

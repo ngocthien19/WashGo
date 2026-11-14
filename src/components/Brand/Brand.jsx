@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import logo from '~/assets/logo-washgo.svg'
-import { UI_TRANSITIONS } from '~/utils/constants'
+import { UI_TRANSITIONS } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 
 export default function Brand({ to, label, className, wordmarkClassName, onClick }) {

@@ -1,5 +1,5 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { CUSTOMER_API_ENDPOINTS, ORDER_STATUSES } from '~/utils/constants'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { CUSTOMER_API_ENDPOINTS, ORDER_STATUSES } from '~/utils/config/constants'
 
 // Defense in depth for legacy responses; the backend must enforce the same role policy.
 export const customerOrderView = value => {

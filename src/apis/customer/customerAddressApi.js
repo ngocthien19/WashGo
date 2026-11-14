@@ -1,1 +1,1 @@
-export { addressApi as customerAddressApi } from '~/apis/addressApi'
+export { addressApi as customerAddressApi } from '~/apis/location/addressApi'

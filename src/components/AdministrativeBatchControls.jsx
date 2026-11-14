@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 import { administrativeBatch, adminOperation, newOperationId, validateBatch } from '~/apis/admin/adminWrite'
-import { notify } from '~/utils/notifications'
-import { getApiError } from '~/utils/apiError'
+import { notify } from '~/utils/notifications/notifications'
+import { getApiError } from '~/utils/http/apiError'
 
 export default function AdministrativeBatchControls({ module, path, command, label, destructive, onClose, onSaved, onFreeze, onBusy }) {
   const { t } = useTranslation()

@@ -1,6 +1,6 @@
 import * as yup from 'yup'
-import { AUTH_LIMITS, OTP_CONFIG } from '~/utils/constants'
-import { normalizePhone } from '~/utils/formats'
+import { AUTH_LIMITS, OTP_CONFIG } from '~/utils/config/constants'
+import { normalizePhone } from '~/utils/format/formats'
 
 const email = yup.string()
   .trim()

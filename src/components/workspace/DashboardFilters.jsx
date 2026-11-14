@@ -5,7 +5,7 @@ import { CalendarDays, X } from 'lucide-react'
 import { Popover } from '@base-ui/react/popover'
 import { Button } from '~/components/ui/button'
 import DateRangeFilter from '~/components/DateRangeFilter/DateRangeFilter'
-import { validDashboardRange } from '~/utils/dashboardQuery'
+import { validDashboardRange } from '~/utils/dashboard/dashboardQuery'
 
 export default function DashboardFilters({ range, onChange, showClear = true }) {
   const { t } = useTranslation()

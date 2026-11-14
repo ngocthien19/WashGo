@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { MapPinned } from 'lucide-react'
 import CatalogResultSummary from '~/components/customer/catalog/CatalogResultSummary'
-import { CUSTOMER_CATALOG } from '~/utils/constants'
+import { CUSTOMER_CATALOG } from '~/utils/config/constants'
 
 export default function LockerResultSummary({ data, loading, error, query, sortControl, onRemoveFilter, onClearFilters }) {
   const { t } = useTranslation()

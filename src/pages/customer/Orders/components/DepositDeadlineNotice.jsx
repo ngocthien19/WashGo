@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Timer } from 'lucide-react'
 import useDepositDeadline from '~/hooks/customer/useDepositDeadline'
-import { formatCountdown, formatDateTime } from '~/utils/formats'
+import { formatCountdown, formatDateTime } from '~/utils/format/formats'
 
 export default function DepositDeadlineNotice({ order }) {
   const { t } = useTranslation()

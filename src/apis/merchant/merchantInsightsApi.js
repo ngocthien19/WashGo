@@ -1,4 +1,4 @@
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 
 const invalid = () => new Error('merchant.invalidResponse')
 const count = (value) => Number.isInteger(value) && value >= 0

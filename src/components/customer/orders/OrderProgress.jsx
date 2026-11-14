@@ -1,7 +1,7 @@
 import { Trans, useTranslation } from 'react-i18next'
 import { motion, useReducedMotion } from 'framer-motion'
 import { getOrderProgress } from './orderWorkflow'
-import { ORDER_STATUSES } from '~/utils/constants'
+import { ORDER_STATUSES } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip'
 

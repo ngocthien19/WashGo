@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Warehouse } from 'lucide-react'
-import { storageApi } from '~/apis/storageApi'
+import { storageApi } from '~/apis/storage/storageApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import Pagination from '~/components/Pagination/Pagination'

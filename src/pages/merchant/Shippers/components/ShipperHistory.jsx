@@ -7,8 +7,8 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import TablePagination from '~/components/Pagination/TablePagination'
 import { SelectField } from '~/components/ui/select'
-import { formatDateTime } from '~/utils/formats'
-import { MERCHANT_ROUTES } from '~/utils/constants'
+import { formatDateTime } from '~/utils/format/formats'
+import { MERCHANT_ROUTES } from '~/utils/config/constants'
 
 function HistoryContent({ id, audit }) {
   const { t } = useTranslation()

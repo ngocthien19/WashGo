@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import NotificationBell from '~/components/notifications/NotificationBell'
-import { SHIPPER_ROUTES } from '~/utils/constants'
+import { SHIPPER_ROUTES } from '~/utils/config/constants'
 
 export default function NotificationNavigation() {
   const { t } = useTranslation()

@@ -11,9 +11,9 @@ import DateRangeFilter from '~/components/DateRangeFilter/DateRangeFilter'
 import OrderStatus from '~/components/orders/OrderStatus'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantLockerApi } from '~/apis/merchant/merchantLockerApi'
-import { dateRangeFilter } from '~/utils/dateRange'
-import { formatDateTime } from '~/utils/formats'
-import { MERCHANT_ROUTES } from '~/utils/constants'
+import { dateRangeFilter } from '~/utils/format/dateRange'
+import { formatDateTime } from '~/utils/format/formats'
+import { MERCHANT_ROUTES } from '~/utils/config/constants'
 import { HISTORY_TAKE } from '../lockerModel'
 
 export default function LockerUsage({ locker, api = merchantLockerApi, orderBase = MERCHANT_ROUTES.ORDERS }) {

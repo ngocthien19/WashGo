@@ -1,8 +1,8 @@
 import ResourceGallery from '~/components/ResourceThumbnail/ResourceGallery'
 import { useTranslation } from 'react-i18next'
 import { Banknote, Clock, Tags, Scale, Shirt } from 'lucide-react'
-import { formatCurrency } from '~/utils/formats'
-import { SERVICE_TYPES } from '~/utils/constants'
+import { formatCurrency } from '~/utils/format/formats'
+import { SERVICE_TYPES } from '~/utils/config/constants'
 
 export default function ServiceInfo({ value }) {
   const { t } = useTranslation()

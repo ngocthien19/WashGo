@@ -1,4 +1,4 @@
-import { shiftDay } from '~/utils/dateRange'
+import { shiftDay } from '~/utils/format/dateRange'
 
 export function revenuePoints(data, { from, to }) {
   const values = new Map(data.map((row) => [row.date, row.revenue]))

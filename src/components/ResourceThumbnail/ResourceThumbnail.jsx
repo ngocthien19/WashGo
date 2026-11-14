@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Image } from 'lucide-react'
-import { getImageUrl } from '~/utils/formats'
+import { getImageUrl } from '~/utils/format/formats'
 import { cn } from '~/lib/utils'
 
 export default function ResourceThumbnail({ urls = [], name, icon: Icon = Image, className }) {

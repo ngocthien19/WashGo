@@ -11,8 +11,8 @@ import { ReviewScore, ReviewStatus } from './ReviewDisplay'
 import { adminReviewApi } from '~/apis/admin/adminReviewApi'
 import { newOperationId } from '~/apis/admin/adminWrite'
 import { canModerate, canPublishReview, canPublishForCustomers, reviewActionSchema } from '../reviewModel'
-import { getApiError } from '~/utils/apiError'
-import { notify } from '~/utils/notifications'
+import { getApiError } from '~/utils/http/apiError'
+import { notify } from '~/utils/notifications/notifications'
 
 export default function ReviewActionDialog({ rows, bulk = false, initialOperation, initialAction, onClose, onSaved, onUnknown, onResolved }) {
   const { t } = useTranslation()

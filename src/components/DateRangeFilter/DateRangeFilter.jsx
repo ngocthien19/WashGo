@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { CalendarDays } from 'lucide-react'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
-import { validRange } from '~/utils/dateRange'
+import { validRange } from '~/utils/format/dateRange'
 
 export default function DateRangeFilter({ from, to, onApply, label = 'merchant.orders.createdRange', className = 'space-y-3 border-t border-border pt-4 sm:col-span-2 xl:col-span-3' }) {
   const { t } = useTranslation()

@@ -11,8 +11,8 @@ import FormError from '~/components/ui/FormError'
 import ImagePicker from '~/components/ImagePicker'
 import useImages from '~/hooks/useImages'
 import { adminWorkspaceApi } from '~/apis/admin/adminWorkspaceApi'
-import { notify } from '~/utils/notifications'
-import { getApiError } from '~/utils/apiError'
+import { notify } from '~/utils/notifications/notifications'
+import { getApiError } from '~/utils/http/apiError'
 
 
 export default function ProfileEditor({ user, onClose, onSaved }) {

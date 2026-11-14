@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildOrdersFilter, initialOrdersQuery, readOrdersQuery, writeOrdersQuery } from './ordersQuery'
-import { formatDateTime } from '~/utils/formats'
+import { formatDateTime } from '~/utils/format/formats'
 
 describe('customer orders query', () => {
   it('shares search, lifecycle, payment status, sort and pagination without trusting customer identity', () => {

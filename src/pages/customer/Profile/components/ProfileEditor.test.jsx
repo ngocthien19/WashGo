@@ -16,7 +16,7 @@ vi.mock('~/components/motion/Reveal', () => ({
     </div>
   )
 }))
-vi.mock('~/utils/notifications', () => ({ notify: { success: vi.fn() } }))
+vi.mock('~/utils/notifications/notifications', () => ({ notify: { success: vi.fn() } }))
 
 const profile = {
   id: 'customer-1', email: 'alex@example.test', fullName: 'Alex Nguyen', phone: '0901234567',

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { AUTH_ROUTES } from '~/utils/constants'
+import { AUTH_ROUTES } from '~/utils/config/constants'
 import Brand from '~/components/Brand/Brand'
 
 export default function AuthBrand() {

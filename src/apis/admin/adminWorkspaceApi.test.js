@@ -1,8 +1,8 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { adminWorkspaceApi, parseAdminProfile } from './adminWorkspaceApi'
 import { adminProfileSchema } from '~/pages/admin/Profile/profileModel'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
 const profile = { id: 'admin', role: 'Admin', fullName: 'Admin Name', email: 'admin@example.test', version: '63935071200123457', joinedAt: '2024-01-01T00:00:00Z', accountStatus: 'Active', editableFields: ['fullName', 'phone', 'avatar'] }
 it('preserves the exact Int64 profile version on read and write and excludes privileged fields', async () => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { customerOrderApi } from '~/apis/customer/customerOrderApi'
-import { ORDER_LIST, ORDER_STATUSES } from '~/utils/constants'
+import { ORDER_LIST, ORDER_STATUSES } from '~/utils/config/constants'
 
 // The list DTO currently omits prediction fields. Enrich only the visible page.
 export default function useOrderEstimates(orders) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatMapAddress } from '~/utils/formats'
+import { formatMapAddress } from '~/utils/format/formats'
 
 describe('map address mapping', () => {
   it('maps house/street/ward and province without retaining a legacy county', () => {

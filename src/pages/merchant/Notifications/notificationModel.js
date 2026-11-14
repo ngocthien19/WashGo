@@ -1,4 +1,4 @@
-import { MERCHANT_ROUTES } from '~/utils/constants'
+import { MERCHANT_ROUTES } from '~/utils/config/constants'
 import { notificationTypesFor } from '~/components/notifications/notificationCatalog'
 
 // Types currently published to Merchant accounts by the backend.

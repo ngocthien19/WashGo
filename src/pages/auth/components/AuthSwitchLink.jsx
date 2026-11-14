@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { cn } from '~/lib/utils'
-import { UI_TRANSITIONS } from '~/utils/constants'
+import { UI_TRANSITIONS } from '~/utils/config/constants'
 
 export default function AuthSwitchLink({ to, prompt, children }) {
   return (

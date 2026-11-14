@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { getImageUrl } from '~/utils/formats'
+import { getImageUrl } from '~/utils/format/formats'
 
 export default function CustomerImageGallery({ urls = [] }) {
   const { t } = useTranslation()

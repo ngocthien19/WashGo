@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { getLockerDirectionsLink, getDistanceKm } from '~/utils/formats'
+import { getLockerDirectionsLink, getDistanceKm } from '~/utils/format/formats'
 
 it('opens directions to the correct coordinates and includes a valid requested origin', () => {
   const url = new URL(getLockerDirectionsLink({ latitude: 10.8, longitude: 106.7 }, { latitude: 0, longitude: 0 }))

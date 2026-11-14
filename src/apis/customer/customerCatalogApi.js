@@ -1,6 +1,6 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { CUSTOMER_API_ENDPOINTS, CUSTOMER_CATALOG, LOCKER_AREA_PAGE_SIZE } from '~/utils/constants'
-export { suggestionImages as catalogImages } from '~/utils/searchSuggestions'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { CUSTOMER_API_ENDPOINTS, CUSTOMER_CATALOG, LOCKER_AREA_PAGE_SIZE } from '~/utils/config/constants'
+export { suggestionImages as catalogImages } from '~/utils/search/searchSuggestions'
 
 const ensureSuccess = ({ data }) => {
   if (!data.succeeded) {

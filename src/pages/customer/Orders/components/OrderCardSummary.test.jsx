@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { beforeEach, expect, it } from 'vitest'
 import i18n from '~/i18n'
-import { formatDateTime } from '~/utils/formats'
+import { formatDateTime } from '~/utils/format/formats'
 import OrderCardSummary from './OrderCardSummary'
 
 beforeEach(async () => {

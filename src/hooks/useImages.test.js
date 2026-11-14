@@ -1,9 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { imageApi } from '~/apis/imageApi'
+import { imageApi } from '~/apis/files/imageApi'
 import useImages from './useImages'
 
-vi.mock('~/apis/imageApi', () => ({ imageApi: { upload: vi.fn() } }))
+vi.mock('~/apis/files/imageApi', () => ({ imageApi: { upload: vi.fn() } }))
 beforeEach(() => {
   vi.clearAllMocks()
   URL.createObjectURL = vi.fn((file) => `blob:${file.name}`)

@@ -6,8 +6,8 @@ import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 import LocationButton from '~/components/maps/LocationButton'
 import useGeolocation from '~/hooks/useGeolocation'
-import { addressApi } from '~/apis/addressApi'
-import { ADDRESS_MAP, TEXT_LINK_STYLES } from '~/utils/constants'
+import { addressApi } from '~/apis/location/addressApi'
+import { ADDRESS_MAP, TEXT_LINK_STYLES } from '~/utils/config/constants'
 import AddressMap from './AddressMap'
 
 export default function AddressPickerDialog({ initialCenter, onApply, onClose }) {

@@ -1,1 +1,1 @@
-export { provinceApi as customerProvinceApi } from '~/apis/provinceApi'
+export { provinceApi as customerProvinceApi } from '~/apis/location/provinceApi'

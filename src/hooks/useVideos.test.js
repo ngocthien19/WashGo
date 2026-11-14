@@ -1,9 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
-import { videoApi } from '~/apis/videoApi'
+import { videoApi } from '~/apis/files/videoApi'
 import useVideos from './useVideos'
-import { validateVideoFile, VIDEO_UPLOAD } from '~/utils/videos'
-vi.mock('~/apis/videoApi', () => ({ videoApi: { upload: vi.fn() } }))
+import { validateVideoFile, VIDEO_UPLOAD } from '~/utils/media/videos'
+vi.mock('~/apis/files/videoApi', () => ({ videoApi: { upload: vi.fn() } }))
 it('rejects non-video, zero-byte and oversized files', () => {
   expect(validateVideoFile(new File(['bad'], 'bad.png', { type: 'image/png' }))).toBeTruthy()
   expect(validateVideoFile(new File([], 'empty.mp4', { type: 'video/mp4' }))).toBeTruthy()

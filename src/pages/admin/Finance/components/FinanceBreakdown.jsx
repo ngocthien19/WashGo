@@ -1,6 +1,6 @@
 import { Store, ReceiptText } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { formatCurrency, formatNumber } from '~/utils/formats'
+import { formatCurrency, formatNumber } from '~/utils/format/formats'
 export default function FinanceBreakdown({ value, settlement = false }) {
   const { t } = useTranslation()
   return (

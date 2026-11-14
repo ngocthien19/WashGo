@@ -3,7 +3,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import FormField from '~/components/ui/FormField'
 import FormError from '~/components/ui/FormError'
 import SubmitButton from '~/components/ui/SubmitButton'
-import { getApiError } from '~/utils/apiError'
+import { getApiError } from '~/utils/http/apiError'
 
 export default function AuthForm({ schema, fields = [], renderFields, onSubmit, submitLabel, children, defaultValues, disabled }) {
   const {

@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { adminComplaintApi } from './adminComplaintApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
 const id = 'a0000000-0000-4000-8000-000000000001'
 const record = { id, orderId: id, customerId: id, orderCode: 'WG01', customerName: 'Customer', description: 'Damaged jacket', status: 1, type: 1, severity: 2, compensationStatus: 0, compensationAmount: 0 }
 beforeEach(() => vi.clearAllMocks())

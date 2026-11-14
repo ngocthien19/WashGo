@@ -1,6 +1,6 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import { AUTH_LIMITS, PROFILE_LIMITS, IMAGE_UPLOAD, OTP_CONFIG, DEFAULT_LANGUAGE, LANGUAGE_OPTIONS } from '~/utils/constants'
+import { AUTH_LIMITS, PROFILE_LIMITS, IMAGE_UPLOAD, OTP_CONFIG, DEFAULT_LANGUAGE, LANGUAGE_OPTIONS } from '~/utils/config/constants'
 import vi from './locales/vi.json'
 import en from './locales/en.json'
 

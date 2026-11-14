@@ -28,11 +28,11 @@ export default defineConfig(({ mode }) => ({
     },
     proxy: {
       '/api': {
-        target: loadEnv(mode, process.cwd(), '').API_PROXY_TARGET || 'http://localhost:5000',
+        target: loadEnv(mode, process.cwd(), '').API_PROXY_TARGET || (mode === 'e2e' ? 'http://127.0.0.1:9' : 'http://localhost:5000'),
         rewrite: (url) => url.replace(/^\/api/, ''),
         changeOrigin: true,
         ws: true,
-        secure: false
+        secure: true
       }
     }
   }

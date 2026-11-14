@@ -1,7 +1,7 @@
 import * as yup from 'yup'
-import { AUTH_LIMITS, PROFILE_LIMITS } from '~/utils/constants'
-import { validateImageFile } from '~/utils/images'
-import { hasControlCharacters } from '~/utils/formats'
+import { AUTH_LIMITS, PROFILE_LIMITS } from '~/utils/config/constants'
+import { validateImageFile } from '~/utils/media/images'
+import { hasControlCharacters } from '~/utils/format/formats'
 
 export const profileSchema = yup.object({
   fullName: yup.string().trim()

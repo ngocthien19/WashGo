@@ -1,7 +1,7 @@
 import { beforeEach, it, expect, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { merchantShipperApi } from './merchantShipperApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
 const response = (data) => ({ data: { succeeded: true, data } })
 it('loads one scoped summary and rejects inconsistent counts', async () => {

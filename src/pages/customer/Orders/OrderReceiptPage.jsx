@@ -8,7 +8,7 @@ import { Button } from '~/components/ui/button'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { customerReceiptApi } from '~/apis/customer/customerReceiptApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
-import { CUSTOMER_ROUTES } from '~/utils/constants'
+import { CUSTOMER_ROUTES } from '~/utils/config/constants'
 
 export default function OrderReceiptPage() {
   const { t } = useTranslation()

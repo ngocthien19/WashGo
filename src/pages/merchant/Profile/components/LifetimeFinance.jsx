@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Wallet } from 'lucide-react'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import { formatCurrency } from '~/utils/formats'
+import { formatCurrency } from '~/utils/format/formats'
 
 export default function LifetimeFinance({ resource }) {
   const { t } = useTranslation()

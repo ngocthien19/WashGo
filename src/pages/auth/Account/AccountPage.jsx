@@ -1,16 +1,16 @@
 import { useTranslation } from 'react-i18next'
-import { AUTH_ROUTES } from '~/utils/constants'
+import { AUTH_ROUTES } from '~/utils/config/constants'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate } from 'react-router-dom'
 import { CircleCheck, LogOut } from 'lucide-react'
 import { authApi } from '~/apis/auth/authApi'
 import { clearSession, setUser } from '~/redux/auth/authSlice'
-import { getApiError } from '~/utils/apiError'
+import { getApiError } from '~/utils/http/apiError'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 import AuthHeading from '../components/AuthHeading'
-import { getRoleHome } from '~/utils/roles'
+import { getRoleHome } from '~/utils/auth/roles'
 
 export default function AccountPage() {
   const { t } = useTranslation()

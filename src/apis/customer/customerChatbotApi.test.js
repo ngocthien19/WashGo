@@ -1,9 +1,9 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { customerChatbotApi as api, readChatTurn } from './customerChatbotApi'
 import { chatCardDestination, chatErrorKey, chatOrderStatusKey, chatTurnErrorKey } from '~/components/customer/chatbot/chatbotModel'
 
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), delete: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), delete: vi.fn() } }))
 beforeEach(() => vi.resetAllMocks())
 
 it('encodes signed cursors and uses the authenticated customer-only API', async () => {

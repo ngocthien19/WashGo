@@ -4,9 +4,9 @@ import { QRCodeCanvas } from 'qrcode.react'
 import { Copy, Download, QrCode } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import OrderPin from '~/components/customer/orders/OrderPin'
-import { ORDER_STATUSES } from '~/utils/constants'
+import { ORDER_STATUSES } from '~/utils/config/constants'
 import { canPickupFromLocker } from '~/components/customer/orders/orderWorkflow'
-import { notify } from '~/utils/notifications'
+import { notify } from '~/utils/notifications/notifications'
 
 export default function LockerAccessCard({ order, defaultShowQr = false }) {
   const { t } = useTranslation()

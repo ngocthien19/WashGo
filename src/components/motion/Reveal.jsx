@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion'
-import { UI_MOTION } from '~/utils/constants'
+import { UI_MOTION } from '~/utils/config/constants'
 
 const elements = { div: motion.div, article: motion.article, li: motion.li }
 

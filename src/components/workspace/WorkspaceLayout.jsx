@@ -15,8 +15,8 @@ import NavTooltip from './NavTooltip'
 import MobileSidebar from '~/components/navigation/MobileSidebar'
 import { authApi } from '~/apis/auth/authApi'
 import { clearSession } from '~/redux/auth/authSlice'
-import { notify } from '~/utils/notifications'
-import { getApiError } from '~/utils/apiError'
+import { notify } from '~/utils/notifications/notifications'
+import { getApiError } from '~/utils/http/apiError'
 
 export default function WorkspaceLayout({ navigation, homeHref, profileHref, notificationsHref, resolveNotificationHref, context, prefix = 'merchant', admin = false }) {
   const navHref = (key) => navigation.find((item) => item[0] === key)?.[2]

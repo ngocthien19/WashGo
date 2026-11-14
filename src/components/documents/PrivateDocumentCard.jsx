@@ -4,8 +4,8 @@ import { FileText, Download, Eye } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import FormError from '~/components/ui/FormError'
-import { privateDocumentApi, DOCUMENT_TYPES } from '~/apis/privateDocumentApi'
-import { getApiError } from '~/utils/apiError'
+import { privateDocumentApi, DOCUMENT_TYPES } from '~/apis/files/privateDocumentApi'
+import { getApiError } from '~/utils/http/apiError'
 
 export default function PrivateDocumentCard({ document, label }) {
   const { t } = useTranslation()

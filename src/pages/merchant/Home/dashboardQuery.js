@@ -1,1 +1,1 @@
-export * from '~/utils/dashboardQuery'
+export * from '~/utils/dashboard/dashboardQuery'

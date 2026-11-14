@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
-import { TEXT_LINK_STYLES } from '~/utils/constants'
+import { TEXT_LINK_STYLES } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 
 export default function Breadcrumb({ items, className }) {

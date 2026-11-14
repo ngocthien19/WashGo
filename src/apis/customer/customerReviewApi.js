@@ -1,5 +1,5 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { CUSTOMER_REVIEWS } from '~/utils/constants'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { CUSTOMER_REVIEWS } from '~/utils/config/constants'
 
 const invalid = () => new Error('customerReviews.invalidResponse')
 const count = value => Number.isSafeInteger(value) && value >= 0

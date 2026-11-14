@@ -4,8 +4,8 @@ import { LockKeyhole, LockKeyholeOpen, Trash2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { merchantShipperApi } from '~/apis/merchant/merchantShipperApi'
-import { getApiError } from '~/utils/apiError'
-import { notify } from '~/utils/notifications'
+import { getApiError } from '~/utils/http/apiError'
+import { notify } from '~/utils/notifications/notifications'
 import { resolveMessage } from '~/i18n/messages'
 
 export default function ShipperAccountAction({ action, shippers, bulk, onClose }) {

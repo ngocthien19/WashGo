@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { ORDER_STATUS_OPTIONS, ORDER_STATUS_COLORS } from '~/utils/constants'
+import { ORDER_STATUS_OPTIONS, ORDER_STATUS_COLORS } from '~/utils/config/constants'
 
 export default function OrderStatus({ status, showDot = true }) {
   const { t } = useTranslation()

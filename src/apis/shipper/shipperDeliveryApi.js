@@ -1,4 +1,4 @@
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 
 const pick = value => Object.fromEntries(['fromDate', 'toDate', 'taskType', 'keyword', 'lockerId', 'cancelledReturn', 'eventStatus', 'sortBy', 'page', 'take'].filter(key => value[key] !== undefined).map(key => [key, value[key]]))
 const unwrap = ({ data }) => {

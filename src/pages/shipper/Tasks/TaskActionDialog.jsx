@@ -12,8 +12,8 @@ import { taskLocker } from '../components/deliveryLockerModel'
 import FormError from '~/components/ui/FormError'
 import QrScanInput from '~/components/customer/orders/QrScanInput'
 import { shipperTaskApi } from '~/apis/shipper/shipperTaskApi'
-import { getApiError } from '~/utils/apiError'
-import { notify } from '~/utils/notifications'
+import { getApiError } from '~/utils/http/apiError'
+import { notify } from '~/utils/notifications/notifications'
 import { credentialSchema, matchesTaskQr, taskSnapshot, canCompleteTask } from './taskModel'
 
 function NormalTaskActionDialog({ order, shipperId, onClose, onSaved, onUnknown }) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getApiError } from '~/utils/apiError'
+import { getApiError } from '~/utils/http/apiError'
 
 export default function useCatalogResource(load, revision = 0, keepPreviousData = false) {
   const [attempt, setAttempt] = useState(0)

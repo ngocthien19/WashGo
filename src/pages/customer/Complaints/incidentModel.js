@@ -1,6 +1,6 @@
 import * as yup from 'yup'
-import { INCIDENT_CONFIG, INCIDENT_TYPES, INCIDENT_SEVERITIES, ORDER_STATUSES } from '~/utils/constants'
-import { validDay, validRange, dateRangeFilter } from '~/utils/dateRange'
+import { INCIDENT_CONFIG, INCIDENT_TYPES, INCIDENT_SEVERITIES, ORDER_STATUSES } from '~/utils/config/constants'
+import { validDay, validRange, dateRangeFilter } from '~/utils/format/dateRange'
 
 export const incidentListFilter = (params) => {
   const status = Number(params.get('status')), type = Number(params.get('type'))

@@ -4,7 +4,7 @@ import { DomEvent } from 'leaflet'
 import { useMap } from 'react-leaflet'
 import { Plus, Minus, LocateFixed } from 'lucide-react'
 import { Button } from '~/components/ui/button'
-import { LOCKER_MAP } from '~/utils/constants'
+import { LOCKER_MAP } from '~/utils/config/constants'
 
 export default function MapZoomControls({ position }) {
   const { t } = useTranslation()

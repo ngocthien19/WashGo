@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Moon, Sun } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { useTheme } from '~/hooks/useTheme'
-import { THEME_MODES } from '~/utils/constants'
+import { THEME_MODES } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 
 export default function ThemeToggle({ inline = false }) {

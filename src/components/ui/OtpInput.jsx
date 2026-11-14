@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useRef } from 'react'
 import { Input } from '~/components/ui/input'
-import { OTP_CONFIG } from '~/utils/constants'
+import { OTP_CONFIG } from '~/utils/config/constants'
 
 export default function OtpInput({ value = '', onChange, onBlur, inputRef, error, disabled = false, masked = false, label = 'common.otpCode', digitLabel = 'common.otpDigit', autoComplete = 'one-time-code' }) {
   const { t } = useTranslation()

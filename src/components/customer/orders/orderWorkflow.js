@@ -1,4 +1,4 @@
-import { ORDER_STATUSES, ORDER_WORKFLOW, PAYMENT_STATUSES } from '~/utils/constants'
+import { ORDER_STATUSES, ORDER_WORKFLOW, PAYMENT_STATUSES } from '~/utils/config/constants'
 
 export const getOrderProgress = (order) => {
   if (Number.isInteger(order.progressPercent) && order.progressPercent >= 0 && order.progressPercent <= 100) {

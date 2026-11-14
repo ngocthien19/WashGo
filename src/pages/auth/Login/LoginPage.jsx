@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next'
-import { AUTH_ROUTES, CUSTOMER_ROUTES, USER_ROLES, UI_TRANSITIONS } from '~/utils/constants'
+import { AUTH_ROUTES, CUSTOMER_ROUTES, USER_ROLES, UI_TRANSITIONS } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { notify } from '~/utils/notifications'
+import { notify } from '~/utils/notifications/notifications'
 import { authApi } from '~/apis/auth/authApi'
 import { setSession } from '~/redux/auth/authSlice'
 import AuthForm from '../components/AuthForm'
@@ -13,7 +13,7 @@ import { loginSchema } from '../authSchemas'
 import { useCallback } from 'react'
 import GoogleSignInButton from './components/GoogleSignInButton'
 import AuthBrand from '../components/AuthBrand'
-import { getRoleHome } from '~/utils/roles'
+import { getRoleHome } from '~/utils/auth/roles'
 
 const fields = [
   {

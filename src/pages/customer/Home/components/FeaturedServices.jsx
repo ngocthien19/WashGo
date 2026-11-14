@@ -6,7 +6,7 @@ import { Button } from '~/components/ui/button'
 import Reveal from '~/components/motion/Reveal'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import ServiceGrid from '~/components/customer/services/ServiceGrid'
-import { CUSTOMER_ROUTES } from '~/utils/constants'
+import { CUSTOMER_ROUTES } from '~/utils/config/constants'
 import SectionGlow from './SectionGlow'
 
 export default function FeaturedServices({ data, loading, error, retry }) {

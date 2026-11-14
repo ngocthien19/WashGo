@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Images, ImageOff, ExternalLink } from 'lucide-react'
-import { getImageUrl } from '~/utils/formats'
+import { getImageUrl } from '~/utils/format/formats'
 
 function GalleryPhoto({ url, alt, compact, thumbnails }) {
   const { t } = useTranslation()

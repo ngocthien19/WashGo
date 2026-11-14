@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { customerChatbotApi as api, readChatTurn } from '~/apis/customer/customerChatbotApi'
-import { CHATBOT_CONFIG as CONFIG } from '~/utils/constants'
+import { CHATBOT_CONFIG as CONFIG } from '~/utils/config/constants'
 import { chatErrorKey, chatTurnErrorKey, mergeChatItems, messagesFromTurn } from './chatbotModel'
 
 const emptyPage = { items: [], hasMore: false, nextCursor: null }

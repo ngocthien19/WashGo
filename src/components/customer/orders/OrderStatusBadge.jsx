@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { ORDER_STATUS_COLORS, ORDER_STATUS_OPTIONS, PAYMENT_STATUSES } from '~/utils/constants'
+import { ORDER_STATUS_COLORS, ORDER_STATUS_OPTIONS, PAYMENT_STATUSES } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 
 export default function OrderStatusBadge({ status, payment = false }) {

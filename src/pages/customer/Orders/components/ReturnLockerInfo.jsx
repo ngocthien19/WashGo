@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { MapPin } from 'lucide-react'
-import { getLockerMapLink } from '~/utils/formats'
+import { getLockerMapLink } from '~/utils/format/formats'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 
 export default function ReturnLockerInfo({ order }) {

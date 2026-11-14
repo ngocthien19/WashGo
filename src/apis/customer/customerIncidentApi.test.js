@@ -1,8 +1,8 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { customerIncidentApi } from './customerIncidentApi'
 
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
 const incident = { id: 'incident-one', orderId: 'order-one', status: 1 }
 const response = (data) => ({ data: { succeeded: true, data } })

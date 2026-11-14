@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { shipperTaskApi, taskView } from './shipperTaskApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { post: vi.fn(), get: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { post: vi.fn(), get: vi.fn() } }))
 const dto = { taskId: 'task-1', assignmentVersion: 'task-1', orderId: 'order-1', orderCode: 'WG1', orderRevision: 5, status: 1, taskType: 1, orderStatus: 2, canCollect: true, canReturn: false, taskBoxNumber: '3', order: { shipperId: 'shipper-1', customerName: 'PRIVATE', shipperTaskPinCode: 'SECRET', items: [] } }
 const ok = data => ({ data: { succeeded: true, data } })
 beforeEach(() => vi.clearAllMocks())

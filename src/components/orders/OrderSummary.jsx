@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Package, Truck, WashingMachine, Wallet, DoorOpen, CircleCheck, Warehouse, CircleX } from 'lucide-react'
 import StatCard from '~/components/workspace/StatCard'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import { groupOrders } from '~/utils/orderGroups'
+import { groupOrders } from '~/utils/orders/orderGroups'
 
 const styles = {
   total: [Package, 'border-l-primary', 'bg-primary/10 text-primary'],

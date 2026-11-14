@@ -2,7 +2,7 @@ import { lazy, Suspense, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DoorOpen } from 'lucide-react'
 import { Button } from '~/components/ui/button'
-import { ORDER_STATUSES } from '~/utils/constants'
+import { ORDER_STATUSES } from '~/utils/config/constants'
 import { canPickupFromLocker } from '~/components/customer/orders/orderWorkflow'
 
 const LockerActionDialog = lazy(() => import('./LockerActionDialog'))

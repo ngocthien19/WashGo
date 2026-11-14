@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Check } from 'lucide-react'
-import { ORDER_WORKFLOW, ORDER_STATUS_OPTIONS } from '~/utils/constants'
-import { formatDateTime } from '~/utils/formats'
+import { ORDER_WORKFLOW, ORDER_STATUS_OPTIONS } from '~/utils/config/constants'
+import { formatDateTime } from '~/utils/format/formats'
 import { cn } from '~/lib/utils'
 
 export default function OrderTimeline({ order }) {

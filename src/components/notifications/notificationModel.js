@@ -1,7 +1,7 @@
 import i18n from '~/i18n'
-import { formatCurrency, formatDateTime } from '~/utils/formats'
-import { validDay, validRange, dateRangeFilter } from '~/utils/dateRange'
-import { CUSTOMER_ROUTES } from '~/utils/constants'
+import { formatCurrency, formatDateTime } from '~/utils/format/formats'
+import { validDay, validRange, dateRangeFilter } from '~/utils/format/dateRange'
+import { CUSTOMER_ROUTES } from '~/utils/config/constants'
 import { NOTIFICATION_CATEGORIES, notificationTypesFor } from './notificationCatalog'
 
 export function notificationText(item, t) {

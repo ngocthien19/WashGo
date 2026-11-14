@@ -1,10 +1,10 @@
 import { catalogImages, customerCatalogApi } from './customerCatalogApi'
 import { customerOrderApi } from './customerOrderApi'
 import { customerIncidentApi } from './customerIncidentApi'
-import { formatCurrency, formatLockerAddress } from '~/utils/formats'
-import { SEARCH_SUGGESTIONS } from '~/utils/constants'
-import { notificationApi } from '~/apis/notificationApi'
-import { loadSuggestionPages } from '~/utils/searchSuggestions'
+import { formatCurrency, formatLockerAddress } from '~/utils/format/formats'
+import { SEARCH_SUGGESTIONS } from '~/utils/config/constants'
+import { notificationApi } from '~/apis/notifications/notificationApi'
+import { loadSuggestionPages } from '~/utils/search/searchSuggestions'
 
 export const customerSuggestionLoader = (type, filter = {}) => async (keyword, signal) => {
   const load = {

@@ -1,7 +1,7 @@
 import { Banknote, CreditCard, Wallet } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
-import { PAYMENT_OPTIONS, ORDER_PAYMENT_METHODS, UI_TRANSITIONS } from '~/utils/constants'
+import { PAYMENT_OPTIONS, ORDER_PAYMENT_METHODS, UI_TRANSITIONS } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 
 const icons = { [ORDER_PAYMENT_METHODS.CASH]: Banknote, [ORDER_PAYMENT_METHODS.VNPAY]: CreditCard, [ORDER_PAYMENT_METHODS.MOMO]: Wallet }

@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { THEME_MODES } from '~/utils/constants'
+import { THEME_MODES } from '~/utils/config/constants'
 
 const themeSlice = createSlice({
   name: 'theme',

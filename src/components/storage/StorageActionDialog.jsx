@@ -10,9 +10,9 @@ import { SelectField } from '~/components/ui/select'
 import FormError from '~/components/ui/FormError'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
-import { storageApi } from '~/apis/storageApi'
-import { getApiError } from '~/utils/apiError'
-import { formatDateTime } from '~/utils/formats'
+import { storageApi } from '~/apis/storage/storageApi'
+import { getApiError } from '~/utils/http/apiError'
+import { formatDateTime } from '~/utils/format/formats'
 import QrScanInput from '~/components/customer/orders/QrScanInput'
 
 export default function StorageActionDialog({ order, cycle, action, role, taskId, quote, onClose, onSaved }) {

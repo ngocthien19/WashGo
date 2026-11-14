@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest'
 import { adminOrderApi } from './adminOrderApi'
-import authorizedAxios from '~/utils/authorizedAxios'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { post: vi.fn(), get: vi.fn(), put: vi.fn() } }))
+import authorizedAxios from '~/utils/http/authorizedAxios'
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { post: vi.fn(), get: vi.fn(), put: vi.fn() } }))
 const id = '11111111-1111-4111-8111-111111111111', merchantId = '22222222-2222-4222-8222-222222222222'
 it('rejects a malformed successful assignment as an unknown outcome', async () => {
   authorizedAxios.post.mockReset().mockResolvedValueOnce({ data: { succeeded: true, data: { orderId: id, merchantId: id } } })

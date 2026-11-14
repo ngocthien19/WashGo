@@ -11,8 +11,8 @@ import FormError from '~/components/ui/FormError'
 import CustomerImagePicker from '~/components/customer/CustomerImagePicker'
 import useImages from '~/hooks/useImages'
 import { shipperWorkspaceApi } from '~/apis/shipper/shipperWorkspaceApi'
-import { getApiError } from '~/utils/apiError'
-import { notify } from '~/utils/notifications'
+import { getApiError } from '~/utils/http/apiError'
+import { notify } from '~/utils/notifications/notifications'
 import { profileSchema, profileSnapshot, profilePayload } from './profileModel'
 
 export default function ProfileEditor({ profile, onClose, onSaved }) {

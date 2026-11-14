@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { merchantLockerApi } from './merchantLockerApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
 it('uses one scoped snapshot and rejects inconsistent counts', async () => {
   const data = { totalLockers: 9, activeLockers: 5, maintenanceLockers: 3, inactiveLockers: 1, totalBoxes: 10, availableBoxes: 4, occupiedBoxes: 3, reservedBoxes: 2, maintenanceBoxes: 1 }

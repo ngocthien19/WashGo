@@ -1,5 +1,5 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { RATING_CONFIG } from '~/utils/constants'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { RATING_CONFIG } from '~/utils/config/constants'
 
 const unwrap = ({ data }, orderId, allowEmpty) => {
   if (data?.succeeded !== true) {

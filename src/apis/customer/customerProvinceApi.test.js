@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { URL as NodeURL } from 'node:url'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { containsMapPoint } from '~/utils/formats'
+import { containsMapPoint } from '~/utils/format/formats'
 
 const { get } = vi.hoisted(() => ({ get: vi.fn() }))
 vi.mock('axios', async (original) => {

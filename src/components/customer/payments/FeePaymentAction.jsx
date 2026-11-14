@@ -6,9 +6,9 @@ import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 import { customerPaymentApi } from '~/apis/customer/customerPaymentApi'
 import { paymentRedirectUrl } from '~/pages/customer/Payment/paymentModel'
-import { getApiError } from '~/utils/apiError'
-import { formatCurrency } from '~/utils/formats'
-import { ORDER_STATUSES, PAYMENT_STATUSES, ORDER_PAYMENT_METHODS } from '~/utils/constants'
+import { getApiError } from '~/utils/http/apiError'
+import { formatCurrency } from '~/utils/format/formats'
+import { ORDER_STATUSES, PAYMENT_STATUSES, ORDER_PAYMENT_METHODS } from '~/utils/config/constants'
 import PaymentMethodPicker from './PaymentMethodPicker'
 
 export default function FeePaymentAction({ order }) {

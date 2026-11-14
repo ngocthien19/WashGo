@@ -13,8 +13,8 @@ import { readReportQuery, vietnamToday, validReportRange, downloadReport } from 
 import ReportStats from './components/ReportStats'
 import ReportFinance from './components/ReportFinance'
 import ReportTopServices from './components/ReportTopServices'
-import { notify } from '~/utils/notifications'
-import { getApiError } from '~/utils/apiError'
+import { notify } from '~/utils/notifications/notifications'
+import { getApiError } from '~/utils/http/apiError'
 import ReportCharts from './components/ReportCharts'
 
 export default function ReportsPage() {

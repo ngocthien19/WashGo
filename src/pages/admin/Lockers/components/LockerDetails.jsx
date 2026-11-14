@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Store } from 'lucide-react'
 import LockerDialog from '~/pages/merchant/Lockers/components/LockerDialog'
 import { adminLockerApi } from '~/apis/admin/adminLockerApi'
-import { ADMIN_ROUTES } from '~/utils/constants'
+import { ADMIN_ROUTES } from '~/utils/config/constants'
 import LockerActionDialog from './LockerActionDialog'
 
 export default function LockerDetails({ id, tab, onClose, onSaved }) {

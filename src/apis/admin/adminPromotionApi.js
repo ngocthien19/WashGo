@@ -1,5 +1,5 @@
 import { adminWrite, newOperationId, versionGuard, administrativeSummary, administrativeBatch } from './adminWrite'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { isId } from '~/pages/admin/Merchants/merchantModel'
 
 const pick = (value, keys) => Object.fromEntries(keys.filter(key => value[key] !== undefined).map(key => [key, value[key]]))

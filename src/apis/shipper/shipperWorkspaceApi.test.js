@@ -1,8 +1,8 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { shipperWorkspaceApi } from './shipperWorkspaceApi'
 
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), put: vi.fn(), post: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), put: vi.fn(), post: vi.fn() } }))
 const profile = { revision: 'v1', id: 'shipper-1', fullName: 'Delivery staff', email: 'staff@example.test', vehicleType: 1, status: 1, isActive: true, totalDeliveries: 0 }
 beforeEach(() => vi.clearAllMocks())
 it('only sends Available/Offline with self-profile guards and reconciles uncertain status changes', async () => {

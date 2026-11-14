@@ -18,6 +18,8 @@ tests/ci/results/
 .env
 .env.*
 !.env.example
+# Public production endpoint only; never add secrets to this file.
+.env.production
 
 # Editor directories and files
 .vscode/*

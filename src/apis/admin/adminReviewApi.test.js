@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { adminReviewApi } from './adminReviewApi'
 import { readReviewQuery, reviewFilter, canModerate, canPublishReview, canPublishForCustomers, reviewActionSchema } from '~/pages/admin/Reviews/reviewModel'
 
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), patch: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), patch: vi.fn() } }))
 const id = '10000000-0000-4000-8000-000000000001', orderId = '20000000-0000-4000-8000-000000000001'
 const row = { id, orderId, orderCode: 'WG-REVIEW', overallStars: 4, isHidden: false, createdOn: 1794391200, imageUrls: [], videoUrls: [] }
 const ok = data => ({ data: { succeeded: true, data } })

@@ -2,12 +2,12 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Clock } from 'lucide-react'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import { formatDateTime } from '~/utils/formats'
+import { formatDateTime } from '~/utils/format/formats'
 import ShipperPanel from '../components/ShipperPanel'
 import DeliveryLocker from '../components/DeliveryLocker'
 import { taskLocker } from '../components/deliveryLockerModel'
 import { Button } from '~/components/ui/button'
-import { SHIPPER_ROUTES } from '~/utils/constants'
+import { SHIPPER_ROUTES } from '~/utils/config/constants'
 
 export default function TaskPreview({ resource, type, icon }) {
   const { t } = useTranslation()

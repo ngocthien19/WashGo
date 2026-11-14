@@ -1,10 +1,10 @@
-import { getImageUrl } from '~/utils/formats'
+import { getImageUrl } from '~/utils/format/formats'
 import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ImagePlus, Trash2 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
-import { IMAGE_UPLOAD } from '~/utils/constants'
+import { IMAGE_UPLOAD } from '~/utils/config/constants'
 
 export default function ImagePicker({ selection, disabled, help }) {
   const { t } = useTranslation()
