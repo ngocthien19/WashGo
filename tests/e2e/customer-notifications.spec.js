@@ -1,6 +1,21 @@
 import { test, expect } from '@playwright/test'
 import { setupNotifications as setup, orderId, notificationId } from './helpers/notificationSession'
 
+test('customer can search safe order notification content and totals without raw storage details', async ({ page }) => {
+  const state = await setup(page)
+  state.items = [{ ...state.items[0], title: 'Order storage update', content: 'WashGo is keeping your items. View the order to check payments, storage fees and request redelivery to a locker.', messageKey: 'storage.customer.private', messageArgs: {}, type: 13 }]
+  await page.goto('/customer/notifications')
+  const input = page.getByRole('combobox', { name: 'Search notification titles or content...', exact: true })
+  await input.fill('STORAGE FEES')
+  await expect(page.getByRole('option')).toHaveCount(1)
+  await input.press('Escape')
+  await input.press('Enter')
+  await expect(page.getByRole('status').filter({ hasText: '1 notification found' })).toBeVisible()
+  await expect(page.getByRole('main')).toContainText('storage fees')
+  expect(state.filters.at(-1).keyword).toBe('storage fees')
+  expect(state.writes).toHaveLength(0)
+})
+
 test('customer notification search suggests every matching title/content and reports filtered totals', async ({ page }) => {
   const state = await setup(page)
   state.items = Array.from({ length: 11 }, (_, index) => ({ ...state.items[0], id: `suggestion-${index}`, title: `Locker update ${index + 1}`, content: 'Collect items at Ben Thanh Locker.', linkType: 'incident', isRead: true }))

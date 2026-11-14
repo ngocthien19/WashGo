@@ -58,7 +58,7 @@ async function setup(page, { legacy = false, dark = false } = {}) {
     if (path.startsWith('/rating/') && path.endsWith('/publish')) {
       state.writes.push({ path, body })
       const index = state.rows.findIndex(row => row.id === path.split('/')[2])
-      state.rows[index] = { ...state.rows[index], contentApprovedAt: '2026-11-14T00:00:00Z', canPublish: false, version: 'v2' }
+      state.rows[index] = { ...state.rows[index], contentApprovedAt: '2026-11-14T00:00:00Z', canPublish: false, version: 'v2', ...(body.publishForCustomers ? { publicApprovedAt: '2026-11-14T01:00:00Z', canPublishForCustomers: false } : {}) }
       return ok(state.rows[index])
     }
     if (path.startsWith('/rating/') && path.endsWith('/visibility')) {
@@ -278,6 +278,24 @@ test('publishing uses a distinct guarded action and keeps visibility unchanged',
   expect(state.writes[0]).toMatchObject({ path: `/rating/${first}/publish`, body: { expectedVersion: 'v1', operationId: expect.any(String) } })
   expect(state.rows[0].isHidden).toBe(false)
   expect(state.rows[0].comment).toBe('Excellent service')
+})
+
+test('customer publishing is explicit, works after merchant approval and closes with a toast', async ({ page }) => {
+  const state = await setup(page)
+  state.rows[0] = { ...state.rows[0], contentApprovedAt: '2026-11-14T00:00:00Z', canPublish: false, canPublishForCustomers: true }
+  await page.goto(`/admin/reviews/${first}`)
+  await expect(page.getByRole('button', { name: 'Publish content', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Publish for customers', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toContainText('personal information')
+  await dialog.getByRole('button', { name: 'Publish for customers', exact: true }).click()
+  expect(state.writes).toHaveLength(0)
+  await dialog.getByRole('checkbox').check()
+  await dialog.getByRole('button', { name: 'Publish for customers', exact: true }).click()
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByText('Review updated.', { exact: true })).toBeVisible()
+  expect(state.writes[0].body).toMatchObject({ publishForCustomers: true, expectedVersion: 'v1' })
+  await expect(page.getByRole('button', { name: 'Publish for customers', exact: true })).toBeDisabled()
 })
 
 test('bulk publishing skips hidden reviews and sends one Publish command', async ({ page }) => {

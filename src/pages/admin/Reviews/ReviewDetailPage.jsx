@@ -10,7 +10,7 @@ import DetailTabs from '~/components/DetailTabs'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { ADMIN_ROUTES } from '~/utils/constants'
-import { canModerate, canPublishReview, readReviewQuery, writeReviewQuery } from './reviewModel'
+import { canModerate, canPublishReview, canPublishForCustomers, readReviewQuery, writeReviewQuery } from './reviewModel'
 import ReviewContent from './components/ReviewContent'
 import ReviewActionDialog from './components/ReviewActionDialog'
 import useReviewOperation, { reviewSnapshot } from './useReviewOperation'
@@ -70,6 +70,14 @@ function ReviewPage({ id }) {
           </Button>
           {row && (
             <>
+              <Button
+                className="h-11"
+                variant="outline-primary"
+                disabled={!!unresolved || !fresh || !canPublishForCustomers(row)}
+                onClick={() => setAction({ rows: [row], initialAction: 'PublishForCustomers' })}
+              >
+                {t('admin.reviews.publishForCustomers')}
+              </Button>
               <Button
                 className="h-11"
                 disabled={!!unresolved || !fresh || !canPublishReview(row)}

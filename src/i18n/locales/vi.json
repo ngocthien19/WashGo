@@ -32,6 +32,19 @@
       "4": "Bảo trì"
     }
   },
+  "customerReviews": {
+    "loading": "Đang tải đánh giá…",
+    "invalidResponse": "Không thể tải đánh giá. Vui lòng thử lại.",
+    "anonymous": "Khách hàng WashGo",
+    "total": "{{count}} đánh giá đã công khai",
+    "found": "{{count}} đánh giá tìm thấy",
+    "publishedOnly": "Tổng hợp từ các đánh giá đã được kiểm duyệt và công khai.",
+    "distribution": "Phân bố số sao",
+    "filter": "Lọc theo số sao",
+    "allStars": "Tất cả số sao",
+    "stars": "{{count}} sao",
+    "noMatches": "Chưa có đánh giá phù hợp số sao đã chọn."
+  },
   "navigationDrawer": {
     "close": "Đóng menu điều hướng"
   },
@@ -260,7 +273,7 @@
       "customer": {
         "private": {
           "title": "Cập nhật lưu giữ đơn hàng",
-          "content": "WashGo đã cập nhật tình trạng lưu giữ/giao lại. Xem chi tiết đơn hàng để biết bước tiếp theo."
+          "content": "Đồ của bạn đang được WashGo lưu giữ. Vui lòng xem đơn hàng để kiểm tra thanh toán, phí lưu kho và yêu cầu giao lại locker."
         }
       }
     }
@@ -575,6 +588,11 @@
       "created": "Ngày đánh giá",
       "actions": "Thao tác",
       "publish": "Duyệt nội dung",
+      "publishForCustomers": "Công khai cho khách hàng",
+      "publicHint": "Nội dung và ảnh sẽ được hiển thị cho khách hàng WashGo. Kiểm tra và loại trừ thông tin cá nhân trước khi xác nhận.",
+      "publicConfirm": "Tôi đã kiểm tra nội dung và ảnh, xác nhận không chứa thông tin cá nhân hoặc thông tin nội bộ cần bảo vệ.",
+      "publicApproved": "Đã duyệt công khai cho khách hàng",
+      "notPublicApproved": "Chưa duyệt công khai cho khách hàng",
       "contentTab": "Nội dung",
       "activityTab": "Nhật ký hoạt động",
       "back": "Quay lại quản lý đánh giá",

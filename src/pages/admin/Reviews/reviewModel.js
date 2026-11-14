@@ -24,3 +24,4 @@ export const reviewActionSchema = hidden => yup.object({
 })
 
 export const canPublishReview = row => typeof row?.version === 'string' && !!row.version.trim() && row.canPublish === true && !row.isHidden && !row.contentApprovedAt
+export const canPublishForCustomers = row => typeof row?.version === 'string' && !!row.version.trim() && row.canPublishForCustomers === true && !row.isHidden && !row.publicApprovedAt

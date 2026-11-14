@@ -1,0 +1,17 @@
+name: washgo-frontend
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+        VITE_REVERSE_GEOCODING_URL: ${VITE_REVERSE_GEOCODING_URL:-https://photon.komoot.io/reverse}
+    ports:
+      - "${FE_PORT:-5173}:80"
+    environment:
+      BACKEND_URL: ${BACKEND_URL:-http://host.docker.internal:5000}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import authorizedAxios from '~/utils/authorizedAxios'
 import { adminReviewApi } from './adminReviewApi'
-import { readReviewQuery, reviewFilter, canModerate, canPublishReview, reviewActionSchema } from '~/pages/admin/Reviews/reviewModel'
+import { readReviewQuery, reviewFilter, canModerate, canPublishReview, canPublishForCustomers, reviewActionSchema } from '~/pages/admin/Reviews/reviewModel'
 
 vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), patch: vi.fn() } }))
 const id = '10000000-0000-4000-8000-000000000001', orderId = '20000000-0000-4000-8000-000000000001'
@@ -10,6 +10,21 @@ const ok = data => ({ data: { succeeded: true, data } })
 beforeEach(() => vi.clearAllMocks())
 
 describe('admin reviews contract', () => {
+  it('requires separate public capability and explicit approval, including lookup verification', async () => {
+    const ready = { ...row, version: 'v1', canPublishForCustomers: true, contentApprovedAt: '2026-11-14T00:00:00Z' }
+    expect(canPublishReview(ready)).toBe(false)
+    expect(canPublishForCustomers(ready)).toBe(true)
+    expect(canPublishForCustomers({ ...ready, isHidden: true })).toBe(false)
+    expect(canPublishForCustomers({ ...ready, canPublishForCustomers: undefined })).toBe(false)
+    const approved = { ...ready, publicApprovedAt: '2026-11-14T01:00:00Z', version: 'v2' }
+    authorizedAxios.post.mockResolvedValue(ok(approved))
+    await adminReviewApi.publish(ready, null, 'public-operation', true)
+    expect(authorizedAxios.post).toHaveBeenCalledWith(`/rating/${id}/publish`, { reason: null, expectedVersion: 'v1', operationId: 'public-operation', publishForCustomers: true })
+    authorizedAxios.get.mockResolvedValue(ok({ operationId: 'public-operation', state: 'Completed', action: 'Publish', resourceId: id, result: { succeeded: true, data: ready } }))
+    await expect(adminReviewApi.lookup({ operationId: 'public-operation', action: 'Publish', publishForCustomers: true, items: [{ id }] }, false)).rejects.toThrow()
+    authorizedAxios.post.mockResolvedValue(ok(ready))
+    await expect(adminReviewApi.publish(ready, null, 'other-operation', true)).rejects.toMatchObject({ uncertain: true })
+  })
   it('preserves false visibility and converts Vietnam calendar dates before server paging', () => {
     const query = readReviewQuery(new URLSearchParams('isHidden=false&stars=4&from=2026-11-01&to=2026-11-02&page=3'))
     expect(reviewFilter(query)).toMatchObject({ isHidden: false, stars: 4, page: 3, take: 12, fromDate: Date.parse('2026-11-01T00:00:00+07:00') / 1000, toDate: Date.parse('2026-11-02T23:59:59+07:00') / 1000 })

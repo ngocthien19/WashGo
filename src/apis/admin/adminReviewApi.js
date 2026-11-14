@@ -74,11 +74,11 @@ export const adminReviewApi = {
       error.uncertain = true; throw error
     }
   },
-  publish: async (row, reason, operationId) => {
-    const response = await adminWrite('Rating', 'Publish', row.id, 'post', `/rating/${encodeURIComponent(row.id)}/publish`, { reason, ...versionGuard(row.version, operationId) })
+  publish: async (row, reason, operationId, publishForCustomers = false) => {
+    const response = await adminWrite('Rating', 'Publish', row.id, 'post', `/rating/${encodeURIComponent(row.id)}/publish`, { reason, ...versionGuard(row.version, operationId), ...(publishForCustomers ? { publishForCustomers: true } : {}) })
     try {
       const next = unwrap(response)
-      if (next.id !== row.id || !next.contentApprovedAt) {
+      if (next.id !== row.id || !next.contentApprovedAt || publishForCustomers && !next.publicApprovedAt) {
         throw invalid()
       }
       return next
@@ -96,7 +96,7 @@ export const adminReviewApi = {
       return validateBatch(value.result?.data, command.operationId, command.items)
     }
     const row = unwrap({ data: value.result })
-    if (row.id !== command.items[0].id || (command.action === 'Publish' ? !row.contentApprovedAt : row.isHidden !== (command.action === 'Hide'))) {
+    if (row.id !== command.items[0].id || (command.action === 'Publish' ? !row.contentApprovedAt || command.publishForCustomers && !row.publicApprovedAt : row.isHidden !== (command.action === 'Hide'))) {
       throw invalid()
     }
     return row
