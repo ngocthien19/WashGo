@@ -19,7 +19,17 @@ export default function ThemeToggle({ inline = false }) {
       aria-label={label}
       onClick={toggleTheme}
     >
-      {theme === THEME_MODES.DARK ? <Sun size={18} /> : <Moon size={18} />}
+      {theme === THEME_MODES.DARK ? (
+        <Sun
+          size={18}
+          className="text-amber-400"
+        />
+      ) : (
+        <Moon
+          size={18}
+          className="text-indigo-600"
+        />
+      )}
     </Button>
   )
 }

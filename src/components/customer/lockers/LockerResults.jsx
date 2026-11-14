@@ -5,13 +5,14 @@ import { useRef, useState } from 'react'
 import { MapPin, ArrowUpRight, Navigation } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import Reveal from '~/components/motion/Reveal'
+import ScrollAccent from '~/components/motion/ScrollAccent'
 import { cn } from '~/lib/utils'
 import { formatDistance, formatLockerAddress, getDistanceKm, hasCoordinates } from '~/utils/format/formats'
 import { UI_MOTION } from '~/utils/config/constants'
 import LockerMap from './LockerMap'
 import LockerDetails from './LockerDetails'
 
-export default function LockerResults({ lockers, position }) {
+export default function LockerResults({ lockers, position, animate = false }) {
   const { t } = useTranslation()
   const [selectedId, setSelectedId] = useState(null)
   const [detailId, setDetailId] = useState(null)
@@ -31,83 +32,94 @@ export default function LockerResults({ lockers, position }) {
           ref={mapRef}
           className="min-w-0 scroll-mt-[var(--customer-header-offset)]"
         >
-          <LockerMap
-            lockers={lockers}
-            selectedId={selectedId}
-            selectionVersion={selectionVersion}
-            position={position}
-            onSelect={selectLocker}
-          />
+          <ScrollAccent
+            direction="left"
+            disabled={!animate}
+          >
+            <LockerMap
+              lockers={lockers}
+              selectedId={selectedId}
+              selectionVersion={selectionVersion}
+              position={position}
+              onSelect={selectLocker}
+            />
+          </ScrollAccent>
         </div>
-        <div className="space-y-3 lg:max-h-[32rem] lg:overflow-y-auto lg:pr-1">
-          {lockers.map((locker, index) => {
-            const distance = hasCoordinates(position)
-              ? formatDistance(locker.distanceKm ?? getDistanceKm(position, locker)) : ''
-            return (
-              <Reveal
-                key={locker.id}
-                delay={index * UI_MOTION.STAGGER}
-              >
-                <article className={cn('min-w-0 rounded-2xl border bg-card p-4 shadow-sm transition-[border-color,box-shadow] delay-0 duration-200 ease-in-out hover:shadow-md motion-reduce:transition-none', selectedId === locker.id ? 'border-primary/60 ring-1 ring-primary/15' : 'border-border/70')}>
-                  <div className="flex items-start gap-3">
-                    <ResourceThumbnail
-                      urls={catalogImages(locker)}
-                      name={locker.name}
-                      className="size-14"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="min-w-0 flex-1 line-clamp-2 font-semibold [overflow-wrap:anywhere]">
-                          {locker.name}
-                        </h3>
-                        {distance && (
-                          <span
-                            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/8 px-2 py-1 text-xs font-semibold tabular-nums text-primary"
-                            aria-label={t('customer.aboutAwayInAStraightLine', { distance: distance })}
-                          >
-                            <Navigation
-                              size={12}
-                              aria-hidden="true"
-                            />
-                            {`≈ ${distance}`}
+        <ScrollAccent
+          direction="right"
+          disabled={!animate}
+          className="min-w-0"
+        >
+          <div className="space-y-3 lg:max-h-[32rem] lg:overflow-y-auto lg:pr-1">
+            {lockers.map((locker, index) => {
+              const distance = hasCoordinates(position)
+                ? formatDistance(locker.distanceKm ?? getDistanceKm(position, locker)) : ''
+              return (
+                <Reveal
+                  key={locker.id}
+                  delay={index * UI_MOTION.STAGGER}
+                >
+                  <article className={cn('min-w-0 rounded-2xl border bg-card p-4 shadow-sm transition-[border-color,box-shadow] delay-0 duration-200 ease-in-out hover:shadow-md motion-reduce:transition-none', selectedId === locker.id ? 'border-primary/60 ring-1 ring-primary/15' : 'border-border/70')}>
+                    <div className="flex items-start gap-3">
+                      <ResourceThumbnail
+                        urls={catalogImages(locker)}
+                        name={locker.name}
+                        className="size-14"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="min-w-0 flex-1 line-clamp-2 font-semibold [overflow-wrap:anywhere]">
+                            {locker.name}
+                          </h3>
+                          {distance && (
+                            <span
+                              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/8 px-2 py-1 text-xs font-semibold tabular-nums text-primary"
+                              aria-label={t('customer.aboutAwayInAStraightLine', { distance: distance })}
+                            >
+                              <Navigation
+                                size={12}
+                                aria-hidden="true"
+                              />
+                              {`≈ ${distance}`}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground [overflow-wrap:anywhere]">
+                          {formatLockerAddress(locker)}
+                        </p>
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                          <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 font-semibold text-emerald-700 dark:text-emerald-400">
+                            {t('customer.compartmentsAvailable', { availableSlotCount: locker.availableSlotCount })}
                           </span>
-                        )}
-                      </div>
-                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground [overflow-wrap:anywhere]">
-                        {formatLockerAddress(locker)}
-                      </p>
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                        <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 font-semibold text-emerald-700 dark:text-emerald-400">
-                          {t('customer.compartmentsAvailable', { availableSlotCount: locker.availableSlotCount })}
-                        </span>
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <Button
-                          variant="outline-primary"
-                          className="h-11 rounded-xl px-4 text-base"
-                          disabled={!hasCoordinates(locker)}
-                          aria-pressed={selectedId === locker.id}
-                          onClick={() => selectLocker(locker.id, true)}
-                        >
-                          <MapPin size={18} />
-                          {t('customer.showOnMap')}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className="h-11 rounded-xl px-4 text-base"
-                          onClick={() => setDetailId(locker.id)}
-                        >
-                          {t('customer.details')}
-                          <ArrowUpRight size={18} />
-                        </Button>
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <Button
+                            variant="outline-primary"
+                            className="h-11 rounded-xl px-4 text-base"
+                            disabled={!hasCoordinates(locker)}
+                            aria-pressed={selectedId === locker.id}
+                            onClick={() => selectLocker(locker.id, true)}
+                          >
+                            <MapPin size={18} />
+                            {t('customer.showOnMap')}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="h-11 rounded-xl px-4 text-base"
+                            onClick={() => setDetailId(locker.id)}
+                          >
+                            {t('customer.details')}
+                            <ArrowUpRight size={18} />
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </article>
-              </Reveal>
-            )
-          })}
-        </div>
+                  </article>
+                </Reveal>
+              )
+            })}
+          </div>
+        </ScrollAccent>
       </div>
       {detailId && (
         <LockerDetails

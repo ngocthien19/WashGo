@@ -1,4 +1,8 @@
 {
+  "customerFeedbackActions": {
+    "viewAll": "View all reviews",
+    "allTitle": "All reviews"
+  },
   "searchSuggestions": {
     "notificationsFound": "{{count}} notifications found",
     "notificationsFound_one": "{{count}} notification found",

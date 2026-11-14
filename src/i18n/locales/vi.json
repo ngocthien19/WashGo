@@ -1,4 +1,8 @@
 {
+  "customerFeedbackActions": {
+    "viewAll": "Xem tất cả đánh giá",
+    "allTitle": "Tất cả đánh giá"
+  },
   "searchSuggestions": {
     "notificationsFound_one": "{{count}} thông báo tìm thấy",
     "notificationsFound_other": "{{count}} thông báo tìm thấy",
