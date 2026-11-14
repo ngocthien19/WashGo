@@ -13,6 +13,7 @@ vi.mock('~/apis/customer/customerCatalogApi', async (importOriginal) => ({ ...aw
 vi.mock('~/apis/customer/customerOrderApi', () => ({ customerOrderApi: { quote: vi.fn(), create: vi.fn() } }))
 vi.mock('~/components/customer/lockers/LockerMap', () => ({ default: () => null }))
 vi.mock('~/components/motion/Reveal', () => ({ default: ({ children }) => children }))
+vi.mock('~/components/motion/ScrollSection', () => ({ default: ({ children }) => children }))
 
 const service = { id: 'service', name: 'Test wash', unit: 'kg', unitPrice: 30000 }
 const box = { id: 'box', slotNumber: 1, size: 2 }

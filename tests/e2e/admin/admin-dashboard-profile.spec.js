@@ -112,11 +112,38 @@ test('mobile dark profile uses Admin data and keeps editable controls responsive
   await expect(page).toHaveURL('/admin/profile')
   expect(state.calls.some((call) => call.path === '/customer/me' || call.path === '/merchant-profile')).toBe(false)
 })
-test('profile signs out the current session', async ({ page }) => {
+test('profile signs out the current session and returns to public Home', async ({ page }) => {
   const state = await setup(page)
+  const publicRequests = []
+  await page.route('**/api/**', route => {
+    const request = route.request()
+    const path = new URL(request.url()).pathname.replace(/^\/api/, '')
+    if (!path.startsWith('/customer/') && path !== '/policy/current') {
+      return route.fallback()
+    }
+    expect(state.logout).toBe(1)
+    expect(request.headers().authorization).toBeUndefined()
+    publicRequests.push(path)
+    if (path === '/policy/current') {
+      return route.fulfill({ json: { succeeded: true, data: { terms: { version: 'public-v1', title: 'Service terms', content: 'Public service terms' }, rules: {} } } })
+    }
+    if (path === '/customer/services/filter' || path === '/customer/lockers') {
+      return route.fulfill({ json: { succeeded: true, list: [], total: 0, currentPage: 1, totalPages: 0 } })
+    }
+    if (path === '/customer/reviews') {
+      return route.fulfill({ json: { succeeded: true, data: { items: [], total: 0, page: 1, take: 4, hasMore: false } } })
+    }
+    if (path === '/customer/reviews/summary') {
+      return route.fulfill({ json: { succeeded: true, data: { total: 0, averageStars: null, distribution: [1, 2, 3, 4, 5].map(stars => ({ stars, count: 0, rate: 0 })) } } })
+    }
+    throw new Error(`Unexpected public Home API: ${path}`)
+  })
   await page.goto('/admin/profile')
   await page.getByRole('main').getByRole('button', { name: 'Sign out', exact: true }).last().click()
-  await expect(page).toHaveURL(/\/login$/)
+  await expect(page).toHaveURL('/')
+  await expect(page.locator('header').getByRole('button', { name: 'Sign in', exact: true })).toBeVisible()
+  await expect.poll(() => new Set(publicRequests).size).toBe(5)
+  await expect.poll(() => page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem('persist:root')).auth))).toMatchObject({ user: null, accessToken: null, refreshToken: null })
   expect(state.logout).toBe(1)
 })
 test('guests cannot query Admin data', async ({ page }) => {
