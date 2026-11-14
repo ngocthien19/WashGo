@@ -1,4 +1,13 @@
 {
+  "searchSuggestions": {
+    "notificationsFound_one": "{{count}} thông báo tìm thấy",
+    "notificationsFound_other": "{{count}} thông báo tìm thấy",
+    "notificationsFound": "{{count}} thông báo tìm thấy",
+    "title": "Gợi ý tìm kiếm",
+    "loading": "Đang tìm gợi ý…",
+    "empty": "Không tìm thấy gợi ý phù hợp. Bạn vẫn có thể nhấn Enter để tìm kiếm.",
+    "error": "Chưa tải được gợi ý. Bạn vẫn có thể nhấn Enter hoặc nút tìm kiếm."
+  },
   "navigationDrawer": { "close": "Đóng menu điều hướng" },
   "notificationMessages": {
     "orderCreated": {

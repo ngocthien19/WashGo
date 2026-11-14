@@ -169,6 +169,8 @@ export const SERVICE_TYPES = [
   { value: '5', label: 'common.shoeCleaning' }
 ]
 
+export const SEARCH_SUGGESTIONS = { MIN_QUERY_LENGTH: 1, DEBOUNCE_MS: 300, PAGE_SIZE: 50 }
+
 export const CUSTOMER_CATALOG = {
   PAGE_SIZE: 6,
   FEATURED_LIMIT: 3,

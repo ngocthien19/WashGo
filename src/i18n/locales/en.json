@@ -1,4 +1,13 @@
 {
+  "searchSuggestions": {
+    "notificationsFound": "{{count}} notifications found",
+    "notificationsFound_one": "{{count}} notification found",
+    "notificationsFound_other": "{{count}} notifications found",
+    "title": "Search suggestions",
+    "loading": "Finding suggestions…",
+    "empty": "No matching suggestions. You can still press Enter to search.",
+    "error": "Suggestions are unavailable. You can still press Enter or the search button."
+  },
   "navigationDrawer": { "close": "Close navigation menu" },
   "notificationMessages": {
     "orderCreated": {
