@@ -3,6 +3,12 @@
     "viewAll": "View all reviews",
     "allTitle": "All reviews"
   },
+  "notFound": {
+    "pageTitle": "Page not found | WashGo",
+    "title": "Page not found",
+    "description": "Looks like you got caught in the rain. This page does not exist or has moved to another address.",
+    "home": "Back to Home"
+  },
   "searchSuggestions": {
     "notificationsFound": "{{count}} notifications found",
     "notificationsFound_one": "{{count}} notification found",

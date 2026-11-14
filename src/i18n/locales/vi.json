@@ -3,6 +3,12 @@
     "viewAll": "Xem tất cả đánh giá",
     "allTitle": "Tất cả đánh giá"
   },
+  "notFound": {
+    "pageTitle": "Không tìm thấy trang | WashGo",
+    "title": "Không tìm thấy trang",
+    "description": "Có vẻ bạn đã đi lạc giữa cơn mưa. Trang này không tồn tại hoặc đã được chuyển sang địa chỉ khác.",
+    "home": "Về trang chủ"
+  },
   "searchSuggestions": {
     "notificationsFound_one": "{{count}} thông báo tìm thấy",
     "notificationsFound_other": "{{count}} thông báo tìm thấy",

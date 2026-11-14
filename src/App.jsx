@@ -6,6 +6,7 @@ import ProtectedRoleRoute from '~/routes/ProtectedRoleRoute'
 import DisplayControls from '~/components/DisplayControls/DisplayControls'
 import AppToaster from '~/components/LocalizedMessage/AppToaster'
 
+const NotFoundPage = lazy(() => import('~/pages/NotFound/NotFoundPage'))
 const AuthLayout = lazy(() => import('~/layouts/auth/AuthLayout'))
 const LoginPage = lazy(() => import('~/pages/auth/Login/LoginPage'))
 const RegisterPage = lazy(() => import('~/pages/auth/Register/RegisterPage'))
@@ -73,7 +74,11 @@ export default function App() {
           />
           <Route
             path="*"
-            element={<Navigate to={CUSTOMER_ROUTES.HOME} replace />}
+            element={(
+              <StandaloneThemeLayout>
+                <NotFoundPage />
+              </StandaloneThemeLayout>
+            )}
           />
           <Route element={(
             <ProtectedRoleRoute
@@ -312,11 +317,11 @@ export default function App() {
   )
 }
 
-function StandaloneThemeLayout() {
+function StandaloneThemeLayout({ children }) {
   return (
     <>
       <DisplayControls />
-      <Outlet />
+      {children || <Outlet />}
     </>
   )
 }
