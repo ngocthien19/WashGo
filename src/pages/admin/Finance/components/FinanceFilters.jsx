@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import ClearFiltersButton from '~/components/ClearFiltersButton'
-import { readQuery } from '../financeModel'
+import { readQuery, settlementFilter } from '../financeModel'
+import { adminFinanceApi } from '~/apis/admin/adminFinanceApi'
 import { useTranslation } from 'react-i18next'
 import { ListFilter, CalendarDays, Search } from 'lucide-react'
 import { SelectField } from '~/components/ui/select'
@@ -28,6 +29,8 @@ export default function FinanceFilters({ query, merchants, onChange }) {
             {t('admin.sync.searchFinance')}
           </p>
           <CatalogToolbar
+            suggestionSource={query.tab === 'settlements' ? adminFinanceApi.settlements : adminFinanceApi.refunds}
+            suggestionFilter={settlementFilter(query)}
             resetKey={resetVersion}
             embedded
             label={t('admin.sync.searchFinance')}

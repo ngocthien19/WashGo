@@ -44,7 +44,7 @@ test('clear all resets finance filters and keeps the current business tab', asyn
     expect(params.get('period')).toBe('month')
     await expect(page.getByRole('button', { name: 'Clear all', exact: true })).toHaveCount(0)
     if (tab !== 'revenue') {
-      await expect(page.getByRole('searchbox')).toHaveValue('')
+      await expect(page.getByRole('search').getByRole('combobox')).toHaveValue('')
       await expect(page.getByLabel('From date', { exact: true })).toHaveValue('')
     }
   }
@@ -339,7 +339,7 @@ test('finance filters are readable and aligned while preview identifies its Merc
   }
   expect(boxes[0].y).toBeCloseTo(boxes[1].y, 0)
   expect(boxes[1].y).toBeCloseTo(boxes[2].y, 0)
-  const search = filters.getByRole('searchbox')
+  const search = filters.getByRole('search').getByRole('combobox')
   expect(await search.evaluate(el => getComputedStyle(el).fontSize)).toBe('14px')
   await search.fill('bank-reference')
   await search.press('Enter')

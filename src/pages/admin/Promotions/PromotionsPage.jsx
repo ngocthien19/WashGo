@@ -123,6 +123,8 @@ export default function PromotionsPage() {
             {t('admin.promotions.search')}
           </p>
           <CatalogToolbar
+            suggestionSource={adminPromotionApi.list}
+            suggestionFilter={filter(query)}
             resetKey={resetVersion}
             embedded
             label={t('admin.promotions.search')}

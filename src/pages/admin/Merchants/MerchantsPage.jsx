@@ -197,6 +197,9 @@ export default function MerchantsPage() {
                 {t('admin.merchants.searchLabel')}
               </p>
               <CatalogToolbar
+                suggestionSource={adminMerchantApi[merchants ? 'list' : 'requests']}
+                suggestionFilter={merchantFilter(query)}
+                suggestionKind="merchant"
                 embedded
                 keyword={query.keyword}
                 onSearch={(keyword) => update({ keyword })}

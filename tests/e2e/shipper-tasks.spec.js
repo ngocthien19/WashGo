@@ -11,6 +11,23 @@ const shipperId = '44444444-4444-4444-8444-444444444444'
 const photo = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="140"><rect width="200" height="140" fill="#e0e7ff"/><rect x="50" y="20" width="100" height="110" rx="8" fill="#64748b"/></svg>')}`
 const makeOrder = (id, type) => ({ id, revision: 1, orderCode: `WG-${type}`, merchantOrderCode: `MC-${type}`, status: type === 1 ? 2 : 9, paymentStatus: type === 1 ? 1 : 2, assignedTaskType: type, nextAction: type, shipperId, shipperAssignedAt: '2026-11-10T01:00:00Z', lockerId: 'deposit-locker', lockerName: 'Deposit Station', lockerLatitude: 10.77, lockerLongitude: 106.69, returnLockerLatitude: 10.8, returnLockerLongitude: 106.7, boxId: 'box-3', boxNumber: '3', returnLockerId: 'return-locker', taskLockerName: type === 1 ? 'Deposit Station' : 'Return Station', taskLockerAddress: '123 Test Street', taskLockerImageUrls: [photo], merchantImageUrls: [photo], merchantEmail: 'store@example.test', merchantPhone: '0909998888', taskBoxNumber: type === 1 ? '3' : null, merchantName: 'Test Store', shipperNote: 'Keep bags sealed', cancelledGoodsStatus: 0, customerName: 'PRIVATE CUSTOMER', shipperTaskPinCode: 'SECRET VALUE', items: [{ id: 'item-1', serviceName: 'Wash service', serviceImageUrls: [photo], quantity: 1 }] })
 const asTask = order => ({ taskId: order.id, assignmentVersion: order.id, orderId: order.id, orderCode: order.orderCode, merchantOrderCode: order.merchantOrderCode, taskType: order.assignedTaskType, status: order.nextAction ? 1 : 2, orderStatus: order.status, orderRevision: order.revision, canCollect: order.nextAction === 1, canReturn: order.nextAction === 2, taskLockerName: order.taskLockerName, taskLockerAddress: order.taskLockerAddress, taskLockerImageUrls: order.taskLockerImageUrls, taskLockerLatitude: order.assignedTaskType === 1 ? order.lockerLatitude : order.returnLockerLatitude, taskLockerLongitude: order.assignedTaskType === 1 ? order.lockerLongitude : order.returnLockerLongitude, taskBoxNumber: order.taskBoxNumber, assignedAt: order.shipperAssignedAt, note: order.shipperNote, merchantName: order.merchantName, order: { ...order, merchantPhoneNumber: order.merchantPhone } })
+test('Shipper search suggestions use assigned tasks without reading credentials', async ({ page }) => {
+  const state = await setup(page)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/shipper/tasks')
+  const input = page.getByRole('search').getByRole('combobox')
+  await input.fill('wg-cancelled')
+  const option = page.getByRole('option').filter({ hasText: 'WG-CANCELLED' })
+  await expect(option).toBeVisible()
+  await expect(option.getByText('WG-CANCELLED', { exact: true })).toHaveCSS('font-weight', '700')
+  await expect(option).not.toContainText('SECRET VALUE')
+  await expect(option).not.toContainText('PRIVATE CUSTOMER')
+  await option.click()
+  await expect(page).toHaveURL(/keyword=WG-CANCELLED/)
+  expect(state.reads).toHaveLength(0)
+  expect(state.writes).toHaveLength(0)
+})
+
 async function setup(page, options = {}) {
   if (!options.guest) {
     await merchantSession(page, { role: 'Shipper', dark: options.dark })
@@ -46,7 +63,7 @@ async function setup(page, options = {}) {
       if (state.failList && body.take > 1) {
         return fail(500, 'List unavailable')
       }
-      const rows = Object.values(state.details).filter((row) => row.nextAction != null && (!body.taskType || row.assignedTaskType === body.taskType) && (!body.keyword || row.orderCode.includes(body.keyword)))
+      const rows = Object.values(state.details).filter((row) => row.nextAction != null && (!body.taskType || row.assignedTaskType === body.taskType) && (!body.keyword || row.orderCode.toLowerCase().includes(body.keyword.toLowerCase())))
       return route.fulfill({ json: { succeeded: true, total: rows.length, list: rows.slice((body.page - 1) * body.take, body.page * body.take).map(asTask) } })
     }
     const match = path.match(/^\/(?:wash-order|shipper-tasks)\/([^/]+)(?:\/(shipper-collect|shipper-return))?$/)
@@ -115,11 +132,11 @@ test('task list uses scoped server filters, links, no credentials and preserves 
   await page.getByRole('combobox', { name: 'Delivery type', exact: true }).click()
   await page.getByRole('option', { name: 'Return', exact: true }).click()
   await expect(page).toHaveURL(/taskType=2/)
-  await page.getByRole('searchbox', { name: 'Search delivery tasks', exact: true }).fill('WG-CANCELLED')
+  await page.getByRole('combobox', { name: 'Search delivery tasks', exact: true }).fill('WG-CANCELLED')
   await page.getByRole('search', { name: 'Search delivery tasks', exact: true }).locator('button').click()
   await expect(page.getByRole('table').getByRole('row')).toHaveCount(2)
   await page.reload()
-  await expect(page.getByRole('searchbox')).toHaveValue('WG-CANCELLED')
+  await expect(page.getByRole('search').getByRole('combobox')).toHaveValue('WG-CANCELLED')
   await page.getByRole('button', { name: 'Actions', exact: true }).click()
   await page.getByRole('menuitem', { name: 'View task', exact: true }).click()
   await expect(page).toHaveURL(`/shipper/tasks/${cancelledId}`)

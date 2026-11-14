@@ -102,6 +102,8 @@ export default function OrdersPage() {
             {t('merchant.orders.search')}
           </p>
           <CatalogToolbar
+            suggestionSource={merchantOrderApi.list}
+            suggestionFilter={buildMerchantOrdersFilter(query)}
             embedded
             keyword={query.keyword}
             label={t('merchant.orders.search')}

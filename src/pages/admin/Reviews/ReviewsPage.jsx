@@ -144,6 +144,8 @@ export default function ReviewsPage() {
               {t('admin.reviews.search')}
             </p>
             <CatalogToolbar
+              suggestionSource={adminReviewApi.list}
+              suggestionFilter={reviewFilter(query)}
               resetKey={resetVersion}
               embedded
               keyword={query.keyword}

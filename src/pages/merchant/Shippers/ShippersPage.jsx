@@ -100,6 +100,9 @@ export default function ShippersPage() {
             {t('merchant.shippers.search')}
           </p>
           <CatalogToolbar
+            suggestionSource={merchantShipperApi.list}
+            suggestionFilter={shipperFilter(query)}
+            suggestionKind="shipper"
             embedded
             keyword={query.keyword}
             label={t('merchant.shippers.search')}

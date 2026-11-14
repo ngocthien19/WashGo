@@ -80,6 +80,9 @@ export default function DeliveryHistoryPage() {
       />
       <section className="workspace-filters space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
         <CatalogToolbar
+          suggestionSource={shipperDeliveryApi.list}
+          suggestionKind="delivery"
+          suggestionFilter={historyFilter(query)}
           embedded
           resetKey={reset}
           keyword={query.keyword}

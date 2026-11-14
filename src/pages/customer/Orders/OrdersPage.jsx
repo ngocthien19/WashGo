@@ -59,6 +59,8 @@ export default function OrdersPage() {
         </div>
         <div className="grid items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-[minmax(12rem,1.5fr)_minmax(9rem,1fr)_minmax(9rem,1fr)_auto]">
           <CatalogToolbar
+            suggestionType="order"
+            suggestionFilter={buildOrdersFilter(query)}
             embedded
             className="pt-2 sm:col-span-2 lg:col-span-1"
             keyword={query.keyword}

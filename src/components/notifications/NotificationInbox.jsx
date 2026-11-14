@@ -18,7 +18,7 @@ import { cn } from '~/lib/utils'
 import { useNotifications } from './NotificationContext'
 import { notificationHref, notificationText } from './notificationModel'
 
-export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = false, onChange, compact = false, filters, onCounts }) {
+export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = false, onChange, compact = false, filters, onCounts, showResultCount = false }) {
   const { t } = useTranslation()
   const reduceMotion = useReducedMotion()
   const navigate = useNavigate()
@@ -126,6 +126,14 @@ export default function NotificationInbox({ onNavigate, page = 1, unreadOnly = f
               </Button>
             </div>
           </div>
+          {showResultCount && !loading && !error && data && (
+            <p
+              role="status"
+              className="text-sm text-muted-foreground"
+            >
+              {t('searchSuggestions.notificationsFound', { count: data.total })}
+            </p>
+          )}
         </div>
       )}
       {(loading && !data) || error || !data?.list.length ? (

@@ -113,6 +113,9 @@ export default function ServicesPage() {
                 {t('merchant.services.search')}
               </p>
               <CatalogToolbar
+                suggestionSource={merchantServiceApi[query.tab]}
+                suggestionFilter={serviceFilter(query)}
+                suggestionKind="service"
                 embedded
                 keyword={query.keyword}
                 label={t('merchant.services.search')}

@@ -4,6 +4,8 @@ import { auditFilterOptions } from './auditFilterOptions'
 import { adminSystemSettingApi } from '~/apis/admin/adminSystemSettingApi'
 import { History, Eye, ListChecks, ListFilter } from 'lucide-react'
 import TruncatedText from '~/components/TruncatedText'
+import SuggestedSearch from '~/components/CatalogToolbar/SuggestedSearch'
+import { loadSuggestionPages, resourceSuggestion } from '~/utils/searchSuggestions'
 import { WithTooltip } from '~/components/ui/tooltip'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -113,6 +115,11 @@ export default function AuditPanel({ personal = false, settings = false, resourc
   const { register, control, handleSubmit, reset, formState: { errors } } = useForm({ resolver: yupResolver(schema), mode: 'onChange', defaultValues: Object.fromEntries(fields.map(key => [key, ''])) })
   const [resetVersion, setResetVersion] = useState(0)
   const keyword = useWatch({ control, name: 'keyword' })
+  const loadSuggestions = useCallback(async (text, signal) => {
+    const load = settings ? adminSystemSettingApi.history : (filter, abortSignal) => adminWorkspaceApi.activities(filter, false, abortSignal)
+    const items = await loadSuggestionPages(load, { ...query, ...(resourceId ? { resourceType, resourceId } : {}) }, text, signal)
+    return items.map(item => resourceSuggestion(item, 'audit')).filter(Boolean)
+  }, [settings, query, resourceType, resourceId])
   useEffect(() => {
     if (!autoApply || keyword.trim().length > 200) {
       return
@@ -159,7 +166,29 @@ export default function AuditPanel({ personal = false, settings = false, resourc
                 className="grid content-start gap-2 text-base font-medium"
               >
                 {t(`admin.workspaceSync.auditFields.${key}`)}
-                {auditFilterOptions(key, '', [], settings) ? (
+                {key === 'keyword' ? (
+                  <Controller
+                    name="keyword"
+                    control={control}
+                    render={({ field }) => (
+                      <SuggestedSearch
+                        key={resetVersion}
+                        keyword={field.value}
+                        onDraftChange={field.onChange}
+                        onSearch={text => {
+                          field.onChange(text)
+                          setQuery(current => ({ ...current, keyword: text, page: 1 }))
+                        }}
+                        label={t('admin.workspaceSync.auditFields.keyword')}
+                        className="flex min-w-0 items-center rounded-xl border border-border bg-background px-3"
+                        loadSuggestions={loadSuggestions}
+                        renderForm={false}
+                        hideLabel
+                        showSearchButton={false}
+                      />
+                    )}
+                  />
+                ) : auditFilterOptions(key, '', [], settings) ? (
                   <Controller
                     name={key}
                     control={control}

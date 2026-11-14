@@ -32,6 +32,8 @@ export default function PartnerReviews() {
         <div className="workspace-filters space-y-4 rounded-xl border border-border p-4">
           <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
             <CatalogToolbar
+              suggestionSource={merchantReviewApi.list}
+              suggestionFilter={{ ...dateRangeFilter(query), stars: query.stars ? Number(query.stars) : undefined, take: 5 }}
               embedded
               resetKey={reset}
               keyword={query.keyword}

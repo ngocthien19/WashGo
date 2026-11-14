@@ -85,6 +85,8 @@ export default function ComplaintsPage() {
             {t('admin.complaints.search')}
           </p>
           <CatalogToolbar
+            suggestionSource={adminComplaintApi.list}
+            suggestionFilter={filter(query)}
             resetKey={resetVersion}
             embedded
             label={t('admin.complaints.search')}

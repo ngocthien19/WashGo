@@ -169,6 +169,8 @@ export default function OrdersPage() {
                 {t('admin.orderManagement.search')}
               </p>
               <CatalogToolbar
+                suggestionSource={waiting ? adminOrderApi.waiting : adminOrderApi.list}
+                suggestionFilter={waiting ? waitingFilter(query) : listFilter(query)}
                 embedded
                 keyword={query.keyword}
                 label={t('admin.orderManagement.search')}

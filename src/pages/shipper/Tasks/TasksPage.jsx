@@ -77,6 +77,9 @@ export default function TasksPage() {
             {t('shipper.tasks.search')}
           </p>
           <CatalogToolbar
+            suggestionSource={shipperTaskApi.list}
+            suggestionKind="task"
+            suggestionFilter={taskFilter(query)}
             embedded
             resetKey={reset}
             keyword={query.keyword}

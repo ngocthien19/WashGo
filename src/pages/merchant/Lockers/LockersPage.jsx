@@ -67,6 +67,9 @@ export default function LockersPage() {
             {t('merchant.lockers.search')}
           </p>
           <CatalogToolbar
+            suggestionSource={merchantLockerApi.list}
+            suggestionFilter={lockerFilter(query)}
+            suggestionKind="locker"
             embedded
             keyword={query.keyword}
             label={t('merchant.lockers.search')}

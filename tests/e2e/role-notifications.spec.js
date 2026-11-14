@@ -1,6 +1,24 @@
 import { expect, test } from '@playwright/test'
 import { setupNotifications, notificationId, orderId } from './helpers/notificationSession'
 
+for (const [role, type] of [['Admin', 43], ['Merchant', 24], ['Shipper', 30]]) {
+  test(`${role} notification suggestions share matching fields and filtered result counts`, async ({ page }) => {
+    const state = await setupNotifications(page, { role })
+    state.items[0] = { ...state.items[0], type, title: 'Task update', content: 'Information from Central Laundry.', isRead: true }
+    await page.goto(`/${role.toLowerCase()}/notifications`)
+    await expect(page.getByRole('status')).toContainText('1 notification found')
+    const input = page.getByRole('search').getByRole('combobox')
+    await input.fill('CENTRAL')
+    const option = page.getByRole('option').filter({ hasText: 'Task update' })
+    await expect(option).toBeVisible()
+    await expect(option.getByText('Information from Central Laundry.', { exact: true })).toHaveCSS('font-weight', '700')
+    await option.click()
+    await expect(page).toHaveURL(/keyword=Task\+update/)
+    await expect(page.getByRole('status')).toContainText('1 notification found')
+    expect(state.writes).toHaveLength(0)
+  })
+}
+
 test('Admin navigation covers real event domains and sends supported server filters', async ({ page }) => {
   const state = await setupNotifications(page, { role: 'Admin' })
   state.items = [43, 40, 41, 42, 46, 47, 45].map((type, index) => ({ ...state.items[0], id: index ? `notification-${type}` : notificationId, type, group: [40, 42].includes(type) ? 'feedback' : type === 41 ? 'payment' : type >= 45 ? 'system' : 'order', title: `Admin event ${type}`, isRead: true }))

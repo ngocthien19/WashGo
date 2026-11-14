@@ -10,9 +10,10 @@ import { useNotifications } from './NotificationContext'
 import NotificationInbox from './NotificationInbox'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { notificationApi } from '~/apis/notificationApi'
+import { loadSuggestionPages, resourceSuggestion } from '~/utils/searchSuggestions'
 const categoryIcons = { order: Package, payment: Wallet, feedback: MessageSquareWarning, refunds: Undo2, ratings: Star, services: Shirt, merchant: Store, tasks: Truck }
 
-export default function NotificationCenter({ stickyClassName = 'lg:top-24', advanced = false, types = CUSTOMER_NOTIFICATION_TYPES, descriptionKey = 'customer.notification.description', filterClassName }) {
+export default function NotificationCenter({ stickyClassName = 'lg:top-24', advanced = false, types = CUSTOMER_NOTIFICATION_TYPES, descriptionKey = 'customer.notification.description', filterClassName, loadSuggestions, showResultCount = true }) {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
   const rawPage = Number(params.get('page') || 1)
@@ -26,6 +27,10 @@ export default function NotificationCenter({ stickyClassName = 'lg:top-24', adva
   const [counts, setCounts] = useState([])
   const total = counts.length ? counts.reduce((sum, item) => sum + item.total, 0) : null
   const filters = useMemo(() => advanced ? notificationFilters(params, types, categories) : undefined, [advanced, params, types, categories])
+  const suggestions = useMemo(() => async (keyword, signal) => {
+    const items = await loadSuggestionPages(notificationApi.filter, { ...filters, unreadOnly }, keyword, signal)
+    return items.map(item => resourceSuggestion(item)).filter(Boolean)
+  }, [filters, unreadOnly])
   const updateFilters = (patch) => {
     const next = new URLSearchParams(params)
     next.delete('page')
@@ -139,6 +144,7 @@ export default function NotificationCenter({ stickyClassName = 'lg:top-24', adva
       <div className="min-w-0 space-y-5">
         {advanced && (
           <NotificationFilters
+            loadSuggestions={loadSuggestions || suggestions}
             params={params}
             change={updateFilters}
             types={activeTypes}
@@ -147,6 +153,7 @@ export default function NotificationCenter({ stickyClassName = 'lg:top-24', adva
         )}
         <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
           <NotificationInbox
+            showResultCount={showResultCount}
             page={page}
             unreadOnly={unreadOnly}
             onChange={changeQuery}
