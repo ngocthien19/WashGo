@@ -1,16 +1,17 @@
+import { storageApi } from '~/apis/storageApi'
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { shipperTaskApi } from '~/apis/shipper/shipperTaskApi'
-import { canCompleteTask } from './taskModel'
+import { canCompleteTask, canStorageTask, taskActionLabel } from './taskModel'
 import TaskActionDialog from './TaskActionDialog'
 
 export default function TaskQuickAction({ row, profile, onClose, onSaved, onUnknown }) {
   const { t } = useTranslation()
   const resource = useCatalogResource(useCallback((signal) => shipperTaskApi.detail(row.taskId, signal), [row.taskId]))
-  if (!resource.loading && !profile.loading && !resource.error && !profile.error && resource.data?.assignedTaskType === row.assignedTaskType && (canCompleteTask(resource.data, profile.data?.id) || shipperTaskApi.hasPending(resource.data))) {
+  if (!resource.loading && !profile.loading && !resource.error && !profile.error && resource.data?.assignedTaskType === row.assignedTaskType && (canCompleteTask(resource.data, profile.data?.id) || canStorageTask(resource.data) || storageApi.hasPending(row.id) || shipperTaskApi.hasPending(resource.data))) {
     return (
       <TaskActionDialog
         order={resource.data}
@@ -37,7 +38,7 @@ export default function TaskQuickAction({ row, profile, onClose, onSaved, onUnkn
       >
         <DialogHeader>
           <DialogTitle className="pr-8 text-xl font-bold">
-            {t(row.assignedTaskType === 1 ? 'shipper.tasks.confirmCollect' : 'shipper.tasks.confirmReturn')}
+            {t(taskActionLabel(row.assignedTaskType))}
           </DialogTitle>
         </DialogHeader>
         <ResourceFeedback

@@ -8,7 +8,7 @@ const unwrap = ({ data }) => {
 }
 export const shipperDeliveryApi = {
   summary: (query, signal) => authorizedAxios.post('/shipper-delivery/summary', pick(query), { signal }).then(unwrap).then(value => {
-    if (!['total', 'collectCount', 'returnCount'].every(key => Number.isInteger(value[key]) && value[key] >= 0) || value.total !== value.collectCount + value.returnCount) {
+    if (['storageTransferCount', 'storageReturnCount'].some(key => value[key] !== undefined && (!Number.isInteger(value[key]) || value[key] < 0)) || !['total', 'collectCount', 'returnCount'].every(key => Number.isInteger(value[key]) && value[key] >= 0) || value.total !== value.collectCount + value.returnCount + (value.storageTransferCount ?? 0) + (value.storageReturnCount ?? 0)) {
       throw new Error('shipper.invalidResponse')
     } return value
   }),
@@ -29,7 +29,7 @@ export const shipperDeliveryApi = {
     const { data } = await authorizedAxios.post('/shipper-delivery/history', body, { signal })
     if (data?.succeeded !== true || !Array.isArray(data.list) || !Number.isSafeInteger(data.total) || data.total < 0
       || data.list.length > take || data.list.length > data.total || data.list.some((row) => !row.eventId || !row.orderId || !row.orderCode
-        || ![1, 2].includes(row.taskType) || typeof row.lockerName !== 'string' || !Number.isFinite(Date.parse(row.completedAt)))) {
+        || ![1, 2, 3, 4].includes(row.taskType) || typeof row.lockerName !== 'string' || !Number.isFinite(Date.parse(row.completedAt)))) {
       throw new Error('shipper.invalidResponse')
     }
     return { list: data.list, total: data.total, currentPage: page, totalPages: Math.ceil(data.total / take) }

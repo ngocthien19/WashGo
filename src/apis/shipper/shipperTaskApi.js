@@ -6,14 +6,14 @@ const pick = (value, keys) => Object.fromEntries(keys.filter(key => value[key] !
 const pending = new Map()
 // Adapt the dedicated task DTO to the existing presentation; never keep credentials/customer fields.
 export const taskView = row => {
-  if (!row?.taskId || !row.orderId || ![1, 2].includes(row.taskType) || ![1, 2, 3, 4].includes(row.status) || typeof row.canCollect !== 'boolean' || typeof row.canReturn !== 'boolean') {
+  if (!row?.taskId || !row.orderId || ![1, 2, 3, 4].includes(row.taskType) || ![1, 2, 3, 4].includes(row.status) || typeof row.canCollect !== 'boolean' || typeof row.canReturn !== 'boolean') {
     throw invalid()
   }
   const detail = pick(row.order || {}, ['paymentStatus', 'shipperId', 'lockerId', 'boxId', 'returnLockerId', 'returnBoxId', 'cancelledGoodsStatus', 'actualWeightKg', 'merchantImageUrls', 'merchantEmail', 'merchantPhoneNumber'])
-  return { ...pick(row, ['taskId', 'orderId', 'orderCode', 'merchantOrderCode', 'assignmentVersion', 'deadline', 'slaStartedAt', 'slaHours', 'slaUnavailableReason', 'serverNow', 'isOverdue', 'canCollect', 'canReturn', 'reasonCode', 'merchantName', 'assignedAt', 'completedAt', 'endedAt', 'taskLockerName', 'taskLockerAddress', 'taskLockerLatitude', 'taskLockerLongitude', 'taskLockerImageUrls', 'taskBoxNumber']), ...detail,
+  return { ...pick(row, ['taskId', 'orderId', 'orderCode', 'merchantOrderCode', 'assignmentVersion', 'deadline', 'slaStartedAt', 'slaHours', 'slaUnavailableReason', 'serverNow', 'isOverdue', 'canCollect', 'canReturn', 'reasonCode', 'merchantName', 'assignedAt', 'completedAt', 'endedAt', 'taskLockerName', 'taskLockerAddress', 'taskLockerLatitude', 'taskLockerLongitude', 'taskLockerImageUrls', 'taskBoxNumber', 'storageCycleId', 'storageShopAddress', 'canStorageCollect', 'canStorageHandover', 'canStorageDepart', 'canStoragePlace']), ...detail,
     id: row.orderId, revision: row.orderRevision, taskStatus: row.status, status: row.orderStatus,
     assignedTaskType: row.taskType, shipperAssignedAt: row.assignedAt, shipperNote: row.note, note: row.note,
-    nextAction: row.canCollect ? 1 : row.canReturn ? 2 : null, merchantPhone: detail.merchantPhoneNumber,
+    nextAction: row.canCollect ? 1 : row.canReturn ? 2 : row.canStorageCollect || row.canStorageHandover ? 3 : row.canStorageDepart || row.canStoragePlace ? 4 : null, merchantPhone: detail.merchantPhoneNumber,
     items: (row.order?.items || []).map(item => pick(item, ['id', 'serviceName', 'quantity', 'note', 'serviceImageUrls'])) }
 }
 const unwrap = response => {
@@ -42,7 +42,7 @@ export const shipperTaskApi = {
   },
   summary: async (query, signal) => {
     const value = unwrap(await authorizedAxios.post('/shipper-tasks/summary', pick(query, ['keyword', 'assignedFrom', 'assignedTo']), { signal }))
-    if (!['totalPending', 'collectPending', 'returnPending'].every(key => Number.isInteger(value[key]) && value[key] >= 0) || value.totalPending !== value.collectPending + value.returnPending) {
+    if (['storageTransferPending', 'storageReturnPending'].some(key => value[key] !== undefined && (!Number.isInteger(value[key]) || value[key] < 0)) || !['totalPending', 'collectPending', 'returnPending'].every(key => Number.isInteger(value[key]) && value[key] >= 0) || value.totalPending !== value.collectPending + value.returnPending + (value.storageTransferPending ?? 0) + (value.storageReturnPending ?? 0)) {
       throw invalid()
     }
     return value
@@ -90,7 +90,7 @@ export const shipperTaskApi = {
     if (pending.has(order.taskId)) {
       throw Object.assign(new Error('shipper.tasks.unknown'), { uncertain: true })
     }
-    if (!order.taskId || order.assignmentVersion !== order.taskId || !Number.isSafeInteger(order.revision) || (type === 1 ? !order.canCollect : !order.canReturn)) {
+    if (![1, 2].includes(type) || !order.taskId || order.assignmentVersion !== order.taskId || !Number.isSafeInteger(order.revision) || (type === 1 ? !order.canCollect : !order.canReturn)) {
       throw new Error('shipper.tasks.changed')
     }
     const operationId = crypto.randomUUID()

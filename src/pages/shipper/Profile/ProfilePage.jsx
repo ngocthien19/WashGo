@@ -1,3 +1,4 @@
+import WorkStatusControl from './WorkStatusControl'
 import AccountSecurity from '~/components/account/AccountSecurity'
 import ShipperActivities from './ShipperActivities'
 import { useEffect, useState } from 'react'
@@ -59,6 +60,13 @@ export default function ProfilePage() {
           </Button>
         </div>
       </header>
+      {profile.data && !profile.loading && (
+        <WorkStatusControl
+          key={profile.data.revision}
+          profile={profile.data}
+          onUpdated={profile.retry}
+        />
+      )}
       {profile.error && (
         <FormError>
           {profile.error === 'shipper.profileMissing' ? 'shipper.profileMissingHint' : profile.error}

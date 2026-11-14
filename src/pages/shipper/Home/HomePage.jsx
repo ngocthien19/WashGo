@@ -1,3 +1,4 @@
+import DeliveryTypeBadge from '../components/DeliveryTypeBadge'
 import DashboardPerformance from './DashboardPerformance'
 import DeliveryLocker from '../components/DeliveryLocker'
 import { useCallback, useEffect, useState } from 'react'
@@ -28,7 +29,8 @@ export default function HomePage() {
   const snapshot = dashboard.data
   const collect = { ...dashboard, data: snapshot ? { total: snapshot.pendingCollectCount, list: snapshot.pendingCollect } : null }
   const returns = { ...dashboard, data: snapshot ? { total: snapshot.pendingReturnCount, list: snapshot.pendingReturn } : null }
-  const history = { ...dashboard, data: snapshot ? { total: snapshot.completedCollectCount + snapshot.completedReturnCount, list: snapshot.recentCompletions } : null }
+  const storage = { ...dashboard, data: snapshot ? { total: (snapshot.pendingStorageTransferCount ?? 0) + (snapshot.pendingStorageReturnCount ?? 0), list: snapshot.pendingStorage } : null }
+  const history = { ...dashboard, data: snapshot ? { total: snapshot.completedCollectCount + snapshot.completedReturnCount + (snapshot.completedStorageTransferCount ?? 0) + (snapshot.completedStorageReturnCount ?? 0), list: snapshot.recentCompletions } : null }
   useEffect(() => {
     document.title = `${t('shipper.overview')} | WashGo`
   }, [t])
@@ -63,7 +65,7 @@ export default function HomePage() {
       </header>
       {dashboard.error && <ResourceFeedback {...dashboard} />}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[[collect, collect.data?.total, 'collect', Package, 'border-l-primary', 'bg-primary/10 text-primary'], [returns, returns.data?.total, 'return', Truck, 'border-l-violet-500', 'bg-violet-500/10 text-violet-600 dark:text-violet-300'], [history, history.data?.total, 'periodCompleted', CircleCheck, 'border-l-teal-500', 'bg-teal-500/10 text-teal-700 dark:text-teal-300'], [dashboard, snapshot?.totalDeliveries, 'lifetime', PackageCheck, 'border-l-amber-500', 'bg-amber-500/10 text-amber-700 dark:text-amber-300']].map(([resource, value, key, Icon, edge, color]) => (
+        {[[dashboard, snapshot?.pendingStorageTransferCount, 'storageTransfer', Package, 'border-l-primary', 'bg-primary/10 text-primary'], [dashboard, snapshot?.pendingStorageReturnCount, 'storageReturn', Truck, 'border-l-primary', 'bg-primary/10 text-primary'], [collect, collect.data?.total, 'collect', Package, 'border-l-primary', 'bg-primary/10 text-primary'], [returns, returns.data?.total, 'return', Truck, 'border-l-violet-500', 'bg-violet-500/10 text-violet-600 dark:text-violet-300'], [history, history.data?.total, 'periodCompleted', CircleCheck, 'border-l-teal-500', 'bg-teal-500/10 text-teal-700 dark:text-teal-300'], [dashboard, snapshot?.totalDeliveries, 'lifetime', PackageCheck, 'border-l-amber-500', 'bg-amber-500/10 text-amber-700 dark:text-amber-300']].map(([resource, value, key, Icon, edge, color]) => (
           <StatCard
             key={key}
             icon={Icon}
@@ -95,6 +97,11 @@ export default function HomePage() {
           icon={Truck}
         />
       </div>
+      <TaskPreview
+        resource={storage}
+        type={3}
+        icon={Package}
+      />
       <ShipperPanel
         title={t('shipper.periodHistory')}
         icon={History}
@@ -129,7 +136,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 <span className="rounded-full bg-teal-500/10 px-3 py-1 text-sm font-medium text-teal-700 dark:text-teal-300">
-                  {t(row.taskType === 1 ? 'shipper.collected' : 'shipper.returned')}
+                  <DeliveryTypeBadge type={row.taskType} />
                 </span>
                 <p className="text-sm text-muted-foreground">
                   {formatDateTime(row.completedAt)}

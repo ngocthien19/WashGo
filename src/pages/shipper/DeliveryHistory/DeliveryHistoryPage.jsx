@@ -1,3 +1,4 @@
+import DeliveryTypeBadge from '../components/DeliveryTypeBadge'
 import HistoryDetail from './HistoryDetail'
 import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
 import ClearFiltersButton from '~/components/ClearFiltersButton'
@@ -7,7 +8,7 @@ import DeliveryLocker from '../components/DeliveryLocker'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { History, RefreshCw, Download, Eye, ClockArrowDown, PackageOpen, Truck } from 'lucide-react'
+import { History, RefreshCw, Download, Eye, ClockArrowDown } from 'lucide-react'
 import Reveal from '~/components/motion/Reveal'
 import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
@@ -103,7 +104,7 @@ export default function DeliveryHistoryPage() {
               label={t('shipper.deliveryHistory.taskType')}
               value={query.taskType}
               onValueChange={(taskType) => update({ taskType })}
-              options={['', '1', '2'].map((value) => ({ value, label: t(value === '' ? 'shipper.deliveryHistory.allTypes' : value === '1' ? 'shipper.deliveryHistory.collect' : 'shipper.deliveryHistory.return') }))}
+              options={['', '1', '2', '3', '4'].map((value) => ({ value, label: t(value === '' ? 'shipper.deliveryHistory.allTypes' : `shipper.taskTypes.${value}`) }))}
             />
           </div>
           <SelectField
@@ -201,7 +202,7 @@ export default function DeliveryHistoryPage() {
               </TableHeader>
               <TableBody>
                 {data.list.map((row) => {
-                  const Icon = row.taskType === 1 ? PackageOpen : Truck
+
                   return (
                     <TableRow key={row.eventId}>
                       <TableCell className="px-5 py-5">
@@ -210,10 +211,7 @@ export default function DeliveryHistoryPage() {
                         </strong>
                       </TableCell>
                       <TableCell className="px-5 py-5">
-                        <span className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium ${row.taskType === 1 ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-violet-500/10 text-violet-700 dark:text-violet-300'}`}>
-                          <Icon size={17} />
-                          {t(row.taskType === 1 ? 'shipper.deliveryHistory.collect' : 'shipper.deliveryHistory.return')}
-                        </span>
+                        <DeliveryTypeBadge type={row.taskType} />
                       </TableCell>
                       <TableCell className="min-w-64 px-5 py-5">
                         <DeliveryLocker

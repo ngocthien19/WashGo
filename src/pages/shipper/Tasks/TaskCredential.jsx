@@ -28,7 +28,7 @@ export default function TaskCredential({ order }) {
         setCredential(null); setShowPin(false); setShowQr(false)
         setError('shipper.tasks.changed'); return
       }
-      if (!/^\d{6}$/.test(row.pinCode || '') || !matchesTaskQr(row.qrCode || '', order.orderCode, order.nextAction)) {
+      if (!/^\d{6}$/.test(row.pinCode || '') || !matchesTaskQr(row.qrCode || '', order.orderCode, order.assignedTaskType, order.taskId)) {
         setCredential(null); setShowPin(false); setShowQr(false)
         setError('shipper.tasks.codeUnavailable'); return
       }

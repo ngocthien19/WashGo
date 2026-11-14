@@ -19,6 +19,9 @@ it('detects assignment, payment, revision and destination changes before a write
   }
 })
 it('rejects wrong order, wrong task and non-task QR formats locally', () => {
+  expect(matchesTaskQr('WASHGO:StorageTransfer:WG1:task-id:123456', 'WG1', 3, 'task-id')).toBe(true)
+  expect(matchesTaskQr('WASHGO:StorageReturn:WG1:task-id:123456', 'WG1', 4, 'other-task')).toBe(false)
+  expect(readTaskQuery(new URLSearchParams('taskType=4')).taskType).toBe('4')
   expect(matchesTaskQr('WASHGO:COLLECT:WG1:123456', 'WG1', 1)).toBe(true)
   expect(matchesTaskQr('WASHGO:RETURN:WG1:123456', 'WG1', 1)).toBe(false)
   expect(matchesTaskQr('WASHGO:COLLECT:WG2:123456', 'WG1', 1)).toBe(false)

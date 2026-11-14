@@ -1801,7 +1801,9 @@
       "taskStatus": "Trạng thái nhiệm vụ",
       "taskType": {
         "1": "Lấy đồ",
-        "2": "Trả đồ"
+        "2": "Trả đồ",
+        "3": "Chuyển đến lưu giữ",
+        "4": "Giao lại từ lưu giữ"
       },
       "status": {
         "1": "Đang thực hiện",
@@ -3455,7 +3457,15 @@
       "fullName": "Nhập họ tên từ 1–100 ký tự.",
       "phone": "Nhập SĐT hợp lệ gồm 9–11 chữ số, tối đa 20 ký tự.",
       "vehiclePlate": "Biển số tối đa 20 ký tự; bắt buộc và từ 4 ký tự với xe máy/ô tô."
-    }
+    },
+    "taskTypes": {
+      "1": "Thu gom",
+      "2": "Giao lại",
+      "3": "Chuyển đến lưu giữ",
+      "4": "Giao lại từ lưu giữ"
+    },
+    "storageTransfer": "Chuyển đến lưu giữ",
+    "storageReturn": "Giao lại từ lưu giữ"
   },
   "storage": {
     "title": "Lưu giữ và giao lại đồ",

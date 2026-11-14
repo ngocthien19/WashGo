@@ -1801,7 +1801,9 @@
       "taskStatus": "Task status",
       "taskType": {
         "1": "Collection",
-        "2": "Return"
+        "2": "Return",
+        "3": "Storage transfer",
+        "4": "Storage return"
       },
       "status": {
         "1": "Assigned",
@@ -3455,7 +3457,15 @@
       "fullName": "Enter a name of 1–100 characters.",
       "phone": "Enter a valid phone with 9–11 digits, up to 20 characters.",
       "vehiclePlate": "Plate: up to 20 characters; required and at least 4 characters for motorbikes/cars."
-    }
+    },
+    "taskTypes": {
+      "1": "Collect",
+      "2": "Return",
+      "3": "Storage transfer",
+      "4": "Storage return"
+    },
+    "storageTransfer": "Transfer to storage",
+    "storageReturn": "Return from storage"
   },
   "storage": {
     "title": "Storage and redelivery",

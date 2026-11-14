@@ -1,3 +1,4 @@
+import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
 import { useRef, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -15,7 +16,7 @@ import { getApiError } from '~/utils/apiError'
 import { notify } from '~/utils/notifications'
 import { credentialSchema, matchesTaskQr, taskSnapshot, canCompleteTask } from './taskModel'
 
-export default function TaskActionDialog({ order, shipperId, onClose, onSaved, onUnknown }) {
+function NormalTaskActionDialog({ order, shipperId, onClose, onSaved, onUnknown }) {
   const { t } = useTranslation()
   const type = order.assignedTaskType
   const Icon = type === 1 ? PackageOpen : Truck
@@ -225,6 +226,36 @@ export default function TaskActionDialog({ order, shipperId, onClose, onSaved, o
             </Button>
           </div>
         </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export default function TaskActionDialog(props) {
+  const { t } = useTranslation()
+  if (![3, 4].includes(props.order.assignedTaskType)) {
+    return <NormalTaskActionDialog {...props} />
+  }
+  return (
+    <Dialog
+      open
+      onOpenChange={open => !open && props.onClose()}
+    >
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>
+            {t('storage.taskAction')}
+          </DialogTitle>
+          <DialogDescription>
+            {t('storage.simulation')}
+          </DialogDescription>
+        </DialogHeader>
+        <StorageOrderPanel
+          order={props.order}
+          role="Shipper"
+          taskId={props.order.taskId}
+          onUpdated={() => props.onSaved({ storage: true })}
+        />
       </DialogContent>
     </Dialog>
   )

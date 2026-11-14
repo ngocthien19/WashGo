@@ -1,3 +1,5 @@
+import { taskActionLabel } from './taskModel'
+import { storageApi } from '~/apis/storageApi'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useOutletContext, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -101,7 +103,7 @@ export default function TasksPage() {
             label={t('shipper.deliveryHistory.taskType')}
             value={query.taskType}
             onValueChange={(taskType) => update({ taskType })}
-            options={['', '1', '2'].map((value) => ({ value, label: t(value === '' ? 'shipper.deliveryHistory.allTypes' : value === '1' ? 'shipper.deliveryHistory.collect' : 'shipper.deliveryHistory.return') }))}
+            options={['', '1', '2', '3', '4'].map((value) => ({ value, label: t(value === '' ? 'shipper.deliveryHistory.allTypes' : `shipper.taskTypes.${value}`) }))}
           />
         </div>
         <SelectField
@@ -203,7 +205,7 @@ export default function TasksPage() {
                       <DeliveryLocker
                         {...taskLocker(row)}
                         fallback={t('shipper.tasks.seeDestination')}
-                        autoBox={row.assignedTaskType === 2}
+                        autoBox={[2, 4].includes(row.assignedTaskType)}
                         onOpenMap={() => setMapId(row.taskId)}
                       />
                     </TableCell>
@@ -244,11 +246,11 @@ export default function TasksPage() {
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-base"
-                            disabled={!row.nextAction && !shipperTaskApi.hasPending(row)}
+                            disabled={!row.nextAction && !shipperTaskApi.hasPending(row) && !storageApi.hasPending(row.id)}
                             onClick={() => setActing(row)}
                           >
                             {row.assignedTaskType === 1 ? <PackageOpen size={17} /> : <Truck size={17} />}
-                            {t(shipperTaskApi.hasPending(row) ? 'admin.sync.checkResult' : row.assignedTaskType === 1 ? 'shipper.tasks.confirmCollect' : 'shipper.tasks.confirmReturn')}
+                            {t(shipperTaskApi.hasPending(row) ? 'admin.sync.checkResult' : taskActionLabel(row.assignedTaskType))}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
