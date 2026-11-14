@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Wallet, ReceiptText, CircleCheck, Clock } from 'lucide-react'
 import StatCard from '~/components/merchant/StatCard'
-import { formatCurrency } from '~/utils/formats'
+import { formatCurrency } from '~/utils/format/formats'
 import ReportChange from './ReportChange'
 
 export default function ReportStats({ data }) {

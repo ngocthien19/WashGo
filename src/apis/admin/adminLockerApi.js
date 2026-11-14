@@ -1,5 +1,5 @@
 import { adminWrite, newOperationId, versionGuard, administrativeBatch } from './adminWrite'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { merchantLockerApi } from '~/apis/merchant/merchantLockerApi'
 import { isId } from '~/pages/admin/Lockers/lockerModel'
 

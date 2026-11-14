@@ -1,4 +1,4 @@
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 
 const pending = new Map()
 const invalid = () => new Error('storage.invalidResponse')

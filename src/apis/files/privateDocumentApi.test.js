@@ -1,8 +1,8 @@
 import { Blob as BinaryBlob } from 'node:buffer'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { privateDocumentApi, validateDocumentFile, DOCUMENT_LIMIT } from './privateDocumentApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
 const id = '11111111-1111-4111-8111-111111111111'
 const document = { fileId: id, kind: 1, originalFileName: 'license.pdf', contentType: 'application/pdf', size: 12 }
 beforeEach(() => vi.clearAllMocks())

@@ -1,5 +1,5 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { VIDEO_UPLOAD } from '~/utils/videos'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { VIDEO_UPLOAD } from '~/utils/media/videos'
 export const videoApi = {
   upload: async (file, signal) => {
     const body = new FormData(); body.append('file', file)

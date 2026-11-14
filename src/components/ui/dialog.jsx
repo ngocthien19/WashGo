@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { Button } from './button'
 import { cn } from '~/lib/utils'
-import { UI_MOTION } from '~/utils/constants'
+import { UI_MOTION } from '~/utils/config/constants'
 
 export const Dialog = DialogPrimitive.Root
 export const DialogTitle = DialogPrimitive.Title

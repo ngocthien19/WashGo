@@ -1,7 +1,7 @@
 import * as yup from 'yup'
 import { isId } from '~/pages/admin/Merchants/merchantModel'
-import { dateRangeFilter, validRange } from '~/utils/dateRange'
-import { INCIDENT_TYPES, INCIDENT_SEVERITIES } from '~/utils/constants'
+import { dateRangeFilter, validRange } from '~/utils/format/dateRange'
+import { INCIDENT_TYPES, INCIDENT_SEVERITIES } from '~/utils/config/constants'
 export { unknownWrite } from '~/pages/admin/Services/serviceModel'
 export const TAKE = 12
 export const statuses = [1, 2, 3, 4]

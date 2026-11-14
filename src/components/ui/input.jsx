@@ -1,5 +1,5 @@
 import { cn } from '~/lib/utils'
-import { UI_TRANSITIONS } from '~/utils/constants'
+import { UI_TRANSITIONS } from '~/utils/config/constants'
 
 function Input({ className, type, ...props }) {
   return (

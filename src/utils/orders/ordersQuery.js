@@ -1,4 +1,4 @@
-import { ORDER_LIST, ORDER_SORT_OPTIONS, ORDER_STATUS_OPTIONS, PAYMENT_STATUSES } from '~/utils/constants'
+import { ORDER_LIST, ORDER_SORT_OPTIONS, ORDER_STATUS_OPTIONS, PAYMENT_STATUSES } from '~/utils/config/constants'
 
 export const initialOrdersQuery = { keyword: '', status: '', paymentStatus: '', sort: ORDER_SORT_OPTIONS[0].value, page: 1 }
 

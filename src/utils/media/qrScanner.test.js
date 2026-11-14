@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { decodeQrImage, isOrderQr } from './qrScanner'
-import { QR_SCAN } from './constants'
+import { QR_SCAN } from '../config/constants'
 
 const detect = vi.hoisted(() => vi.fn())
 vi.mock('barcode-detector/ponyfill', () => ({

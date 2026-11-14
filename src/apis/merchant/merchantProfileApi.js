@@ -1,4 +1,4 @@
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 
 export const merchantProfileApi = {
   requestUpdate: async (values) => {

@@ -1,5 +1,5 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { orderManagementApi } from '~/apis/orderManagementApi'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { orderManagementApi } from '~/apis/orders/orderManagementApi'
 
 const invalid = () => new Error('shipper.invalidResponse')
 const pick = (value, keys) => Object.fromEntries(keys.filter(key => value[key] !== undefined).map(key => [key, value[key]]))

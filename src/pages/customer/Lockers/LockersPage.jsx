@@ -16,7 +16,7 @@ import LocationButton from '~/components/maps/LocationButton'
 import Pagination from '~/components/Pagination/Pagination'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
-import { CUSTOMER_CATALOG, CUSTOMER_ROUTES, UI_TRANSITIONS } from '~/utils/constants'
+import { CUSTOMER_CATALOG, CUSTOMER_ROUTES, UI_TRANSITIONS } from '~/utils/config/constants'
 
 export default function LockersPage() {
   const { t } = useTranslation()

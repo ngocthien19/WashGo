@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowDownUp, Check, ChevronDown } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
-import { SERVICE_SORT_OPTIONS, UI_TRANSITIONS } from '~/utils/constants'
+import { SERVICE_SORT_OPTIONS, UI_TRANSITIONS } from '~/utils/config/constants'
 
 export default function ServiceSort({ value, onChange }) {
   const { t } = useTranslation()

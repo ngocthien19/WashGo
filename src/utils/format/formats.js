@@ -1,6 +1,6 @@
-import { EARTH_RADIUS_KM, LANGUAGE_OPTIONS } from './constants'
+import { EARTH_RADIUS_KM, LANGUAGE_OPTIONS } from '../config/constants'
 import i18n from '~/i18n'
-import { API_URL } from '~/utils/authorizedAxios'
+import { API_URL } from '~/utils/http/authorizedAxios'
 
 const getLocale = () => LANGUAGE_OPTIONS.find((option) => option.value === i18n.resolvedLanguage)?.locale || LANGUAGE_OPTIONS[0].locale
 

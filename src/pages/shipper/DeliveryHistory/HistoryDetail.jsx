@@ -7,7 +7,7 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import { shipperDeliveryApi } from '~/apis/shipper/shipperDeliveryApi'
 import DeliveryLocker from '../components/DeliveryLocker'
 import OrderStatus from '~/components/orders/OrderStatus'
-import { formatDateTime } from '~/utils/formats'
+import { formatDateTime } from '~/utils/format/formats'
 export default function HistoryDetail({ id, onClose }) {
   const { t } = useTranslation()
   const resource = useCatalogResource(useCallback(signal => shipperDeliveryApi.detail(id, signal), [id]))

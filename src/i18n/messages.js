@@ -1,5 +1,5 @@
 import i18n from './index'
-import { LANGUAGE_OPTIONS } from '~/utils/constants'
+import { LANGUAGE_OPTIONS } from '~/utils/config/constants'
 
 const messageKeys = new Map()
 const registerMessages = (messages, prefix = '') => {

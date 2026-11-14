@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { adminFinanceApi } from './adminFinanceApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
 const id = 'a0000000-0000-4000-8000-000000000001', merchantId = 'b0000000-0000-4000-8000-000000000001'
 const row = { id, merchantId, merchantName: 'Store', periodFrom: '2026-10-01T00:00:00Z', periodTo: '2026-10-31T00:00:00Z', grossRevenue: 100000, refundedAmount: 0, netRevenue: 100000, commissionRate: 20, commissionAmount: 20000, payoutAmount: 80000, status: 1, orderCount: 1 }
 const refund = { id, orderId: id, customerId: id, amount: 30000, status: 1, reason: 'Cancelled' }

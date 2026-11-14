@@ -4,8 +4,8 @@ import { Scanner } from '@yudiel/react-qr-scanner'
 import { Camera, ImageUp } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
-import { decodeQrImage } from '~/utils/qrScanner'
-import { QR_SCAN } from '~/utils/constants'
+import { decodeQrImage } from '~/utils/media/qrScanner'
+import { QR_SCAN } from '~/utils/config/constants'
 
 export default function QrScanInput({ onCode, onClear, disabled, hasCode }) {
   const { t } = useTranslation()

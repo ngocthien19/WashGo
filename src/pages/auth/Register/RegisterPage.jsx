@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { AUTH_ROUTES, AUTH_LIMITS, OTP_PURPOSE, PASSWORD_REQUIREMENTS_HINT } from '~/utils/constants'
-import { normalizePhone } from '~/utils/formats'
+import { AUTH_ROUTES, AUTH_LIMITS, OTP_PURPOSE, PASSWORD_REQUIREMENTS_HINT } from '~/utils/config/constants'
+import { normalizePhone } from '~/utils/format/formats'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { authApi } from '~/apis/auth/authApi'
 import AuthForm from '../components/AuthForm'

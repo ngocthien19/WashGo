@@ -4,7 +4,7 @@ import { Check, ChevronDown } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
 import { setLanguage } from '~/redux/preferences/preferencesSlice'
-import { DEFAULT_LANGUAGE, LANGUAGE_OPTIONS, UI_TRANSITIONS } from '~/utils/constants'
+import { DEFAULT_LANGUAGE, LANGUAGE_OPTIONS, UI_TRANSITIONS } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 
 export default function LanguageSwitcher() {

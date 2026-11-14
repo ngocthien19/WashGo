@@ -1,5 +1,5 @@
-import { hasControlCharacters } from '~/utils/formats'
-import authorizedAxios from '~/utils/authorizedAxios'
+import { hasControlCharacters } from '~/utils/format/formats'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 
 export const DOCUMENT_LIMIT = 10 * 1024 * 1024
 export const DOCUMENT_TYPES = { pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }

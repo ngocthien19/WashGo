@@ -4,7 +4,7 @@ import storage from 'redux-persist/lib/storage'
 import authReducer, { setSession, clearSession } from './auth/authSlice'
 import themeReducer from './theme/themeSlice'
 import preferencesReducer from './preferences/preferencesSlice'
-import { configureAxiosSession } from '~/utils/authorizedAxios'
+import { configureAxiosSession } from '~/utils/http/authorizedAxios'
 
 // redux-persist exposes a nested default export in Vite's CommonJS interop.
 const persistStorage = storage.default ?? storage

@@ -6,11 +6,11 @@ import { Button } from '~/components/ui/button'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminOrderApi } from '~/apis/admin/adminOrderApi'
-import { sameOrderState } from '~/utils/orderManagement'
+import { sameOrderState } from '~/utils/orders/orderManagement'
 import { canAssignMerchant, unknownResult } from '../ordersModel'
-import { getApiError } from '~/utils/apiError'
-import { formatNumber } from '~/utils/formats'
-import { notify } from '~/utils/notifications'
+import { getApiError } from '~/utils/http/apiError'
+import { formatNumber } from '~/utils/format/formats'
+import { notify } from '~/utils/notifications/notifications'
 
 export default function MerchantAssignmentDialog({ id, ids, onClose, onSaved }) {
   const { t } = useTranslation()

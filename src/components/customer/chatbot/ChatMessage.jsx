@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Bot } from 'lucide-react'
 import UserAvatar from '~/components/UserAvatar/UserAvatar'
-import { CHATBOT_CONFIG } from '~/utils/constants'
+import { CHATBOT_CONFIG } from '~/utils/config/constants'
 import ChatResult from './ChatResult'
 
 export default function ChatMessage({ message, user, onNavigate, onOpenTerms }) {

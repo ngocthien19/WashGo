@@ -11,8 +11,8 @@ import CustomerImageGallery from '~/components/customer/CustomerImageGallery'
 import { Button } from '~/components/ui/button'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { customerIncidentApi } from '~/apis/customer/customerIncidentApi'
-import { CUSTOMER_ROUTES, TEXT_LINK_STYLES } from '~/utils/constants'
-import { formatCurrency, formatDateTime } from '~/utils/formats'
+import { CUSTOMER_ROUTES, TEXT_LINK_STYLES } from '~/utils/config/constants'
+import { formatCurrency, formatDateTime } from '~/utils/format/formats'
 import IncidentStatusBadge from './components/IncidentStatusBadge'
 
 export default function ComplaintDetailPage() {

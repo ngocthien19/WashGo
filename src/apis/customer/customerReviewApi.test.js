@@ -1,8 +1,8 @@
 import { beforeEach, expect, it, vi } from 'vitest'
 import { Blob as BinaryBlob } from 'node:buffer'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { customerReviewApi } from './customerReviewApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn() } }))
 beforeEach(() => vi.resetAllMocks())
 const id = '11111111-1111-4111-8111-111111111111'
 const row = { id, overallStars: 5, comment: 'Great care', publishedAt: '2026-11-14T01:00:00Z', imageUrls: [`/customer/reviews/${id}/images/0`] }

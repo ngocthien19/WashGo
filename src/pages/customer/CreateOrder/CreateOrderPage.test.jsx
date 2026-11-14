@@ -5,9 +5,9 @@ import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom'
 import CreateOrderPage from './CreateOrderPage'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import { customerOrderApi } from '~/apis/customer/customerOrderApi'
-import { notify } from '~/utils/notifications'
+import { notify } from '~/utils/notifications/notifications'
 
-vi.mock('~/utils/notifications', () => ({ notify: { success: vi.fn(), error: vi.fn() } }))
+vi.mock('~/utils/notifications/notifications', () => ({ notify: { success: vi.fn(), error: vi.fn() } }))
 
 vi.mock('~/apis/customer/customerCatalogApi', async (importOriginal) => ({ ...await importOriginal(), customerCatalogApi: { getServices: vi.fn(), getLockers: vi.fn(), getLocker: vi.fn() } }))
 vi.mock('~/apis/customer/customerOrderApi', () => ({ customerOrderApi: { quote: vi.fn(), create: vi.fn() } }))

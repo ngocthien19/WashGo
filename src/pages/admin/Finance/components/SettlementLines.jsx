@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { adminFinanceApi } from '~/apis/admin/adminFinanceApi'
-import { formatCurrency, formatNumber } from '~/utils/formats'
+import { formatCurrency, formatNumber } from '~/utils/format/formats'
 import FinanceTable from './FinanceTable'
 
 export default function SettlementLines({ id, initial }) {

@@ -6,7 +6,7 @@ import { customerProfileApi } from '~/apis/customer/customerProfileApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import SectionHeading from '~/components/customer/SectionHeading/SectionHeading'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import { CUSTOMER_ROUTES } from '~/utils/constants'
+import { CUSTOMER_ROUTES } from '~/utils/config/constants'
 import ProfileEditor from './components/ProfileEditor'
 
 export default function ProfilePage() {

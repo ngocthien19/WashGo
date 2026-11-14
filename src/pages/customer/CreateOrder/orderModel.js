@@ -1,5 +1,5 @@
 import * as yup from 'yup'
-import { ORDER_LIMITS, ORDER_PAYMENT_METHODS } from '~/utils/constants'
+import { ORDER_LIMITS, ORDER_PAYMENT_METHODS } from '~/utils/config/constants'
 
 export const isWeightService = (service) => service.unit?.toLowerCase() === 'kg'
 

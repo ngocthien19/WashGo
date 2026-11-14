@@ -1,7 +1,7 @@
 import { RadioGroup as RadioGroupPrimitive } from '@base-ui/react/radio-group'
 import { Radio } from '@base-ui/react/radio'
 import { cn } from '~/lib/utils'
-import { UI_TRANSITIONS } from '~/utils/constants'
+import { UI_TRANSITIONS } from '~/utils/config/constants'
 
 export function RadioGroup({ className, ...props }) {
   return (

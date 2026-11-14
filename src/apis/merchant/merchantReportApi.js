@@ -1,6 +1,6 @@
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { reportParams, validReportRange } from '~/pages/merchant/Reports/reportModel'
-import { validDay } from '~/utils/dateRange'
+import { validDay } from '~/utils/format/dateRange'
 
 const invalid = () => new Error('merchant.invalidResponse')
 const count = (value) => Number.isSafeInteger(value) && value >= 0

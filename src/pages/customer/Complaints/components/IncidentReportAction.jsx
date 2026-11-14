@@ -7,7 +7,7 @@ import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import LocalizedMessage from '~/components/LocalizedMessage/LocalizedMessage'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { customerIncidentApi } from '~/apis/customer/customerIncidentApi'
-import { ORDER_STATUSES, CUSTOMER_ROUTES } from '~/utils/constants'
+import { ORDER_STATUSES, CUSTOMER_ROUTES } from '~/utils/config/constants'
 const IncidentReportDialog = lazy(() => import('./IncidentReportDialog'))
 function EligibleAction({ order }) {
   const { t } = useTranslation()

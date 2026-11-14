@@ -1,4 +1,4 @@
-import { ADMIN_ROUTES } from './constants'
+import { ADMIN_ROUTES } from '../config/constants'
 
 export function adminNotificationHref(item) {
   if (item.type === 45 && !item.linkId) {

@@ -9,8 +9,8 @@ import RatingStars from './RatingStars'
 import useCustomerImages from '~/hooks/customer/useCustomerImages'
 import CustomerImagePicker from '~/components/customer/CustomerImagePicker'
 import { customerRatingApi } from '~/apis/customer/customerRatingApi'
-import { RATING_CONFIG } from '~/utils/constants'
-import { getApiError } from '~/utils/apiError'
+import { RATING_CONFIG } from '~/utils/config/constants'
+import { getApiError } from '~/utils/http/apiError'
 import { getRatingError } from './ratingModel'
 
 export default function RatingForm({ orderId, onSaved, onBusy, onClose }) {

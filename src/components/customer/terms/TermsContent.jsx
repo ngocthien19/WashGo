@@ -1,5 +1,5 @@
 import { Trans, useTranslation } from 'react-i18next'
-import { formatCurrency } from '~/utils/formats'
+import { formatCurrency } from '~/utils/format/formats'
 
 const GROUPS = [
   { key: 'booking', match: /đặt|gửi|booking|deposit/i, rules: ['depositWindowMinutes'] },

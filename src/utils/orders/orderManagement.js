@@ -1,4 +1,4 @@
-import { ORDER_STATUS_OPTIONS } from '~/utils/constants'
+import { ORDER_STATUS_OPTIONS } from '~/utils/config/constants'
 
 export const PAGE_SIZE = 12
 export const statusLabel = (status) => ORDER_STATUS_OPTIONS.find((item) => Number(item.value) === status)?.label || 'customer.orders.unknown'

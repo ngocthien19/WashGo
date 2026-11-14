@@ -9,7 +9,7 @@ import { Checkbox } from '~/components/ui/checkbox'
 import FormError from '~/components/ui/FormError'
 import ActionConfirmationDialog from '~/components/ActionConfirmationDialog'
 import { shipperWorkspaceApi } from '~/apis/shipper/shipperWorkspaceApi'
-import { getApiError } from '~/utils/apiError'
+import { getApiError } from '~/utils/http/apiError'
 
 const schema = yup.object({ confirmed: yup.boolean().oneOf([true], 'storage.confirmRequired') })
 export default function WorkStatusControl({ profile, onUpdated }) {

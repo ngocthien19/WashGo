@@ -1,5 +1,5 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { orderStatusCounts } from '~/utils/orderGroups'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { orderStatusCounts } from '~/utils/orders/orderGroups'
 
 const invalid = () => new Error('admin.invalidResponse')
 const unwrap = ({ data }) => {

@@ -1,6 +1,6 @@
 import { Menu } from '@base-ui/react/menu'
 import { cn } from '~/lib/utils'
-import { CHOICE_ITEM_STYLES, UI_TRANSITIONS } from '~/utils/constants'
+import { CHOICE_ITEM_STYLES, UI_TRANSITIONS } from '~/utils/config/constants'
 
 export const DropdownMenu = Menu.Root
 export const DropdownMenuTrigger = Menu.Trigger

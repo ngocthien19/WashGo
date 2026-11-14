@@ -9,7 +9,7 @@ import AnimatedNumber from '~/components/motion/AnimatedNumber'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantLockerApi } from '~/apis/merchant/merchantLockerApi'
-import { formatLockerAddress, getLockerMapLink, hasCoordinates } from '~/utils/formats'
+import { formatLockerAddress, getLockerMapLink, hasCoordinates } from '~/utils/format/formats'
 import { lockerStateClass, boxStateClass } from '../lockerModel'
 import LockerUsage from './LockerUsage'
 

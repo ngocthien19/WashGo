@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Warehouse } from 'lucide-react'
-import { storageApi } from '~/apis/storageApi'
+import { storageApi } from '~/apis/storage/storageApi'
 import { customerCatalogApi, catalogImages } from '~/apis/customer/customerCatalogApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
@@ -12,7 +12,7 @@ import StorageActionDialog from '~/components/storage/StorageActionDialog'
 import StorageCycleCard from '~/components/storage/StorageCycleCard'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
-import { formatCurrency, formatDateTime } from '~/utils/formats'
+import { formatCurrency, formatDateTime } from '~/utils/format/formats'
 
 function ReturnRequest({ order, onUpdated }) {
   const { t } = useTranslation()

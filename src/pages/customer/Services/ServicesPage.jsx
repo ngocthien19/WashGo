@@ -1,7 +1,7 @@
 import Breadcrumb from '~/components/Breadcrumb/Breadcrumb'
 import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react'
-import { CUSTOMER_ROUTES } from '~/utils/constants'
+import { CUSTOMER_ROUTES } from '~/utils/config/constants'
 import ServiceCatalog from './components/ServiceCatalog'
 
 export default function ServicesPage() {

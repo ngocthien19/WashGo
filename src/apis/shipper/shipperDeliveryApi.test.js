@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { shipperDeliveryApi } from './shipperDeliveryApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { post: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { post: vi.fn() } }))
 const row = { eventId: 'event-1', orderId: 'order-1', orderCode: 'WG1', taskType: 1, lockerName: 'Locker', completedAt: '2026-11-09T01:00:00Z', orderStatus: 12 }
 beforeEach(() => vi.clearAllMocks())
 it('paginates by server totals and sends only the supported scoped query', async () => {

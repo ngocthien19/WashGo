@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { AUTH_ROUTES, OTP_PURPOSE } from '~/utils/constants'
+import { AUTH_ROUTES, OTP_PURPOSE } from '~/utils/config/constants'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { LockKeyholeOpen } from 'lucide-react'
 import { authApi } from '~/apis/auth/authApi'

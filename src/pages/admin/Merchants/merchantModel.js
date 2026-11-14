@@ -1,5 +1,5 @@
 import * as yup from 'yup'
-import { validDay, vietnamToday } from '~/utils/dateRange'
+import { validDay, vietnamToday } from '~/utils/format/dateRange'
 
 export const MERCHANT_TAKE = 12
 export const contractDay = (value) => !value ? '' : /(?:Z|[+-]\d{2}:\d{2})$/i.test(value) && Number.isFinite(Date.parse(value)) ? vietnamToday(new Date(value)) : value.slice(0, 10)

@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Download } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { customerReceiptApi } from '~/apis/customer/customerReceiptApi'
-import { notify } from '~/utils/notifications'
-import { getApiError } from '~/utils/apiError'
+import { notify } from '~/utils/notifications/notifications'
+import { getApiError } from '~/utils/http/apiError'
 export default function ReceiptDownload({ orderId, disabled }) {
   const { t } = useTranslation()
   const [busy, setBusy] = useState(false)

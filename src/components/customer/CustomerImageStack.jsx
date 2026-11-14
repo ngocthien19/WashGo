@@ -4,7 +4,7 @@ import { Images } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/components/ui/dialog'
 import CustomerImageGallery from './CustomerImageGallery'
-import { getImageUrl } from '~/utils/formats'
+import { getImageUrl } from '~/utils/format/formats'
 
 export default function CustomerImageStack({ urls = [] }) {
   const { t } = useTranslation()

@@ -1,8 +1,8 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { merchantOrderApi } from './merchantOrderApi'
 
-vi.mock('~/utils/authorizedAxios', () => ({ default: { post: vi.fn(), put: vi.fn(), get: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { post: vi.fn(), put: vi.fn(), get: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
 const guard = { expectedRevision: 3, expectedStatus: 3, operationId: '11111111-1111-4111-8111-111111111111' }
 it('uses eligible shipper contacts from the order endpoint without extra profile requests', async () => {

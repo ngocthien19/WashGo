@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { ClipboardList, PackageCheck, ScanLine, WashingMachine } from 'lucide-react'
 import Reveal from '~/components/motion/Reveal'
-import { UI_MOTION } from '~/utils/constants'
+import { UI_MOTION } from '~/utils/config/constants'
 import SectionGlow from './SectionGlow'
 
 const steps = [

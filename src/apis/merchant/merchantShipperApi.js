@@ -1,4 +1,4 @@
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 
 const fields = ['fullName', 'phone', 'email', 'vehicleType', 'vehiclePlate']
 const pick = (value, keys) => Object.fromEntries(keys.filter((key) => value[key] !== undefined).map((key) => [key, value[key]]))

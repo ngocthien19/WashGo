@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { API_TIMEOUT_MS, AUTH_API_ENDPOINTS } from '~/utils/constants'
+import { API_TIMEOUT_MS, AUTH_API_ENDPOINTS } from '~/utils/config/constants'
 
 export const API_URL = import.meta.env.VITE_API_URL || '/api'
 const authorizedAxios = axios.create({ baseURL: API_URL, timeout: API_TIMEOUT_MS })

@@ -1,5 +1,5 @@
 import { adminWrite, versionGuard, administrativeSummary } from './adminWrite'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { isId } from '~/pages/admin/Merchants/merchantModel'
 import { adminLockerApi } from './adminLockerApi'
 import { customerContact, merchantContact } from '~/pages/admin/Complaints/complaintContacts'

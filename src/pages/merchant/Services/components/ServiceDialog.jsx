@@ -6,7 +6,7 @@ import { Button } from '~/components/ui/button'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantServiceApi } from '~/apis/merchant/merchantServiceApi'
-import { formatDateTime } from '~/utils/formats'
+import { formatDateTime } from '~/utils/format/formats'
 import { approvalClass, proposalBlockedMessage } from '../serviceModel'
 import ServiceInfo from './ServiceInfo'
 

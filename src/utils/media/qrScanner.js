@@ -1,6 +1,6 @@
 import { BarcodeDetector, setZXingModuleOverrides } from 'barcode-detector/ponyfill'
 import wasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url'
-import { QR_SCAN } from './constants'
+import { QR_SCAN } from '../config/constants'
 
 // Keep decoding local, including the WASM runtime; uploaded images never leave this browser.
 setZXingModuleOverrides({ locateFile: () => wasmUrl })

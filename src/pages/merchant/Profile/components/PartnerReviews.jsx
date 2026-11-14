@@ -11,8 +11,8 @@ import TablePagination from '~/components/Pagination/TablePagination'
 import CustomerImageGallery from '~/components/customer/CustomerImageGallery'
 import CustomerVideoGallery from '~/components/customer/CustomerVideoGallery'
 import { SelectField } from '~/components/ui/select'
-import { dateRangeFilter } from '~/utils/dateRange'
-import { formatDateTime } from '~/utils/formats'
+import { dateRangeFilter } from '~/utils/format/dateRange'
+import { formatDateTime } from '~/utils/format/formats'
 
 export default function PartnerReviews() {
   const { t } = useTranslation()

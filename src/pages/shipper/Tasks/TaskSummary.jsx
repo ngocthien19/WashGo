@@ -5,7 +5,7 @@ import StatCard from '~/components/workspace/StatCard'
 import { Button } from '~/components/ui/button'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { shipperTaskApi } from '~/apis/shipper/shipperTaskApi'
-import { dateRangeFilter } from '~/utils/dateRange'
+import { dateRangeFilter } from '~/utils/format/dateRange'
 
 export default function TaskSummary({ keyword, from, to, revision }) {
   const { t } = useTranslation()

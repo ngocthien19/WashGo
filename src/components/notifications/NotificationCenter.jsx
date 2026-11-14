@@ -9,8 +9,8 @@ import { Button } from '~/components/ui/button'
 import { useNotifications } from './NotificationContext'
 import NotificationInbox from './NotificationInbox'
 import useCatalogResource from '~/hooks/useCatalogResource'
-import { notificationApi } from '~/apis/notificationApi'
-import { loadSuggestionPages, resourceSuggestion } from '~/utils/searchSuggestions'
+import { notificationApi } from '~/apis/notifications/notificationApi'
+import { loadSuggestionPages, resourceSuggestion } from '~/utils/search/searchSuggestions'
 const categoryIcons = { order: Package, payment: Wallet, feedback: MessageSquareWarning, refunds: Undo2, ratings: Star, services: Shirt, merchant: Store, tasks: Truck }
 
 export default function NotificationCenter({ stickyClassName = 'lg:top-24', advanced = false, types = CUSTOMER_NOTIFICATION_TYPES, descriptionKey = 'customer.notification.description', filterClassName, loadSuggestions, showResultCount = true }) {

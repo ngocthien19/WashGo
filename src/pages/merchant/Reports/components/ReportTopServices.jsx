@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Trophy, Shirt } from 'lucide-react'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
-import { formatCurrency } from '~/utils/formats'
+import { formatCurrency } from '~/utils/format/formats'
 import ReportChange from './ReportChange'
 
 export default function ReportTopServices({ services }) {

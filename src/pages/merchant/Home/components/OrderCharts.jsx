@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { formatNumber } from '~/utils/formats'
+import { formatNumber } from '~/utils/format/formats'
 import { groupOrders } from '../dashboardModel'
 
 export default function OrderCharts({ counts, aside }) {

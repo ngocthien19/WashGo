@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { formatCurrency, formatNumber } from '~/utils/formats'
+import { formatCurrency, formatNumber } from '~/utils/format/formats'
 
 export default function OrderCommission({ order }) {
   const { t } = useTranslation()

@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest'
 import { notificationApi } from './notificationApi'
-import authorizedAxios from '~/utils/authorizedAxios'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { post: vi.fn() } }))
+import authorizedAxios from '~/utils/http/authorizedAxios'
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { post: vi.fn() } }))
 const result = total => ({ data: { succeeded: true, data: { items: [], total, page: 1, take: 1, unreadTotal: 0, counts: [] } } })
 it('counts each category from the server total with take1 independently of list filters', async () => {
   authorizedAxios.post.mockImplementation((_path, body) => Promise.resolve(result(body.types.includes(45) ? 34 : 8)))

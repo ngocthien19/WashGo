@@ -1,5 +1,5 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { NOTIFICATION_CONFIG } from '~/utils/constants'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { NOTIFICATION_CONFIG } from '~/utils/config/constants'
 
 const endpoint = NOTIFICATION_CONFIG.ENDPOINT
 const invalid = () => new Error('customer.notification.invalidResponse')

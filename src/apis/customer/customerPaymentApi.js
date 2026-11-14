@@ -1,5 +1,5 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { CUSTOMER_API_ENDPOINTS } from '~/utils/constants'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { CUSTOMER_API_ENDPOINTS } from '~/utils/config/constants'
 import { customerOrderApi } from './customerOrderApi'
 
 const unwrap = ({ data }) => {

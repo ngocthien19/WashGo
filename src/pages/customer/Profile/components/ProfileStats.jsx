@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Coins, PackageCheck, Sparkles } from 'lucide-react'
-import { formatCurrency, formatNumber } from '~/utils/formats'
+import { formatCurrency, formatNumber } from '~/utils/format/formats'
 import { cn } from '~/lib/utils'
 
 export default function ProfileStats({ profile }) {

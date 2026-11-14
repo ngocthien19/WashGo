@@ -1,7 +1,7 @@
 import { Tooltip as TooltipPrimitive } from '@base-ui/react/tooltip'
 import { useId, useState } from 'react'
 import { cn } from '~/lib/utils'
-import { UI_MOTION } from '~/utils/constants'
+import { UI_MOTION } from '~/utils/config/constants'
 
 export function TooltipProvider({ children }) {
   return (

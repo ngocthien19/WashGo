@@ -1,6 +1,6 @@
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { formatCurrency, formatNumber } from '~/utils/formats'
+import { formatCurrency, formatNumber } from '~/utils/format/formats'
 import { chartScale, chartTickLabels } from './chartModel'
 
 // Plot, hit areas and X labels share the same width; no SVG letterboxing offset.

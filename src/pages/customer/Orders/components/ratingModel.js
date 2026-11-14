@@ -1,4 +1,4 @@
-import { RATING_CONFIG } from '~/utils/constants'
+import { RATING_CONFIG } from '~/utils/config/constants'
 
 export const getRatingError = (values) => {
   if (!Number.isInteger(values.overallStars) || values.overallStars < 1 || values.overallStars > RATING_CONFIG.MAX_STARS) {

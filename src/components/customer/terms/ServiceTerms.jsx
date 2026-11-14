@@ -9,8 +9,8 @@ import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import FormError from '~/components/ui/FormError'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { customerPolicyApi } from '~/apis/customer/customerPolicyApi'
-import { formatDateTime } from '~/utils/formats'
-import { getApiError } from '~/utils/apiError'
+import { formatDateTime } from '~/utils/format/formats'
+import { getApiError } from '~/utils/http/apiError'
 
 export default function ServiceTerms({ children }) {
   const { t } = useTranslation()

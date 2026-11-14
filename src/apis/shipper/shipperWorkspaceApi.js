@@ -1,4 +1,4 @@
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { shipperDeliveryApi } from './shipperDeliveryApi'
 import { shipperTaskApi, taskView } from './shipperTaskApi'
 

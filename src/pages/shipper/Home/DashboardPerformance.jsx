@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { ChartColumn, Gauge } from 'lucide-react'
 import MetricChart from '~/components/workspace/MetricChart'
 import ShipperPanel from '../components/ShipperPanel'
-import { formatDateTime, formatNumber } from '~/utils/formats'
+import { formatDateTime, formatNumber } from '~/utils/format/formats'
 
 export default function DashboardPerformance({ data, hourly }) {
   const { t } = useTranslation()

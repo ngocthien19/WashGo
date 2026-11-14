@@ -10,9 +10,9 @@ import { SelectField } from '~/components/ui/select'
 import useImages from '~/hooks/useImages'
 import { merchantShipperApi } from '~/apis/merchant/merchantShipperApi'
 import { resolveMessage } from '~/i18n/messages'
-import { getApiError } from '~/utils/apiError'
-import { notify } from '~/utils/notifications'
-import { getImageUrl } from '~/utils/formats'
+import { getApiError } from '~/utils/http/apiError'
+import { notify } from '~/utils/notifications/notifications'
+import { getImageUrl } from '~/utils/format/formats'
 import { shipperSchema, shipperSnapshot } from '../shipperModel'
 
 export default function ShipperEditor({ shipper, onClose, onSaved }) {

@@ -1,7 +1,7 @@
 import { ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { cn } from '~/lib/utils'
-import { UI_TRANSITIONS } from '~/utils/constants'
+import { UI_TRANSITIONS } from '~/utils/config/constants'
 
 export default function AuthBackLink({ to, children }) {
   return (

@@ -1,9 +1,9 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { customerIncidentApi } from './customerIncidentApi'
 import { customerPolicyApi } from './customerPolicyApi'
 import { customerReceiptApi } from './customerReceiptApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 const wrap = (data) => ({ data: { succeeded: true, data } })
 beforeEach(() => vi.clearAllMocks())
 it('only posts the policy version and rejects acknowledgement for a different version', async () => {

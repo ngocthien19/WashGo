@@ -1,5 +1,5 @@
-import { formatCurrency, formatLockerAddress } from './formats'
-import { SEARCH_SUGGESTIONS } from './constants'
+import { formatCurrency, formatLockerAddress } from '../format/formats'
+import { SEARCH_SUGGESTIONS } from '../config/constants'
 
 export async function loadSuggestionPages(load, filter, keyword, signal) {
   const query = { ...filter, keyword: keyword.trim().normalize('NFC').toLocaleLowerCase(), take: filter.take || SEARCH_SUGGESTIONS.PAGE_SIZE }

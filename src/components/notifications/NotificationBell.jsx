@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Bell, ArrowUpRight, X } from 'lucide-react'
 import { Popover } from '@base-ui/react/popover'
 import { Button } from '~/components/ui/button'
-import { CUSTOMER_ROUTES } from '~/utils/constants'
+import { CUSTOMER_ROUTES } from '~/utils/config/constants'
 import { useNotifications } from './NotificationContext'
 import NotificationInbox from './NotificationInbox'
 

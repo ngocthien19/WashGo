@@ -4,7 +4,7 @@ import { Camera, Trash2, UserRound } from 'lucide-react'
 import CustomerAvatar from '~/components/UserAvatar/UserAvatar'
 import FormError from '~/components/ui/FormError'
 import { Button } from '~/components/ui/button'
-import { IMAGE_UPLOAD } from '~/utils/constants'
+import { IMAGE_UPLOAD } from '~/utils/config/constants'
 import { validateAvatarFile } from '../profileSchema'
 
 export default function AvatarEditor({ profile, file, removed, disabled, onChange }) {

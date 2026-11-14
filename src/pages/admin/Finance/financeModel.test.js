@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { actionAllowed, actionSchema, commissionSnapshot, createSchema, periodFilter, readQuery, settlementFilter, validFinanceRange } from './financeModel'
-import { shiftDay, vietnamToday } from '~/utils/dateRange'
+import { shiftDay, vietnamToday } from '~/utils/format/dateRange'
 const merchantId = 'a0000000-0000-4000-8000-000000000001'
 it('uses inclusive Vietnam boundaries, only supported settlement filters and safe URL values', () => {
   const query = readQuery(new URLSearchParams(`tab=settlements&merchantId=${merchantId}&from=2026-01-01&to=2026-01-31&status=2&page=3`))

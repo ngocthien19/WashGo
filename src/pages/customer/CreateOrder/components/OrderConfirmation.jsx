@@ -8,8 +8,8 @@ import PaymentMethodPicker from '~/components/customer/payments/PaymentMethodPic
 import { Banknote, TicketPercent, PackageCheck, PanelsTopLeft, Info } from 'lucide-react'
 import FormError from '~/components/ui/FormError'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import { formatCurrency, formatLockerAddress } from '~/utils/formats'
-import { LOCKER_SLOT_SIZES, ORDER_LIMITS, ORDER_PANEL_HEADER_STYLES } from '~/utils/constants'
+import { formatCurrency, formatLockerAddress } from '~/utils/format/formats'
+import { LOCKER_SLOT_SIZES, ORDER_LIMITS, ORDER_PANEL_HEADER_STYLES } from '~/utils/config/constants'
 
 export default function OrderConfirmation({ items, locker, box, form, quote, promotionCode, codeDirty, onApply, onClear, busy }) {
   const { t } = useTranslation()

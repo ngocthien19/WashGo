@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { adminLockerApi } from './adminLockerApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
 const id = '11111111-1111-4111-8111-111111111111'
 const locker = { id, code: 'LK01', name: 'Station', status: 1 }
 beforeEach(() => vi.clearAllMocks())

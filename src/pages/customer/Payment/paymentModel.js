@@ -1,4 +1,4 @@
-import { ORDER_PAYMENT_METHODS, ORDER_STATUSES, PAYMENT_STATUSES } from '~/utils/constants'
+import { ORDER_PAYMENT_METHODS, ORDER_STATUSES, PAYMENT_STATUSES } from '~/utils/config/constants'
 
 export const paymentBlockReason = (order) => {
   if (order.paymentStatus === PAYMENT_STATUSES.PAID) {

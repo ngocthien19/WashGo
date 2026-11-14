@@ -14,7 +14,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import useCatalogResource from '~/hooks/useCatalogResource'
 import Reveal from '~/components/motion/Reveal'
 import { adminMerchantApi } from '~/apis/admin/adminMerchantApi'
-import { formatDateTime, formatNumber } from '~/utils/formats'
+import { formatDateTime, formatNumber } from '~/utils/format/formats'
 import { MERCHANT_TAKE, isId, readMerchantQuery, merchantFilter } from './merchantModel'
 import MerchantEditor from './components/MerchantEditor'
 import MerchantRecordDialog, { MerchantStatus } from './components/MerchantDialogs'

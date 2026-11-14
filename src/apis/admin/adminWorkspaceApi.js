@@ -1,5 +1,5 @@
 import { accountSecurityApi } from '~/apis/auth/accountSecurityApi'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { resolveAuditCodes } from './auditResourceCodes'
 
 const invalid = () => new Error('admin.invalidResponse')

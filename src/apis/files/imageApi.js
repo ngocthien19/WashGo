@@ -1,5 +1,5 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { IMAGE_UPLOAD } from '~/utils/constants'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { IMAGE_UPLOAD } from '~/utils/config/constants'
 
 export const imageApi = {
   upload: async (file, signal) => {

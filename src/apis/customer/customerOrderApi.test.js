@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { customerOrderApi } from './customerOrderApi'
 
-vi.mock('~/utils/authorizedAxios', () => ({ default: { post: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { post: vi.fn() } }))
 beforeEach(() => vi.resetAllMocks())
 
 describe('customer order API', () => {

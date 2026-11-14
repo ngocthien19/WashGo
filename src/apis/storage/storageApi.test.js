@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { storageApi } from './storageApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { post: vi.fn(), get: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { post: vi.fn(), get: vi.fn() } }))
 const ok = data => ({ data: { succeeded: true, data } })
 const row = id => ({ id: 'cycle', orderId: id, orderRevision: 12, state: 2 })
 beforeEach(() => vi.resetAllMocks())

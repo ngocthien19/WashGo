@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { formatNumber } from '~/utils/formats'
+import { formatNumber } from '~/utils/format/formats'
 export default function KpiChange({ metric }) {
   const { t } = useTranslation()
   return (

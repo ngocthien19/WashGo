@@ -14,8 +14,8 @@ import LocationButton from '~/components/maps/LocationButton'
 import Pagination from '~/components/Pagination/Pagination'
 import FormError from '~/components/ui/FormError'
 import { Button } from '~/components/ui/button'
-import { CUSTOMER_CATALOG, LOCKER_SLOT_SIZES, ORDER_CHOICE_STYLES } from '~/utils/constants'
-import { formatDistance, formatLockerAddress } from '~/utils/formats'
+import { CUSTOMER_CATALOG, LOCKER_SLOT_SIZES, ORDER_CHOICE_STYLES } from '~/utils/config/constants'
+import { formatDistance, formatLockerAddress } from '~/utils/format/formats'
 import SelectionBadge from './SelectionBadge'
 
 const slotColors = {

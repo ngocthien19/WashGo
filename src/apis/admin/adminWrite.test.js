@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { adminWrite, administrativeBatch, versionGuard } from './adminWrite'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
 const operationId = '10000000-0000-4000-8000-000000000001', id = '20000000-0000-4000-8000-000000000001'
 beforeEach(() => vi.resetAllMocks())
 it('rejects missing versions before a mutation and keeps opaque version digits', () => {

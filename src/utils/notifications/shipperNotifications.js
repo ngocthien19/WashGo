@@ -1,4 +1,4 @@
-import { SHIPPER_ROUTES } from './constants'
+import { SHIPPER_ROUTES } from '../config/constants'
 import { notificationTypesFor } from '~/components/notifications/notificationCatalog'
 
 const types = notificationTypesFor('Shipper')

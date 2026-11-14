@@ -10,8 +10,8 @@ import markerUrl from 'leaflet/dist/images/marker-icon.png'
 import markerRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
 import markerShadowUrl from 'leaflet/dist/images/marker-shadow.png'
 import 'leaflet/dist/leaflet.css'
-import { LOCKER_MAP, TEXT_LINK_STYLES } from '~/utils/constants'
-import { formatLockerAddress, getLockerMapLink, hasCoordinates } from '~/utils/formats'
+import { LOCKER_MAP, TEXT_LINK_STYLES } from '~/utils/config/constants'
+import { formatLockerAddress, getLockerMapLink, hasCoordinates } from '~/utils/format/formats'
 
 const markerIcon = new Icon({
   iconUrl: markerUrl,

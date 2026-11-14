@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { ORDER_STATUSES } from '~/utils/constants'
-import { formatDateTime } from '~/utils/formats'
+import { ORDER_STATUSES } from '~/utils/config/constants'
+import { formatDateTime } from '~/utils/format/formats'
 import { cn } from '~/lib/utils'
 import { statusTextColors } from '../orderSummary'
 import OrderEstimate from './OrderEstimate'

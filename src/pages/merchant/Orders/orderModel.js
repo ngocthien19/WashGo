@@ -1,1 +1,1 @@
-export * from '~/utils/orderManagement'
+export * from '~/utils/orders/orderManagement'

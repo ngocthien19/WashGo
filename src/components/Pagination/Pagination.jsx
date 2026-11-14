@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
 import { Button } from '~/components/ui/button'
-import { getPaginationItems } from '~/utils/formats'
+import { getPaginationItems } from '~/utils/format/formats'
 import { cn } from '~/lib/utils'
 import usePaginationScroll from './usePaginationScroll'
 

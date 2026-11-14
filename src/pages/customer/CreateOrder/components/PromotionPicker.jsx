@@ -3,7 +3,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import { BadgePercent, Check, TicketPercent, X } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '~/components/ui/dialog'
-import { formatCurrency, formatDateTime, formatNumber } from '~/utils/formats'
+import { formatCurrency, formatDateTime, formatNumber } from '~/utils/format/formats'
 
 export default function PromotionPicker({ promotions = [], code, onSelect, onClear, disabled, loading }) {
   const { t } = useTranslation()

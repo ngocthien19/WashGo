@@ -1,4 +1,4 @@
-import { CUSTOMER_CATALOG, SERVICE_PRICE_RANGES, SERVICE_SORT_OPTIONS, SERVICE_TYPES } from '~/utils/constants'
+import { CUSTOMER_CATALOG, SERVICE_PRICE_RANGES, SERVICE_SORT_OPTIONS, SERVICE_TYPES } from '~/utils/config/constants'
 
 export const initialServiceQuery = {
   keyword: '', serviceTypes: [], priceRanges: [], minPrice: '', maxPrice: '', sort: SERVICE_SORT_OPTIONS[0].value,

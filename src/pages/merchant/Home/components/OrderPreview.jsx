@@ -1,14 +1,14 @@
 import { useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '~/components/ui/button'
-import { MERCHANT_ROUTES } from '~/utils/constants'
+import { MERCHANT_ROUTES } from '~/utils/config/constants'
 import { useTranslation } from 'react-i18next'
 import { Package } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantDashboardApi } from '~/apis/merchant/merchantDashboardApi'
-import { formatCurrency, formatDateTime } from '~/utils/formats'
+import { formatCurrency, formatDateTime } from '~/utils/format/formats'
 import OrderCommission from '~/components/merchant/OrderCommission'
 
 export default function OrderPreview({ id, onClose }) {

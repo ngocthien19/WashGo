@@ -1,16 +1,16 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
-import { adminWorkspaceApi } from './admin/adminWorkspaceApi'
-import { adminFinanceApi } from './admin/adminFinanceApi'
-import { adminReviewApi } from './admin/adminReviewApi'
-import { adminServiceApi } from './admin/adminServiceApi'
-import { adminLockerApi } from './admin/adminLockerApi'
-import { customerRatingApi } from './customer/customerRatingApi'
-import { merchantReviewApi } from './merchant/merchantReviewApi'
-import { merchantProfileApi } from './merchant/merchantProfileApi'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { adminWorkspaceApi } from '../admin/adminWorkspaceApi'
+import { adminFinanceApi } from '../admin/adminFinanceApi'
+import { adminReviewApi } from '../admin/adminReviewApi'
+import { adminServiceApi } from '../admin/adminServiceApi'
+import { adminLockerApi } from '../admin/adminLockerApi'
+import { customerRatingApi } from '../customer/customerRatingApi'
+import { merchantReviewApi } from '../merchant/merchantReviewApi'
+import { merchantProfileApi } from '../merchant/merchantProfileApi'
 import { reconcileSchema } from '~/pages/admin/Finance/financeModel'
 
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn() } }))
 const id = '11111111-1111-4111-8111-111111111111'
 const ok = data => ({ data: { succeeded: true, data } })
 beforeEach(() => vi.clearAllMocks())

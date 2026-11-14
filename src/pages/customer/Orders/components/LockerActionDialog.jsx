@@ -11,12 +11,12 @@ import OtpInput from '~/components/ui/OtpInput'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import FormError from '~/components/ui/FormError'
 import QrScanInput from '~/components/customer/orders/QrScanInput'
-import { isOrderQr } from '~/utils/qrScanner'
-import { getApiError } from '~/utils/apiError'
+import { isOrderQr } from '~/utils/media/qrScanner'
+import { getApiError } from '~/utils/http/apiError'
 import { customerOrderApi } from '~/apis/customer/customerOrderApi'
-import { ORDER_STATUSES, LOCKER_SLOT_SIZES } from '~/utils/constants'
+import { ORDER_STATUSES, LOCKER_SLOT_SIZES } from '~/utils/config/constants'
 import DepositDeadlineNotice from './DepositDeadlineNotice'
-import { formatCountdown, formatDateTime } from '~/utils/formats'
+import { formatCountdown, formatDateTime } from '~/utils/format/formats'
 
 export default function LockerActionDialog({ order, deposit, onClose, onUpdated }) {
   const { t } = useTranslation()

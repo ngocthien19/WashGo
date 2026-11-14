@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { ADDRESS_MAP } from '~/utils/constants'
-import { formatMapAddress, hasCoordinates } from '~/utils/formats'
+import { ADDRESS_MAP } from '~/utils/config/constants'
+import { formatMapAddress, hasCoordinates } from '~/utils/format/formats'
 import { provinceApi } from './provinceApi'
 
 // External geocoding must never receive the WashGo Bearer token.

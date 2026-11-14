@@ -11,12 +11,12 @@ import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { Button } from '~/components/ui/button'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { shipperWorkspaceApi } from '~/apis/shipper/shipperWorkspaceApi'
-import { dateRangeFilter } from '~/utils/dateRange'
-import { formatDateTime } from '~/utils/formats'
+import { dateRangeFilter } from '~/utils/format/dateRange'
+import { formatDateTime } from '~/utils/format/formats'
 import ShipperPanel from '../components/ShipperPanel'
 import TaskPreview from './TaskPreview'
 import DashboardFilters from '~/components/workspace/DashboardFilters'
-import { dashboardRange } from '~/utils/dashboardQuery'
+import { dashboardRange } from '~/utils/dashboard/dashboardQuery'
 
 export default function HomePage() {
   const { t } = useTranslation()

@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { adminPromotionApi } from './adminPromotionApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn(), delete: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn(), delete: vi.fn() } }))
 const id = 'a0000000-0000-4000-8000-000000000001'
 const record = { id, version: 'v1', code: 'SAVE20', discountType: 1, discountValue: 20, minOrderAmount: 0, startAt: '2026-11-01T00:00:00Z', endAt: '2026-12-01T00:00:00Z', usedCount: 0, isActive: true, status: 2 }
 beforeEach(() => vi.clearAllMocks())

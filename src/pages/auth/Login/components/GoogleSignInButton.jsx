@@ -5,9 +5,9 @@ import { LoaderCircle } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 import { authApi } from '~/apis/auth/authApi'
-import { GOOGLE_SIGN_IN, THEME_MODES } from '~/utils/constants'
-import { loadGoogleIdentity, subscribeGoogleCredential } from '~/utils/googleIdentity'
-import { getApiError } from '~/utils/apiError'
+import { GOOGLE_SIGN_IN, THEME_MODES } from '~/utils/config/constants'
+import { loadGoogleIdentity, subscribeGoogleCredential } from '~/utils/auth/googleIdentity'
+import { getApiError } from '~/utils/http/apiError'
 import { useTheme } from '~/hooks/useTheme'
 
 export default function GoogleSignInButton({ onSuccess }) {

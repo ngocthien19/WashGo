@@ -5,13 +5,13 @@ import { expect, it, vi } from 'vitest'
 import NotificationProvider from './NotificationProvider'
 import { useNotifications } from './NotificationContext'
 import { notificationHref } from './notificationModel'
-import { NOTIFICATION_CONFIG } from '~/utils/constants'
-import { notify } from '~/utils/notifications'
+import { NOTIFICATION_CONFIG } from '~/utils/config/constants'
+import { notify } from '~/utils/notifications/notifications'
 
-vi.mock('~/utils/notifications', () => ({ notify: { info: vi.fn() } }))
+vi.mock('~/utils/notifications/notifications', () => ({ notify: { info: vi.fn() } }))
 
 const mock = vi.hoisted(() => ({ handlers: {}, unread: vi.fn(), start: vi.fn(async () => {}), stop: vi.fn(async () => {}), options: null, reconnected: null }))
-vi.mock('~/apis/notificationApi', () => ({
+vi.mock('~/apis/notifications/notificationApi', () => ({
   notificationApi: { unread: mock.unread },
   isNotification: (item) => Boolean(item?.id)
 }))

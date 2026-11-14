@@ -5,7 +5,7 @@ import { ArrowUpRight, MapPin, Package, ScrollText, Shirt } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import ServiceDetails from '~/components/customer/services/ServiceDetails'
 import LockerDetails from '~/components/customer/lockers/LockerDetails'
-import { formatCurrency, formatDateTime, formatNumber } from '~/utils/formats'
+import { formatCurrency, formatDateTime, formatNumber } from '~/utils/format/formats'
 import { chatCardDestination, chatOrderStatusKey } from './chatbotModel'
 
 export default function ChatResult({ result, onNavigate, onOpenTerms }) {

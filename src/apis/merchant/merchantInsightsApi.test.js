@@ -1,8 +1,8 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { merchantInsightsApi } from './merchantInsightsApi'
 import { merchantProfileApi } from './merchantProfileApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { post: vi.fn(), get: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { post: vi.fn(), get: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
 
 it('submits city and paired coordinates for approval without identity or financial fields', async () => {

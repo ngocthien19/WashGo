@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { INCIDENT_STATUS_COLORS, ORDER_STATUS_COLORS } from '~/utils/constants'
+import { INCIDENT_STATUS_COLORS, ORDER_STATUS_COLORS } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 
 export default function IncidentStatusBadge({ status }) {

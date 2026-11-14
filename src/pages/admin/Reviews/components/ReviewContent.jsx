@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { Star, ClipboardList, MessageSquareText, Images } from 'lucide-react'
 import CustomerImageGallery from '~/components/customer/CustomerImageGallery'
 import CustomerVideoGallery from '~/components/customer/CustomerVideoGallery'
-import { ADMIN_ROUTES } from '~/utils/constants'
-import { formatDateTime } from '~/utils/formats'
+import { ADMIN_ROUTES } from '~/utils/config/constants'
+import { formatDateTime } from '~/utils/format/formats'
 import { ReviewScore, ReviewStatus } from './ReviewDisplay'
 
 export default function ReviewContent({ row, fresh }) {

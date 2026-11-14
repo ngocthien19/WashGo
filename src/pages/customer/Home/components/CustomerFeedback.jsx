@@ -7,8 +7,8 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import TablePagination from '~/components/Pagination/TablePagination'
 import { SelectField } from '~/components/ui/select'
-import { CUSTOMER_REVIEWS } from '~/utils/constants'
-import { formatDateTime, formatNumber } from '~/utils/formats'
+import { CUSTOMER_REVIEWS } from '~/utils/config/constants'
+import { formatDateTime, formatNumber } from '~/utils/format/formats'
 import FeedbackImage from './FeedbackImage'
 
 export default function CustomerFeedback() {

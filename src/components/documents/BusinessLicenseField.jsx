@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Upload, RotateCcw, Trash2 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
-import { privateDocumentApi, DOCUMENT_TYPES } from '~/apis/privateDocumentApi'
-import { getApiError } from '~/utils/apiError'
+import { privateDocumentApi, DOCUMENT_TYPES } from '~/apis/files/privateDocumentApi'
+import { getApiError } from '~/utils/http/apiError'
 import PrivateDocumentCard from './PrivateDocumentCard'
 
 export default function BusinessLicenseField({ current, value, removed, onChange, onBusy, disabled, kind = 1, label, admin = false, merchantId }) {

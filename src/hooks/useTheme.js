@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setTheme } from '~/redux/theme/themeSlice'
-import { DARK_MODE_MEDIA_QUERY, THEME_MODES } from '~/utils/constants'
+import { DARK_MODE_MEDIA_QUERY, THEME_MODES } from '~/utils/config/constants'
 
 const subscribe = (callback) => {
   const media = window.matchMedia(DARK_MODE_MEDIA_QUERY)

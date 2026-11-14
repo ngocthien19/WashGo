@@ -9,7 +9,7 @@ import AnimatedNumber from '~/components/motion/AnimatedNumber'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantShipperApi } from '~/apis/merchant/merchantShipperApi'
-import { formatDateTime, getImageUrl } from '~/utils/formats'
+import { formatDateTime, getImageUrl } from '~/utils/format/formats'
 
 export default function ShipperDetails({ id, onClose, onEdit, editImmediately = false }) {
   const { t } = useTranslation()

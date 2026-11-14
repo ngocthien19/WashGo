@@ -1,4 +1,4 @@
-import { ROLE_HOME_ROUTES, USER_ROLES } from '~/utils/constants'
+import { ROLE_HOME_ROUTES, USER_ROLES } from '~/utils/config/constants'
 
 export const normalizeRole = (role) => Object.values(USER_ROLES)
   .find((value) => value.toLowerCase() === String(role || '').trim().toLowerCase())

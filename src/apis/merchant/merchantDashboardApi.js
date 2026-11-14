@@ -1,6 +1,6 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { MERCHANT_API, MERCHANT_DASHBOARD } from '~/utils/constants'
-import { orderStatusCounts } from '~/utils/orderGroups'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { MERCHANT_API, MERCHANT_DASHBOARD } from '~/utils/config/constants'
+import { orderStatusCounts } from '~/utils/orders/orderGroups'
 
 const invalid = () => new Error('merchant.invalidResponse')
 const paged = ({ data }) => {

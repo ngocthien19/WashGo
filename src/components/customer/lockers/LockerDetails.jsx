@@ -8,8 +8,8 @@ import { Button } from '~/components/ui/button'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import { formatLockerAddress, getLockerMapLink } from '~/utils/formats'
-import { LOCKER_SLOT_SIZES } from '~/utils/constants'
+import { formatLockerAddress, getLockerMapLink } from '~/utils/format/formats'
+import { LOCKER_SLOT_SIZES } from '~/utils/config/constants'
 
 export default function LockerDetails({ id, onClose }) {
   const { t } = useTranslation()

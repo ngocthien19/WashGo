@@ -1,7 +1,7 @@
 import { useLayoutEffect } from 'react'
 import { useSelector } from 'react-redux'
 import i18n from '~/i18n'
-import { DEFAULT_LANGUAGE, LANGUAGE_OPTIONS } from '~/utils/constants'
+import { DEFAULT_LANGUAGE, LANGUAGE_OPTIONS } from '~/utils/config/constants'
 
 export default function LanguageProvider({ children }) {
   const language = useSelector((state) => state.preferences.language)

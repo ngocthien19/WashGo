@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import AuthStory from './components/AuthStory'
-import { AUTH_ROUTES } from '~/utils/constants'
+import { AUTH_ROUTES } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 import AuthBrand from '~/pages/auth/components/AuthBrand'
 

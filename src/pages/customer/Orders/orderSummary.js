@@ -1,4 +1,4 @@
-import { ORDER_STATUSES } from '~/utils/constants'
+import { ORDER_STATUSES } from '~/utils/config/constants'
 
 export const statusTextColors = {
   [ORDER_STATUSES.PENDING]: 'text-slate-600 dark:text-slate-300',

@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Star, LoaderCircle } from 'lucide-react'
 import { Button } from '~/components/ui/button'
-import { ORDER_STATUSES } from '~/utils/constants'
+import { ORDER_STATUSES } from '~/utils/config/constants'
 import { customerRatingApi } from '~/apis/customer/customerRatingApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 

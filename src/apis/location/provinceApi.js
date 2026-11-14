@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { ADDRESS_MAP } from '~/utils/constants'
-import { containsMapPoint } from '~/utils/formats'
+import { ADDRESS_MAP } from '~/utils/config/constants'
+import { containsMapPoint } from '~/utils/format/formats'
 
 const client = axios.create({ timeout: ADDRESS_MAP.REQUEST_TIMEOUT_MS, withCredentials: false })
 let provinces

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { IMAGE_UPLOAD, PROFILE_LIMITS } from '~/utils/constants'
+import { IMAGE_UPLOAD, PROFILE_LIMITS } from '~/utils/config/constants'
 import { getProfileValues, profileSchema, validateAvatarFile } from './profileSchema'
 
 const valid = { fullName: 'Alex Nguyen', phone: '0901234567', address: '123 Le Loi', district: '', city: 'Ho Chi Minh City' }

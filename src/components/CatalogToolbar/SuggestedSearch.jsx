@@ -6,7 +6,7 @@ import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 import TruncatedText from '~/components/TruncatedText'
-import { SEARCH_SUGGESTIONS } from '~/utils/constants'
+import { SEARCH_SUGGESTIONS } from '~/utils/config/constants'
 
 function SuggestionText({ text, query }) {
   const matches = text.normalize('NFC').toLocaleLowerCase().includes(query)

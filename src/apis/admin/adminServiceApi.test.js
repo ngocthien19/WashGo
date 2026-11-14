@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { adminServiceApi } from './adminServiceApi'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
 const id = '10000000-0000-4000-8000-000000000001'
 const service = { id, version: 'v1', name: 'Wash', code: 'SVC1', approvalStatus: 2, isActive: true }
 beforeEach(() => vi.clearAllMocks())

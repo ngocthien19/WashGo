@@ -1,5 +1,5 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { CHATBOT_CONFIG as CONFIG } from '~/utils/constants'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { CHATBOT_CONFIG as CONFIG } from '~/utils/config/constants'
 
 const root = CONFIG.ENDPOINT
 const segment = (value) => encodeURIComponent(value)

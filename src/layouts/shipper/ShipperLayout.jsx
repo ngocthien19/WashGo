@@ -2,8 +2,8 @@ import { LayoutDashboard, Truck, History } from 'lucide-react'
 import WorkspaceLayout from '~/components/workspace/WorkspaceLayout'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { shipperWorkspaceApi } from '~/apis/shipper/shipperWorkspaceApi'
-import { SHIPPER_ROUTES } from '~/utils/constants'
-import { shipperNotificationHref } from '~/utils/shipperNotifications'
+import { SHIPPER_ROUTES } from '~/utils/config/constants'
+import { shipperNotificationHref } from '~/utils/notifications/shipperNotifications'
 
 const navigation = [['overview', LayoutDashboard, SHIPPER_ROUTES.HOME], ['tasks', Truck, SHIPPER_ROUTES.TASKS], ['history', History, SHIPPER_ROUTES.HISTORY]]
 export default function ShipperLayout() {

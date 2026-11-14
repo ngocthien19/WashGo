@@ -1,5 +1,5 @@
-import authorizedAxios from '~/utils/authorizedAxios'
-import { INCIDENT_CONFIG } from '~/utils/constants'
+import authorizedAxios from '~/utils/http/authorizedAxios'
+import { INCIDENT_CONFIG } from '~/utils/config/constants'
 
 const invalid = () => new Error('customer.incidents.invalidResponse')
 const unwrap = ({ data }) => {

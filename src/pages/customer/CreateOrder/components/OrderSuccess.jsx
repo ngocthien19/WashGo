@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom'
 import { CircleCheck, Home, PanelsTopLeft, Info, ArrowRight } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import LockerAccessCard from '~/components/customer/orders/LockerAccessCard'
-import { CUSTOMER_ROUTES, ORDER_STATUSES, TEXT_LINK_STYLES } from '~/utils/constants'
-import { formatCurrency } from '~/utils/formats'
+import { CUSTOMER_ROUTES, ORDER_STATUSES, TEXT_LINK_STYLES } from '~/utils/config/constants'
+import { formatCurrency } from '~/utils/format/formats'
 
 export default function OrderSuccess({ order }) {
   const { t } = useTranslation()

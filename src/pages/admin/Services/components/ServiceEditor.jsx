@@ -7,12 +7,12 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } f
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { SelectField } from '~/components/ui/select'
-import { SERVICE_TYPES } from '~/utils/constants'
+import { SERVICE_TYPES } from '~/utils/config/constants'
 import ImagePicker from '~/components/ImagePicker'
 import useImages from '~/hooks/useImages'
 import { adminServiceApi } from '~/apis/admin/adminServiceApi'
-import { notify } from '~/utils/notifications'
-import { getApiError } from '~/utils/apiError'
+import { notify } from '~/utils/notifications/notifications'
+import { getApiError } from '~/utils/http/apiError'
 import { defaults, payload, serviceSchema, snapshot, unknownWrite } from '../serviceModel'
 
 export default function ServiceEditor({ service, onClose, onSaved }) {

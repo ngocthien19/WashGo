@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { merchantDefaults, merchantPayload, merchantSchema, merchantSnapshot, profileStillCurrent, readMerchantQuery, merchantFilter, contractDay, safeDocumentUrl } from './merchantModel'
-import { adminNotificationHref } from '~/utils/adminNotifications'
+import { adminNotificationHref } from '~/utils/notifications/adminNotifications'
 
 const id = '10000000-0000-4000-8000-000000000001'
 const row = { id, ...merchantDefaults(), businessName: 'Store', email: 'owner@example.test', phone: '0901234567', address: '123 Street', city: 'HCM', latitude: 10.77, longitude: 106.7, status: 1, commissionRate: 0, imageUrls: ['/uploads/store.png'], serviceAreaIds: ['area-1'], contractStartDate: '2026-11-07T17:00:00Z' }

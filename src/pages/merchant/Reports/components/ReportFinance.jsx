@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Wallet, AlertTriangle, Plus, Minus, Equal } from 'lucide-react'
-import { formatCurrency } from '~/utils/formats'
+import { formatCurrency } from '~/utils/format/formats'
 import ReportChange from './ReportChange'
 
 export default function ReportFinance({ data }) {

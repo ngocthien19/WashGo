@@ -1,7 +1,7 @@
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '~/lib/utils'
-import { CHOICE_ITEM_STYLES, UI_TRANSITIONS } from '~/utils/constants'
+import { CHOICE_ITEM_STYLES, UI_TRANSITIONS } from '~/utils/config/constants'
 
 export function SelectField({ id, label, value, onValueChange, options, disabled, className }) {
   return (

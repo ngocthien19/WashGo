@@ -10,9 +10,9 @@ import FormError from '~/components/ui/FormError'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { customerOrderApi } from '~/apis/customer/customerOrderApi'
-import { getApiError } from '~/utils/apiError'
-import { formatCurrency } from '~/utils/formats'
-import { ORDER_LIST } from '~/utils/constants'
+import { getApiError } from '~/utils/http/apiError'
+import { formatCurrency } from '~/utils/format/formats'
+import { ORDER_LIST } from '~/utils/config/constants'
 
 const schema = yup.object({ reason: yup.string().trim().required('customer.orders.cancel.reasonRequired').max(ORDER_LIST.REASON_MAX, 'customer.orders.cancel.reasonTooLong') })
 

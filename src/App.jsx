@@ -1,4 +1,4 @@
-import { AUTH_ROUTES, CUSTOMER_ROUTES, MERCHANT_ROUTES, ADMIN_ROUTES, SHIPPER_ROUTES, ROLE_HOME_ROUTES, USER_ROLES } from '~/utils/constants'
+import { AUTH_ROUTES, CUSTOMER_ROUTES, MERCHANT_ROUTES, ADMIN_ROUTES, SHIPPER_ROUTES, ROLE_HOME_ROUTES, USER_ROLES } from '~/utils/config/constants'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import LoadingScreen from '~/components/LoadingScreen/LoadingScreen'

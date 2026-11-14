@@ -1,8 +1,8 @@
 import { beforeEach, expect, it, vi } from 'vitest'
 import { adminSystemSettingApi } from './adminSystemSettingApi'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { systemSettingsFixture } from '~/test/fixtures/systemSettings'
-vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), put: vi.fn() } }))
+vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), put: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
 it('reads actual settings and forwards cancellation signal', async () => {
   const value = systemSettingsFixture(), signal = new AbortController().signal

@@ -1,4 +1,4 @@
-import { IMAGE_UPLOAD } from './constants'
+import { IMAGE_UPLOAD } from '../config/constants'
 
 export const validateImageFile = (file) => {
   if (!IMAGE_UPLOAD.MIME_TYPES.includes(file.type)) {

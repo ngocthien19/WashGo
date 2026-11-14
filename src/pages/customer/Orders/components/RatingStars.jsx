@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Star } from 'lucide-react'
 import { Button } from '~/components/ui/button'
-import { RATING_CONFIG } from '~/utils/constants'
+import { RATING_CONFIG } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 
 export default function RatingStars({ label, value = 0, onChange, disabled = false, featured = false }) {

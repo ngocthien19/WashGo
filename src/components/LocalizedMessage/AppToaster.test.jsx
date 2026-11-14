@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import toast from 'react-hot-toast'
 import i18n from '~/i18n'
-import { notify } from '~/utils/notifications'
+import { notify } from '~/utils/notifications/notifications'
 import { TooltipProvider } from '~/components/ui/tooltip'
 import AppToaster from './AppToaster'
 

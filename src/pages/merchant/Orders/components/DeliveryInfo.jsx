@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
-import { formatDateTime, formatNumber } from '~/utils/formats'
+import { formatDateTime, formatNumber } from '~/utils/format/formats'
 
 export default function DeliveryInfo({ order, depositImages, returnImages }) {
   const { t } = useTranslation()

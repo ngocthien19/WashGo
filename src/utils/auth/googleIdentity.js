@@ -1,4 +1,4 @@
-import { GOOGLE_SIGN_IN } from '~/utils/constants'
+import { GOOGLE_SIGN_IN } from '~/utils/config/constants'
 
 let sdkPromise = null
 let initializedClientId = null

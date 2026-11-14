@@ -14,9 +14,9 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import useImages from '~/hooks/useImages'
 import useVideos from '~/hooks/useVideos'
 import { adminComplaintApi } from '~/apis/admin/adminComplaintApi'
-import { getApiError } from '~/utils/apiError'
-import { formatDateTime } from '~/utils/formats'
-import { notify } from '~/utils/notifications'
+import { getApiError } from '~/utils/http/apiError'
+import { formatDateTime } from '~/utils/format/formats'
+import { notify } from '~/utils/notifications/notifications'
 import { messageSchema, snapshot, unknownWrite } from '../complaintModel'
 
 export default function ComplaintMessages({ incident, onChanged }) {

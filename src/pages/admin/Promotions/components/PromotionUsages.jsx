@@ -9,8 +9,8 @@ import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import TablePagination from '~/components/Pagination/TablePagination'
 import DateRangeFilter from '~/components/DateRangeFilter/DateRangeFilter'
 import { SelectField } from '~/components/ui/select'
-import { dateRangeFilter } from '~/utils/dateRange'
-import { formatCurrency, formatDateTime } from '~/utils/formats'
+import { dateRangeFilter } from '~/utils/format/dateRange'
+import { formatCurrency, formatDateTime } from '~/utils/format/formats'
 
 export default function PromotionUsages({ id }) {
   const { t } = useTranslation(), [page, setPage] = useState(1), [reverted, setReverted] = useState(''), [range, setRange] = useState({ from: '', to: '' })

@@ -1,5 +1,5 @@
 import { adminWrite, newOperationId, versionGuard, administrativeSummary, administrativeBatch } from './adminWrite'
-import authorizedAxios from '~/utils/authorizedAxios'
+import authorizedAxios from '~/utils/http/authorizedAxios'
 import { isId } from '~/pages/admin/Merchants/merchantModel'
 import { adminLockerApi } from './adminLockerApi'
 const invalid = () => new Error('admin.invalidResponse')

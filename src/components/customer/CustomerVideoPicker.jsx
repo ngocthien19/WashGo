@@ -2,8 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { Video, Trash2 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
-import { VIDEO_UPLOAD } from '~/utils/videos'
-import { getImageUrl } from '~/utils/formats'
+import { VIDEO_UPLOAD } from '~/utils/media/videos'
+import { getImageUrl } from '~/utils/format/formats'
 export default function CustomerVideoPicker({ selection, disabled }) {
   const { t } = useTranslation()
   return (

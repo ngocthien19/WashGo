@@ -1,1 +1,1 @@
-export { orderManagementApi as merchantOrderApi } from '~/apis/orderManagementApi'
+export { orderManagementApi as merchantOrderApi } from '~/apis/orders/orderManagementApi'

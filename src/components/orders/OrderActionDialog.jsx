@@ -8,10 +8,10 @@ import { Input } from '~/components/ui/input'
 import { SelectField } from '~/components/ui/select'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
-import { orderManagementApi as merchantOrderApi } from '~/apis/orderManagementApi'
-import { notify } from '~/utils/notifications'
-import { getApiError } from '~/utils/apiError'
-import { processingSteps, canWeigh, assignmentTask, validWeight, sameOrderState, statusLabel } from '~/utils/orderManagement'
+import { orderManagementApi as merchantOrderApi } from '~/apis/orders/orderManagementApi'
+import { notify } from '~/utils/notifications/notifications'
+import { getApiError } from '~/utils/http/apiError'
+import { processingSteps, canWeigh, assignmentTask, validWeight, sameOrderState, statusLabel } from '~/utils/orders/orderManagement'
 
 function ShipperSelection({ id, value, onChange, disabled }) {
   const { t } = useTranslation()
