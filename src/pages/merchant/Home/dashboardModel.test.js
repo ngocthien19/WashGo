@@ -6,3 +6,8 @@ it('separates processing, payment, pickup and terminal states without counting o
   expect(Object.fromEntries(groups.map(({ key, value }) => [key, value]))).toEqual({ incoming: 3, processing: 3, payment: 5, pickup: 2, completed: 10, storage: 1, cancelled: 4 })
   expect(groups.reduce((sum, group) => sum + group.value, 0)).toBe(28)
 })
+
+it('includes storage transit states in storage totals', () => {
+  const storage = groupOrders({ 13: 1, 14: 2, 15: 3 }).find(group => group.key === 'storage')
+  expect(storage.value).toBe(6)
+})

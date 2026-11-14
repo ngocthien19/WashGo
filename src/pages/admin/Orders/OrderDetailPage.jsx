@@ -1,9 +1,10 @@
+import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
 import OrderCommission from '~/components/orders/OrderCommission'
 import CancelExpiredDialog from './components/CancelExpiredDialog'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, RefreshCw, Package, UserRound, MapPin, History, Wallet, Store, Truck, WashingMachine, Warehouse } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Package, UserRound, MapPin, History, Wallet, Store, Truck, WashingMachine } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import OrderStatus from '~/components/orders/OrderStatus'
 import PaymentStatus from '~/components/orders/PaymentStatus'
@@ -18,9 +19,8 @@ import { ADMIN_ROUTES, ORDER_STATUS_OPTIONS, ORDER_STATUS_BORDER_COLORS } from '
 import { formatCurrency, formatDateTime, formatNumber } from '~/utils/formats'
 import { processingSteps, assignmentTask } from '~/utils/orderManagement'
 import { isId } from '../Merchants/merchantModel'
-import { canAssignMerchant, canStore } from './ordersModel'
+import { canAssignMerchant } from './ordersModel'
 import MerchantAssignmentDialog from './components/MerchantAssignmentDialog'
-import StorageDialog from './components/StorageDialog'
 import OrderReceiptAction from '~/pages/customer/Orders/components/OrderReceiptAction'
 import useOrderMedia, { mediaKey } from './useOrderMedia'
 
@@ -157,20 +157,17 @@ export default function OrderDetailPage() {
                   {t('admin.sync.cancelExpired')}
                 </Button>
               )}
-              {canStore(order) && (
-                <Button
-                  variant="outline"
-                  className="h-11 border-amber-200 bg-amber-50 px-4 text-base text-amber-700 hover:bg-amber-100 hover:text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/50"
-                  onClick={() => setAction('store')}
-                >
-                  <Warehouse size={18} />
-                  {t('admin.orderManagement.store')}
-                </Button>
-              )}
 
               <OrderReceiptAction order={order} />
             </div>
           </header>
+          {([10, 13, 14, 15].includes(order.status) || order.storageWorkflowVersion >= 1 && [11, 12, 99].includes(order.status)) && (
+            <StorageOrderPanel
+              order={order}
+              role="Admin"
+              onUpdated={done}
+            />
+          )}
           {order.allowedActions?.statusOptions?.some(item => item.reasonCode === 'WeightRequired') && (
             <p className="rounded-xl bg-amber-500/10 p-4 text-sm text-amber-700 dark:text-amber-300">
               {t('merchant.orders.weightRequired')}
@@ -435,13 +432,6 @@ export default function OrderDetailPage() {
           {action === 'cancelExpired' && (
             <CancelExpiredDialog
               id={order.id}
-              onClose={done}
-              onSaved={done}
-            />
-          )}
-          {action === 'store' && (
-            <StorageDialog
-              order={order}
               onClose={done}
               onSaved={done}
             />

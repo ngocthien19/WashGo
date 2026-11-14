@@ -6,9 +6,9 @@ export const customerOrderView = value => {
   if (!value || !value.orderCode) {
     return value
   }
-  const result = Object.fromEntries(Object.entries(value).filter(([key]) => !/^(merchant|shipper)/i.test(key)))
+  const result = Object.fromEntries(Object.entries(value).filter(([key]) => !/^(merchant|shipper|storageLocation|storageReference|storageShop|receiptReference|exceptionNote|taskId)/i.test(key)))
   if (Array.isArray(result.timeline)) {
-    result.timeline = result.timeline.map(row => ['Merchant', 'Shipper'].includes(row.actorRole) ? { ...row, actorId: null, actorName: 'WashGo' } : row)
+    result.timeline = result.timeline.map(row => ['Merchant', 'Shipper'].includes(row.actorRole) ? { ...row, actorId: null, actorName: 'WashGo', note: null } : row)
   }
   return result
 }
@@ -21,12 +21,6 @@ const unwrap = ({ data }) => {
 }
 
 export const customerOrderApi = {
-  pickupStorage: (id, note) => authorizedAxios.post(`${CUSTOMER_API_ENDPOINTS.ORDERS}/${encodeURIComponent(id)}/pickup-storage`, { note }).then(unwrap).then((order) => {
-    if (order.id !== id || ![ORDER_STATUSES.RETURNED, ORDER_STATUSES.COMPLETED].includes(order.status)) {
-      throw new Error('customer.orders.scan.unknownOutcome')
-    }
-    return order
-  }),
   deposit: (id, credentials) => authorizedAxios.post(`${CUSTOMER_API_ENDPOINTS.ORDERS}/${encodeURIComponent(id)}/deposit`, credentials).then(unwrap),
   openPickup: (id, credentials) => authorizedAxios.post(`${CUSTOMER_API_ENDPOINTS.ORDERS}/${encodeURIComponent(id)}/open-pickup-box`, credentials).then(unwrap),
   confirmPickup: (id, pickupSessionToken) => authorizedAxios.post(`${CUSTOMER_API_ENDPOINTS.ORDERS}/${encodeURIComponent(id)}/confirm-pickup`, { pickupSessionToken }).then(unwrap),

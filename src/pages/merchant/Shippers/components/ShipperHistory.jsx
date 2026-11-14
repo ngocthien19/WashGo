@@ -29,7 +29,7 @@ function HistoryContent({ id, audit }) {
               label={t(`merchant.shipperSync.${key === 'taskType' ? 'taskTypeLabel' : 'taskStatus'}`)}
               value={query[key]}
               onValueChange={(value) => setQuery({ ...query, [key]: value, page: 1 })}
-              options={[{ value: '', label: t('common.all') }, ...(key === 'taskType' ? [1, 2] : [1, 2, 3, 4]).map((value) => ({ value: String(value), label: t(`merchant.shipperSync.${key}.${value}`) }))]}
+              options={[{ value: '', label: t('common.all') }, ...[1, 2, 3, 4].map((value) => ({ value: String(value), label: t(`merchant.shipperSync.${key}.${value}`) }))]}
             />
           ))}
           <ClearFiltersButton

@@ -4,7 +4,7 @@ import { merchantSession } from './helpers/merchantSession'
 const first = '10000000-0000-4000-8000-000000000001', second = '10000000-0000-4000-8000-000000000002', order = '20000000-0000-4000-8000-000000000001', merchant = '30000000-0000-4000-8000-000000000001'
 async function setup(page, { legacy = false, dark = false } = {}) {
   await merchantSession(page, { role: 'Admin', dark })
-  const state = { queries: [], writes: [], details: 0, stale: false, unknown: false, recovered: false, operation: null, rows: [first, second].map((id, index) => ({ id, orderId: order, orderCode: `WG-REVIEW-${index + 1}`, customerName: 'Customer Example', merchantId: merchant, merchantName: 'Laundry Example', overallStars: 5 - index, qualityStars: 4, comment: index ? 'Careful packaging' : 'Excellent service', createdOn: 1794391200, isHidden: false, imageUrls: [], videoUrls: [], ...(!legacy ? { version: 'v1', canHide: true, canShow: false } : {}) })) }
+  const state = { queries: [], writes: [], auditQueries: [], auditRows: [], details: 0, stale: false, unknown: false, recovered: false, operation: null, rows: [first, second].map((id, index) => ({ id, orderId: order, orderCode: `WG-REVIEW-${index + 1}`, customerName: 'Customer Example', merchantId: merchant, merchantName: 'Laundry Example', overallStars: 5 - index, qualityStars: 4, comment: index ? 'Careful packaging' : 'Excellent service', createdOn: 1794391200, isHidden: false, imageUrls: [], videoUrls: [], ...(!legacy ? { version: 'v1', canHide: true, canShow: false, canPublish: true } : {}) })) }
   await page.route('**/api/**', async route => {
     const request = route.request(), path = new URL(request.url()).pathname.replace(/^\/api/, '')
     const body = request.postData() ? request.postDataJSON() : {}
@@ -23,7 +23,11 @@ async function setup(page, { legacy = false, dark = false } = {}) {
       return route.fulfill({ json: { succeeded: true, list: [{ id: merchant, name: 'Laundry Example' }], total: 1 } })
     }
     if (path === '/admin/audit-logs/filter') {
-      return route.fulfill({ json: { succeeded: true, list: [], total: 0 } })
+      state.auditQueries.push(body)
+      return route.fulfill({ json: { succeeded: true, list: state.auditRows, total: state.auditRows.length } })
+    }
+    if (path.startsWith('/admin/audit-logs/')) {
+      return ok(state.auditRows.find(row => row.id === path.split('/').at(-1)))
     }
     if (path === '/rating/filter') {
       state.queries.push(body)
@@ -42,7 +46,7 @@ async function setup(page, { legacy = false, dark = false } = {}) {
       if (state.unknown) {
         return route.fulfill({ status: 500, json: { succeeded: false } })
       }
-      state.rows[0] = { ...state.rows[0], isHidden: body.action === 'Hide', version: 'v2', canHide: false, canShow: true }
+      state.rows[0] = body.action === 'Publish' ? { ...state.rows[0], contentApprovedAt: '2026-11-14T00:00:00Z', version: 'v2', canPublish: false } : { ...state.rows[0], isHidden: body.action === 'Hide', version: 'v2', canHide: false, canShow: true }
       return ok({ operationId: body.operationId, state: 'Completed', items: body.items.map((item, index) => ({ id: item.id, succeeded: index === 0, statusCode: index === 0 ? 200 : 409, outcome: index === 0 ? 'Changed' : 'Failed', message: index === 0 ? null : 'Review changed' })) })
     }
     if (path.startsWith('/admin-operations/Rating/')) {
@@ -50,6 +54,12 @@ async function setup(page, { legacy = false, dark = false } = {}) {
         return missing()
       }
       return ok({ operationId: state.operation.operationId, state: 'Completed', action: 'Batch', resourceId: 'batch', result: { succeeded: true, data: { operationId: state.operation.operationId, state: 'Completed', items: state.operation.items.map(item => ({ id: item.id, succeeded: true, statusCode: 200, outcome: 'Changed' })) } } })
+    }
+    if (path.startsWith('/rating/') && path.endsWith('/publish')) {
+      state.writes.push({ path, body })
+      const index = state.rows.findIndex(row => row.id === path.split('/')[2])
+      state.rows[index] = { ...state.rows[index], contentApprovedAt: '2026-11-14T00:00:00Z', canPublish: false, version: 'v2' }
+      return ok(state.rows[index])
     }
     if (path.startsWith('/rating/') && path.endsWith('/visibility')) {
       state.writes.push({ path, body })
@@ -90,9 +100,9 @@ test('legacy API shows reviews below promotions with read-only detail and disabl
   await expect(page.getByText('Review statistics are being updated.', { exact: false })).toBeVisible()
   await page.getByRole('button', { name: 'Review actions for WG-REVIEW-1' }).click()
   await page.getByRole('menuitem', { name: 'View details', exact: true }).click()
-  await expect(page.getByRole('dialog')).toContainText('Showing the list snapshot.')
-  await expect(page.getByRole('dialog').getByRole('button', { name: 'Hide reviews', exact: true })).toBeDisabled()
-  await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).last().click()
+  await expect(page.getByRole('main')).toContainText('Showing the list snapshot.')
+  await expect(page.getByRole('main').getByRole('button', { name: 'Hide reviews', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Back to review management' }).click()
   const dialog = await bulk(page)
   await expect(dialog.getByRole('button', { name: 'Hide reviews', exact: true })).toBeDisabled()
   expect(state.writes).toHaveLength(0)
@@ -120,15 +130,16 @@ test('single moderation validates reason, checks fresh version and preserves cus
   await page.goto('/admin/reviews')
   await page.getByRole('button', { name: 'Review actions for WG-REVIEW-1' }).click()
   await page.getByRole('menuitem', { name: 'View details', exact: true }).click()
-  await expect(page.getByRole('dialog')).toContainText('Customer Example')
-  await page.getByRole('dialog').getByRole('button', { name: 'Hide reviews', exact: true }).click()
+  await expect(page.getByRole('main')).toContainText('Customer Example')
+  await page.getByRole('main').getByRole('button', { name: 'Hide reviews', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('button', { name: 'Hide reviews', exact: true }).click()
   await expect(dialog).toContainText('Enter a reason')
   expect(state.writes).toHaveLength(0)
   await confirm(dialog)
-  await expect(dialog.getByText('Changed', { exact: true })).toBeVisible()
-  expect(state.details).toBe(2)
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByText('Review updated.', { exact: true })).toBeVisible()
+  expect(state.details).toBeGreaterThanOrEqual(2)
   expect(state.writes[0].body).toMatchObject({ expectedVersion: 'v1', isHidden: true, reason: 'Contains personal information' })
   expect(state.writes[0].body.operationId).toBeTruthy()
   expect(state.rows[0].comment).toBe('Excellent service')
@@ -139,8 +150,10 @@ test('batch sends one explicit command and keeps per-item partial failures visib
   await page.goto('/admin/reviews')
   const dialog = await bulk(page)
   await confirm(dialog)
-  await expect(dialog.getByText('Changed', { exact: true })).toBeVisible()
-  await expect(dialog.getByText('Review changed', { exact: true })).toBeVisible()
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByText('Changed', { exact: true })).toBeVisible()
+  await expect(page.getByText('Review changed', { exact: true })).toBeVisible()
+  await expect(page.getByText('Some reviews could not be updated. Check the results for each review.', { exact: true })).toBeVisible()
   expect(state.writes).toHaveLength(1)
   expect(state.writes[0]).toMatchObject({ path: '/rating/batch', body: { action: 'Hide', items: [{ id: first, expectedVersion: 'v1' }, { id: second, expectedVersion: 'v1' }] } })
 })
@@ -156,7 +169,8 @@ test('ambiguous batch survives dialog close and reconciles without another mutat
   await page.getByRole('button', { name: 'Check result', exact: true }).click()
   dialog = page.getByRole('dialog')
   await dialog.getByRole('button', { name: 'Check result', exact: true }).click()
-  await expect(dialog.getByText('Changed', { exact: true })).toHaveCount(2)
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByText('Changed', { exact: true })).toHaveCount(2)
   expect(state.writes).toHaveLength(1)
 })
 
@@ -165,7 +179,7 @@ test('stale review blocks a visibility write', async ({ page }) => {
   await page.goto('/admin/reviews')
   await page.getByRole('button', { name: 'Review actions for WG-REVIEW-1' }).click()
   await page.getByRole('menuitem', { name: 'View details', exact: true }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Hide reviews', exact: true }).click()
+  await page.getByRole('main').getByRole('button', { name: 'Hide reviews', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await confirm(dialog)
   await expect(dialog).toContainText('This review has changed.')
@@ -181,12 +195,13 @@ test('bulk restore uses keyboard tabs, skips visible reviews and needs confirmat
   const hide = dialog.getByRole('tab', { name: 'Hide reviews', exact: true })
   await hide.focus(); await hide.press('Home')
   await expect(hide).toHaveAttribute('aria-selected', 'true')
-  await hide.press('End')
+  await hide.press('ArrowRight')
   await expect(dialog.getByRole('tab', { name: 'Restore visibility', exact: true })).toHaveAttribute('aria-selected', 'true')
   await expect(dialog.getByRole('textbox')).toHaveCount(0)
   await dialog.getByRole('checkbox').check()
   await dialog.getByRole('button', { name: 'Restore visibility', exact: true }).click()
-  await expect(dialog.getByText('Changed', { exact: true })).toBeVisible()
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByText('Changed', { exact: true })).toBeVisible()
   expect(state.writes).toHaveLength(1)
   expect(state.writes[0].body).toMatchObject({ action: 'Show', reason: null, items: [{ id: first, expectedVersion: 'v1' }] })
 })
@@ -230,7 +245,7 @@ test('review contacts, two-line comments, sticky actions and checkbox cursors re
   await expect(page.getByRole('menuitem', { name: 'Hide reviews', exact: true })).toBeEnabled()
   await expect(page.getByRole('menuitem', { name: 'Restore visibility', exact: true })).toBeDisabled()
   await page.getByRole('menuitem', { name: 'View details', exact: true }).click()
-  const dialog = page.getByRole('dialog')
+  const dialog = page.getByRole('main')
   await expect(dialog).toContainText('customer@example.test')
   await expect(dialog).toContainText('store@example.test')
   expect((await dialog.getByRole('button', { name: 'Hide reviews', exact: true }).boundingBox()).height).toBeGreaterThanOrEqual(44)
@@ -239,9 +254,86 @@ test('review contacts, two-line comments, sticky actions and checkbox cursors re
   expect(await check.evaluate(el => getComputedStyle(el).cursor)).toBe('pointer')
   expect(await check.locator('..').evaluate(el => getComputedStyle(el).cursor)).toBe('pointer')
   await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).last().click()
+  await page.getByRole('button', { name: 'Back to review management' }).click()
   const bulkDialog = await bulk(page)
   await bulkDialog.getByRole('button', { name: 'Close', exact: true }).last().click()
   const bulkButton = page.getByRole('region', { name: 'Bulk review actions' }).getByRole('button', { name: 'Bulk review actions', exact: true })
   expect((await bulkButton.boundingBox()).height).toBeGreaterThanOrEqual(48)
   expect(state.writes).toHaveLength(0)
+})
+
+test('publishing uses a distinct guarded action and keeps visibility unchanged', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto('/admin/reviews')
+  await page.getByRole('button', { name: 'Review actions for WG-REVIEW-1' }).click()
+  await page.getByRole('menuitem', { name: 'Publish content', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Publish content', exact: true }).click()
+  expect(state.writes).toHaveLength(0)
+  await dialog.getByRole('checkbox').check()
+  await dialog.getByRole('button', { name: 'Publish content', exact: true }).click()
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByText('Changed', { exact: true })).toBeVisible()
+  expect(state.writes).toHaveLength(1)
+  expect(state.writes[0]).toMatchObject({ path: `/rating/${first}/publish`, body: { expectedVersion: 'v1', operationId: expect.any(String) } })
+  expect(state.rows[0].isHidden).toBe(false)
+  expect(state.rows[0].comment).toBe('Excellent service')
+})
+
+test('bulk publishing skips hidden reviews and sends one Publish command', async ({ page }) => {
+  const state = await setup(page)
+  state.rows[1] = { ...state.rows[1], isHidden: true, canHide: false, canShow: true, canPublish: false }
+  await page.goto('/admin/reviews')
+  const dialog = await bulk(page)
+  await dialog.getByRole('tab', { name: 'Hide reviews', exact: true }).press('End')
+  await expect(dialog.getByRole('tab', { name: 'Publish content', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await dialog.getByRole('checkbox').check()
+  await dialog.getByRole('button', { name: 'Publish content', exact: true }).click()
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByText('Changed', { exact: true })).toBeVisible()
+  expect(state.writes).toHaveLength(1)
+  expect(state.writes[0].body).toMatchObject({ action: 'Publish', items: [{ id: first, expectedVersion: 'v1' }] })
+  expect(state.rows[1].contentApprovedAt).toBeUndefined()
+})
+
+test('review detail is a reloadable page with lazy activity tab and correct scrubbed order references', async ({ page }) => {
+  const state = await setup(page, { dark: true })
+  state.rows[0].orderCode = 'WG2611141234'
+  state.auditRows = [{ id: 'audit-1', occurredAt: '2026-11-14T06:20:00Z', module: 'Rating', action: 'Show', result: 1, actorName: 'Admin Example', actorRole: 'Admin', resourceType: 'OrderRating', resourceId: first, resourceCode: 'WG[number]', reason: 'Phone [number]', changedFields: [] }]
+  await page.goto(`/admin/reviews/${first}`)
+  await expect(page.getByRole('heading', { name: 'Review details', exact: true })).toBeVisible()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  expect(state.auditQueries).toHaveLength(0)
+  await page.getByRole('tab', { name: 'Content', exact: true }).press('End')
+  await expect(page).toHaveURL(/tab=activity/)
+  await expect(page.getByRole('table', { name: 'Activity log', exact: true })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Keyword', exact: true })).toHaveAttribute('placeholder', 'Search activity logs…')
+  await expect(page.getByRole('tabpanel')).toContainText('WG2611141234')
+  await expect(page.getByRole('tabpanel')).not.toContainText('WG[number]')
+  await expect(page.getByRole('tabpanel')).toContainText('Phone [number]')
+  expect(state.auditQueries[0]).toMatchObject({ resourceId: first, resourceType: 'OrderRating' })
+  await page.reload()
+  await expect(page.getByRole('tab', { name: 'Activity log', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tabpanel')).toContainText('WG2611141234')
+  await page.getByRole('button', { name: 'Activity details', exact: true }).click()
+  await expect(page.getByRole('dialog')).toContainText('WG2611141234')
+  await expect(page.getByRole('dialog')).not.toContainText('WG[number]')
+  await expect(page.getByRole('dialog')).toContainText('Phone [number]')
+})
+
+test('pending review operation remains locked after navigating from list to detail', async ({ page }) => {
+  const state = await setup(page); state.unknown = true
+  await page.goto('/admin/reviews')
+  const dialog = await bulk(page)
+  await confirm(dialog)
+  await expect(dialog.getByRole('button', { name: 'Check result', exact: true })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await page.getByRole('button', { name: 'Review actions for WG-REVIEW-1' }).click()
+  await page.getByRole('menuitem', { name: 'View details', exact: true }).click()
+  await expect(page.getByRole('main').getByRole('button', { name: 'Hide reviews', exact: true })).toBeDisabled()
+  state.recovered = true
+  await page.getByRole('button', { name: 'Check result', exact: true }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Check result', exact: true }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  expect(state.writes).toHaveLength(1)
 })

@@ -32,7 +32,10 @@ export const shipperWorkspaceApi = {
     if (data?.succeeded !== true || !value || !['pendingCollectCount', 'pendingReturnCount', 'completedCollectCount', 'completedReturnCount', 'totalDeliveries'].every(key => Number.isInteger(value[key]) && value[key] >= 0) || !Array.isArray(value.chart) || !Array.isArray(value.recentCompletions) || !Array.isArray(value.pendingCollect) || !Array.isArray(value.pendingReturn)) {
       throw invalid()
     }
-    return { ...value, pendingCollect: value.pendingCollect.map(taskView), pendingReturn: value.pendingReturn.map(taskView) }
+    if (['pendingStorageTransferCount', 'pendingStorageReturnCount', 'completedStorageTransferCount', 'completedStorageReturnCount'].some(key => value[key] !== undefined && (!Number.isInteger(value[key]) || value[key] < 0)) || value.pendingStorage !== undefined && !Array.isArray(value.pendingStorage)) {
+      throw invalid()
+    }
+    return { ...value, pendingCollect: value.pendingCollect.map(taskView), pendingReturn: value.pendingReturn.map(taskView), pendingStorage: (value.pendingStorage || []).map(taskView) }
   },
   hasPendingProfile: id => pendingProfiles.has(id),
   checkProfile: async id => {
@@ -47,17 +50,21 @@ export const shipperWorkspaceApi = {
     pendingProfiles.delete(id)
     return result
   },
-  updateProfile: async value => {
+  updateWorkStatus: async value => shipperWorkspaceApi.updateProfile(value, true),
+  updateProfile: async (value, workStatus = false) => {
     if (!value.expectedRevision || !value.operationId) {
       throw invalid()
     }
     if (pendingProfiles.has(value.id)) {
       throw Object.assign(new Error('shipper.unknown'), { uncertain: true })
     }
-    const body = Object.fromEntries(['fullName', 'phone', 'avatarUrl', 'vehicleType', 'vehiclePlate', 'expectedRevision', 'operationId'].filter(key => value[key] !== undefined).map(key => [key, value[key]]))
+    if (workStatus && ![1, 3].includes(value.status)) {
+      throw invalid()
+    }
+    const body = Object.fromEntries((workStatus ? ['status', 'expectedRevision', 'operationId'] : ['fullName', 'phone', 'avatarUrl', 'vehicleType', 'vehiclePlate', 'expectedRevision', 'operationId']).filter(key => value[key] !== undefined).map(key => [key, value[key]]))
     pendingProfiles.set(value.id, value.operationId)
     try {
-      const result = profile(await authorizedAxios.put('/shipper-profile', body))
+      const result = profile(await authorizedAxios.put(workStatus ? '/shipper-profile/work-status' : '/shipper-profile', body))
       if (result.id !== value.id) {
         throw Object.assign(invalid(), { uncertain: true })
       }

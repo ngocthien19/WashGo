@@ -26,12 +26,14 @@ const CustomerComplaintsPage = lazy(() => import('~/pages/customer/Complaints/Co
 const CustomerComplaintDetailPage = lazy(() => import('~/pages/customer/Complaints/ComplaintDetailPage'))
 const CustomerLayout = lazy(() => import('~/layouts/customer/CustomerLayout'))
 const CustomerNotificationsPage = lazy(() => import('~/pages/customer/Notifications/NotificationsPage'))
+const StorageWorkspace = lazy(() => import('~/components/storage/StorageWorkspace'))
 const AdminHomePage = lazy(() => import('~/pages/admin/Home/HomePage'))
 const AdminMerchantsPage = lazy(() => import('~/pages/admin/Merchants/MerchantsPage'))
 const AdminOrdersPage = lazy(() => import('~/pages/admin/Orders/OrdersPage'))
 const AdminLockersPage = lazy(() => import('~/pages/admin/Lockers/LockersPage'))
 const AdminServicesPage = lazy(() => import('~/pages/admin/Services/ServicesPage'))
 const AdminPromotionsPage = lazy(() => import('~/pages/admin/Promotions/PromotionsPage'))
+const AdminReviewDetailPage = lazy(() => import('~/pages/admin/Reviews/ReviewDetailPage'))
 const AdminReviewsPage = lazy(() => import('~/pages/admin/Reviews/ReviewsPage'))
 const AdminComplaintsPage = lazy(() => import('~/pages/admin/Complaints/ComplaintsPage'))
 const AdminComplaintDetailPage = lazy(() => import('~/pages/admin/Complaints/ComplaintDetailPage'))
@@ -144,6 +146,10 @@ export default function App() {
                 element={<MerchantReportsPage />}
               />
               <Route
+                path={MERCHANT_ROUTES.STORAGE}
+                element={<StorageWorkspace role="Merchant" />}
+              />
+              <Route
                 path={MERCHANT_ROUTES.ORDERS}
                 element={<MerchantOrdersPage />}
               />
@@ -176,6 +182,10 @@ export default function App() {
                 element={<AdminMerchantsPage />}
               />
               <Route
+                path={ADMIN_ROUTES.STORAGE}
+                element={<StorageWorkspace role="Admin" />}
+              />
+              <Route
                 path={ADMIN_ROUTES.ORDERS}
                 element={<AdminOrdersPage />}
               />
@@ -190,6 +200,10 @@ export default function App() {
               <Route
                 path={ADMIN_ROUTES.PROMOTIONS}
                 element={<AdminPromotionsPage />}
+              />
+              <Route
+                path={`${ADMIN_ROUTES.REVIEWS}/:reviewId`}
+                element={<AdminReviewDetailPage />}
               />
               <Route
                 path={ADMIN_ROUTES.REVIEWS}

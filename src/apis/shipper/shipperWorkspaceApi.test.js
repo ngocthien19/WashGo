@@ -5,6 +5,17 @@ import { shipperWorkspaceApi } from './shipperWorkspaceApi'
 vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), put: vi.fn(), post: vi.fn() } }))
 const profile = { revision: 'v1', id: 'shipper-1', fullName: 'Delivery staff', email: 'staff@example.test', vehicleType: 1, status: 1, isActive: true, totalDeliveries: 0 }
 beforeEach(() => vi.clearAllMocks())
+it('only sends Available/Offline with self-profile guards and reconciles uncertain status changes', async () => {
+  await expect(shipperWorkspaceApi.updateWorkStatus({ id: 'work-test', status: 2, expectedRevision: 'v1', operationId: 'op-work' })).rejects.toThrow('shipper.invalidResponse')
+  expect(authorizedAxios.put).not.toHaveBeenCalled()
+  authorizedAxios.put.mockRejectedValueOnce({ response: { status: 503 } })
+  await expect(shipperWorkspaceApi.updateWorkStatus({ id: 'work-test', status: 3, expectedRevision: 'v1', operationId: 'op-work', merchantId: 'spoof', isActive: false })).rejects.toMatchObject({ uncertain: true })
+  expect(authorizedAxios.put).toHaveBeenCalledWith('/shipper-profile/work-status', { status: 3, expectedRevision: 'v1', operationId: 'op-work' })
+  await expect(shipperWorkspaceApi.updateProfile({ id: 'work-test', expectedRevision: 'v1', operationId: 'different' })).rejects.toMatchObject({ uncertain: true })
+  authorizedAxios.get.mockResolvedValueOnce({ data: { succeeded: true, data: { ...profile, id: 'work-test', status: 3, revision: 'v2' } } })
+  await expect(shipperWorkspaceApi.checkProfile('work-test')).resolves.toMatchObject({ status: 3 })
+  expect(authorizedAxios.put).toHaveBeenCalledTimes(1)
+})
 it('reports a missing domain profile without treating the authenticated account as a shipper record', async () => {
   authorizedAxios.get.mockRejectedValue({ response: { status: 404, data: { message: 'Không tìm thấy hồ sơ Shipper.' } } })
   await expect(shipperWorkspaceApi.profile()).rejects.toThrow('shipper.profileMissing')

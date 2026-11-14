@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import Pagination from './Pagination'
 import { cn } from '~/lib/utils'
 
-export default function TablePagination({ currentPage, totalPages, total, pageSize, rowCount, onPageChange, disabled = false, className }) {
+export default function TablePagination({ currentPage, totalPages, total, pageSize, rowCount, onPageChange, disabled = false, compact = false, className }) {
   const { t } = useTranslation()
   const offset = (Math.max(1, currentPage) - 1) * pageSize
   const count = rowCount ?? Math.max(0, Math.min(pageSize, total - offset))
@@ -16,6 +16,7 @@ export default function TablePagination({ currentPage, totalPages, total, pageSi
         totalPages={totalPages}
         onPageChange={onPageChange}
         disabled={disabled}
+        compact={compact}
         className="ml-auto justify-end"
       />
     </footer>

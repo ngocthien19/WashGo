@@ -1,5 +1,6 @@
 import { accountSecurityApi } from '~/apis/auth/accountSecurityApi'
 import authorizedAxios from '~/utils/authorizedAxios'
+import { resolveAuditCodes } from './auditResourceCodes'
 
 const invalid = () => new Error('admin.invalidResponse')
 const count = n => Number.isSafeInteger(n) && n >= 0
@@ -55,12 +56,12 @@ export const adminWorkspaceApi = {
     if (v.list.some(r => !r.id || !instant(r.occurredAt) || ![1, 2, 3].includes(r.result) || !Array.isArray(r.changedFields))) {
       throw invalid()
     }
-    return v
+    return resolveAuditCodes(v.list, signal).then(list => ({ ...v, list }))
   }),
   activity: (id, signal) => authorizedAxios.get(`/admin/audit-logs/${encodeURIComponent(id)}`, { signal }).then(unwrap).then(v => {
     if (v.id !== id || !instant(v.occurredAt) || !Array.isArray(v.changedFields)) {
       throw invalid()
-    } return v
+    } return resolveAuditCodes([v], signal).then(([row]) => row)
   }),
   ...accountSecurityApi
 }

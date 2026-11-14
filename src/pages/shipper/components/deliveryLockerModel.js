@@ -1,6 +1,6 @@
 // Task destinations must never fall back to the deposit locker for a different return station.
 export function taskLocker(row) {
-  const collect = (row.assignedTaskType ?? row.taskType) === 1
+  const collect = [1, 3].includes(row.assignedTaskType ?? row.taskType)
   const same = !row.returnLockerId || row.returnLockerId === row.lockerId
   return {
     id: collect || same ? row.lockerId : row.returnLockerId,

@@ -18,7 +18,7 @@ it('preserves separate collect and return events for the same order', async () =
 it('accepts empty pages but rejects malformed events and broken counts', async () => {
   authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, list: [], total: 0 } })
   expect((await shipperDeliveryApi.list()).totalPages).toBe(0)
-  for (const value of [{ list: [row], total: 0 }, { list: [{ ...row, completedAt: 'bad' }], total: 1 }, { list: [{ ...row, taskType: 3 }], total: 1 }, { total: 1 }]) {
+  for (const value of [{ list: [row], total: 0 }, { list: [{ ...row, completedAt: 'bad' }], total: 1 }, { list: [{ ...row, taskType: 5 }], total: 1 }, { total: 1 }]) {
     authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, ...value } })
     await expect(shipperDeliveryApi.list()).rejects.toThrow('shipper.invalidResponse')
   }

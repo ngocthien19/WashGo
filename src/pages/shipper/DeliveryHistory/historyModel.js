@@ -13,7 +13,7 @@ export function readHistoryQuery(params) {
     sort: params.get('sort') === 'oldest' ? 'oldest' : 'newest',
     from: validDates ? from : '',
     to: validDates ? to : '',
-    taskType: ['1', '2'].includes(params.get('taskType')) ? params.get('taskType') : '',
+    taskType: ['1', '2', '3', '4'].includes(params.get('taskType')) ? params.get('taskType') : '',
     page: /^[1-9]\d{0,5}$/.test(requestedPage) ? Number(requestedPage) : 1,
     invalidDates: !validDates
   }

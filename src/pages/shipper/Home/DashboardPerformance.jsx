@@ -19,7 +19,7 @@ export default function DashboardPerformance({ data, hourly }) {
             title="shipper.sync.chart"
             points={points}
             hourly={hourly}
-            series={[{ key: 'collectCount', label: 'shipper.deliveryHistory.collect', color: 'var(--primary)' }, { key: 'returnCount', label: 'shipper.deliveryHistory.return', color: '#8b5cf6' }]}
+            series={[{ key: 'collectCount', label: 'shipper.deliveryHistory.collect', color: 'var(--primary)' }, { key: 'returnCount', label: 'shipper.deliveryHistory.return', color: '#8b5cf6' }, { key: 'storageTransferCount', label: 'shipper.taskTypes.3', color: '#14b8a6' }, { key: 'storageReturnCount', label: 'shipper.taskTypes.4', color: '#f59e0b' }]}
           />
         </div>
       </ShipperPanel>

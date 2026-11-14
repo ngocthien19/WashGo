@@ -23,6 +23,9 @@ export async function setupAdminOrders(page, options = {}) {
     if (await adminUpgradeMocks(route, state, [{ id: merchantId, name: 'Test Laundry', status: 1 }])) {
       return
     }
+    if (path === `/storage/${orderId}/cycles`) {
+      return route.fulfill({ json: { succeeded: true, list: [], total: 0, currentPage: 1, totalPages: 0 } })
+    }
     if (path === '/auth/me') {
       return ok({ id: 'admin-test', role: 'Admin', fullName: 'Test Admin', email: 'admin@example.test' })
     }

@@ -49,11 +49,11 @@ export const CUSTOMER_ROUTES = {
   COMPLAINT_DETAIL: '/customer/complaints/:incidentId'
 }
 
-export const MERCHANT_ROUTES = { HOME: '/merchant', ORDERS: '/merchant/orders', ORDER_DETAIL: '/merchant/orders/:orderId', SHIPPERS: '/merchant/shippers', LOCKERS: '/merchant/lockers', SERVICES: '/merchant/services', REPORTS: '/merchant/reports', PROFILE: '/merchant/profile', NOTIFICATIONS: '/merchant/notifications' }
+export const MERCHANT_ROUTES = { HOME: '/merchant', STORAGE: '/merchant/storage', ORDERS: '/merchant/orders', ORDER_DETAIL: '/merchant/orders/:orderId', SHIPPERS: '/merchant/shippers', LOCKERS: '/merchant/lockers', SERVICES: '/merchant/services', REPORTS: '/merchant/reports', PROFILE: '/merchant/profile', NOTIFICATIONS: '/merchant/notifications' }
 export const SHIPPER_ROUTES = { HOME: '/shipper', PROFILE: '/shipper/profile', NOTIFICATIONS: '/shipper/notifications', HISTORY: '/shipper/history', TASKS: '/shipper/tasks', TASK_DETAIL: '/shipper/tasks/:orderId' }
-export const ADMIN_ROUTES = { HOME: '/admin', PROFILE: '/admin/profile', NOTIFICATIONS: '/admin/notifications', MERCHANTS: '/admin/merchants', ORDERS: '/admin/orders', LOCKERS: '/admin/lockers', SERVICES: '/admin/services', PROMOTIONS: '/admin/promotions', REVIEWS: '/admin/reviews', COMPLAINTS: '/admin/complaints', FINANCE: '/admin/finance', SETTINGS: '/admin/settings' }
+export const ADMIN_ROUTES = { HOME: '/admin', STORAGE: '/admin/storage', PROFILE: '/admin/profile', NOTIFICATIONS: '/admin/notifications', MERCHANTS: '/admin/merchants', ORDERS: '/admin/orders', LOCKERS: '/admin/lockers', SERVICES: '/admin/services', PROMOTIONS: '/admin/promotions', REVIEWS: '/admin/reviews', COMPLAINTS: '/admin/complaints', FINANCE: '/admin/finance', SETTINGS: '/admin/settings' }
 export const MERCHANT_API = { PROFILE: '/merchant-profile', ORDERS: '/wash-order/filter', SETTLEMENTS: '/finance/settlements/filter' }
-export const MERCHANT_DASHBOARD = { RECENT_TAKE: 5, SETTLEMENT_TAKE: 4, STATUSES: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 99] }
+export const MERCHANT_DASHBOARD = { RECENT_TAKE: 5, SETTLEMENT_TAKE: 4, STATUSES: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 99] }
 
 export const CUSTOMER_NAVIGATION = [
   { label: 'common.home', href: CUSTOMER_ROUTES.HOME },
@@ -87,13 +87,13 @@ export const INCIDENT_STATUS_COLORS = { 1: 'amber', 2: 'emerald', 3: 'red', 4: '
 export const ORDER_PAYMENT_METHODS = { CASH: 1, VNPAY: 2, MOMO: 3 }
 export const ORDER_STATUSES = {
   PENDING: 1, DEPOSITED: 2, COLLECTED: 3, WASHING: 4, DRYING: 5, IRONING: 6, FOLDING: 7,
-  AWAITING_PAYMENT: 8, PAID: 9, READY_TO_RETURN: 10, RETURNED: 11, COMPLETED: 12, MOVED_TO_STORAGE: 13, CANCELLED: 99
+  AWAITING_PAYMENT: 8, PAID: 9, READY_TO_RETURN: 10, RETURNED: 11, COMPLETED: 12, MOVED_TO_STORAGE: 13, TRANSFERRING_TO_STORAGE: 14, RETURNING_FROM_STORAGE: 15, CANCELLED: 99
 }
 export const ORDER_STATUS_OPTIONS = [
   ['PENDING', 'slate'], ['DEPOSITED', 'sky'], ['COLLECTED', 'cyan'], ['WASHING', 'blue'],
   ['DRYING', 'blue'], ['IRONING', 'blue'], ['FOLDING', 'blue'], ['AWAITING_PAYMENT', 'amber'],
   ['PAID', 'emerald'], ['READY_TO_RETURN', 'violet'], ['RETURNED', 'teal'], ['COMPLETED', 'emerald'],
-  ['MOVED_TO_STORAGE', 'amber'], ['CANCELLED', 'red']
+  ['MOVED_TO_STORAGE', 'amber'], ['TRANSFERRING_TO_STORAGE', 'amber'], ['RETURNING_FROM_STORAGE', 'violet'], ['CANCELLED', 'red']
 ].map(([name, color]) => ({ value: String(ORDER_STATUSES[name]), label: `customer.orders.status.${name}`, color }))
 export const ORDER_STATUS_COLORS = {
   slate: 'bg-slate-500/10 text-slate-700 dark:text-slate-300',

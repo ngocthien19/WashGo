@@ -5,6 +5,14 @@ vi.mock('~/utils/authorizedAxios', () => ({ default: { post: vi.fn(), get: vi.fn
 const dto = { taskId: 'task-1', assignmentVersion: 'task-1', orderId: 'order-1', orderCode: 'WG1', orderRevision: 5, status: 1, taskType: 1, orderStatus: 2, canCollect: true, canReturn: false, taskBoxNumber: '3', order: { shipperId: 'shipper-1', customerName: 'PRIVATE', shipperTaskPinCode: 'SECRET', items: [] } }
 const ok = data => ({ data: { succeeded: true, data } })
 beforeEach(() => vi.clearAllMocks())
+it('supports storage types without sending them to normal collect/return endpoints', async () => {
+  const storage = taskView({ ...dto, taskType: 3, canCollect: false, canStorageHandover: true, storageShopAddress: 'Current shop', storageCycleId: 'cycle' })
+  expect(storage).toMatchObject({ assignedTaskType: 3, nextAction: 3, canStorageHandover: true, storageShopAddress: 'Current shop' })
+  await expect(shipperTaskApi.complete(storage, 3, { pinCode: '123456' })).rejects.toThrow('shipper.tasks.changed')
+  expect(authorizedAxios.post).not.toHaveBeenCalled()
+  authorizedAxios.post.mockResolvedValue(ok({ totalPending: 10, collectPending: 1, returnPending: 2, storageTransferPending: 3, storageReturnPending: 4 }))
+  await expect(shipperTaskApi.summary({})).resolves.toMatchObject({ totalPending: 10 })
+})
 it('uses dedicated assignment filters and excludes credentials/customer fields', async () => {
   authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, total: 30, list: [dto] } })
   const result = await shipperTaskApi.list({ keyword: 'WG', page: 2, take: 12, taskType: 1, assignedFrom: 100, assignedTo: 200, shipperId: 'other' })

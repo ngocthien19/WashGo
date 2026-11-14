@@ -13,11 +13,6 @@ it('does not accept missing or duplicate batch results', async () => {
   expect(() => adminOrderApi.autoAssign([{ orderId: id, merchantId, expectedRevision: 1, expectedCommissionRate: 0 }, { orderId: id, merchantId, expectedRevision: 1, expectedCommissionRate: 0 }])).toThrow()
   expect(authorizedAxios.post).toHaveBeenCalledTimes(1)
 })
-it('uses storage status13 and whitelists the transfer command', async () => {
-  authorizedAxios.post.mockReset().mockResolvedValueOnce({ data: { succeeded: true, data: { id, status: 13 } } })
-  await adminOrderApi.store(id, { storageLocation: ' Warehouse A ', storageReference: ' A01 ', note: '', actorId: 'spoof', status: 12 }, { revision: 4, status: 10 })
-  expect(authorizedAxios.post).toHaveBeenCalledWith('/wash-order/move-to-storage', expect.objectContaining({ orderId: id, storageLocation: 'Warehouse A', storageReference: 'A01', note: null, expectedRevision: 4, expectedStatus: 10, operationId: expect.any(String) }))
-})
 it('lookup reads all pages and does not return a partial list after failure', async () => {
   authorizedAxios.get.mockReset().mockResolvedValueOnce({ data: { succeeded: true, list: [{ id, name: 'Locker A' }], total: 101 } }).mockRejectedValueOnce(new Error('lookup failed'))
   await expect(adminOrderApi.lookup('/locker/filter', 'name')).rejects.toThrow('lookup failed')

@@ -1,3 +1,4 @@
+import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useOutletContext, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -17,7 +18,7 @@ import { formatDateTime, formatNumber } from '~/utils/formats'
 import ShipperPanel from '../components/ShipperPanel'
 import DeliveryTypeBadge from '../components/DeliveryTypeBadge'
 import TaskActionDialog from './TaskActionDialog'
-import { canCompleteTask, taskSnapshot } from './taskModel'
+import { canCompleteTask, canStorageTask, taskActionLabel, taskSnapshot } from './taskModel'
 import TaskCredential from './TaskCredential'
 import TaskMapDialog from './TaskMapDialog'
 
@@ -36,7 +37,7 @@ function Details({ id }) {
   }, [id]))
   const order = resource.data
   const type = order?.assignedTaskType
-  const canAct = canCompleteTask(order, profile.data?.id)
+  const canAct = canCompleteTask(order, profile.data?.id) || canStorageTask(order)
   const unresolved = unknown || order && shipperTaskApi.hasPending(order)
   const check = async () => {
     try {
@@ -97,7 +98,7 @@ function Details({ id }) {
               }}
             >
               {type === 1 ? <PackageOpen size={17} /> : <Truck size={17} />}
-              {t(unresolved ? 'admin.sync.checkResult' : type === 1 ? 'shipper.tasks.confirmCollect' : 'shipper.tasks.confirmReturn')}
+              {t(unresolved ? 'admin.sync.checkResult' : taskActionLabel(type))}
             </Button>
           )}
         </div>
@@ -107,7 +108,7 @@ function Details({ id }) {
           role="status"
           className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 font-medium text-emerald-700 dark:text-emerald-300"
         >
-          {t(result.type === 1 ? 'shipper.tasks.collectSaved' : 'shipper.tasks.returnSaved', { box: result.boxNumber || '—' })}
+          {t(result.storage ? 'storage.saved' : result.type === 1 ? 'shipper.tasks.collectSaved' : 'shipper.tasks.returnSaved', { box: result.boxNumber || '—' })}
         </p>
       )}
       {unresolved && (
@@ -127,6 +128,16 @@ function Details({ id }) {
               {t('shipper.tasks.noAction')}
             </p>
           )}
+          {[3, 4].includes(type) && (
+            <StorageOrderPanel
+              order={order}
+              role="Shipper"
+              taskId={order.taskId}
+              onUpdated={() => {
+                resource.retry(); profile.retry()
+              }}
+            />
+          )}
           <div className="grid items-start gap-5 xl:grid-cols-[1.2fr_1fr]">
             <div className="min-w-0 space-y-5">
               <ShipperPanel
@@ -136,7 +147,7 @@ function Details({ id }) {
                 <div className="px-5 pt-5">
                   <DeliveryLocker
                     {...taskLocker(order)}
-                    autoBox={type === 2}
+                    autoBox={[2, 4].includes(type)}
                     onOpenMap={() => setMapOpen(true)}
                   />
                 </div>

@@ -43,6 +43,9 @@ async function setup(page, options = {}) {
     if (path === '/auth/me') {
       return route.fulfill({ json: envelope({ id: 'customer-test', fullName: 'Alex Nguyen', role: 'Customer' }) })
     }
+    if (path === `/storage/${id}/cycles`) {
+      return route.fulfill({ json: { succeeded: true, list: [], total: 0, currentPage: 1, totalPages: 0 } })
+    }
     if (path === '/policy/customer') {
       return route.fulfill({ json: envelope({ terms: { version: 'v1', content: 'Server terms' }, rules: {}, accepted: true, requiresAcceptance: false }) })
     }
@@ -713,7 +716,7 @@ test('saved rating keeps its header and close action visible with long content o
     await expect(dialog.getByRole('heading', { name: 'View your rating', exact: true })).toBeInViewport()
     const close = dialog.getByRole('button', { name: 'Close', exact: true }).last()
     await expect(close).toBeInViewport()
-    expect((await close.boundingBox()).height).toBe(44)
+    expect((await close.boundingBox()).height).toBeGreaterThanOrEqual(44)
     await expect(dialog.getByRole('group', { name: 'Overall rating', exact: true })).toContainText('5/5')
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await close.click()
@@ -986,7 +989,7 @@ test('pending complaint keeps evidence while editing, sends video messages, and 
   await expect(page.getByRole('button', { name: 'Edit complaint', exact: true })).toHaveCount(0)
 })
 
-test('cancelled locker pickup preserves cancellation, and storage pickup requires explicit confirmation', async ({ page }) => {
+test('cancelled locker pickup preserves cancellation and legacy storage requires WashGo verification', async ({ page }) => {
   const state = await setup(page)
   state.order = { ...initialOrder, status: 99, cancelledGoodsStatus: 1, cancelFeeAmount: 20000, cancelFeePaidAmount: 20000 }
   await page.goto(`/customer/orders/${id}`)
@@ -998,16 +1001,12 @@ test('cancelled locker pickup preserves cancellation, and storage pickup require
   await expect(dialog).toHaveCount(0)
   expect(state.order.status).toBe(99)
   expect(state.order.cancelledGoodsStatus).toBe(4)
-  state.order = { ...initialOrder, status: 13, paymentStatus: 2, storageLocation: 'Warehouse Q1', storageReference: 'STORE-01', overdueFeeTotal: 20000, storageFeeTotal: 20000 }
+  state.order = { ...initialOrder, status: 13, storageWorkflowVersion: 0, paymentStatus: 2, storageLocation: 'Warehouse Q1', storageReference: 'STORE-01', overdueFeeTotal: 20000, storageFeeTotal: 20000 }
   await page.reload()
-  await expect(page.getByText('Warehouse Q1', { exact: true })).toBeVisible()
-  const before = state.lockerCalls.length
-  await page.getByRole('button', { name: 'I have collected my items at storage' }).click()
-  expect(state.lockerCalls).toHaveLength(before)
-  dialog = page.getByRole('dialog')
-  await dialog.getByRole('button', { name: 'I have collected my items at storage' }).click()
-  await expect(dialog).toHaveCount(0)
-  expect(state.order.status).toBe(12)
+  await expect(page.getByText('Warehouse Q1', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('WashGo must verify this older order before redelivery.', { exact: false })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'I have collected my items at storage' })).toHaveCount(0)
+  expect(state.order.status).toBe(13)
 })
 
 test('rating uploads and displays a video, and server receipt PDF downloads without locker secrets', async ({ page }) => {

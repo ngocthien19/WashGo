@@ -13,7 +13,7 @@ export default function TaskPreview({ resource, type, icon }) {
   const { t } = useTranslation()
   return (
     <ShipperPanel
-      title={t(type === 1 ? 'shipper.collect' : 'shipper.return')}
+      title={t(type === 3 ? 'storage.taskAction' : type === 1 ? 'shipper.collect' : 'shipper.return')}
       icon={icon}
       tone={type === 1 ? 'blue' : 'violet'}
     >

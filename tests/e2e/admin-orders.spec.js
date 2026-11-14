@@ -108,20 +108,14 @@ test('Admin assigns a shipper using guarded shared workflow', async ({ page }) =
   expect(state.writes[0].body).toMatchObject({ orderId, expectedRevision: 1, expectedStatus: 2 })
   expect(state.writes[0].body.operationId).toMatch(/^[\da-f-]{36}$/)
 })
-test('storage transfer validates fields and sends only the supported payload', async ({ page }) => {
+test('storage coordination replaces the old one-step transfer action', async ({ page }) => {
   const state = await setupAdminOrders(page, { status: 10, merchant: true })
   await page.goto(`/admin/orders/${orderId}`)
-  await page.getByRole('button', { name: 'Record storage transfer', exact: true }).click()
-  const dialog = page.getByRole('dialog')
-  await dialog.getByRole('button', { name: 'Confirm storage transfer', exact: true }).click()
-  expect(state.writes).toHaveLength(0)
-  await dialog.getByRole('textbox', { name: 'Storage location', exact: true }).fill('Warehouse A')
-  await dialog.getByRole('textbox', { name: 'Storage reference', exact: true }).fill('A-001')
-  await dialog.getByRole('button', { name: 'Confirm storage transfer', exact: true }).click()
-  await expect(dialog).toHaveCount(0)
-  expect(state.writes[0].body).toMatchObject({ orderId, storageLocation: 'Warehouse A', storageReference: 'A-001', note: null })
   await expect(page.getByRole('button', { name: 'Record storage transfer', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Storage and redelivery', exact: true })).toBeVisible()
+  expect(state.writes).toHaveLength(0)
 })
+
 test('mobile dark layout keeps sticky actions and selection clears on paging', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
   await setupAdminOrders(page, { dark: true })

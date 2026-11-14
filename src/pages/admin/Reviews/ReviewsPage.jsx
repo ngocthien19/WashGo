@@ -20,9 +20,10 @@ import { adminReviewApi } from '~/apis/admin/adminReviewApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { ADMIN_ROUTES } from '~/utils/constants'
 import { formatDateTime, formatNumber } from '~/utils/formats'
-import { readReviewQuery, writeReviewQuery, reviewFilter, REVIEW_TAKE, canModerate } from './reviewModel'
+import { readReviewQuery, writeReviewQuery, reviewFilter, REVIEW_TAKE, canModerate, canPublishReview } from './reviewModel'
 import { ReviewScore, ReviewStatus } from './components/ReviewDisplay'
-import ReviewDetail from './components/ReviewDetail'
+import ReviewActionResults from './components/ReviewActionResults'
+import useReviewOperation, { rememberReview } from './useReviewOperation'
 import ReviewActionDialog from './components/ReviewActionDialog'
 
 export default function ReviewsPage() {
@@ -33,7 +34,9 @@ export default function ReviewsPage() {
   const [params, setParams] = useSearchParams()
   const query = useMemo(() => readReviewQuery(params), [params])
   const [revision, setRevision] = useState(0), [resetVersion, setResetVersion] = useState(0)
-  const [selection, setSelection] = useState({ source: null, ids: [] }), [detail, setDetail] = useState(null), [action, setAction] = useState(null), [unresolved, setUnresolved] = useState(null)
+  const [selection, setSelection] = useState({ source: null, ids: [] }), [action, setAction] = useState(null)
+  const [unresolved, setUnresolved] = useReviewOperation()
+  const [results, setResults] = useState(null)
   const resource = useCatalogResource(useCallback(signal => adminReviewApi.list(reviewFilter(query), signal), [query]), revision)
   const { keyword, merchantId, stars, isHidden, from, to } = query
   const summaryQuery = useMemo(() => reviewFilter({ keyword, merchantId, stars, isHidden, from, to, page: 1 }), [keyword, merchantId, stars, isHidden, from, to])
@@ -121,6 +124,12 @@ export default function ReviewsPage() {
         </p>
       )}
       {summary.error && <ResourceFeedback {...summary} />}
+      {results && (
+        <ReviewActionResults
+          items={results}
+          onDismiss={() => setResults(null)}
+        />
+      )}
       {unresolved && (
         <div
           role="status"
@@ -336,7 +345,13 @@ export default function ReviewsPage() {
                         >
                           <DropdownMenuItem
                             className="min-h-11 text-base"
-                            onClick={() => setDetail(row)}
+                            render={(
+                              <Link
+                                to={`${ADMIN_ROUTES.REVIEWS}/${row.id}`}
+                                onClick={() => rememberReview(row)}
+                                state={{ returnSearch: params.toString() }}
+                              />
+                            )}
                           >
                             <Eye className="size-5 text-primary" />
                             {t('admin.reviews.view')}
@@ -356,6 +371,13 @@ export default function ReviewsPage() {
                           >
                             <Eye className="size-5" />
                             {t('admin.reviews.show')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={!!unresolved || !canPublishReview(row)}
+                            onClick={() => setAction({ rows: [row], initialAction: 'Publish' })}
+                          >
+                            <Eye className="size-5 text-primary" />
+                            {t('admin.reviews.publish')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -388,21 +410,13 @@ export default function ReviewsPage() {
           </>
         )}
       </section>
-      {detail && (
-        <ReviewDetail
-          selected={detail}
-          blocked={!!unresolved}
-          onClose={() => setDetail(null)}
-          onAction={row => {
-            setDetail(null); setAction({ rows: [row] })
-          }}
-        />
-      )}
       {action && (
         <ReviewActionDialog
           {...action}
           onClose={() => setAction(null)}
-          onSaved={saved}
+          onSaved={items => {
+            setResults(items); saved()
+          }}
           onUnknown={setUnresolved}
           onResolved={() => setUnresolved(null)}
         />

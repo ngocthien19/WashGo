@@ -76,7 +76,7 @@ export const merchantShipperApi = {
   },
   tasks: async (id, { page = 1, take = 6, taskType, status }, signal) => {
     const { data } = await authorizedAxios.post(`/shipper/${encodeURIComponent(id)}/tasks`, { page, take, taskType, status }, { signal })
-    if (data?.succeeded !== true || !Array.isArray(data.list) || !Number.isInteger(data.total) || data.total < 0 || data.list.some((item) => !item.taskId || !item.orderId || ![1, 2].includes(item.taskType) || ![1, 2, 3, 4].includes(item.status))) {
+    if (data?.succeeded !== true || !Array.isArray(data.list) || !Number.isInteger(data.total) || data.total < 0 || data.list.some((item) => !item.taskId || !item.orderId || ![1, 2, 3, 4].includes(item.taskType) || ![1, 2, 3, 4].includes(item.status))) {
       throw new Error('merchant.invalidResponse')
     }
     return { ...data, currentPage: page, totalPages: Math.ceil(data.total / take) }

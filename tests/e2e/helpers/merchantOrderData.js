@@ -5,4 +5,4 @@ export const mockOrderActions = (order) => ({
   canAssignShipper: [2, 9].includes(order.status),
   assignTaskType: order.status === 2 ? 1 : order.status === 9 ? 2 : null
 })
-export const mockStatusCounts = (counts) => Object.fromEntries(['pending', 'deposited', 'collected', 'washing', 'drying', 'ironing', 'folding', 'awaitingPayment', 'paid', 'readyToReturn', 'returned', 'completed', 'movedToStorage', 'cancelled'].map((key, i) => [key, counts[i === 13 ? 99 : i + 1] || 0]))
+export const mockStatusCounts = (counts) => Object.fromEntries(['pending', 'deposited', 'collected', 'washing', 'drying', 'ironing', 'folding', 'awaitingPayment', 'paid', 'readyToReturn', 'returned', 'completed', 'movedToStorage', 'transferringToStorage', 'returningFromStorage', 'cancelled'].map((key, i) => [key, counts[i === 15 ? 99 : i + 1] || 0]))
