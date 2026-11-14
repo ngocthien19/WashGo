@@ -1,8 +1,9 @@
+import Spinner from '~/components/ui/spinner'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, ArrowRight, Check, LoaderCircle, ShoppingBag } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ShoppingBag } from 'lucide-react'
 import Breadcrumb from '~/components/Breadcrumb/Breadcrumb'
 import SectionHeading from '~/components/customer/SectionHeading/SectionHeading'
 import Reveal from '~/components/motion/Reveal'
@@ -269,7 +270,9 @@ export default function CreateOrderPage() {
                   onClick={step === 2 ? create : next}
                 >
                   {busy && (
-                    <LoaderCircle className="animate-spin motion-reduce:animate-none" />
+                    <Spinner
+                      decorative
+                    />
                   )}
                   {t(step === 2 ? 'customer.order.create' : 'customer.order.next')}
                   {step === 2 ? <Check /> : <ArrowRight className="transition-transform delay-0 duration-150 ease-out group-hover/button:translate-x-1 motion-reduce:transform-none motion-reduce:transition-none" />}

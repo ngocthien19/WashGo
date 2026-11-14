@@ -1,6 +1,7 @@
+import Spinner from '~/components/ui/spinner'
 import { lazy, Suspense, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Star, LoaderCircle } from 'lucide-react'
+import { Star } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { ORDER_STATUSES } from '~/utils/config/constants'
 import { customerRatingApi } from '~/apis/customer/customerRatingApi'
@@ -32,7 +33,12 @@ function CompletedRatingAction({ order }) {
         disabled={resource.loading}
         aria-busy={resource.loading}
       >
-        {resource.loading ? <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" /> : <Star size={16} />}
+        {resource.loading ? (
+          <Spinner
+            decorative
+            className="size-4"
+          />
+        ) : <Star size={16} />}
         {t(resource.loading ? 'customer.rating.loading' : resource.error ? 'customer.rating.checkSaved' : rating ? 'customer.rating.viewTitle' : 'customer.rating.title')}
       </Button>
       {open && (

@@ -1,9 +1,10 @@
+import Spinner from '~/components/ui/spinner'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDispatch } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { ContactRound, LoaderCircle, MapPin, MapPinned, RotateCcw, Save } from 'lucide-react'
+import { ContactRound, MapPin, MapPinned, RotateCcw, Save } from 'lucide-react'
 import { customerProfileApi } from '~/apis/customer/customerProfileApi'
 import { updateCustomerIdentity } from '~/redux/auth/authSlice'
 import { Button } from '~/components/ui/button'
@@ -249,7 +250,12 @@ export default function ProfileEditor({ profile }) {
                   disabled={isSubmitting || !changed}
                   className="h-11 rounded-xl px-5"
                 >
-                  {isSubmitting ? <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" /> : <Save size={16} />}
+                  {isSubmitting ? (
+                    <Spinner
+                      decorative
+                      className="size-4"
+                    />
+                  ) : <Save size={16} />}
                   {isSubmitting ? t('customer.profile.saving') : t('customer.profile.save')}
                 </Button>
               </div>

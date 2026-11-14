@@ -5,6 +5,17 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@keyframes not-found-rain {
+  from { transform: translate3d(0, -10vh, 0) rotate(12deg); }
+  to { transform: translate3d(-14vw, 115vh, 0) rotate(12deg); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .not-found-raindrop {
+    animation: not-found-rain 4s linear infinite;
+  }
+}
+
 @keyframes chat-halo {
   0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 28%, transparent); }
   70% { box-shadow: 0 0 0 22px transparent; }

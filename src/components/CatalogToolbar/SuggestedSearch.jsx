@@ -1,7 +1,8 @@
+import Spinner from '~/components/ui/spinner'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Combobox } from '@base-ui/react/combobox'
-import { LoaderCircle, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
@@ -148,7 +149,10 @@ export default function SuggestedSearch({ id, keyword, onSearch, label, placehol
                 role="status"
                 className="flex items-center gap-2 p-4 text-sm text-muted-foreground"
               >
-                <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" />
+                <Spinner
+                  decorative
+                  className="size-4"
+                />
                 {t('searchSuggestions.loading')}
               </p>
             ) : current.status === 'error' ? (
