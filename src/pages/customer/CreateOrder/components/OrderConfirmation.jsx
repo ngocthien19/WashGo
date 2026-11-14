@@ -1,3 +1,4 @@
+import ScrollSection from '~/components/motion/ScrollSection'
 import PromotionPicker from './PromotionPicker'
 import { isWeightService } from '../orderModel'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
@@ -15,9 +16,9 @@ export default function OrderConfirmation({ items, locker, box, form, quote, pro
   const { t } = useTranslation()
   const { register, formState: { errors } } = form
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[1fr_24rem]">
-      <div className="space-y-5">
-        <section className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="min-w-0 space-y-5">
+        <ScrollSection className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
           <h2 className={`${ORDER_PANEL_HEADER_STYLES} text-lg font-semibold`}>
             <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
               <PackageCheck size={21} />
@@ -87,8 +88,8 @@ export default function OrderConfirmation({ items, locker, box, form, quote, pro
               </p>
             </div>
           </div>
-        </section>
-        <section className="space-y-5 rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
+        </ScrollSection>
+        <ScrollSection className="space-y-5 rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
           <Controller
             name="paymentMethod"
             control={form.control}
@@ -135,9 +136,13 @@ export default function OrderConfirmation({ items, locker, box, form, quote, pro
               {t(errors.customerNote.message)}
             </p>
           )}
-        </section>
+        </ScrollSection>
       </div>
-      <aside className="overflow-hidden space-y-5 rounded-2xl border border-border/70 bg-card p-5 shadow-sm lg:sticky lg:top-[var(--customer-header-offset)]">
+      <ScrollSection
+        as="aside"
+        direction="right"
+        className="overflow-hidden space-y-5 rounded-2xl border border-border/70 bg-card p-5 shadow-sm lg:sticky lg:top-[var(--customer-header-offset)]"
+      >
         <h2 className={`${ORDER_PANEL_HEADER_STYLES} -mx-5 -mt-5 text-lg font-semibold`}>
           <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
             <TicketPercent size={21} />
@@ -202,7 +207,7 @@ export default function OrderConfirmation({ items, locker, box, form, quote, pro
             {t('customer.order.weightNote')}
           </p>
         </div>
-      </aside>
+      </ScrollSection>
     </div>
   )
 }
