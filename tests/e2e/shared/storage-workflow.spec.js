@@ -201,7 +201,7 @@ test('unknown storage assignment survives closing and only checks the original o
 
 test('Customer accepts a quote for locker redelivery without seeing internal custody information', async ({ page }) => {
   const state = await setup(page, 'Customer')
-  await page.goto(`/customer/orders/${orderId}`)
+  await page.goto(`/orders/${orderId}`)
   await expect(page.getByText('INTERNAL SHOP ADDRESS')).toHaveCount(0)
   await expect(page.getByText('INTERNAL RECEIPT')).toHaveCount(0)
   await expect(page.getByText('INTERNAL EXCEPTION')).toHaveCount(0)
@@ -335,7 +335,7 @@ test('Customer can read closed storage history after redelivery without requesti
   const state = await setup(page, 'Customer')
   state.order.status = 10
   Object.assign(state.cycle, { state: 5, canRequestReturn: false, canCancelReturn: false, returnState: 4, frozenLockerFee: 20000, frozenWarehouseFee: 80000 })
-  await page.goto(`/customer/orders/${orderId}`)
+  await page.goto(`/orders/${orderId}`)
   await page.getByRole('button', { name: 'Storage and redelivery history', exact: true }).click()
   await expect(page.getByText('Frozen storage fees for this cycle', { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Confirm redelivery request', exact: true })).toHaveCount(0)

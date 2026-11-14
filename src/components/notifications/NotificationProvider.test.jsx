@@ -90,8 +90,8 @@ it('reconciles counts on realtime events and reconnect, uses current token and c
 })
 it('routes only supported internal targets with valid identifiers', () => {
   const id = '11111111-1111-4111-8111-111111111111'
-  expect(notificationHref({ linkType: 'order', linkId: id })).toBe(`/customer/orders/${id}`)
-  expect(notificationHref({ linkType: 'incident', linkId: id })).toBe(`/customer/complaints/${id}`)
+  expect(notificationHref({ linkType: 'order', linkId: id })).toBe(`/orders/${id}`)
+  expect(notificationHref({ linkType: 'incident', linkId: id })).toBe(`/complaints/${id}`)
   expect(notificationHref({ linkType: 'https://example.com', linkId: id })).toBeNull()
   expect(notificationHref({ linkType: 'order', linkId: '../profile' })).toBeNull()
 })

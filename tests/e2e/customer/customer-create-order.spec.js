@@ -21,7 +21,7 @@ test('customer suggestions show matching fields, prices, single-line tooltips an
       ...(body.take === 50 ? Array.from({ length: 6 }, (_, index) => ({ ...services[0], id: `extra-${index}`, name: `Other service ${index}` })) : [])
     ]) })
   })
-  await page.goto('/customer/services')
+  await page.goto('/services')
   const input = page.getByRole('combobox').first()
   await input.fill('EVERYDAY')
   const option = page.getByRole('option', { name: /Everyday wash/ })
@@ -47,7 +47,7 @@ test('customer suggestions show matching fields, prices, single-line tooltips an
   await expect(page).toHaveURL(/keyword=Everyday/)
   await expect(page.getByRole('option')).toHaveCount(0)
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/customer/lockers')
+  await page.goto('/lockers')
   const lockerSearch = page.getByRole('combobox').first()
   await lockerSearch.fill('LE LOI')
   const lockerOption = page.getByRole('option', { name: /Ben Thanh/ })
@@ -79,7 +79,7 @@ test('customer suggestions debounce, discard outdated responses and keep manual 
     }
     await route.fulfill({ json: paged(body.keyword === 'empty' ? [] : [{ ...services[0], name: `${body.keyword} result` }]) })
   })
-  await page.goto('/customer/services')
+  await page.goto('/services')
   const input = page.getByRole('combobox').first()
   await input.fill('old')
   await expect.poll(() => keywords.includes('old')).toBe(true)
@@ -99,7 +99,7 @@ test('customer suggestions debounce, discard outdated responses and keep manual 
 
 test('search suggests from one character and Delete/Backspace remove one character without clearing the draft', async ({ page }) => {
   await setup(page)
-  await page.goto('/customer/services')
+  await page.goto('/services')
   const input = page.getByRole('search').getByRole('combobox')
   await input.fill('wa')
   await expect(page.getByRole('option').first()).toBeVisible()
@@ -182,7 +182,7 @@ async function setup(page, options = {}) {
     }
     await route.fulfill({ json: data })
   })
-  await page.goto('/customer/orders/new')
+  await page.goto('/orders/new')
   await expect(page.getByRole('heading', { name: 'Create an order', exact: true })).toBeVisible()
   return state
 }
@@ -202,14 +202,14 @@ test('catalog images appear in service and locker cards/details; all supplied sl
   await filters.getByRole('button', { name: 'Occupied', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Compartment 3 Standard', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Compartment 1 Standard', exact: true })).toHaveCount(0)
-  await page.goto('/customer/services')
+  await page.goto('/services')
   await expect(page.getByRole('img', { name: 'Everyday wash', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'View details for Everyday wash', exact: true }).click()
   await expect(page.getByRole('dialog').getByRole('img')).toBeVisible()
   if (process.env.CATALOG_QA) {
     await page.screenshot({ path: 'test-results/catalog-service-detail.png' })
   }
-  await page.goto('/customer/lockers')
+  await page.goto('/lockers')
   await expect(page.getByRole('img', { name: 'Ben Thanh Locker', exact: true })).toBeVisible()
   await page.getByRole('button', { name: /Details/, exact: true }).click()
   const detail = page.getByRole('dialog')
@@ -304,7 +304,7 @@ test('mixed services, server voucher and confirmation work with language switchi
     return Math.max(...actions.map((rect) => rect.y)) - Math.min(...actions.map((rect) => rect.y))
   }).toBeLessThan(1)
   await success.getByRole('button', { name: 'Trang chủ', exact: true }).click()
-  await expect(page).toHaveURL('/customer')
+  await expect(page).toHaveURL('/')
 })
 
 test('mobile dark mode supports keyboard selection and a compartment conflict', async ({ page }) => {
@@ -332,7 +332,7 @@ test('mobile dark mode supports keyboard selection and a compartment conflict', 
 
 test('Home shows four service cards and feedback; locker suggestions request location only on demand', async ({ page, context }) => {
   const state = await setup(page, { homeFour: true })
-  await page.goto('/customer')
+  await page.goto('/')
   const featured = page.getByRole('region', { name: 'Services for you', exact: true })
   await expect(featured.getByRole('article')).toHaveCount(4)
   const boxes = await featured.getByRole('article').evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().y))
@@ -342,7 +342,7 @@ test('Home shows four service cards and feedback; locker suggestions request loc
     await page.screenshot({ path: 'test-results/customer-home-four.png' })
   }
   await expect(page.getByRole('heading', { name: 'What customers say about WashGo', exact: true })).toBeVisible()
-  await page.goto('/customer/lockers')
+  await page.goto('/lockers')
   const suggestions = page.getByRole('region', { name: 'Lockers near you', exact: true })
   await expect(suggestions).toContainText('Share your location to discover nearby lockers')
   expect(state.lockerQueries.some((query) => query.latitude)).toBe(false)

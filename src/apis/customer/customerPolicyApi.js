@@ -8,6 +8,10 @@ const unwrap = ({ data }) => {
   return policy
 }
 export const customerPolicyApi = {
+  getPublic: (signal) => authorizedAxios.get('/policy/current', { signal, skipAuth: true }).then(({ data }) => unwrap({ data: {
+    succeeded: data?.succeeded,
+    data: { ...data?.data, accepted: false, requiresAcceptance: false }
+  } })),
   get: (signal) => authorizedAxios.get('/policy/customer', { signal }).then(unwrap),
   acknowledge: (version) => authorizedAxios.post('/policy/customer/acknowledge', { version }).then(unwrap).then((policy) => {
     if (!policy.accepted || policy.acceptedVersion !== version || policy.terms.version !== version) {

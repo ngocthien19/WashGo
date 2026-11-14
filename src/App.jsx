@@ -1,5 +1,5 @@
 import { AUTH_ROUTES, CUSTOMER_ROUTES, MERCHANT_ROUTES, ADMIN_ROUTES, SHIPPER_ROUTES, ROLE_HOME_ROUTES, USER_ROLES } from '~/utils/config/constants'
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import LoadingScreen from '~/components/LoadingScreen/LoadingScreen'
 import ProtectedRoleRoute from '~/routes/ProtectedRoleRoute'
@@ -67,7 +67,21 @@ export default function App() {
     <BrowserRouter>
       <Suspense fallback={<LoadingScreen />}>
         <Routes>
-          <Route element={<ProtectedRoleRoute role={USER_ROLES.CUSTOMER} />}>
+          <Route
+            path="/customer/*"
+            element={<LegacyCustomerRedirect />}
+          />
+          <Route
+            path="*"
+            element={<Navigate to={CUSTOMER_ROUTES.HOME} replace />}
+          />
+          <Route element={(
+            <ProtectedRoleRoute
+              role={USER_ROLES.CUSTOMER}
+              allowGuestPaths={[CUSTOMER_ROUTES.HOME, CUSTOMER_ROUTES.SERVICES, CUSTOMER_ROUTES.LOCKERS]}
+            />
+          )}
+          >
             <Route element={<CustomerLayout />}>
               <Route
                 path={CUSTOMER_ROUTES.NOTIFICATIONS}
@@ -266,15 +280,6 @@ export default function App() {
           <Route element={<StandaloneThemeLayout />}>
             <Route element={<AuthLayout />}>
               <Route
-                index
-                element={(
-                  <Navigate
-                    to={AUTH_ROUTES.LOGIN}
-                    replace
-                  />
-                )}
-              />
-              <Route
                 path={AUTH_ROUTES.LOGIN}
                 element={<LoginPage />}
               />
@@ -298,15 +303,6 @@ export default function App() {
                 path={AUTH_ROUTES.ACCOUNT}
                 element={<AccountPage />}
               />
-              <Route
-                path="*"
-                element={(
-                  <Navigate
-                    to={AUTH_ROUTES.LOGIN}
-                    replace
-                  />
-                )}
-              />
             </Route>
           </Route>
         </Routes>
@@ -322,5 +318,15 @@ function StandaloneThemeLayout() {
       <DisplayControls />
       <Outlet />
     </>
+  )
+}
+
+function LegacyCustomerRedirect() {
+  const { pathname, search, hash } = useLocation()
+  return (
+    <Navigate
+      to={`${pathname.replace(/^\/customer(?:\/+|$)/, '/')}${search}${hash}`}
+      replace
+    />
   )
 }

@@ -36,7 +36,9 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
     }
     setPending(true)
     try {
-      await authApi.logout(refreshToken); window.google?.accounts?.id?.disableAutoSelect?.(); dispatch(clearSession())
+      await authApi.logout(refreshToken)
+      window.google?.accounts?.id?.disableAutoSelect?.()
+      dispatch(clearSession({ signedOut: true }))
     } catch (error) {
       notify.error(getApiError(error))
     } finally {

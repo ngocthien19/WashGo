@@ -11,12 +11,17 @@ import LoadingScreen from '~/components/LoadingScreen/LoadingScreen'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 
-export default function ProtectedRoleRoute({ role }) {
+export default function ProtectedRoleRoute({ role, allowGuestPaths = [] }) {
   const { t } = useTranslation()
   const dispatch = useDispatch()
   const location = useLocation()
   const auth = useSelector((state) => state.auth)
   const hasSession = !!auth.accessToken
+  // Keep the session that opened this route until logout has reached Home.
+  const [sessionRoute, setSessionRoute] = useState({ key: location.key, hasSession })
+  if (sessionRoute.key !== location.key || hasSession && !sessionRoute.hasSession) {
+    setSessionRoute({ key: location.key, hasSession })
+  }
   const [profile, setProfile] = useState(null)
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
@@ -42,10 +47,23 @@ export default function ProtectedRoleRoute({ role }) {
   }, [hasSession, dispatch, attempt])
 
   if (!hasSession) {
+    if (auth.signedOut && sessionRoute.hasSession) {
+      return (
+        <Navigate
+          to={CUSTOMER_ROUTES.HOME}
+          replace
+        />
+      )
+    }
+    if (allowGuestPaths.includes(location.pathname)) {
+      return <Outlet />
+    }
     return (
       <Navigate
         to={AUTH_ROUTES.LOGIN}
-        state={location.pathname === CUSTOMER_ROUTES.PAYMENT_RETURN ? { paymentReturn: `${location.pathname}${location.search}` } : undefined}
+        state={location.pathname === CUSTOMER_ROUTES.PAYMENT_RETURN
+          ? { paymentReturn: `${location.pathname}${location.search}`, loginRequired: true }
+          : allowGuestPaths.length ? { returnTo: `${location.pathname}${location.search}`, loginRequired: true } : undefined}
         replace
       />
     )

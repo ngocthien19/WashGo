@@ -14,7 +14,7 @@ const authSlice = createSlice({
         state.user.avatar = payload.avatarUrl
       }
     },
-    clearSession: () => initialState
+    clearSession: (_, { payload }) => payload?.signedOut ? { ...initialState, signedOut: true } : initialState
   }
 })
 export const { setSession, setUser, updateCustomerIdentity, clearSession } = authSlice.actions

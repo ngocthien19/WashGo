@@ -29,7 +29,7 @@ try {
     $health = Invoke-WebRequest "$baseUrl/healthz" -UseBasicParsing -TimeoutSec 10
     if ($health.StatusCode -ne 200 -or $health.Content.Trim() -ne 'ok') { throw 'FE health check failed.' }
     $index = Invoke-WebRequest "$baseUrl/login" -UseBasicParsing -TimeoutSec 10
-    $deepLink = Invoke-WebRequest "$baseUrl/customer/orders/ci-order" -UseBasicParsing -TimeoutSec 10
+    $deepLink = Invoke-WebRequest "$baseUrl/orders/ci-order" -UseBasicParsing -TimeoutSec 10
     if ($index.Content -notmatch '<div id="root">' -or $deepLink.Content -ne $index.Content) { throw 'SPA deep-link fallback failed.' }
     $assetPath = [regex]::Match($index.Content, 'src="(/assets/[^" ]+\.js)"').Groups[1].Value
     if (!$assetPath) { throw 'Built JavaScript asset missing.' }

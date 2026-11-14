@@ -11,7 +11,7 @@ import ThemeToggle from '~/components/ThemeToggle/ThemeToggle'
 import LanguageSwitcher from '~/components/LanguageSwitcher/LanguageSwitcher'
 import { authApi } from '~/apis/auth/authApi'
 import { clearSession } from '~/redux/auth/authSlice'
-import { CUSTOMER_NAVIGATION, CUSTOMER_ROUTES, UI_TRANSITIONS, UI_MOTION } from '~/utils/config/constants'
+import { AUTH_ROUTES, CUSTOMER_NAVIGATION, CUSTOMER_ROUTES, UI_TRANSITIONS, UI_MOTION } from '~/utils/config/constants'
 import { getApiError } from '~/utils/http/apiError'
 import { cn } from '~/lib/utils'
 import Brand from '~/components/Brand/Brand'
@@ -21,7 +21,7 @@ import MobileSidebar from '~/components/navigation/MobileSidebar'
 
 export default function CustomerHeader() {
   const { t } = useTranslation()
-  const { user, refreshToken } = useSelector((state) => state.auth)
+  const { user, refreshToken, accessToken } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
   const { pathname } = useLocation()
   const reduceMotion = useReducedMotion()
@@ -38,7 +38,8 @@ export default function CustomerHeader() {
     try {
       await authApi.logout(refreshToken)
       window.google?.accounts?.id?.disableAutoSelect?.()
-      dispatch(clearSession())
+      setMobileOpen(false)
+      dispatch(clearSession({ signedOut: true }))
     } catch (error) {
       notify.error(getApiError(error))
     } finally {
@@ -49,7 +50,7 @@ export default function CustomerHeader() {
   const navigation = (mobile = false) => (
     <nav
       aria-label={mobile ? t('customer.mobileNavigation') : t('customer.mainNavigation')}
-      className={cn('gap-1', mobile ? 'flex flex-col' : 'hidden items-center lg:flex')}
+      className={cn('gap-1', mobile ? 'flex flex-col' : 'hidden self-stretch items-stretch lg:flex')}
     >
       {CUSTOMER_NAVIGATION.map((item) => item.pending ? (
         <span
@@ -71,16 +72,20 @@ export default function CustomerHeader() {
             }
           }}
           aria-current={isActive(item.href) ? 'page' : undefined}
-          className={cn('relative whitespace-nowrap rounded-xl px-3 py-2.5 text-base font-medium no-underline hover:bg-primary/5 hover:text-primary focus-visible:outline-2 focus-visible:outline-ring lg:px-1.5 xl:px-3', UI_TRANSITIONS.BUTTON, isActive(item.href) && 'text-primary')}
+          className={cn('relative whitespace-nowrap px-3 py-2.5 text-base font-medium no-underline hover:bg-primary/5 hover:text-primary focus-visible:outline-2 focus-visible:outline-ring lg:px-1.5 xl:px-3', mobile ? 'rounded-xl' : 'flex items-center', UI_TRANSITIONS.BUTTON, isActive(item.href) && 'text-primary')}
         >
           {isActive(item.href) && (
             <motion.span
               layoutId={`customer-active-nav-${mobile ? 'mobile' : 'desktop'}`}
               transition={{ duration: reduceMotion ? 0 : UI_MOTION.DURATION, ease: UI_MOTION.EASE }}
-              className="absolute inset-0 rounded-xl bg-primary/12 ring-1 ring-inset ring-primary/15"
+              className="pointer-events-none absolute inset-0"
               aria-hidden="true"
             >
-              <span className="absolute bottom-0 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-primary" />
+              <span
+                className={cn('absolute inset-0 bg-linear-to-t from-primary/15 via-primary/4 via-40% to-transparent to-80%', mobile && 'rounded-xl')}
+                style={mobile ? undefined : { clipPath: 'polygon(12% 0, 88% 0, 100% 100%, 0 100%)' }}
+              />
+              <span className={cn('absolute inset-x-0 h-[3px] bg-primary', mobile ? 'bottom-0 rounded-full' : '-bottom-px')} />
             </motion.span>
           )}
           <span className="relative">
@@ -105,67 +110,87 @@ export default function CustomerHeader() {
         />
         {navigation()}
         <div className="flex items-center gap-1 sm:gap-2">
-          <NotificationBell />
+          {accessToken && <NotificationBell />}
           <LanguageSwitcher />
           <ThemeToggle inline />
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={(
-                <Button
-                  variant="ghost"
-                  className="h-11 max-w-52 gap-2 rounded-full px-1.5 sm:pl-2"
-                  aria-label={t('customer.openAccountMenu')}
-                  tooltip={t('customer.accountMenu')}
+          {accessToken ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={(
+                  <Button
+                    variant="ghost"
+                    className="h-11 max-w-52 gap-2 rounded-full px-1.5 sm:pl-2"
+                    aria-label={t('customer.openAccountMenu')}
+                    tooltip={t('customer.accountMenu')}
+                  />
+                )}
+              >
+                <CustomerAvatar
+                  avatar={user?.avatar}
+                  fullName={user?.fullName}
                 />
-              )}
-            >
-              <CustomerAvatar
-                avatar={user?.avatar}
-                fullName={user?.fullName}
-              />
-              <span className="hidden max-w-24 truncate text-base xl:block xl:max-w-36">
-                {user?.fullName || t('common.account')}
-              </span>
-              <ChevronDown size={14} />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <div className="border-b border-border px-3 py-3">
-                <p className="truncate text-sm font-semibold">
-                  {user?.fullName || t('customer.customer')}
-                </p>
-                <p className="mt-1 break-all text-xs text-muted-foreground">
-                  {user?.email}
-                </p>
-              </div>
-              <DropdownMenuItem
-                render={<Link to={CUSTOMER_ROUTES.PROFILE} />}
-                aria-current={pathname === CUSTOMER_ROUTES.PROFILE ? 'true' : undefined}
+                <span className="hidden max-w-24 truncate text-base xl:block xl:max-w-36">
+                  {user?.fullName || t('common.account')}
+                </span>
+                <ChevronDown size={14} />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <div className="border-b border-border px-3 py-3">
+                  <p className="truncate text-sm font-semibold">
+                    {user?.fullName || t('customer.customer')}
+                  </p>
+                  <p className="mt-1 break-all text-xs text-muted-foreground">
+                    {user?.email}
+                  </p>
+                </div>
+                <DropdownMenuItem
+                  render={<Link to={CUSTOMER_ROUTES.PROFILE} />}
+                  aria-current={pathname === CUSTOMER_ROUTES.PROFILE ? 'true' : undefined}
+                >
+                  <UserRound size={16} />
+                  {t('customer.profile.title')}
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link to={CUSTOMER_ROUTES.ORDERS} />}>
+                  <ClipboardList size={16} />
+                  {t('common.myOrders')}
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link to={CUSTOMER_ROUTES.COMPLAINTS} />}>
+                  <MessageSquareWarning size={16} />
+                  {t('customer.profile.manageComplaints')}
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link to={CUSTOMER_ROUTES.NOTIFICATIONS} />}>
+                  <Bell size={16} />
+                  {t('customer.profile.allNotifications')}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={pending}
+                  onClick={logout}
+                  className="text-destructive"
+                >
+                  <LogOut size={16} />
+                  {pending ? t('common.signingOut') : t('common.signOut')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Button
+                render={<Link to={AUTH_ROUTES.LOGIN} />}
+                nativeButton={false}
+                variant="outline"
+                className="h-11 px-3 text-base"
               >
-                <UserRound size={16} />
-                {t('customer.profile.title')}
-              </DropdownMenuItem>
-              <DropdownMenuItem render={<Link to={CUSTOMER_ROUTES.ORDERS} />}>
-                <ClipboardList size={16} />
-                {t('common.myOrders')}
-              </DropdownMenuItem>
-              <DropdownMenuItem render={<Link to={CUSTOMER_ROUTES.COMPLAINTS} />}>
-                <MessageSquareWarning size={16} />
-                {t('customer.profile.manageComplaints')}
-              </DropdownMenuItem>
-              <DropdownMenuItem render={<Link to={CUSTOMER_ROUTES.NOTIFICATIONS} />}>
-                <Bell size={16} />
-                {t('customer.profile.allNotifications')}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                disabled={pending}
-                onClick={logout}
-                className="text-destructive"
+                {t('auth.signIn')}
+              </Button>
+              <Button
+                render={<Link to={AUTH_ROUTES.REGISTER} />}
+                nativeButton={false}
+                className="hidden h-11 px-3 text-base sm:inline-flex"
               >
-                <LogOut size={16} />
-                {pending ? t('common.signingOut') : t('common.signOut')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {t('auth.register')}
+              </Button>
+            </div>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -187,15 +212,37 @@ export default function CustomerHeader() {
         homeHref={CUSTOMER_ROUTES.HOME}
         id="customer-mobile-navigation"
         footer={(
-          <Button
-            variant="ghost"
-            className="h-12 w-full justify-start gap-3 rounded-xl px-4 text-base text-destructive hover:bg-destructive/10 hover:text-destructive"
-            disabled={pending}
-            onClick={logout}
-          >
-            <LogOut size={19} />
-            {t(pending ? 'common.signingOut' : 'common.signOut')}
-          </Button>
+          accessToken ? (
+            <Button
+              variant="ghost"
+              className="h-12 w-full justify-start gap-3 rounded-xl px-4 text-base text-destructive hover:bg-destructive/10 hover:text-destructive"
+              disabled={pending}
+              onClick={logout}
+            >
+              <LogOut size={19} />
+              {t(pending ? 'common.signingOut' : 'common.signOut')}
+            </Button>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                render={<Link to={AUTH_ROUTES.LOGIN} />}
+                nativeButton={false}
+                variant="outline"
+                onClick={() => setMobileOpen(false)}
+                className="text-base"
+              >
+                {t('auth.signIn')}
+              </Button>
+              <Button
+                render={<Link to={AUTH_ROUTES.REGISTER} />}
+                nativeButton={false}
+                onClick={() => setMobileOpen(false)}
+                className="text-base"
+              >
+                {t('auth.register')}
+              </Button>
+            </div>
+          )
         )}
       >
         {navigation(true)}

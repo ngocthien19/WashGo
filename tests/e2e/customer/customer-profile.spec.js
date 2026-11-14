@@ -71,7 +71,7 @@ const signIn = async (page) => {
   await page.getByLabel('Email', { exact: true }).fill(initialProfile.email)
   await page.getByLabel('Password', { exact: true }).fill('TestPassword123')
   await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click()
-  await expect(page).toHaveURL('/customer')
+  await expect(page).toHaveURL('/')
 }
 
 const mapAddress = {
@@ -86,7 +86,7 @@ const mockMapTiles = (page) => page.route('https://tile.openstreetmap.de/**', (r
 test('profile requires phone, address and city before upload or save', async ({ page }) => {
   const state = await mockCustomer(page, { profile: { phone: '', address: '', city: '', avatarUrl: uploadedUrl } })
   await signIn(page)
-  await page.goto('/customer/profile')
+  await page.goto('/profile')
   const form = page.getByRole('form', { name: 'Personal information', exact: true })
   await form.getByLabel('Full name', { exact: true }).fill('Alex Updated')
   await form.getByRole('button', { name: 'Save changes', exact: true }).click()
@@ -115,7 +115,7 @@ test('post-merger boundaries replace a stale province and omit legacy districts'
     street: 'Đường A', district: 'Phường Dĩ An', state: 'Tỉnh Bình Dương', city: 'Dĩ An', county: 'Dĩ An', countrycode: 'VN'
   }) }))
   await signIn(page)
-  await page.goto('/customer/profile')
+  await page.goto('/profile')
   await page.getByRole('button', { name: 'Choose on map', exact: true }).click()
   const dialog = page.getByRole('dialog')
   expect(boundaryRequests).toHaveLength(0)
@@ -150,7 +150,7 @@ test('a failed current province download is explained and can retry without losi
     street: 'Lê Thánh Tôn', district: 'Sài Gòn', city: 'Thành phố Hồ Chí Minh', countrycode: 'VN'
   }) }))
   await signIn(page)
-  await page.goto('/customer/profile')
+  await page.goto('/profile')
   await page.getByRole('button', { name: 'Choose on map', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('button', { name: 'Choose map center', exact: true }).click()
@@ -170,7 +170,7 @@ test('map address selection previews, cancels and applies fields without saving 
     return route.fulfill({ json: geocodingResult(mapAddress) })
   })
   await signIn(page)
-  await page.goto('/customer/profile')
+  await page.goto('/profile')
   const open = page.getByRole('button', { name: 'Choose on map', exact: true })
   await open.click()
   const dialog = page.getByRole('dialog')
@@ -222,7 +222,7 @@ test('map lookup errors can retry and incomplete results clear the old district'
       : { street: 'Đường mới', district: 'Phường mới', city: 'Hà Nội' }) })
   })
   await signIn(page)
-  await page.goto('/customer/profile')
+  await page.goto('/profile')
   await page.getByRole('button', { name: 'Switch to dark mode', exact: true }).click()
   await page.getByRole('button', { name: 'Choose on map', exact: true }).click()
   const dialog = page.getByRole('dialog')
@@ -269,7 +269,7 @@ test('the newest map point wins over a slower previous lookup', async ({ page })
   })
   try {
     await signIn(page)
-    await page.goto('/customer/profile')
+    await page.goto('/profile')
     await page.getByRole('button', { name: 'Choose on map', exact: true }).click()
     const dialog = page.getByRole('dialog')
     await dialog.getByRole('button', { name: 'Choose map center', exact: true }).click()
@@ -295,7 +295,7 @@ test('map location lookup runs only after the customer asks for their location',
     return route.fulfill({ json: geocodingResult(mapAddress) })
   })
   await signIn(page)
-  await page.goto('/customer/profile')
+  await page.goto('/profile')
   const open = page.getByRole('button', { name: 'Choose on map', exact: true })
   await open.click()
   expect(requests).toHaveLength(0)
@@ -319,7 +319,7 @@ test('customer edits profile, retries errors and saves an uploaded photo without
     'My profile', 'My orders', 'Manage complaints', 'All notifications', 'Sign out'
   ])
   await page.getByRole('menuitem', { name: 'My profile', exact: true }).click()
-  await expect(page).toHaveURL('/customer/profile')
+  await expect(page).toHaveURL('/profile')
   await expect(page.getByRole('heading', { name: 'My profile', exact: true })).toBeVisible()
   await expect(page.getByRole('alert')).toContainText('Unable to load or update your profile')
   await page.getByRole('button', { name: 'Try again', exact: true }).click()
@@ -362,7 +362,7 @@ test('customer edits profile, retries errors and saves an uploaded photo without
   await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText('My profile')
   await page.setViewportSize({ width: 1440, height: 1100 })
   await breadcrumb.getByRole('link', { name: 'Home', exact: true }).click()
-  await expect(page).toHaveURL('/customer')
+  await expect(page).toHaveURL('/')
   for (const [path, label] of [['/customer/services', 'All services'], ['/customer/lockers', 'All lockers']]) {
     await page.goto(path)
     await expect(breadcrumb.locator('[aria-current="page"]')).toHaveText(label)
@@ -373,7 +373,7 @@ test('customer edits profile, retries errors and saves an uploaded photo without
 test('customer discards edits, removes an avatar and can use the profile in both languages and themes', async ({ page }) => {
   const state = await mockCustomer(page, { profile: { avatarUrl: uploadedUrl } })
   await signIn(page)
-  await page.goto('/customer/profile')
+  await page.goto('/profile')
   const form = page.getByRole('form', { name: 'Personal information', exact: true })
   await form.getByLabel('Full name', { exact: true }).fill('Unsaved Name')
   await page.getByLabel('Choose profile photo', { exact: true }).setInputFiles({ name: 'invalid.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg/>') })
@@ -406,7 +406,7 @@ test('guest cannot access customer profile', async ({ page }) => {
     profileCalls += 1
     return route.abort()
   })
-  await page.goto('/customer/profile')
+  await page.goto('/profile')
   await expect(page).toHaveURL('/login')
   expect(profileCalls).toBe(0)
 })

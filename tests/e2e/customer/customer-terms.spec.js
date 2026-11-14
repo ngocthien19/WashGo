@@ -41,7 +41,7 @@ async function setup(page, dark = false) {
     }
     return route.fulfill({ status: 404, json: { succeeded: false } })
   })
-  await page.goto('/customer/notifications')
+  await page.goto('/notifications')
   return state
 }
 

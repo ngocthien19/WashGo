@@ -89,7 +89,7 @@ test('Shipper shares inbox actions and routes real order notifications to scoped
 
 test('Customer has only published navigation groups and Merchant retains service/profile categories', async ({ page }) => {
   await setupNotifications(page)
-  await page.goto('/customer/notifications')
+  await page.goto('/notifications')
   const nav = page.getByRole('navigation', { name: 'Filter notifications', exact: true })
   await expect(nav.getByRole('button', { name: 'Complaints', exact: true })).toBeVisible()
   await expect(nav.getByRole('button', { name: /Promotion|System|Services|Merchant profile/ })).toHaveCount(0)

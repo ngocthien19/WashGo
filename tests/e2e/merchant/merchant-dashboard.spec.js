@@ -261,7 +261,7 @@ test('full-height sidebar collapses, expands and signs out from its bottom actio
   const logout = sidebar.getByRole('button', { name: 'Sign out', exact: true })
   expect((await logout.boundingBox()).y).toBeGreaterThan(900)
   await logout.click()
-  await expect(page).toHaveURL('/login')
+  await expect(page).toHaveURL('/')
 })
 
 test('profile includes optional backend fields and fits narrow screens', async ({ page }) => {
@@ -279,7 +279,7 @@ test('profile includes optional backend fields and fits narrow screens', async (
 test('Customer role is redirected without querying Merchant data', async ({ page }) => {
   const state = await setup(page, { role: 'Customer' })
   await page.goto('/merchant')
-  await expect(page).toHaveURL('/customer')
+  await expect(page).toHaveURL('/')
   expect(state.calls).not.toContain('/merchant-profile')
   expect(state.calls).not.toContain('/wash-order/filter')
 })
