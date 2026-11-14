@@ -573,7 +573,17 @@
       "empty": "No reviews match these filters.",
       "order": "Order",
       "created": "Reviewed at",
-      "actions": "Actions"
+      "actions": "Actions",
+      "publish": "Publish content",
+      "contentTab": "Content",
+      "activityTab": "Activity log",
+      "back": "Back to review management",
+      "saved": "Review updated.",
+      "resultsTitle": "Review action results",
+      "partialResult": "Some reviews could not be updated. Check the results for each review.",
+      "published": "Content published",
+      "unpublished": "Content not published",
+      "contactCurrent": "Current contacts · Retrieved at"
     },
     "sync": {
       "batchOutcomes": "Changed {{changed}}; unchanged {{unchanged}}; skipped {{skipped}}; failed {{failed}}.",
@@ -707,6 +717,8 @@
       "applyFilters": "Apply filters",
       "invalidId": "Actor ID must be a valid UUID.",
       "filterTooLong": "Filters allow up to 200 characters.",
+      "historyKeywordPlaceholder": "Search configuration history…",
+      "auditKeywordPlaceholder": "Search activity logs…",
       "changedFields": "Changed fields",
       "result": "Result",
       "results": {

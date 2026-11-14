@@ -1,3 +1,4 @@
+import { auditResourceCode } from './auditResourceCode'
 import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '~/components/ui/table'
 import { auditFilterOptions } from './auditFilterOptions'
@@ -29,7 +30,7 @@ const fields = ['keyword', 'actorRole', 'module', 'action', 'resourceType']
 const schema = yup.object({ keyword: yup.string().trim().max(200, 'admin.workspaceSync.filterTooLong') })
 const hideInternalIds = (key, value) => ['actorid', 'resourceid'].includes(key.toLowerCase()) ? undefined : value
 
-function AuditDetail({ id, onClose }) {
+function AuditDetail({ id, onClose, resourceContext }) {
   const { t } = useTranslation()
   const resource = useCatalogResource(useCallback(signal => adminWorkspaceApi.activity(id, signal), [id]))
   const row = resource.data
@@ -68,7 +69,7 @@ function AuditDetail({ id, onClose }) {
                 </dt>
                 <dd className="mt-2 break-words text-base font-medium">
                   <TruncatedText>
-                    {row[key]}
+                    {key === 'resourceCode' ? auditResourceCode(row, resourceContext) : row[key]}
                   </TruncatedText>
                 </dd>
               </div>
@@ -108,8 +109,9 @@ function AuditDetail({ id, onClose }) {
     </Dialog>
   )
 }
-export default function AuditPanel({ personal = false, settings = false, resourceType, resourceId, showRefresh = true, revision = 0, onLoadingChange, compactFilters = false, autoApply = false, tableView = false }) {
+export default function AuditPanel({ personal = false, settings = false, resourceType, resourceId, resourceCode, showRefresh = true, revision = 0, onLoadingChange, compactFilters = false, autoApply = false, tableView = false }) {
   const { t } = useTranslation()
+  const resourceContext = { resourceType, resourceId, resourceCode }
   const [query, setQuery] = useState({ page: 1, take: personal ? 5 : 10 }), [detail, setDetail] = useState(null), [dates, setDates] = useState({ from: '', to: '' })
   const resource = useCatalogResource(useCallback(signal => settings ? adminSystemSettingApi.history(query, signal) : adminWorkspaceApi.activities({ ...query, ...(resourceId ? { resourceType, resourceId } : {}) }, personal, signal), [query, personal, settings, resourceType, resourceId]), revision, true)
   const { register, control, handleSubmit, reset, formState: { errors } } = useForm({ resolver: yupResolver(schema), mode: 'onChange', defaultValues: Object.fromEntries(fields.map(key => [key, ''])) })
@@ -180,6 +182,7 @@ export default function AuditPanel({ personal = false, settings = false, resourc
                           setQuery(current => ({ ...current, keyword: text, page: 1 }))
                         }}
                         label={t('admin.workspaceSync.auditFields.keyword')}
+                        placeholder={t(settings ? 'admin.workspaceSync.historyKeywordPlaceholder' : 'admin.workspaceSync.auditKeywordPlaceholder')}
                         className="flex min-w-0 items-center rounded-xl border border-border bg-background px-3"
                         loadSuggestions={loadSuggestions}
                         renderForm={false}
@@ -273,7 +276,7 @@ export default function AuditPanel({ personal = false, settings = false, resourc
                     {[['time', 'admin.workspaceSync.auditRange'], ['action', 'admin.workspaceSync.auditFields.action'], ['actor', 'admin.workspaceSync.auditFields.actorName'], ['object', 'admin.workspaceSync.auditFields.resourceCode'], ['reason', 'admin.workspaceSync.auditFields.reason'], ['result', 'admin.workspaceSync.result'], ['details', 'customer.incidents.actions']].map(([key, label]) => (
                       <TableHead
                         key={key}
-                        className={key === 'details' ? 'sticky right-0 z-20 w-24 border-l border-border bg-card text-center' : 'whitespace-nowrap px-4 py-4'}
+                        className={key === 'details' ? 'sticky right-0 z-20 w-24 min-w-24 border-l border-border bg-card px-4 text-center dark:bg-card' : 'whitespace-nowrap px-4 py-4'}
                       >
                         {t(label)}
                       </TableHead>
@@ -308,7 +311,7 @@ export default function AuditPanel({ personal = false, settings = false, resourc
                       </TableCell>
                       <TableCell className="max-w-60 px-4 py-4">
                         <TruncatedText>
-                          {row.resourceCode || row.resourceType}
+                          {auditResourceCode(row, resourceContext)}
                         </TruncatedText>
                       </TableCell>
                       <TableCell className="max-w-72 px-4 py-4">
@@ -316,7 +319,7 @@ export default function AuditPanel({ personal = false, settings = false, resourc
                           {row.reason}
                         </TruncatedText>
                       </TableCell>
-                      <TableCell className="px-4 py-4">
+                      <TableCell className="min-w-36 px-4 py-4">
                         <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-sm font-bold ${row.result === 1 ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : row.result === 2 ? 'bg-rose-500/10 text-rose-700 dark:text-rose-300' : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'}`}>
                           {t(`admin.workspaceSync.results.${row.result}`)}
                         </span>
@@ -366,7 +369,7 @@ export default function AuditPanel({ personal = false, settings = false, resourc
                         {row.actorName}
                       </TruncatedText>
                       <TruncatedText>
-                        {row.resourceCode || row.resourceType}
+                        {auditResourceCode(row, resourceContext)}
                       </TruncatedText>
                       {row.reason && (
                         <TruncatedText className="text-foreground">
@@ -399,6 +402,7 @@ export default function AuditPanel({ personal = false, settings = false, resourc
               rowCount={resource.data.list.length}
               onPageChange={page => setQuery(current => ({ ...current, page }))}
               className="px-0 pb-2"
+              compact={personal}
             />
           )}
         </>
@@ -406,6 +410,7 @@ export default function AuditPanel({ personal = false, settings = false, resourc
       {detail && (
         <AuditDetail
           id={detail}
+          resourceContext={resourceContext}
           onClose={() => setDetail(null)}
         />
       )}

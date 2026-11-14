@@ -1,6 +1,41 @@
 import { test, expect } from '@playwright/test'
 import { setupAdmin as setup } from './helpers/adminSession'
 
+test('review order codes resolve in personal and system audit and compact pagination stays on one line', async ({ page }) => {
+  const state = await setup(page, { dark: true })
+  const reviewId = '22222222-2222-4222-8222-222222222222'
+  let lookups = 0
+  await page.route(`**/api/rating/${reviewId}`, route => {
+    lookups++
+    return route.fulfill({ json: { succeeded: true, data: { id: reviewId, orderId: reviewId, orderCode: 'WG2611141234', overallStars: 5, isHidden: false, createdOn: 1794614400 } } })
+  })
+  state.activities = Array.from({ length: 29 }, (_, index) => ({ ...state.activity, id: `33333333-3333-4333-8333-${String(index).padStart(12, '0')}`, module: 'Rating', action: 'Show', resourceType: 'OrderRating', resourceId: reviewId, resourceCode: 'WG[number]' }))
+  await page.setViewportSize({ width: 1440, height: 1080 })
+  await page.goto('/admin/profile')
+  const activity = page.getByRole('heading', { name: 'Recent activity', exact: true }).locator('../..')
+  await expect(activity.getByText('WG2611141234', { exact: true })).toHaveCount(5)
+  await expect(activity).not.toContainText('WG[number]')
+  expect(lookups).toBe(1)
+  const pagination = activity.getByRole('navigation', { name: 'Pagination', exact: true })
+  await expect(pagination).toContainText('1 / 6')
+  const fits = () => pagination.evaluate(nav => {
+    const buttons = [...nav.querySelectorAll('button')]
+    return nav.scrollWidth <= nav.clientWidth && Math.abs(buttons[0].getBoundingClientRect().top - buttons.at(-1).getBoundingClientRect().top) < 1
+  })
+  expect(await fits()).toBe(true)
+  await pagination.getByRole('button', { name: 'Next page', exact: true }).click()
+  await expect(pagination).toContainText('2 / 6')
+  await page.setViewportSize({ width: 375, height: 812 })
+  expect(await fits()).toBe(true)
+  await page.setViewportSize({ width: 1440, height: 1080 })
+  await page.goto('/admin/settings?tab=audit')
+  const table = page.getByRole('table', { name: 'Activity log', exact: true })
+  await expect(table.getByText('WG2611141234', { exact: true })).toHaveCount(10)
+  await expect(table).not.toContainText('WG[number]')
+  await table.getByRole('button', { name: 'Activity details', exact: true }).first().click()
+  await expect(page.getByRole('dialog')).toContainText('WG2611141234')
+})
+
 test('new backend: session pages retain the current logical session outside the page', async ({ page }) => {
   const state = await setup(page)
   const current = state.sessions[0], other = state.sessions[1]
@@ -259,7 +294,7 @@ test('profile paginates activity inline and refreshes every section from the top
   await device.hover()
   await expect(page.getByRole('tooltip')).toContainText(state.sessions[0].userAgent)
   await page.mouse.move(0, 0)
-  await page.getByRole('button', { name: 'Next page', exact: true }).click()
+  await page.getByRole('heading', { name: 'Recent activity', exact: true }).locator('../..').getByRole('button', { name: 'Next page', exact: true }).click()
   await expect(page.getByText('AdminProfile · Update 10', { exact: true })).toBeVisible()
   expect(state.auditQueries.at(-1)).toMatchObject({ personal: true, query: { page: '2', take: '5' } })
   await page.getByRole('button', { name: 'Activity details', exact: true }).first().click()

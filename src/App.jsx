@@ -33,6 +33,7 @@ const AdminOrdersPage = lazy(() => import('~/pages/admin/Orders/OrdersPage'))
 const AdminLockersPage = lazy(() => import('~/pages/admin/Lockers/LockersPage'))
 const AdminServicesPage = lazy(() => import('~/pages/admin/Services/ServicesPage'))
 const AdminPromotionsPage = lazy(() => import('~/pages/admin/Promotions/PromotionsPage'))
+const AdminReviewDetailPage = lazy(() => import('~/pages/admin/Reviews/ReviewDetailPage'))
 const AdminReviewsPage = lazy(() => import('~/pages/admin/Reviews/ReviewsPage'))
 const AdminComplaintsPage = lazy(() => import('~/pages/admin/Complaints/ComplaintsPage'))
 const AdminComplaintDetailPage = lazy(() => import('~/pages/admin/Complaints/ComplaintDetailPage'))
@@ -199,6 +200,10 @@ export default function App() {
               <Route
                 path={ADMIN_ROUTES.PROMOTIONS}
                 element={<AdminPromotionsPage />}
+              />
+              <Route
+                path={`${ADMIN_ROUTES.REVIEWS}/:reviewId`}
+                element={<AdminReviewDetailPage />}
               />
               <Route
                 path={ADMIN_ROUTES.REVIEWS}

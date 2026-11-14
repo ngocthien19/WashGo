@@ -22,3 +22,5 @@ export const reviewActionSchema = hidden => yup.object({
   reason: hidden ? yup.string().trim().required('admin.reviews.reasonRequired').max(500, 'admin.reviews.reasonLong') : yup.string().trim().max(500, 'admin.reviews.reasonLong'),
   confirmed: yup.boolean().oneOf([true], 'admin.reviews.confirmRequired')
 })
+
+export const canPublishReview = row => typeof row?.version === 'string' && !!row.version.trim() && row.canPublish === true && !row.isHidden && !row.contentApprovedAt

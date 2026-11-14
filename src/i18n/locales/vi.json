@@ -573,7 +573,17 @@
       "empty": "Chưa có đánh giá phù hợp với bộ lọc.",
       "order": "Đơn hàng",
       "created": "Ngày đánh giá",
-      "actions": "Thao tác"
+      "actions": "Thao tác",
+      "publish": "Duyệt nội dung",
+      "contentTab": "Nội dung",
+      "activityTab": "Nhật ký hoạt động",
+      "back": "Quay lại quản lý đánh giá",
+      "saved": "Đã cập nhật đánh giá.",
+      "resultsTitle": "Kết quả xử lý đánh giá",
+      "partialResult": "Một số đánh giá chưa được cập nhật. Vui lòng xem kết quả từng đánh giá.",
+      "published": "Nội dung đã duyệt",
+      "unpublished": "Nội dung chưa duyệt",
+      "contactCurrent": "Liên hệ hiện tại · Tra cứu lúc"
     },
     "sync": {
       "batchOutcomes": "Đã đổi {{changed}}; giữ nguyên {{unchanged}}; bỏ qua {{skipped}}; lỗi {{failed}}.",
@@ -707,6 +717,8 @@
       "applyFilters": "Áp dụng bộ lọc",
       "invalidId": "Mã người thao tác phải là UUID hợp lệ.",
       "filterTooLong": "Bộ lọc tối đa 200 ký tự.",
+      "historyKeywordPlaceholder": "Tìm kiếm lịch sử cấu hình…",
+      "auditKeywordPlaceholder": "Tìm kiếm nhật ký hoạt động…",
       "changedFields": "Các trường đã thay đổi",
       "result": "Kết quả",
       "results": {

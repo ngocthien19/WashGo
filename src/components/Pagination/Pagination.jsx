@@ -5,7 +5,7 @@ import { getPaginationItems } from '~/utils/formats'
 import { cn } from '~/lib/utils'
 import usePaginationScroll from './usePaginationScroll'
 
-export default function Pagination({ currentPage, totalPages, onPageChange, disabled = false, className }) {
+export default function Pagination({ currentPage, totalPages, onPageChange, disabled = false, compact = false, className }) {
   const { t } = useTranslation()
   const { navigationRef, prepareScroll } = usePaginationScroll(currentPage, disabled)
   const pageCount = Number.isSafeInteger(totalPages) ? Math.max(0, totalPages) : 0
@@ -25,7 +25,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange, disa
     <nav
       ref={navigationRef}
       aria-label={t('common.pagination')}
-      className={cn('flex flex-wrap items-center justify-center gap-1.5 sm:gap-2', className)}
+      className={cn('flex items-center justify-center gap-1.5 sm:gap-2', compact ? 'flex-nowrap' : 'flex-wrap', className)}
     >
       <Button
         variant="outline"
@@ -37,7 +37,18 @@ export default function Pagination({ currentPage, totalPages, onPageChange, disa
       >
         <ChevronLeft size={18} />
       </Button>
-      {getPaginationItems(page, pageCount).map((item) => typeof item === 'number' ? (
+      {compact ? (
+        <span
+          aria-current="page"
+          className="min-w-16 text-center text-sm font-semibold tabular-nums"
+        >
+          {page}
+          {' '}
+          /
+          {' '}
+          {pageCount}
+        </span>
+      ) : getPaginationItems(page, pageCount).map((item) => typeof item === 'number' ? (
         <Button
           key={item}
           variant={item === page ? 'default' : 'outline'}

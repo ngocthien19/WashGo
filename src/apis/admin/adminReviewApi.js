@@ -74,17 +74,29 @@ export const adminReviewApi = {
       error.uncertain = true; throw error
     }
   },
+  publish: async (row, reason, operationId) => {
+    const response = await adminWrite('Rating', 'Publish', row.id, 'post', `/rating/${encodeURIComponent(row.id)}/publish`, { reason, ...versionGuard(row.version, operationId) })
+    try {
+      const next = unwrap(response)
+      if (next.id !== row.id || !next.contentApprovedAt) {
+        throw invalid()
+      }
+      return next
+    } catch (error) {
+      error.uncertain = true; throw error
+    }
+  },
   batch: command => administrativeBatch('Rating', '/rating/batch', command),
   lookup: async (command, bulk) => {
     const value = await adminOperation('Rating', command.operationId)
-    if (value.state !== 'Completed' || value.action !== (bulk ? 'Batch' : 'Visibility') || value.resourceId !== (bulk ? 'batch' : command.items[0].id)) {
+    if (value.state !== 'Completed' || value.action !== (bulk ? 'Batch' : command.action === 'Publish' ? 'Publish' : 'Visibility') || value.resourceId !== (bulk ? 'batch' : command.items[0].id)) {
       throw new Error('admin.sync.processing')
     }
     if (bulk) {
       return validateBatch(value.result?.data, command.operationId, command.items)
     }
     const row = unwrap({ data: value.result })
-    if (row.id !== command.items[0].id || row.isHidden !== (command.action === 'Hide')) {
+    if (row.id !== command.items[0].id || (command.action === 'Publish' ? !row.contentApprovedAt : row.isHidden !== (command.action === 'Hide'))) {
       throw invalid()
     }
     return row

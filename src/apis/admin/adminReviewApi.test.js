@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import authorizedAxios from '~/utils/authorizedAxios'
 import { adminReviewApi } from './adminReviewApi'
-import { readReviewQuery, reviewFilter, canModerate, reviewActionSchema } from '~/pages/admin/Reviews/reviewModel'
+import { readReviewQuery, reviewFilter, canModerate, canPublishReview, reviewActionSchema } from '~/pages/admin/Reviews/reviewModel'
 
 vi.mock('~/utils/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), patch: vi.fn() } }))
 const id = '10000000-0000-4000-8000-000000000001', orderId = '20000000-0000-4000-8000-000000000001'
@@ -48,6 +48,19 @@ describe('admin reviews contract', () => {
     authorizedAxios.patch.mockResolvedValue(ok({ ...row, isHidden: true, version: 'v2' }))
     await adminReviewApi.visibility({ ...row, version: 'v1' }, true, 'reason', 'operation')
     expect(authorizedAxios.patch).toHaveBeenCalledWith(`/rating/${id}/visibility`, { isHidden: true, reason: 'reason', expectedVersion: 'v1', operationId: 'operation' })
+  })
+  it('only enables publishing for a visible unpublished versioned review', () => {
+    expect(canPublishReview({ ...row, version: 'v1', canPublish: true })).toBe(true)
+    expect(canPublishReview({ ...row, version: 'v1', canPublish: true, isHidden: true })).toBe(false)
+    expect(canPublishReview({ ...row, version: 'v1', canPublish: true, contentApprovedAt: '2026-11-14T00:00:00Z' })).toBe(false)
+  })
+  it('publishes independently of visibility with version and operation guards', async () => {
+    const approved = { ...row, contentApprovedAt: '2026-11-14T00:00:00Z', version: 'v2' }
+    authorizedAxios.post.mockResolvedValue(ok(approved))
+    await adminReviewApi.publish({ ...row, version: 'v1' }, null, 'publish-operation')
+    expect(authorizedAxios.post).toHaveBeenCalledWith(`/rating/${id}/publish`, { reason: null, expectedVersion: 'v1', operationId: 'publish-operation' })
+    authorizedAxios.get.mockResolvedValue(ok({ operationId: 'publish-operation', state: 'Completed', action: 'Publish', resourceId: id, result: { succeeded: true, data: approved } }))
+    await expect(adminReviewApi.lookup({ operationId: 'publish-operation', action: 'Publish', items: [{ id }] }, false)).resolves.toMatchObject({ contentApprovedAt: approved.contentApprovedAt, isHidden: false })
   })
   it('does not retry a batch after an ambiguous write and failed lookup', async () => {
     authorizedAxios.post.mockRejectedValue({ response: { status: 500 } })
