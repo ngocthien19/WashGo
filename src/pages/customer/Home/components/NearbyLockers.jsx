@@ -4,7 +4,8 @@ import { Link, useOutletContext } from 'react-router-dom'
 import { ArrowRight, MapPinned } from 'lucide-react'
 import SectionHeading from '~/components/customer/SectionHeading/SectionHeading'
 import { Button } from '~/components/ui/button'
-import Reveal from '~/components/motion/Reveal'
+
+import ScrollAccent from '~/components/motion/ScrollAccent'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { CUSTOMER_CATALOG, CUSTOMER_ROUTES } from '~/utils/config/constants'
@@ -33,14 +34,19 @@ export default function NearbyLockers({ embedded = false, excludeIds = [] }) {
     >
       <SectionGlow side="right" />
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <Reveal className="mb-7 flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
-          <SectionHeading
-            id="nearby-lockers-heading"
-            title={t('customer.lockersNearYou')}
-            description={position ? t('customer.availableLockersClosestToYourLocation') : t('customer.findAConvenientDropOffPointUseYourLocation')}
-            descriptionClassName="text-base"
-            icon={MapPinned}
-          />
+        <div className="mb-7 flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
+          <ScrollAccent
+            disabled={embedded}
+            className="min-w-0"
+          >
+            <SectionHeading
+              id="nearby-lockers-heading"
+              title={t('customer.lockersNearYou')}
+              description={position ? t('customer.availableLockersClosestToYourLocation') : t('customer.findAConvenientDropOffPointUseYourLocation')}
+              descriptionClassName="text-base"
+              icon={MapPinned}
+            />
+          </ScrollAccent>
           <div className="flex flex-wrap gap-3">
             <LocationButton
               locating={locating}
@@ -58,7 +64,7 @@ export default function NearbyLockers({ embedded = false, excludeIds = [] }) {
               </Button>
             )}
           </div>
-        </Reveal>
+        </div>
         {locationError && (
           <p
             role="alert"
@@ -81,6 +87,7 @@ export default function NearbyLockers({ embedded = false, excludeIds = [] }) {
           />
         ) : (
           <LockerResults
+            animate={!embedded}
             lockers={lockers}
             position={position}
           />

@@ -116,9 +116,9 @@ export default function ServiceCatalog() {
               />
             ) : (
               <ServiceGrid
+                featured
+                slideDistance={24}
                 services={services}
-                compact
-                className="lg:grid-cols-2 xl:grid-cols-3"
               />
             )}
             {!loading && !error && data?.totalPages > 0 && (

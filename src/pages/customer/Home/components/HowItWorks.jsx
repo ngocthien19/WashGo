@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { ClipboardList, PackageCheck, ScanLine, WashingMachine } from 'lucide-react'
 import Reveal from '~/components/motion/Reveal'
+import ScrollAccent from '~/components/motion/ScrollAccent'
 import { UI_MOTION } from '~/utils/config/constants'
 import SectionGlow from './SectionGlow'
+import stepsBackground from '~/assets/customer/laundry-steps-background.png'
 
 const steps = [
   { icon: ClipboardList, title: 'customer.createAnOrder', description: 'customer.chooseTheServiceAndLockerThatWorkForYou' },
@@ -17,11 +19,27 @@ export default function HowItWorks() {
     <section
       id="how-it-works"
       aria-labelledby="how-it-works-heading"
-      className="relative isolate scroll-mt-[var(--customer-header-offset)] overflow-hidden bg-primary/4 px-4 py-20 sm:px-6 lg:py-24"
+      className="relative isolate scroll-mt-[var(--customer-header-offset)] overflow-hidden bg-background px-4 py-20 sm:px-6 lg:py-24"
     >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10"
+      >
+        <img
+          src={stepsBackground}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="size-full object-cover object-[center_60%] opacity-50 dark:opacity-30"
+        />
+      </div>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 bg-linear-to-b from-background/85 via-background/65 to-background/80"
+      />
       <SectionGlow side="left" />
       <div className="mx-auto max-w-7xl">
-        <Reveal className="text-center">
+        <ScrollAccent className="text-center">
           <h2
             id="how-it-works-heading"
             className="text-3xl font-bold tracking-tight sm:text-4xl"
@@ -35,7 +53,7 @@ export default function HowItWorks() {
           <p className="mx-auto mt-4 max-w-lg text-base leading-7 text-muted-foreground">
             {t('customer.oneLessThingToWorryAboutMoreTimeFor')}
           </p>
-        </Reveal>
+        </ScrollAccent>
         <div className="relative mt-14">
           <div
             aria-hidden="true"

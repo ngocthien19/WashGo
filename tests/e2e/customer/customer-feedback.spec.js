@@ -32,12 +32,16 @@ async function setup(page, { empty = false } = {}) {
   return state
 }
 
-test('home shows anonymous public reviews, authenticated images, global summary and server pagination', async ({ page }) => {
+test('Home previews four reviews and View all opens server filters and pagination', async ({ page }) => {
   const state = await setup(page)
-  await page.goto('/customer')
+  const summaryResponse = page.waitForResponse(response => new URL(response.url()).pathname.endsWith('/customer/reviews/summary') && response.status() === 200)
+  await page.goto('/')
+  await summaryResponse
   const section = page.getByRole('region', { name: 'What customers say about WashGo', exact: true })
   await expect(section.getByText('8 published reviews', { exact: true })).toBeVisible()
   await expect(section.getByText('WashGo customer', { exact: true })).toHaveCount(4)
+  await expect(section.getByRole('combobox')).toHaveCount(0)
+  await expect(section.getByRole('button', { name: 'Next page', exact: true })).toHaveCount(0)
   await expect(section).not.toContainText('Never expose')
   await expect(section.locator('img[src^="blob:"]')).toBeVisible()
   if (process.env.CUSTOMER_FEEDBACK_QA) {
@@ -47,24 +51,30 @@ test('home shows anonymous public reviews, authenticated images, global summary 
   await section.getByRole('button', { name: 'Photo 1', exact: true }).click()
   await expect(page.getByRole('dialog').locator('img[src^="blob:"]')).toBeVisible()
   await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click()
-  await section.getByRole('button', { name: 'Next page', exact: true }).click()
-  await expect(section.getByText('Careful laundry 5', { exact: true })).toBeVisible()
-  await section.getByRole('combobox', { name: 'Filter by rating', exact: true }).click()
+  await section.getByRole('button', { name: 'View all reviews', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'All reviews', exact: true })
+  await expect(dialog.getByText('8 reviews found', { exact: true })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Next page', exact: true }).click()
+  await expect(dialog.getByText('Careful laundry 5', { exact: true })).toBeVisible()
+  await dialog.getByRole('combobox', { name: 'Filter by rating', exact: true }).click()
   await page.getByRole('option', { name: '4 stars', exact: true }).click()
-  await expect(section.getByText('4 reviews found', { exact: true })).toBeVisible()
+  await expect(dialog.getByText('4 reviews found', { exact: true })).toBeVisible()
   expect(state.queries.at(-1)).toEqual({ page: 1, take: 4, stars: 4 })
-  await expect(section.getByText('8 published reviews', { exact: true })).toBeVisible()
   expect(state.summaryReads).toBe(1)
   await page.setViewportSize({ width: 375, height: 812 })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   if (process.env.CUSTOMER_FEEDBACK_QA) {
-    await section.screenshot({ path: 'test-results/customer-feedback-mobile.png' })
+    await dialog.screenshot({ path: 'test-results/customer-feedback-mobile.png' })
   }
+  await page.keyboard.press('Escape')
+  await expect(dialog).not.toBeVisible()
+  await expect(section.getByText('8 published reviews', { exact: true })).toBeVisible()
+  await expect(section.getByRole('button', { name: 'View all reviews', exact: true })).toBeFocused()
 })
 
 test('empty feedback keeps its average unknown and a failed list can retry', async ({ page }) => {
   const state = await setup(page, { empty: true }); state.fail = true
-  await page.goto('/customer')
+  await page.goto('/')
   const section = page.locator('section[aria-labelledby="customer-feedback-heading"]')
   await expect(section.getByRole('alert')).toBeVisible()
   await expect(section.getByText('0 published reviews', { exact: true })).toBeVisible()
