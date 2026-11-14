@@ -12,7 +12,7 @@ export default function ServicesPage() {
   }, [t])
 
   return (
-    <div className="min-h-[70dvh] bg-muted/35">
+    <div className="min-h-[70dvh] overflow-x-clip bg-muted/35">
       <div className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
         <Breadcrumb
           className="mb-8"
