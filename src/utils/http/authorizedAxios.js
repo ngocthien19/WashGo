@@ -1,7 +1,8 @@
 import axios from 'axios'
 import { API_TIMEOUT_MS, AUTH_API_ENDPOINTS } from '~/utils/config/constants'
+import { resolveApiUrl } from './apiConfig'
 
-export const API_URL = import.meta.env.VITE_API_URL || '/api'
+export const API_URL = resolveApiUrl(import.meta.env.VITE_API_URL, import.meta.env.PROD)
 const authorizedAxios = axios.create({ baseURL: API_URL, timeout: API_TIMEOUT_MS })
 let session = { getAuth: () => null, setSession: () => {}, clearSession: () => {} }
 let refreshPromise = null
