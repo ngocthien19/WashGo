@@ -4,7 +4,7 @@ export const customerReceiptApi = {
   get: async (id, signal) => {
     const { data } = await authorizedAxios.get(`/wash-order/${encodeURIComponent(id)}/receipt`, { signal })
     const receipt = data?.data
-    if (data?.succeeded !== true || receipt?.orderId !== id || !receipt.receiptNumber || !Array.isArray(receipt.lines) || !Array.isArray(receipt.fees) || !Array.isArray(receipt.payments) || !Number.isFinite(receipt.totalPaid)) {
+    if (data?.succeeded !== true || receipt?.orderId !== id || !receipt.receiptNumber || !Array.isArray(receipt.lines) || !Array.isArray(receipt.fees) || !Array.isArray(receipt.payments) || !Number.isFinite(receipt.totalPaid) || receipt.redeemedPoints != null && (!Number.isSafeInteger(receipt.redeemedPoints) || receipt.redeemedPoints < 0)) {
       throw new Error('customer.sync.invalidResponse')
     }
     return receipt

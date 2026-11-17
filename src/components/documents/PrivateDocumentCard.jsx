@@ -107,6 +107,7 @@ export default function PrivateDocumentCard({ document, label }) {
           <DialogContent
             className="max-w-4xl"
             closeLabel="common.close"
+            data-dialog-fixed
           >
             <DialogHeader>
               <DialogTitle className="pr-8 text-xl font-bold">
@@ -116,12 +117,17 @@ export default function PrivateDocumentCard({ document, label }) {
                 {document.originalFileName}
               </DialogDescription>
             </DialogHeader>
-            <iframe
-              title={document.originalFileName}
-              src={preview}
-              className="my-5 h-[55dvh] w-full rounded-lg border border-border"
-            />
-            <div className="flex justify-end">
+            <div data-dialog-body>
+              <iframe
+                title={document.originalFileName}
+                src={preview}
+                className="my-5 h-[55dvh] w-full rounded-lg border border-border"
+              />
+            </div>
+            <div
+              className="flex justify-end"
+              data-dialog-footer
+            >
               <Button
                 type="button"
                 variant="secondary"

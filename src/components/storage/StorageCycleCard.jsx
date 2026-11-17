@@ -23,6 +23,27 @@ export default function StorageCycleCard({ row, role, taskId, onAction, disabled
       </div>
       {role !== 'Customer' && (
         <>
+          {row.currentLocation && (
+            <p className="font-semibold">
+              {t('storage.currentLocationLabel')}
+              :
+              {' '}
+              {t(`storage.locations.${row.currentLocation}`, { defaultValue: t('storage.locations.Unknown') })}
+            </p>
+          )}
+          {(row.isCurrent === false || row.currentLocation && row.currentLocation !== 'AtShop') && (row.shopAddress || row.storageReference) && (
+            <p className="text-sm text-muted-foreground">
+              {t('storage.historicalSnapshot')}
+            </p>
+          )}
+          {row.merchantName && (
+            <p className="font-bold text-foreground">
+              {t('storage.merchantName')}
+              :
+              {' '}
+              {row.merchantName}
+            </p>
+          )}
           {row.shopAddress && (
             <p>
               {row.shopAddress}
@@ -39,6 +60,27 @@ export default function StorageCycleCard({ row, role, taskId, onAction, disabled
           {row.exceptionNote && (
             <p className="text-destructive">
               {row.exceptionNote}
+            </p>
+          )}
+          {row.storageReference && (
+            <p className="break-words font-semibold">
+              {t('storage.storageReference')}
+              :
+              {' '}
+              {row.storageReference}
+            </p>
+          )}
+          {row.referenceIssuedAt && (
+            <p className="text-sm text-muted-foreground">
+              {t('storage.referenceIssuedAt')}
+              :
+              {' '}
+              {formatDateTime(row.referenceIssuedAt)}
+            </p>
+          )}
+          {row.referenceBasis === 'IssuedForVerifiedExistingCycle' && (
+            <p className="text-sm text-muted-foreground">
+              {t('storage.verifiedExisting')}
             </p>
           )}
         </>

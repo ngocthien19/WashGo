@@ -4,13 +4,15 @@ import { DoorOpen } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { ORDER_STATUSES } from '~/utils/config/constants'
 import { canPickupFromLocker } from '~/components/customer/orders/orderWorkflow'
+import useDepositDeadline from '~/hooks/customer/useDepositDeadline'
 
 const LockerActionDialog = lazy(() => import('./LockerActionDialog'))
 
 export default function LockerActionButton({ order, onUpdated }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
-  const deposit = order.status === ORDER_STATUSES.PENDING
+  const deadline = useDepositDeadline(order)
+  const deposit = order.status === ORDER_STATUSES.PENDING && !deadline.expired
   const pickup = canPickupFromLocker(order)
   if (!deposit && !pickup) {
     return null

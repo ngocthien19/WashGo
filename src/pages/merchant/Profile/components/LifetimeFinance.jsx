@@ -1,3 +1,4 @@
+import PointsFundingSummary from '~/components/finance/PointsFundingSummary'
 import { useTranslation } from 'react-i18next'
 import { Wallet } from 'lucide-react'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
@@ -34,6 +35,7 @@ export default function LifetimeFinance({ resource }) {
               </div>
             ))}
           </dl>
+          <PointsFundingSummary value={value} />
           <p className="text-sm text-muted-foreground">
             {t('merchant.backendSync.paidOrders', { count: value.paidOrderCount })}
           </p>

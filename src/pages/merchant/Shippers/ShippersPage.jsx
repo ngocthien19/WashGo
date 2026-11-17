@@ -1,3 +1,4 @@
+import RecordLink from '~/components/RecordLink'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -56,11 +57,11 @@ export default function ShippersPage() {
     <Reveal className="mx-auto max-w-[1600px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <Truck className="text-primary" />
             {t('merchant.nav.shippers')}
           </h1>
-          <p className="mt-2 text-base text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {t('merchant.shippers.description')}
           </p>
         </div>
@@ -262,9 +263,12 @@ export default function ShippersPage() {
                           className="size-11 text-sm"
                         />
                         <div>
-                          <p className="font-bold">
+                          <RecordLink
+                            className="font-bold"
+                            onClick={() => setSelected(shipper.id)}
+                          >
                             {shipper.fullName}
-                          </p>
+                          </RecordLink>
                           {shipper.accountActive === false && (
                             <span className="mt-1 inline-block rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
                               {t('merchant.shipperSync.locked')}

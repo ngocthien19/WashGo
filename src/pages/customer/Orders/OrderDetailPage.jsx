@@ -2,10 +2,10 @@ import OrderEstimate from './components/OrderEstimate'
 import ReturnLockerInfo from './components/ReturnLockerInfo'
 import StoragePickup from './components/StoragePickup'
 import FeePaymentAction from '~/components/customer/payments/FeePaymentAction'
-import { useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Clock3, History, Info, PackageCheck, RefreshCw, TicketPercent, CircleCheck } from 'lucide-react'
+import { ArrowLeft, Clock3, History, Info, PackageCheck, RefreshCw, TicketPercent } from 'lucide-react'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 import Breadcrumb from '~/components/Breadcrumb/Breadcrumb'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
@@ -26,6 +26,9 @@ import { CUSTOMER_ROUTES, ORDER_STATUSES, PAYMENT_OPTIONS, LOCKER_SLOT_SIZES } f
 import { formatCurrency, formatDateTime, formatNumber } from '~/utils/format/formats'
 import { paymentBlockReason } from '~/pages/customer/Payment/paymentModel'
 import CancelOrderDialog from './components/CancelOrderDialog'
+import useDepositDeadline from '~/hooks/customer/useDepositDeadline'
+
+const PaymentDialog = lazy(() => import('~/pages/customer/Payment/PaymentDialog'))
 
 function DetailPanel({ icon: Icon, title, children, direction = 'left' }) {
   return (
@@ -50,7 +53,11 @@ export default function OrderDetailPage() {
   const load = useCallback((signal) => customerOrderApi.get(orderId, signal), [orderId])
   const resource = useCatalogResource(load)
   const [cancelOrderId, setCancelOrderId] = useState(null)
+  const [paymentOpen, setPaymentOpen] = useState(false)
+  const pendingPayments = useRef(new Set())
   const order = resource.data
+  const deadline = useDepositDeadline(order)
+  const expiredDeposit = order?.status === ORDER_STATUSES.PENDING && deadline.expired
   useEffect(() => {
     document.title = `${order?.orderCode ? t('customer.orders.detailTitle', { code: order.orderCode }) : t('customer.orders.details')} | WashGo`
   }, [order?.orderCode, t])
@@ -75,6 +82,15 @@ export default function OrderDetailPage() {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                {expiredDeposit && (
+                  <Button
+                    variant="destructive"
+                    className="h-11 rounded-xl px-4"
+                    onClick={() => setCancelOrderId(order.id)}
+                  >
+                    {t('customer.orders.cancel.title')}
+                  </Button>
+                )}
                 <LockerActionButton
                   key={order.id}
                   order={order}
@@ -84,6 +100,7 @@ export default function OrderDetailPage() {
                 <FeePaymentAction
                   key={`${order.id}-fees`}
                   order={order}
+                  onUpdated={resource.retry}
                 />
                 <Button
                   variant="outline"
@@ -239,7 +256,6 @@ export default function OrderDetailPage() {
                   </h2>
                   <div className="space-y-4 p-5">
                     <div className="flex items-center gap-3">
-                      <CircleCheck className="size-9 rounded-full bg-primary/10 p-2 text-primary" />
                       <OrderStatusBadge status={order.status} />
                     </div>
                     <dl className="space-y-3 text-sm">
@@ -337,8 +353,7 @@ export default function OrderDetailPage() {
                   </dl>
                   {!paymentBlockReason(order) && (
                     <Button
-                      render={<Link to={CUSTOMER_ROUTES.PAYMENT.replace(':orderId', order.id)} />}
-                      nativeButton={false}
+                      onClick={() => setPaymentOpen(true)}
                       className="h-11 w-full"
                     >
                       {t('customer.orders.pay')}
@@ -353,7 +368,7 @@ export default function OrderDetailPage() {
                   key={`incident-${order.id}`}
                   order={order}
                 />
-                {[ORDER_STATUSES.PENDING, ORDER_STATUSES.DEPOSITED, ORDER_STATUSES.COLLECTED].includes(order.status) && (
+                {!expiredDeposit && [ORDER_STATUSES.PENDING, ORDER_STATUSES.DEPOSITED, ORDER_STATUSES.COLLECTED].includes(order.status) && (
                   <Button
                     variant="destructive"
                     className="h-11 w-full"
@@ -379,9 +394,22 @@ export default function OrderDetailPage() {
             </div>
           </>
         )}
+        {paymentOpen && order && (
+          <Suspense fallback={null}>
+            <PaymentDialog
+              orderId={order.id}
+              pendingRequests={pendingPayments}
+              onClose={() => {
+                setPaymentOpen(false)
+                resource.retry()
+              }}
+            />
+          </Suspense>
+        )}
         {cancelOrderId && (
           <CancelOrderDialog
             orderId={cancelOrderId}
+            payImmediately={expiredDeposit}
             onClose={() => setCancelOrderId(null)}
             onCancelled={() => {
               setCancelOrderId(null)

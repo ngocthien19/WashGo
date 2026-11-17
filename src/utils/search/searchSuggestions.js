@@ -36,7 +36,7 @@ export function resourceSuggestion(item, kind = 'record') {
   const shipper = kind === 'task' || kind === 'delivery'
   const value = kind === 'service' ? item.proposed || item : item
   const id = item.taskId || item.eventId || item.id
-  const label = kind === 'service' || kind === 'locker' ? value.name
+  const label = ['service', 'locker', 'category'].includes(kind) ? value.name
     : kind === 'merchant' ? item.businessName || item.merchantName || item.proposed?.businessName
       : kind === 'shipper' ? item.fullName
         : item.orderCode || item.title || item.code || item.merchantName || item.name || item.fullName || item.comment || item.reason || item.summary || item.action

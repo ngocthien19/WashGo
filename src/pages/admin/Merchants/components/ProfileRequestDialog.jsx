@@ -65,6 +65,7 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
       <DialogContent
         closeLabel="common.close"
         className="max-w-4xl"
+        data-dialog-fixed
       >
         <MerchantDialogHeader tone={rejecting ? 'danger' : 'info'}>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -76,125 +77,135 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
           </DialogDescription>
         </MerchantDialogHeader>
         {resource.loading || resource.error || !value ? (
-          <ResourceFeedback
-            {...resource}
-            loadingText="admin.loading"
-          />
+          <div data-dialog-body>
+            <ResourceFeedback
+              {...resource}
+              loadingText="admin.loading"
+            />
+          </div>
         ) : (
-          <div className="mt-5 space-y-5">
-            <div className="rounded-xl bg-primary/5 px-4 py-3 text-sm font-semibold">
-              {t(`admin.merchants.requestStates.${value.status}`)}
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[460px] text-left text-sm">
-                <thead className="bg-muted/40">
-                  <tr>
-                    {['field', 'before', 'proposed'].map((key) => (
-                      <th
-                        key={key}
-                        className="p-3 font-semibold"
-                      >
-                        {t(`admin.merchants.${key}`)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {keys.map((key) => (
-                    <tr
-                      key={key}
-                      className={value.changedFields.some((field) => field.toLowerCase() === key.toLowerCase()) ? 'bg-primary/5' : ''}
-                    >
-                      <th className="p-3 font-semibold">
-                        {t(`admin.merchants.fields.${key}`)}
-                      </th>
-                      <td className="max-w-64 whitespace-pre-wrap break-words p-3 text-muted-foreground">
-                        {key === 'openingHours' ? displayJsonText(value.current[key]) || '—' : String(value.current[key] ?? '—')}
-                      </td>
-                      <td className="max-w-64 whitespace-pre-wrap break-words p-3 font-semibold">
-                        {key === 'openingHours' ? displayJsonText(value.proposed[key]) || '—' : String(value.proposed[key] ?? '—')}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <section>
-                <h3 className="mb-2 text-sm font-bold">
-                  {t('admin.merchants.before')}
-                </h3>
-                <ResourceGallery
-                  urls={value.current.imageUrls || []}
-                  name={value.merchantName}
-                  thumbnails
-                />
-              </section>
-              <section>
-                <h3 className="mb-2 text-sm font-bold">
-                  {t('admin.merchants.proposed')}
-                </h3>
-                <ResourceGallery
-                  urls={value.proposed.imageUrls || []}
-                  name={value.merchantName}
-                  thumbnails
-                />
-              </section>
-            </div>
-            {(value.current.documentsSnapshotIncluded || value.proposed.documentsSnapshotIncluded) && (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {['current', 'proposed'].map(key => (
-                  <section
-                    key={key}
-                    className="space-y-3"
-                  >
-                    <h3 className="font-semibold">
-                      {t(key === 'current' ? 'admin.merchants.before' : 'admin.merchants.proposed')}
-                    </h3>
-                    {value.documentMetadata?.[value[key].businessLicenseDocumentId] ? (
-                      <PrivateDocumentCard
-                        document={value.documentMetadata[value[key].businessLicenseDocumentId]}
-                        label={t('merchant.backendSync.businessLicense')}
-                      />
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        {t('merchant.backendSync.noDocument')}
-                      </p>
-                    )}
-                  </section>
-                ))}
+          <div
+            className="mt-5 space-y-5"
+            data-dialog-layout
+          >
+            <div data-dialog-body>
+              <div className="rounded-xl bg-primary/5 px-4 py-3 text-sm font-semibold">
+                {t(`admin.merchants.requestStates.${value.status}`)}
               </div>
-            )}
-            {value.rejectionReason && (
-              <p className="rounded-xl bg-rose-500/10 p-4 text-sm font-semibold text-rose-700 dark:text-rose-300">
-                {value.rejectionReason}
-              </p>
-            )}
-            {value.status === 1 && rejecting && (
-              <label className="flex flex-col gap-3 text-sm font-semibold">
-                <span>
-                  {t('admin.merchants.reason')}
-                  {' '}
-                  <span className="text-destructive">*</span>
-                </span>
-                <textarea
-                  maxLength={1000}
-                  value={reason}
-                  onChange={(event) => setReason(event.target.value)}
-                  disabled={pending || blocked}
-                  className="min-h-28 rounded-xl border border-input bg-background p-3 text-base"
-                />
-              </label>
-            )}
-            {error && (
-              <p
-                role="alert"
-                className="text-sm text-destructive"
-              >
-                {t(error)}
-              </p>
-            )}
-            <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[460px] text-left text-sm">
+                  <thead className="bg-muted/40">
+                    <tr>
+                      {['field', 'before', 'proposed'].map((key) => (
+                        <th
+                          key={key}
+                          className="p-3 font-semibold"
+                        >
+                          {t(`admin.merchants.${key}`)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {keys.map((key) => (
+                      <tr
+                        key={key}
+                        className={value.changedFields.some((field) => field.toLowerCase() === key.toLowerCase()) ? 'bg-primary/5' : ''}
+                      >
+                        <th className="p-3 font-semibold">
+                          {t(`admin.merchants.fields.${key}`)}
+                        </th>
+                        <td className="max-w-64 whitespace-pre-wrap break-words p-3 text-muted-foreground">
+                          {key === 'openingHours' ? displayJsonText(value.current[key]) || '—' : String(value.current[key] ?? '—')}
+                        </td>
+                        <td className="max-w-64 whitespace-pre-wrap break-words p-3 font-semibold">
+                          {key === 'openingHours' ? displayJsonText(value.proposed[key]) || '—' : String(value.proposed[key] ?? '—')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <section>
+                  <h3 className="mb-2 text-sm font-bold">
+                    {t('admin.merchants.before')}
+                  </h3>
+                  <ResourceGallery
+                    urls={value.current.imageUrls || []}
+                    name={value.merchantName}
+                    thumbnails
+                  />
+                </section>
+                <section>
+                  <h3 className="mb-2 text-sm font-bold">
+                    {t('admin.merchants.proposed')}
+                  </h3>
+                  <ResourceGallery
+                    urls={value.proposed.imageUrls || []}
+                    name={value.merchantName}
+                    thumbnails
+                  />
+                </section>
+              </div>
+              {(value.current.documentsSnapshotIncluded || value.proposed.documentsSnapshotIncluded) && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {['current', 'proposed'].map(key => (
+                    <section
+                      key={key}
+                      className="space-y-3"
+                    >
+                      <h3 className="font-semibold">
+                        {t(key === 'current' ? 'admin.merchants.before' : 'admin.merchants.proposed')}
+                      </h3>
+                      {value.documentMetadata?.[value[key].businessLicenseDocumentId] ? (
+                        <PrivateDocumentCard
+                          document={value.documentMetadata[value[key].businessLicenseDocumentId]}
+                          label={t('merchant.backendSync.businessLicense')}
+                        />
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          {t('merchant.backendSync.noDocument')}
+                        </p>
+                      )}
+                    </section>
+                  ))}
+                </div>
+              )}
+              {value.rejectionReason && (
+                <p className="rounded-xl bg-rose-500/10 p-4 text-sm font-semibold text-rose-700 dark:text-rose-300">
+                  {value.rejectionReason}
+                </p>
+              )}
+              {value.status === 1 && rejecting && (
+                <label className="flex flex-col gap-3 text-sm font-semibold">
+                  <span>
+                    {t('admin.merchants.reason')}
+                    {' '}
+                    <span className="text-destructive">*</span>
+                  </span>
+                  <textarea
+                    maxLength={1000}
+                    value={reason}
+                    onChange={(event) => setReason(event.target.value)}
+                    disabled={pending || blocked}
+                    className="min-h-28 rounded-xl border border-input bg-background p-3 text-base"
+                  />
+                </label>
+              )}
+              {error && (
+                <p
+                  role="alert"
+                  className="text-sm text-destructive"
+                >
+                  {t(error)}
+                </p>
+              )}
+            </div>
+            <div
+              className="flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+              data-dialog-footer
+            >
               <Button
                 variant="secondary"
                 className="h-11 px-5 text-base font-semibold"

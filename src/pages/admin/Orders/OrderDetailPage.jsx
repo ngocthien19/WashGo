@@ -1,4 +1,5 @@
 import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
+import OrderDeadlines from './components/OrderDeadlines.jsx'
 import OrderCommission from '~/components/orders/OrderCommission'
 import CancelExpiredDialog from './components/CancelExpiredDialog'
 import { useCallback, useEffect, useState } from 'react'
@@ -7,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft, RefreshCw, Package, UserRound, MapPin, History, Wallet, Store, Truck, WashingMachine } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import OrderStatus from '~/components/orders/OrderStatus'
+import OrderEventHistory from '~/components/orders/OrderEventHistory'
 import PaymentStatus from '~/components/orders/PaymentStatus'
 import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
@@ -15,7 +17,7 @@ import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import Reveal from '~/components/motion/Reveal'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminOrderApi } from '~/apis/admin/adminOrderApi'
-import { ADMIN_ROUTES, ORDER_STATUS_OPTIONS, ORDER_STATUS_BORDER_COLORS } from '~/utils/config/constants'
+import { ADMIN_ROUTES } from '~/utils/config/constants'
 import { formatCurrency, formatDateTime, formatNumber } from '~/utils/format/formats'
 import { processingSteps, assignmentTask } from '~/utils/orders/orderManagement'
 import { isId } from '../Merchants/merchantModel'
@@ -109,10 +111,10 @@ export default function OrderDetailPage() {
         <>
           <header className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold">
+              <h1 className="font-bold text-[30px]">
                 {order.orderCode}
               </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2  text-muted-foreground text-[16px]">
                 {order.merchantOrderCode && `${order.merchantOrderCode} · `}
                 {formatDateTime(order.createdOn)}
               </p>
@@ -161,6 +163,7 @@ export default function OrderDetailPage() {
               <OrderReceiptAction order={order} />
             </div>
           </header>
+          <OrderDeadlines order={order} />
           {([10, 13, 14, 15].includes(order.status) || order.storageWorkflowVersion >= 1 && [11, 12, 99].includes(order.status)) && (
             <StorageOrderPanel
               order={order}
@@ -297,45 +300,13 @@ export default function OrderDetailPage() {
                     </section>
                   ))}
                 </div>
-                <Fields values={fields([['weight', order.actualWeightKg == null ? t('customer.orders.notWeighed') : `${formatNumber(order.actualWeightKg)} kg`], ['eta', order.predictedFinishAt || order.estimatedFinishAt ? formatDateTime(order.predictedFinishAt || order.estimatedFinishAt) : null], ['storageLocation', order.storageLocation], ['storageReference', order.storageReference]])} />
+                <Fields values={fields([['weight', order.actualWeightKg == null ? t('customer.orders.notWeighed') : `${formatNumber(order.actualWeightKg)} kg`], ['eta', order.predictedFinishAt || order.estimatedFinishAt ? formatDateTime(order.predictedFinishAt || order.estimatedFinishAt) : null], ...(order.storageLocation ? [['storageLocation', order.storageLocation]] : []), ...(order.storageReference ? [['storageReference', order.storageReference]] : [])])} />
               </Panel>
               <Panel
                 title={t('merchant.orders.history')}
                 icon={History}
               >
-                {!order.timeline?.length ? (
-                  <p className="text-sm text-muted-foreground">
-                    {t('customer.orders.noTimeline')}
-                  </p>
-                ) : (
-                  <ol className="space-y-5">
-                    {[...order.timeline].sort((a, b) => b.timestamp - a.timestamp).map((entry, index) => (
-                      <li
-                        key={entry.id || index}
-                        className={`border-l-2 pl-4 ${ORDER_STATUS_BORDER_COLORS[ORDER_STATUS_OPTIONS.find(option => Number(option.value) === entry.status)?.color || 'slate']}`}
-                      >
-                        <div className="flex flex-wrap justify-between gap-2">
-                          <OrderStatus
-                            status={entry.status}
-                            showDot={false}
-                          />
-                          <time className="text-xs text-muted-foreground">
-                            {formatDateTime(entry.timestamp)}
-                          </time>
-                        </div>
-                        <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
-                          <UserRound size={13} />
-                          {entry.actorName || entry.actorRole || '—'}
-                        </span>
-                        {entry.note && (
-                          <p className="mt-2 break-words text-sm font-normal leading-6 text-muted-foreground">
-                            {entry.note}
-                          </p>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                )}
+                <OrderEventHistory entries={order.timeline} />
               </Panel>
             </div>
             <div className="min-w-0 space-y-6">
@@ -408,9 +379,6 @@ export default function OrderDetailPage() {
                   </div>
                 </dl>
                 <OrderCommission order={order} />
-                <div className="mt-5 border-t border-border pt-4">
-                  <Fields values={fields([['paymentDeadline', order.paymentDeadline ? formatDateTime(order.paymentDeadline) : null], ['pickupDeadline', order.pickupDeadline ? formatDateTime(order.pickupDeadline) : null]])} />
-                </div>
                 {(order.overdueTypes || []).map(type => (
                   <p
                     key={type}

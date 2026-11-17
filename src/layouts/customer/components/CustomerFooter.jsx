@@ -64,10 +64,10 @@ export default function CustomerFooter({ onOpenTerms }) {
             {t('common.services')}
           </h2>
           <ul className="mt-5 space-y-4 text-base leading-6 text-slate-400">
-            {CUSTOMER_FOOTER.SERVICES.map(({ label, serviceType }) => (
+            {CUSTOMER_FOOTER.SERVICES.map(({ label }) => (
               <li key={t(label)}>
                 <Link
-                  to={serviceType ? `${CUSTOMER_ROUTES.SERVICES}?serviceType=${serviceType}` : CUSTOMER_ROUTES.SERVICES}
+                  to={CUSTOMER_ROUTES.SERVICES}
                   className={`hover:text-primary ${TEXT_LINK_STYLES}`}
                 >
                   {t(label)}

@@ -29,8 +29,8 @@ export default function RatingDialog({ order, resource, onClose, onSaved }) {
         className="max-w-2xl overflow-hidden p-0 sm:p-0"
         closeLabel="common.close"
       >
-        <div className="flex max-h-[85dvh] min-h-0 flex-col">
-          <div className="shrink-0 border-b border-border bg-linear-to-r from-amber-500/8 via-card to-card p-5 pr-14 sm:p-6 sm:pr-14">
+        <div className="flex max-h-[85dvh] min-h-0 flex-col" >
+          <div className="shrink-0 border-b border-border bg-linear-to-r from-amber-500/8 via-card to-card p-5 pr-14 sm:p-6 sm:pr-14" >
             <DialogTitle className="flex items-center gap-3 text-xl font-bold">
               <span className="grid size-11 shrink-0 place-items-center rounded-2xl border border-amber-400/25 bg-amber-400/15">
                 <Star className="size-6 fill-amber-400 text-amber-500" />
@@ -115,7 +115,7 @@ export default function RatingDialog({ order, resource, onClose, onSaved }) {
                   )}
                 </Reveal>
               </div>
-              <div className="flex shrink-0 justify-end border-t border-border bg-muted/25 px-5 py-4 sm:px-6">
+              <div className="flex shrink-0 justify-end border-t border-border bg-muted/25 px-5 py-4 sm:px-6" >
                 <Button
                   variant="secondary"
                   className="h-12 rounded-xl px-4 text-base"

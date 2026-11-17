@@ -1,6 +1,21 @@
 import { expect, it } from 'vitest'
 import i18n from '~/i18n'
 import { notificationFilters, notificationText, notificationHighlights } from './notificationModel'
+it('describes new orders with their locker and compartment, without inventing missing details', async () => {
+  await i18n.changeLanguage('en')
+  const item = { title: 'Original', content: 'Original content', messageKey: 'orderEvent.OrderCreated', messageArgs: { orderCode: 'WG2611172521' }, displayOrderSummary: { lockerName: 'Ben Thanh Locker', boxNumber: '3' } }
+  expect(notificationText(item, i18n.t.bind(i18n))).toEqual({ title: 'New order', content: 'Order WG2611172521 was created at Ben Thanh Locker, compartment 3. Awaiting customer drop-off.' })
+  expect(notificationText({ ...item, displayOrderSummary: undefined }, i18n.t.bind(i18n)).content).toBe('Order WG2611172521 was just created. Awaiting customer drop-off.')
+})
+it('displays the resolved WG code without a hash in legacy and translated notifications', async () => {
+  await i18n.changeLanguage('en')
+  const id = '3a24f745-2e37-5d6f-1e10-b01dd461d257'
+  const item = { title: 'Needs verification', content: `Order ${id}: pending after 5 checks.`, linkType: 'order', linkId: id, displayOrderCode: 'WG2611168921' }
+  const text = notificationText(item, i18n.t.bind(i18n))
+  expect(text.content).toBe('Order WG2611168921: pending after 5 checks.')
+  expect(notificationText({ title: '#WG123', content: 'Order #WG123. Ticket #12 remains unchanged.' }, i18n.t.bind(i18n))).toEqual({ title: 'WG123', content: 'Order WG123. Ticket #12 remains unchanged.' })
+  expect(notificationText({ ...item, messageKey: 'orderEvent.MerchantAssigned' }, i18n.t.bind(i18n)).content).toBe('Order WG2611168921: Laundry shop assigned.')
+})
 it('translates supported server templates and keeps original content if arguments are missing', async () => {
   await i18n.changeLanguage('en')
   const item = { title: 'Original title', content: 'Original body', messageKey: 'orderCreated.customer', messageArgs: { orderCode: 'WG123', lockerName: 'Ben Thanh', boxNumber: '2', depositMinutes: '30' } }

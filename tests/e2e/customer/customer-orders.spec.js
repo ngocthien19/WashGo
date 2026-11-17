@@ -40,6 +40,9 @@ async function setup(page, options = {}) {
   await page.route('**/api/**', async (route) => {
     const request = route.request()
     const path = new URL(request.url()).pathname.replace(/^\/api/, '')
+    if (path === `/customer/loyalty/quote/${id}`) {
+      return route.fulfill({ json: envelope({ orderId: id, laundryAmount: state.order.finalAmount, availablePoints: 0, maximumPoints: 0, pointsToRedeem: 0, cashAmount: state.order.finalAmount, expectedEarnedPoints: Math.floor(state.order.finalAmount / 100), isEstimate: true }) })
+    }
     if (path === '/auth/me') {
       return route.fulfill({ json: envelope({ id: 'customer-test', fullName: 'Alex Nguyen', role: 'Customer' }) })
     }
@@ -344,6 +347,134 @@ test('order detail panels enter from their own side on scroll and respect reduce
   await expect(panel('Current status')).toHaveCSS('transform', 'none')
 })
 
+async function expiredOrder(page) {
+  const state = await setup(page)
+  state.order = { ...initialOrder, isDepositExpired: true, serverNow: '2026-11-15T12:00:00Z', depositDeadline: '2026-11-15T11:30:00Z', depositWindowMinutes: 30 }
+  state.feeFailure = 0
+  await page.route('**/api/payment/cancellation-fee/create-url', route => {
+    expect(state.cancelCalls).toHaveLength(1)
+    const body = route.request().postDataJSON()
+    state.feeCalls.push(body)
+    if (state.feeFailure) {
+      return route.fulfill({ status: state.feeFailure, json: { succeeded: false, message: 'Fee gateway rejected request' } })
+    }
+    return route.fulfill({ json: envelope({ orderId: id, purpose: 3, paymentMethod: body.paymentMethod, amount: state.order.cancellationFeeOutstanding, transactionStatus: 1, sessionState: 2, paymentUrl: 'https://gateway.example.test/cancelled' }) })
+  })
+  await page.route('https://gateway.example.test/**', route => route.fulfill({ contentType: 'text/html', body: '<h1>Fee gateway</h1>' }))
+  return state
+}
+
+test('expired orders are marked and require a reason before cancelling and paying in one flow', async ({ page }) => {
+  const state = await expiredOrder(page)
+  await page.goto('/orders')
+  const card = page.locator('article[data-deposit-expired="true"]')
+  await expect(card).toHaveCSS('border-left-width', '4px')
+  await expect(card.locator('.deposit-expired-clock')).toHaveCSS('animation-name', 'deposit-expired-ring')
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(card.locator('.deposit-expired-clock')).toHaveCSS('animation-name', 'none')
+  await card.getByRole('button', { name: 'Details', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Drop off at locker', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Show drop-off PIN', exact: true })).toHaveCount(0)
+  const cancel = page.getByRole('button', { name: 'Cancel order', exact: true })
+  await expect(cancel).toHaveCount(1)
+  await expect(cancel.locator('..').getByRole('button', { name: 'Refresh', exact: true })).toBeVisible()
+  await cancel.click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Cancel and pay fee', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toContainText('Please enter a cancellation reason.')
+  expect(state.cancelCalls).toHaveLength(0)
+  expect(state.feeCalls).toHaveLength(0)
+  await dialog.getByRole('radio', { name: 'MoMo', exact: true }).click()
+  await dialog.getByRole('textbox', { name: 'Cancellation reason', exact: true }).fill('Missed the drop-off window')
+  await dialog.getByRole('button', { name: 'Cancel and pay fee', exact: true }).click()
+  await expect(page).toHaveURL('https://gateway.example.test/cancelled')
+  expect(state.cancelCalls).toEqual([{ reason: 'Missed the drop-off window' }])
+  expect(state.feeCalls).toEqual([{ orderId: id, paymentMethod: 3 }])
+})
+
+for (const amount of [9000, 999]) {
+  test(`amount policy preserves cancellation for a ${amount} VND fee`, async ({ page }) => {
+    const state = await expiredOrder(page)
+    await page.route(`**/api/wash-order/${id}/cancellation-quote`, route => route.fulfill({ json: envelope({ orderId: id, canCancel: true, feeAmount: amount, refundAmount: 0, feeOutstanding: amount }) }))
+    await page.route(`**/api/wash-order/${id}/cancel`, route => {
+      state.cancelCalls.push(route.request().postDataJSON())
+      state.order = { ...state.order, status: 99, cancellationFeeOutstanding: amount }
+      return route.fulfill({ json: envelope(state.order) })
+    })
+    await page.goto(`/orders/${id}`)
+    await page.getByRole('button', { name: 'Cancel order', exact: true }).click()
+    let dialog = page.getByRole('dialog')
+    await dialog.getByRole('textbox', { name: 'Cancellation reason', exact: true }).fill('Drop-off deadline missed')
+    if (amount === 9000) {
+      await expect(dialog.getByRole('button', { name: 'Cancel and pay fee', exact: true })).toBeDisabled()
+      await dialog.getByRole('radio', { name: 'MoMo', exact: true }).click()
+      await dialog.getByRole('button', { name: 'Cancel and pay fee', exact: true }).click()
+      await expect(page).toHaveURL('https://gateway.example.test/cancelled')
+      expect(state.feeCalls).toEqual([{ orderId: id, paymentMethod: 3 }])
+    } else {
+      await dialog.getByRole('button', { name: 'Confirm cancellation', exact: true }).click()
+      dialog = page.getByRole('dialog', { name: 'Pay cancellation fee', exact: true })
+      await expect(dialog.getByText(/No online method supports this amount/)).toBeVisible()
+      await expect(dialog.getByRole('button', { name: 'Continue to payment', exact: true })).toBeDisabled()
+      expect(state.feeCalls).toHaveLength(0)
+    }
+    expect(state.cancelCalls).toHaveLength(1)
+  })
+}
+
+test('expired cancellation payment failures retry only the fee without cancelling again', async ({ page }) => {
+  const state = await expiredOrder(page)
+  state.feeFailure = 400
+  await page.goto(`/orders/${id}`)
+  await page.getByRole('button', { name: 'Cancel order', exact: true }).click()
+  let dialog = page.getByRole('dialog')
+  await dialog.getByRole('textbox', { name: 'Cancellation reason', exact: true }).fill('Drop-off deadline missed')
+  await dialog.getByRole('button', { name: 'Cancel and pay fee', exact: true }).click()
+  dialog = page.getByRole('dialog', { name: 'Pay cancellation fee', exact: true })
+  await expect(dialog.getByRole('alert')).toContainText('Something went wrong. Please try again.')
+  await expect(dialog.getByText('The order is cancelled.', { exact: false })).toBeVisible()
+  state.feeFailure = 0
+  await dialog.getByRole('button', { name: 'Continue to payment', exact: true }).click()
+  await expect(page).toHaveURL('https://gateway.example.test/cancelled')
+  expect(state.cancelCalls).toHaveLength(1)
+  expect(state.feeCalls).toHaveLength(2)
+})
+
+test('expired orders never start payment when cancellation has an unknown outcome', async ({ page }) => {
+  const state = await expiredOrder(page)
+  state.cancelFailure = 500
+  await page.goto(`/orders/${id}`)
+  await page.getByRole('button', { name: 'Cancel order', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('textbox', { name: 'Cancellation reason', exact: true }).fill('Drop-off deadline missed')
+  await dialog.getByRole('button', { name: 'Cancel and pay fee', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toContainText('cancellation outcome is unknown')
+  await expect(dialog.getByRole('button', { name: 'Cancel and pay fee', exact: true })).toBeDisabled()
+  expect(state.cancelCalls).toHaveLength(1)
+  expect(state.feeCalls).toHaveLength(0)
+})
+
+test('a changed cancellation fee requires another explicit payment confirmation', async ({ page }) => {
+  const state = await expiredOrder(page)
+  await page.route(`**/api/wash-order/${id}/cancel`, route => {
+    state.cancelCalls.push(route.request().postDataJSON())
+    state.order = { ...state.order, status: 99, cancellationFeeOutstanding: 30000 }
+    return route.fulfill({ json: envelope(state.order) })
+  })
+  await page.goto(`/orders/${id}`)
+  await page.getByRole('button', { name: 'Cancel order', exact: true }).click()
+  const cancel = page.getByRole('dialog')
+  await cancel.getByRole('textbox', { name: 'Cancellation reason', exact: true }).fill('Drop-off deadline missed')
+  await cancel.getByRole('button', { name: 'Cancel and pay fee', exact: true }).click()
+  const fee = page.getByRole('dialog', { name: 'Pay cancellation fee', exact: true })
+  await expect(fee.getByText('₫30,000', { exact: true })).toBeVisible()
+  await expect(fee.getByRole('button', { name: 'Continue to payment', exact: true })).toBeEnabled()
+  expect(state.feeCalls).toHaveLength(0)
+  await fee.getByRole('button', { name: 'Continue to payment', exact: true }).click()
+  await expect(page).toHaveURL('https://gateway.example.test/cancelled')
+  expect(state.cancelCalls).toHaveLength(1)
+})
+
 test('order detail shows real history, masks PIN and confirms server cancellation fees', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/orders')
@@ -398,8 +529,19 @@ test('cancellation rejects stale eligibility and locks unknown results; payment 
   state.order = { ...state.order, status: 8, actualWeightKg: 3 }
   await page.getByRole('button', { name: 'Refresh', exact: true }).click()
   await page.getByRole('button', { name: 'Pay now', exact: true }).click()
-  await expect(page).toHaveURL(`/orders/${id}/payment`)
-  await expect(page.getByRole('heading', { name: 'Order payment', exact: true })).toBeVisible()
+  await expect(page).toHaveURL(`/orders/${id}`)
+  const payment = page.getByRole('dialog', { name: 'Order payment', exact: true })
+  await expect(payment.getByRole('switch', { name: 'Use reward points', exact: true })).toBeDisabled()
+  await expect(payment.getByRole('button', { name: 'Continue to payment', exact: true })).toBeEnabled()
+  await payment.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await expect(payment).toHaveCount(0)
+  await expect(page).toHaveURL(`/orders/${id}`)
+  await page.goto('/orders')
+  await page.getByRole('button', { name: 'Pay now', exact: true }).click()
+  await expect(payment).toBeVisible()
+  await expect(page).toHaveURL('/orders')
+  await page.keyboard.press('Escape')
+  await expect(payment).toHaveCount(0)
 })
 
 test('guest cannot access customer orders', async ({ page }) => {
@@ -985,11 +1127,10 @@ test('server deadline expires despite device date; workflow, prediction and retu
   await expect(page.getByText('35%', { exact: true }).first()).toBeVisible()
   await expect(page.getByText('Estimated from historical processing data and store workload.')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Open Google Maps' })).toHaveAttribute('href', /10.77/)
-  await page.getByRole('button', { name: 'Drop off at locker', exact: true }).click()
-  const dialog = page.getByRole('dialog')
-  await expect(dialog.getByText('The deposit deadline has passed.', { exact: false })).toBeVisible()
-  await dialog.getByLabel('PIN digit 1', { exact: true }).fill('123456')
-  await expect(dialog.getByRole('button', { name: 'I have placed my items and closed the door' })).toBeDisabled()
+  await expect(page.getByText('The drop-off deadline has passed.', { exact: false })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Drop off at locker', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Show drop-off PIN', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Cancel order', exact: true })).toBeVisible()
   expect(state.lockerCalls).toHaveLength(0)
 })
 
@@ -1060,6 +1201,100 @@ test('rating uploads and displays a video, and server receipt PDF downloads with
   expect(file.suggestedFilename()).toBe(`washgo-receipt-${id}.pdf`)
   await expect(receipt).not.toContainText('123456')
   await expect(receipt).not.toContainText('654321')
+})
+
+for (const [label, method, other] of [['VNPAY', 2, 'MoMo'], ['MoMo', 3, 'VNPAY']]) {
+  test(`cancellation fee remembers ${label} after returning, reopening and reloading`, async ({ page }) => {
+    const state = await setup(page)
+    state.order = { ...initialOrder, status: 99, paymentMethod: method === 2 ? 3 : 2, cancellationFeeOutstanding: 20000 }
+    await page.route('https://gateway.example.test/**', route => route.fulfill({ contentType: 'text/html', body: '<h1>Fee gateway</h1>' }))
+    await page.goto(`/orders/${id}`)
+    await page.getByRole('button', { name: 'Pay cancellation fee', exact: true }).click()
+    let dialog = page.getByRole('dialog')
+    await dialog.getByRole('radio', { name: label, exact: true }).click()
+    await dialog.getByRole('button', { name: 'Continue to payment', exact: true }).click()
+    await expect(page).toHaveURL('https://gateway.example.test/fees')
+    await page.goto(`/orders/${id}`)
+    for (const action of ['open', 'reopen', 'reload']) {
+      if (action === 'reload') {
+        await page.reload()
+      }
+      await page.getByRole('button', { name: 'Pay cancellation fee', exact: true }).click()
+      dialog = page.getByRole('dialog')
+      await expect(dialog.getByRole('radio', { name: label, exact: true })).toBeChecked()
+      await expect(dialog.getByRole('radio', { name: other, exact: true })).toBeDisabled()
+      await expect(dialog.getByRole('button', { name: 'Continue to payment', exact: true })).toBeEnabled()
+      if (action !== 'reload') {
+        await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+      }
+    }
+    const saved = await page.evaluate(() => Object.keys(localStorage).filter(key => key.startsWith('washgo:cancellation-method:')).map(key => localStorage.getItem(key)))
+    expect(saved).toEqual([JSON.stringify({ method, review: false })])
+    await dialog.getByRole('button', { name: 'Continue to payment', exact: true }).click()
+    await expect(page).toHaveURL('https://gateway.example.test/fees')
+    expect(state.feeCalls.map(call => call.body)).toEqual(Array(2).fill({ orderId: id, paymentMethod: method }))
+  })
+}
+
+test('amount policy blocks a 9000 VND VNPay fee and permits MoMo without changing the fee', async ({ page }) => {
+  const state = await setup(page)
+  state.order = { ...initialOrder, status: 99, cancelledGoodsStatus: 1, cancellationFeeOutstanding: 9000 }
+  await page.route('**/api/payment/cancellation-fee/create-url', route => {
+    const body = route.request().postDataJSON()
+    state.feeCalls.push(body)
+    return route.fulfill({ json: envelope({ orderId: id, paymentMethod: body.paymentMethod, amount: 9000, paymentUrl: 'https://gateway.example.test/fees' }) })
+  })
+  await page.route('https://gateway.example.test/**', route => route.fulfill({ contentType: 'text/html', body: '<h1>Mock wallet gateway</h1>' }))
+  await page.goto(`/orders/${id}`)
+  await page.getByRole('button', { name: 'Pay cancellation fee', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('radio', { name: 'VNPAY', exact: true })).toBeDisabled()
+  await expect(dialog.getByRole('button', { name: 'Continue to payment', exact: true })).toBeDisabled()
+  expect(state.feeCalls).toHaveLength(0)
+  await dialog.getByRole('radio', { name: 'MoMo', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Continue to payment', exact: true }).click()
+  await expect(page).toHaveURL('https://gateway.example.test/fees')
+  expect(state.feeCalls).toEqual([{ orderId: id, paymentMethod: 3 }])
+})
+
+test('amount policy keeps an existing 9000 VND VNPay session locked until backend verification', async ({ page }) => {
+  const state = await setup(page)
+  state.order = { ...initialOrder, status: 99, cancelledGoodsStatus: 1, cancellationFeeOutstanding: 9000 }
+  await page.addInitScript(({ id }) => {
+    localStorage.setItem(`washgo:cancellation-method:v1:customer-test:${id}`, JSON.stringify({ method: 2, review: false }))
+  }, { id })
+  await page.goto(`/orders/${id}`)
+  await page.getByRole('button', { name: 'Pay cancellation fee', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('alert')).toContainText('verify and close')
+  await expect(dialog.getByRole('radio', { name: 'VNPAY', exact: true })).toBeChecked()
+  await expect(dialog.getByRole('radio', { name: 'MoMo', exact: true })).toBeDisabled()
+  await expect(dialog.getByRole('button', { name: 'Continue to payment', exact: true })).toBeDisabled()
+  expect(state.feeCalls).toHaveLength(0)
+})
+
+test('fee session retries preserve the method and never send loyalty points', async ({ page }) => {
+  const state = await setup(page)
+  state.order = { ...initialOrder, status: 99, cancelledGoodsStatus: 1, cancellationFeeOutstanding: 20000 }
+  const calls = []
+  await page.route('**/api/payment/cancellation-fee/create-url', route => {
+    calls.push(route.request().postDataJSON())
+    return route.fulfill({ status: 409, json: { succeeded: false, meta: { code: calls.length === 1 ? 'PaymentInitializing' : 'PaymentVerificationRequired', retryAfterSeconds: 2 } } })
+  })
+  await page.goto(`/orders/${id}`)
+  await page.getByRole('button', { name: 'Pay cancellation fee', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Continue to payment', exact: true }).click()
+  await expect(dialog.getByRole('radio', { name: 'MoMo', exact: true })).toBeDisabled()
+  const retry = dialog.getByRole('button', { name: 'Retry the same session', exact: true })
+  await expect(retry).toBeEnabled()
+  await retry.click()
+  await expect(dialog.getByRole('alert')).toContainText('needs verification')
+  await expect(retry).toBeDisabled()
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await page.getByRole('button', { name: 'Pay cancellation fee', exact: true }).click()
+  await expect(retry).toBeDisabled()
+  expect(calls).toEqual(Array(2).fill({ orderId: id, paymentMethod: 2 }))
 })
 
 test('cancellation fee uses its scoped endpoint and gateway return never claims laundry payment succeeded', async ({ page }) => {

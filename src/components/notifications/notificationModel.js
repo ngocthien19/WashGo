@@ -3,8 +3,39 @@ import { formatCurrency, formatDateTime } from '~/utils/format/formats'
 import { validDay, validRange, dateRangeFilter } from '~/utils/format/dateRange'
 import { CUSTOMER_ROUTES } from '~/utils/config/constants'
 import { NOTIFICATION_CATEGORIES, notificationTypesFor } from './notificationCatalog'
+import { eventKey } from '~/utils/orders/orderEvents'
+import { isOrderCode, isNewOrderNotification } from '~/apis/notifications/notificationOrders'
 
 export function notificationText(item, t) {
+  const code = isOrderCode(item.displayOrderCode) ? item.displayOrderCode : item.messageArgs?.orderCode
+  const format = text => {
+    const value = typeof text === 'string' ? text : ''
+    const resolved = item.linkType === 'order' && isOrderCode(code) && item.linkId
+      ? value.replace(new RegExp(item.linkId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), code) : value
+    return resolved.replace(/#(?=WG[A-Z0-9-]+)/gi, '')
+  }
+  const result = translatedNotificationText(item.displayOrderCode ? { ...item, messageArgs: { ...item.messageArgs, orderCode: code } } : item, t)
+  return { title: format(result.title), content: format(result.content) }
+}
+
+function translatedNotificationText(item, t) {
+  if (isNewOrderNotification(item)) {
+    const args = { ...item.displayOrderSummary, ...item.messageArgs }
+    const title = t('notificationNewOrder.title')
+    if (isOrderCode(args.orderCode)) {
+      const variant = args.lockerName && args.boxNumber ? 'lockerBox' : args.lockerName ? 'locker' : args.boxNumber ? 'box' : 'order'
+      return { title, content: t(`notificationNewOrder.${variant}`, { orderCode: args.orderCode, lockerName: String(args.lockerName || ''), boxNumber: String(args.boxNumber || '') }) }
+    }
+    return { title, content: item.content }
+  }
+  if (item.messageKey?.startsWith('orderEvent.')) {
+    const key = eventKey({ eventType: item.messageKey.slice('orderEvent.'.length), basis: 'Captured' })
+    if (key !== 'Unknown' && item.messageArgs?.orderCode) {
+      const title = t(`orderEvents.labels.${key}`)
+      const content = t('orderEvents.notification', { orderCode: item.messageArgs.orderCode, title })
+      return { title, content: item.messageArgs.storageReference ? `${content} ${t('storage.storageReference')}: ${item.messageArgs.storageReference}.` : content }
+    }
+  }
   if (!/^[a-zA-Z][a-zA-Z0-9]*(?:\.[a-zA-Z][a-zA-Z0-9]*){1,3}$/.test(item.messageKey || '')) {
     return { title: item.title, content: item.content }
   }

@@ -8,7 +8,10 @@ export const customerOrderView = value => {
   }
   const result = Object.fromEntries(Object.entries(value).filter(([key]) => !/^(merchant|shipper|storageLocation|storageReference|storageShop|receiptReference|exceptionNote|taskId)/i.test(key)))
   if (Array.isArray(result.timeline)) {
-    result.timeline = result.timeline.map(row => ['Merchant', 'Shipper'].includes(row.actorRole) ? { ...row, actorId: null, actorName: 'WashGo', note: null } : row)
+    result.timeline = result.timeline.map(row => {
+      const safe = Object.fromEntries(Object.entries(row).filter(([key]) => !/^(merchant|shipper|previousShipper|assignmentMode|task|storageCycle|returnRequest|storageReference|storageLocation|receiptReference)/i.test(key)))
+      return ['Merchant', 'Shipper'].includes(row.actorRole) ? { ...safe, actorId: null, actorName: 'WashGo', note: null } : safe
+    })
   }
   return result
 }
@@ -33,7 +36,8 @@ export const customerOrderApi = {
   }),
   cancellationQuote: (id, signal) => authorizedAxios.get(`${CUSTOMER_API_ENDPOINTS.ORDERS}/${encodeURIComponent(id)}/cancellation-quote`, { signal }).then(unwrap).then((quote) => {
     if (quote.orderId !== id || typeof quote.canCancel !== 'boolean'
-      || ![quote.feeAmount, quote.refundAmount, quote.feeOutstanding].every((value) => Number.isFinite(value) && value >= 0)) {
+      || ![quote.feeAmount, quote.refundAmount, quote.feeOutstanding].every((value) => Number.isFinite(value) && value >= 0)
+      || quote.refundPoints != null && (!Number.isSafeInteger(quote.refundPoints) || quote.refundPoints < 0)) {
       throw new Error('customer.orders.invalidResponse')
     }
     return quote

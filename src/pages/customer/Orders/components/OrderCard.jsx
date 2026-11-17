@@ -1,22 +1,40 @@
 import { useTranslation } from 'react-i18next'
+import { lazy, Suspense, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Package } from 'lucide-react'
+import { Package, Timer } from 'lucide-react'
 import Reveal from '~/components/motion/Reveal'
 import OrderStatusBadge from '~/components/customer/orders/OrderStatusBadge'
 import OrderProgress from '~/components/customer/orders/OrderProgress'
 import { Button } from '~/components/ui/button'
-import { CUSTOMER_ROUTES } from '~/utils/config/constants'
+import { CUSTOMER_ROUTES, ORDER_STATUSES } from '~/utils/config/constants'
+import useDepositDeadline from '~/hooks/customer/useDepositDeadline'
 import { formatCurrency, formatDateTime, formatNumber } from '~/utils/format/formats'
 import { paymentBlockReason } from '~/pages/customer/Payment/paymentModel'
 import OrderCardSummary from './OrderCardSummary'
 
+const PaymentDialog = lazy(() => import('~/pages/customer/Payment/PaymentDialog'))
+
 export default function OrderCard({ order, estimate }) {
   const { t } = useTranslation()
+  const [paymentOpen, setPaymentOpen] = useState(false)
+  const pendingPayments = useRef(new Set())
+  const deadline = useDepositDeadline(order)
+  const expired = order.status === ORDER_STATUSES.PENDING && deadline.expired
   return (
     <Reveal
       as="article"
-      className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"
+      data-deposit-expired={expired || undefined}
+      className={`rounded-2xl border bg-card p-5 shadow-sm sm:p-6 ${expired ? 'border-amber-500/40 border-l-4 bg-gradient-to-r from-amber-500/8 to-card shadow-amber-500/5' : 'border-border/70'}`}
     >
+      {expired && (
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:text-amber-200">
+          <Timer
+            aria-hidden="true"
+            className="deposit-expired-clock size-4"
+          />
+          {t('customer.sync.cardDepositExpired')}
+        </div>
+      )}
       <OrderProgress
         order={order}
         compact
@@ -97,8 +115,7 @@ export default function OrderCard({ order, estimate }) {
               </Button>
               {!paymentBlockReason(order) && (
                 <Button
-                  render={<Link to={CUSTOMER_ROUTES.PAYMENT.replace(':orderId', order.id)} />}
-                  nativeButton={false}
+                  onClick={() => setPaymentOpen(true)}
                   className="h-11 rounded-xl text-base px-4"
                 >
                   {t('customer.orders.pay')}
@@ -108,6 +125,15 @@ export default function OrderCard({ order, estimate }) {
           </div>
         </div>
       </div>
+      {paymentOpen && (
+        <Suspense fallback={null}>
+          <PaymentDialog
+            orderId={order.id}
+            pendingRequests={pendingPayments}
+            onClose={() => setPaymentOpen(false)}
+          />
+        </Suspense>
+      )}
     </Reveal>
   )
 }

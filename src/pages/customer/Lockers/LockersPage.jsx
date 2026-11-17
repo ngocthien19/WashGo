@@ -127,7 +127,7 @@ export default function LockersPage() {
   )
 
   return (
-    <div className="min-h-[70dvh] bg-muted/35">
+    <div className="min-h-[70dvh] overflow-x-clip bg-muted/35">
       <div className="mx-auto max-w-7xl space-y-7 px-4 pb-20 pt-8 sm:px-6 lg:px-8">
         <Breadcrumb
           items={[{ label: t('common.home'), to: CUSTOMER_ROUTES.HOME }, { label: t('customer.allLockers') }]}
@@ -198,6 +198,7 @@ export default function LockersPage() {
             />
           ) : (
             <LockerResults
+              animate
               lockers={lockers}
               position={position}
             />

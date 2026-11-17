@@ -1,3 +1,4 @@
+import PointsFundingSummary from '~/components/finance/PointsFundingSummary'
 import { Store, ReceiptText } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { formatCurrency, formatNumber } from '~/utils/format/formats'
@@ -24,6 +25,7 @@ export default function FinanceBreakdown({ value, settlement = false }) {
           </div>
         </div>
       </header>
+      <PointsFundingSummary value={value} />
       {value.commissionComplete === false && (
         <p className="rounded-xl bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
           {t('admin.sync.coverage', { count: value.ordersWithoutCommissionSnapshot, amount: formatCurrency(value.uncoveredNetAmount) })}

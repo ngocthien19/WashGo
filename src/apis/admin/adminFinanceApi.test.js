@@ -6,6 +6,15 @@ const id = 'a0000000-0000-4000-8000-000000000001', merchantId = 'b0000000-0000-4
 const row = { id, merchantId, merchantName: 'Store', periodFrom: '2026-10-01T00:00:00Z', periodTo: '2026-10-31T00:00:00Z', grossRevenue: 100000, refundedAmount: 0, netRevenue: 100000, commissionRate: 20, commissionAmount: 20000, payoutAmount: 80000, status: 1, orderCount: 1 }
 const refund = { id, orderId: id, customerId: id, amount: 30000, status: 1, reason: 'Cancelled' }
 beforeEach(() => vi.clearAllMocks())
+it('accepts a points-only refund and keeps cash and point amounts distinct', async () => {
+  const points = { ...refund, amount: 0, pointsAmount: 500, rewardPointsReversed: 10 }
+  authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: points } })
+  expect(await adminFinanceApi.refund(id)).toEqual(points)
+  for (const patch of [{ pointsAmount: 0 }, { pointsAmount: .5 }, { rewardPointsReversed: -1 }]) {
+    authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: { ...points, ...patch } } })
+    await expect(adminFinanceApi.refund(id)).rejects.toThrow('admin.invalidResponse')
+  }
+})
 it('settlement filters include supported period and keyword fields', async () => {
   authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, list: [row], total: 13 } })
   expect(await adminFinanceApi.settlements({ page: 2, take: 12, merchantId, status: 1, fromDate: 123, keyword: 'fake' })).toMatchObject({ totalPages: 2 })

@@ -90,8 +90,12 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
       <DialogContent
         closeLabel="common.close"
         className="max-w-2xl border-primary/15"
+        data-dialog-fixed
       >
-        <div className="-mx-6 -mt-6 border-b border-primary/10 bg-gradient-to-br from-primary/10 to-primary/0 px-6 py-6 sm:-mx-8 sm:-mt-8 sm:px-8">
+        <div
+          className="-mx-6 -mt-6 border-b border-primary/10 bg-gradient-to-br from-primary/10 to-primary/0 px-6 py-6 sm:-mx-8 sm:-mt-8 sm:px-8"
+          data-dialog-header
+        >
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-bold text-foreground">
             <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/10">
               <PencilLine size={23} />
@@ -106,192 +110,198 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
           noValidate
           onSubmit={(event) => handleSubmit(submit)(event)}
           className="mt-5 space-y-5"
+          data-dialog-layout
         >
-          <fieldset
-            disabled={pending || uncertain || documentBusy}
-            className="grid gap-5 rounded-2xl border border-border/70 bg-muted/20 p-4 sm:grid-cols-2 sm:p-5"
-          >
-            {['businessName', 'address', 'city', 'phone', 'openingHours'].map((key) => {
-              const Icon = fieldIcons[key]
-              return (
-                <div
-                  key={key}
-                  className={`space-y-2 text-base font-medium ${key === 'businessName' ? 'sm:col-span-2' : ''}`}
-                >
-                  <label className="block space-y-2">
-                    <span className="flex items-center gap-2">
-                      <Icon
-                        size={16}
-                        className="text-primary"
+          <div data-dialog-body>
+            <fieldset
+              disabled={pending || uncertain || documentBusy}
+              className="grid gap-5 rounded-2xl border border-border/70 bg-muted/20 p-4 sm:grid-cols-2 sm:p-5"
+            >
+              {['businessName', 'address', 'city', 'phone', 'openingHours'].map((key) => {
+                const Icon = fieldIcons[key]
+                return (
+                  <div
+                    key={key}
+                    className={`space-y-2 text-base font-medium ${key === 'businessName' ? 'sm:col-span-2' : ''}`}
+                  >
+                    <label className="block space-y-2">
+                      <span className="flex items-center gap-2">
+                        <Icon
+                          size={16}
+                          className="text-primary"
+                        />
+                        {t(`merchant.shop.${key}`)}
+                        {key !== 'openingHours' && <span className="ml-1 text-destructive">*</span>}
+                      </span>
+                      <Input
+                        {...register(key)}
+                        value={values[key]}
+                        aria-label={t(`merchant.shop.${key}`)}
+                        aria-describedby={key === 'city' ? 'merchant-profile-city-note' : undefined}
+                        onChange={(event) => {
+                          setValue(key, event.target.value, { shouldDirty: true })
+                          if (['address', 'city'].includes(key)) {
+                            setMapCenter(null)
+                          }
+                        }}
+                        required={key !== 'openingHours'}
+                        maxLength={{ businessName: 200, address: 500, city: 100, phone: 20, openingHours: 1000 }[key]}
+                        autoComplete={key === 'address' ? 'street-address' : key === 'city' ? 'address-level1' : undefined}
+                        type={key === 'phone' ? 'tel' : 'text'}
+                        className="h-12 rounded-xl bg-card text-base shadow-none"
+                        placeholder={key === 'openingHours' ? t('merchant.shop.hoursPlaceholder') : key === 'city' ? t('merchant.shop.notUpdated') : undefined}
                       />
-                      {t(`merchant.shop.${key}`)}
-                      {key !== 'openingHours' && <span className="ml-1 text-destructive">*</span>}
-                    </span>
-                    <Input
-                      {...register(key)}
-                      value={values[key]}
-                      aria-label={t(`merchant.shop.${key}`)}
-                      aria-describedby={key === 'city' ? 'merchant-profile-city-note' : undefined}
-                      onChange={(event) => {
-                        setValue(key, event.target.value, { shouldDirty: true })
-                        if (['address', 'city'].includes(key)) {
-                          setMapCenter(null)
-                        }
-                      }}
-                      required={key !== 'openingHours'}
-                      maxLength={{ businessName: 200, address: 500, city: 100, phone: 20, openingHours: 1000 }[key]}
-                      autoComplete={key === 'address' ? 'street-address' : key === 'city' ? 'address-level1' : undefined}
-                      type={key === 'phone' ? 'tel' : 'text'}
-                      className="h-12 rounded-xl bg-card text-base shadow-none"
-                      placeholder={key === 'openingHours' ? t('merchant.shop.hoursPlaceholder') : key === 'city' ? t('merchant.shop.notUpdated') : undefined}
+                      {errors[key] && (
+                        <span
+                          role="alert"
+                          className="text-sm text-destructive"
+                        >
+                          {t(errors[key].message)}
+                        </span>
+                      )}
+                      {key === 'city' && (
+                        <span
+                          id="merchant-profile-city-note"
+                          className="block text-sm font-normal text-muted-foreground"
+                        >
+                          {t('merchant.sync.locationApproval')}
+                        </span>
+                      )}
+                    </label>
+                    {key === 'address' && (
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          variant="outline-violet"
+                          className="h-10 rounded-xl px-4 text-base"
+                          onClick={() => setMapOpen(true)}
+                        >
+                          <MapPinned size={17} />
+                          {t('customer.addressMap.open')}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+              <section
+                aria-labelledby="merchant-profile-legal-title"
+                className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:col-span-2 sm:grid-cols-2"
+              >
+                <h3
+                  id="merchant-profile-legal-title"
+                  className="font-semibold sm:col-span-2"
+                >
+                  {t('merchant.shop.legalInfo')}
+                </h3>
+                <label className="flex flex-col gap-3 text-base font-medium sm:col-span-2">
+                  <span className="flex items-center gap-2">
+                    <Hash
+                      size={16}
+                      className="text-primary"
                     />
-                    {errors[key] && (
-                      <span
-                        role="alert"
-                        className="text-sm text-destructive"
-                      >
-                        {t(errors[key].message)}
-                      </span>
-                    )}
-                    {key === 'city' && (
-                      <span
-                        id="merchant-profile-city-note"
-                        className="block text-sm font-normal text-muted-foreground"
-                      >
-                        {t('merchant.sync.locationApproval')}
-                      </span>
-                    )}
-                  </label>
-                  {key === 'address' && (
-                    <div className="flex justify-end">
+                    {t('merchant.shop.taxCode')}
+                  </span>
+                  <Input
+                    {...register('taxCode')}
+                    aria-label={t('merchant.shop.taxCode')}
+                    aria-describedby={errors.taxCode ? 'merchant-tax-error' : undefined}
+                    className="h-12 rounded-xl text-base"
+                    aria-invalid={!!errors.taxCode}
+                  />
+                  {errors.taxCode && (
+                    <span
+                      id="merchant-tax-error"
+                      role="alert"
+                      className="text-sm text-destructive"
+                    >
+                      {t(errors.taxCode.message)}
+                    </span>
+                  )}
+                </label>
+                <BusinessLicenseField
+                  current={currentDocument}
+                  value={license}
+                  removed={removeLicense}
+                  onChange={(value, removed) => {
+                    setLicense(value); setRemoveLicense(removed)
+                  }}
+                  onBusy={setDocumentBusy}
+                  disabled={pending || uncertain || documentBusy}
+                />
+                <p className="text-sm text-muted-foreground sm:col-span-2">
+                  {t('merchant.backendSync.slaReadOnly')}
+                </p>
+              </section>
+              <div className="space-y-3 rounded-xl border border-primary/15 bg-card p-4 sm:col-span-2">
+                <p className="flex items-center gap-2 font-semibold text-foreground">
+                  <ImagePlus size={18} />
+                  {t('merchant.shop.images')}
+                </p>
+                <p className="text-sm font-normal text-muted-foreground">
+                  {t('merchant.shop.imagesHint')}
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {[...existing.map((url) => ({ url: getImageUrl(url), original: url })), ...images.images].map((image) => (
+                    <div
+                      key={image.url}
+                      className="relative size-20 overflow-hidden rounded-xl border border-border"
+                    >
+                      <img
+                        src={image.url}
+                        alt={t('merchant.shop.images')}
+                        className="size-full object-cover"
+                      />
                       <Button
                         type="button"
-                        variant="outline-violet"
-                        className="h-10 rounded-xl px-4 text-base"
-                        onClick={() => setMapOpen(true)}
+                        variant="destructive"
+                        size="icon"
+                        className="absolute right-0 top-0 size-6 rounded-full"
+                        aria-label={t('merchant.shop.removeImage')}
+                        onClick={() => image.original ? setExisting(existing.filter((url) => url !== image.original)) : images.removeImage(image)}
                       >
-                        <MapPinned size={17} />
-                        {t('customer.addressMap.open')}
+                        <X size={13} />
                       </Button>
                     </div>
-                  )}
+                  ))}
                 </div>
-              )
-            })}
-            <section
-              aria-labelledby="merchant-profile-legal-title"
-              className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:col-span-2 sm:grid-cols-2"
-            >
-              <h3
-                id="merchant-profile-legal-title"
-                className="font-semibold sm:col-span-2"
-              >
-                {t('merchant.shop.legalInfo')}
-              </h3>
-              <label className="flex flex-col gap-3 text-base font-medium sm:col-span-2">
-                <span className="flex items-center gap-2">
-                  <Hash
-                    size={16}
-                    className="text-primary"
+                <label className="flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 px-4 py-3 text-primary focus-within:ring-2 focus-within:ring-primary">
+                  <ImagePlus size={20} />
+                  {t('merchant.shop.addImages')}
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    disabled={pending || uncertain || existing.length + images.images.length >= 5}
+                    onChange={(event) => {
+                      images.addFiles(Array.from(event.target.files || [])); event.target.value = ''
+                    }}
                   />
-                  {t('merchant.shop.taxCode')}
-                </span>
-                <Input
-                  {...register('taxCode')}
-                  aria-label={t('merchant.shop.taxCode')}
-                  aria-describedby={errors.taxCode ? 'merchant-tax-error' : undefined}
-                  className="h-12 rounded-xl text-base"
-                  aria-invalid={!!errors.taxCode}
-                />
-                {errors.taxCode && (
-                  <span
-                    id="merchant-tax-error"
+                </label>
+                {images.error && (
+                  <p
                     role="alert"
                     className="text-sm text-destructive"
                   >
-                    {t(errors.taxCode.message)}
-                  </span>
+                    {t(images.error)}
+                  </p>
                 )}
-              </label>
-              <BusinessLicenseField
-                current={currentDocument}
-                value={license}
-                removed={removeLicense}
-                onChange={(value, removed) => {
-                  setLicense(value); setRemoveLicense(removed)
-                }}
-                onBusy={setDocumentBusy}
-                disabled={pending || uncertain || documentBusy}
-              />
-              <p className="text-sm text-muted-foreground sm:col-span-2">
-                {t('merchant.backendSync.slaReadOnly')}
-              </p>
-            </section>
-            <div className="space-y-3 rounded-xl border border-primary/15 bg-card p-4 sm:col-span-2">
-              <p className="flex items-center gap-2 font-semibold text-foreground">
-                <ImagePlus size={18} />
-                {t('merchant.shop.images')}
-              </p>
-              <p className="text-sm font-normal text-muted-foreground">
-                {t('merchant.shop.imagesHint')}
-              </p>
-              <div className="flex flex-wrap gap-3">
-                {[...existing.map((url) => ({ url: getImageUrl(url), original: url })), ...images.images].map((image) => (
-                  <div
-                    key={image.url}
-                    className="relative size-20 overflow-hidden rounded-xl border border-border"
-                  >
-                    <img
-                      src={image.url}
-                      alt={t('merchant.shop.images')}
-                      className="size-full object-cover"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute right-0 top-0 size-6 rounded-full"
-                      aria-label={t('merchant.shop.removeImage')}
-                      onClick={() => image.original ? setExisting(existing.filter((url) => url !== image.original)) : images.removeImage(image)}
-                    >
-                      <X size={13} />
-                    </Button>
-                  </div>
-                ))}
               </div>
-              <label className="flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 px-4 py-3 text-primary focus-within:ring-2 focus-within:ring-primary">
-                <ImagePlus size={20} />
-                {t('merchant.shop.addImages')}
-                <input
-                  type="file"
-                  multiple
-                  accept="image/jpeg,image/png,image/webp"
-                  className="sr-only"
-                  disabled={pending || uncertain || existing.length + images.images.length >= 5}
-                  onChange={(event) => {
-                    images.addFiles(Array.from(event.target.files || [])); event.target.value = ''
-                  }}
-                />
-              </label>
-              {images.error && (
-                <p
-                  role="alert"
-                  className="text-sm text-destructive"
-                >
-                  {t(images.error)}
-                </p>
-              )}
-            </div>
-          </fieldset>
-          {error && (
-            <p
-              role="alert"
-              className="text-base text-destructive"
-            >
-              {t(error)}
-            </p>
-          )}
-          <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+            </fieldset>
+            {error && (
+              <p
+                role="alert"
+                className="text-base text-destructive"
+              >
+                {t(error)}
+              </p>
+            )}
+          </div>
+          <div
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+            data-dialog-footer
+          >
             <Button
               type="button"
               variant="secondary"
@@ -311,28 +321,30 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
             </Button>
           </div>
         </form>
-        {mapOpen && (
-          <Suspense fallback={(
-            <p
-              role="status"
-              className="mt-4 text-sm text-muted-foreground"
+        <div data-dialog-body>
+          {mapOpen && (
+            <Suspense fallback={(
+              <p
+                role="status"
+                className="mt-4 text-sm text-muted-foreground"
+              >
+                {t('customer.addressMap.loading')}
+              </p>
+            )}
             >
-              {t('customer.addressMap.loading')}
-            </p>
+              <AddressPickerDialog
+                initialCenter={mapCenter}
+                onClose={() => setMapOpen(false)}
+                onApply={(selected) => {
+                  setValue('address', selected.address || ''); setValue('city', selected.city || '')
+                  setMapCenter(selected.position)
+                  setError('')
+                  setMapOpen(false)
+                }}
+              />
+            </Suspense>
           )}
-          >
-            <AddressPickerDialog
-              initialCenter={mapCenter}
-              onClose={() => setMapOpen(false)}
-              onApply={(selected) => {
-                setValue('address', selected.address || ''); setValue('city', selected.city || '')
-                setMapCenter(selected.position)
-                setError('')
-                setMapOpen(false)
-              }}
-            />
-          </Suspense>
-        )}
+        </div>
       </DialogContent>
     </Dialog>
   )

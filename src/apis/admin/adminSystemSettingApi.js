@@ -3,10 +3,12 @@ import authorizedAxios from '~/utils/http/authorizedAxios'
 import { settingPayload, validSettings } from '~/pages/admin/SystemSettings/settingModel'
 
 const unwrap = response => {
-  if (response.data?.succeeded !== true || !validSettings(response.data.data)) {
+  const original = response.data?.data
+  const value = original && { ...original, ...(original.loyaltyEarnPercent == null ? {} : { earnPercent: original.loyaltyEarnPercent }), ...(original.loyaltyMaxUsePercent == null ? {} : { maxUsePercent: original.loyaltyMaxUsePercent }) }
+  if (response.data?.succeeded !== true || !validSettings(value)) {
     throw new Error('admin.invalidResponse')
   }
-  return response.data.data
+  return value
 }
 export const adminSystemSettingApi = {
   get: signal => authorizedAxios.get('/system-setting', { signal }).then(unwrap),
@@ -19,7 +21,7 @@ export const adminSystemSettingApi = {
   },
   update: async (group, values, version) => {
     const body = settingPayload(group, values)
-    const action = { sla: 'Sla', commission: 'Commission', penalty: 'Penalty' }[group]
+    const action = { loyalty: 'Loyalty', sla: 'Sla', commission: 'Commission', penalty: 'Penalty' }[group]
     const response = await adminWrite('SystemSetting', action, null, 'put', `/system-setting/${group}`, { ...body, ...versionGuard(version) })
     try {
       const data = unwrap(response)

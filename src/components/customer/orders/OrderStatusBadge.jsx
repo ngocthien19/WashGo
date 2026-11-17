@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { ORDER_STATUS_COLORS, ORDER_STATUS_OPTIONS, PAYMENT_STATUSES } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
+import OrderStatusIcon from '~/components/orders/OrderStatusIcon'
 
 export default function OrderStatusBadge({ status, payment = false }) {
   const { t } = useTranslation()
@@ -10,10 +11,17 @@ export default function OrderStatusBadge({ status, payment = false }) {
     : ORDER_STATUS_OPTIONS.find((item) => Number(item.value) === status)
   return (
     <span className={cn('inline-flex max-w-full items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium', ORDER_STATUS_COLORS[option?.color || 'slate'])}>
-      <span
-        className="size-1.5 shrink-0 rounded-full bg-current"
-        aria-hidden="true"
-      />
+      {payment ? (
+        <span
+          className="size-1.5 shrink-0 rounded-full bg-current"
+          aria-hidden="true"
+        />
+      ) : (
+        <OrderStatusIcon
+          status={status}
+          size={14}
+        />
+      )}
       {t(option?.label || 'customer.orders.unknown')}
     </span>
   )

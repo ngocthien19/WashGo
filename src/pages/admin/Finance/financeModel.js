@@ -3,7 +3,7 @@ import { validDay, vietnamToday, shiftDay, dateRangeFilter } from '~/utils/forma
 import { isId } from '~/pages/admin/Merchants/merchantModel'
 export { unknownWrite } from '~/pages/admin/Services/serviceModel'
 export const TAKE = 12
-export const tabs = ['revenue', 'commissions', 'settlements', 'refunds', 'commissionReview']
+export const tabs = ['revenue', 'commissions', 'settlements', 'refunds', 'commissionReview', 'paymentReview']
 export const validFinanceRange = (from, to) => validDay(from) && validDay(to) && from <= to && to <= vietnamToday() && (Date.parse(to) - Date.parse(from)) / 86400000 < 366
 export const readQuery = params => {
   const today = vietnamToday(), valid = validFinanceRange(params.get('from'), params.get('to'))
@@ -21,9 +21,9 @@ export const settlementFilter = query => {
   return { merchantId: query.merchantId || undefined, orderId: query.orderId || undefined, keyword: query.keyword || undefined, status: query.status ? Number(query.status) : undefined, page: query.page, take: TAKE,
     ...(query.tab === 'settlements' && query.dateBasis === 'paid' ? { paidFromDate: dates.fromDate, paidToDate: dates.toDate } : dates), ...(query.tab === 'refunds' ? { dateBasis: query.dateBasis } : {}) }
 }
-export const settlementSnapshot = value => JSON.stringify(['version', 'id', 'merchantId', 'periodFrom', 'periodTo', 'orderCount', 'grossRevenue', 'refundedAmount', 'netRevenue', 'commissionRate', 'commissionAmount', 'payoutAmount', 'status', 'paymentReference', 'paidAt'].map(key => value[key] ?? null))
-export const commissionSnapshot = value => JSON.stringify(['merchantId', 'paidOrderCount', 'grossRevenue', 'refundedAmount', 'netRevenue', 'commissionRate', 'commissionAmount', 'payoutAmount'].map(key => value[key] ?? null))
-export const refundSnapshot = value => JSON.stringify(['version', 'id', 'orderId', 'customerId', 'amount', 'reason', 'status', 'reviewNote', 'reviewedAt', 'refundReference', 'refundedAt'].map(key => value[key] ?? null))
+export const settlementSnapshot = value => JSON.stringify(['version', 'id', 'merchantId', 'periodFrom', 'periodTo', 'orderCount', 'grossRevenue', 'refundedAmount', 'netRevenue', 'commissionRate', 'commissionAmount', 'payoutAmount', 'pointsFunding', 'netCash', 'status', 'paymentReference', 'paidAt'].map(key => value[key] ?? null))
+export const commissionSnapshot = value => JSON.stringify(['merchantId', 'paidOrderCount', 'grossRevenue', 'refundedAmount', 'netRevenue', 'commissionRate', 'commissionAmount', 'payoutAmount', 'pointsFunding', 'platformCommissionAfterPoints'].map(key => value[key] ?? null))
+export const refundSnapshot = value => JSON.stringify(['version', 'id', 'orderId', 'customerId', 'amount', 'pointsAmount', 'rewardPointsReversed', 'isExcessPayment', 'originalPaymentTransactionId', 'reason', 'status', 'reviewNote', 'reviewedAt', 'refundReference', 'refundedAt'].map(key => value[key] ?? null))
 export const createSchema = yup.object({ merchantId: yup.string().required().test('id', 'invalid', isId), from: yup.string().required(), to: yup.string().required().test('range', 'invalid', function (value) {
   return validFinanceRange(this.parent.from, value) && value < vietnamToday()
 }) })

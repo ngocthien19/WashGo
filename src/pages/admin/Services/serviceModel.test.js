@@ -5,7 +5,7 @@ it('supports false availability and separates catalog approval from proposal sta
   expect(filter(readQuery(new URLSearchParams('tab=proposals&state=1&type=2')))).toMatchObject({ status: 1, requestType: 2 })
 })
 it('requires code and valid prices and preserves existing service ownership and availability', async () => {
-  const service = { id: 'one', merchantId: 'merchant', code: 'SVC1', name: 'Wash', unitPrice: 50000, isActive: false }
+  const service = { categoryId: 'ca000000-0000-4000-8000-000000000001', id: 'one', merchantId: 'merchant', code: 'SVC1', name: 'Wash', unitPrice: 50000, isActive: false }
   const value = defaults(service)
   expect(await serviceSchema.isValid(value)).toBe(true)
   expect(await serviceSchema.isValid({ ...value, code: '' })).toBe(false)

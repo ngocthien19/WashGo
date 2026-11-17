@@ -11,6 +11,13 @@ import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { formatLockerAddress, getLockerMapLink } from '~/utils/format/formats'
 import { LOCKER_SLOT_SIZES } from '~/utils/config/constants'
 
+const slotStyles = {
+  1: 'border-emerald-500/30 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300',
+  2: 'border-red-500/30 bg-red-500/5 text-red-700 dark:text-red-300',
+  3: 'border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-300',
+  4: 'border-slate-500/30 bg-slate-500/5 text-slate-600 dark:text-slate-300'
+}
+
 export default function LockerDetails({ id, onClose }) {
   const { t } = useTranslation()
   const load = useCallback((signal) => customerCatalogApi.getLocker(id, signal), [id])
@@ -110,28 +117,28 @@ export default function LockerDetails({ id, onClose }) {
                   />
                   {Array.isArray(locker.slots) ? t('catalogUi.compartments') : t('customer.availableCompartmentsTitle', { availableSlotCount: locker.availableSlotCount })}
                 </h4>
-                <div className="mt-3 grid grid-cols-2 gap-2 min-[480px]:grid-cols-3 sm:grid-cols-6">
+                <div className="mt-3 grid grid-cols-2 gap-3 min-[480px]:grid-cols-3 sm:grid-cols-4">
                   {lockerSlots(locker).map((slot) => (
                     <div
                       key={slot.id}
-                      className={`min-w-0 rounded-xl border p-2.5 ${slot.status === 1 ? 'border-emerald-500/20 bg-emerald-500/8' : 'border-border bg-muted/40'}`}
+                      className={`min-w-0 rounded-xl border p-3 ${slotStyles[slot.status] || 'border-border bg-muted/40 text-muted-foreground'}`}
                     >
                       <div className="mb-2 flex items-center justify-between gap-1">
                         <DoorOpen
-                          className="size-5 text-emerald-600 dark:text-emerald-400"
+                          className="size-5"
                           strokeWidth={1.5}
                         />
-                        <span className="grid size-4 shrink-0 place-items-center rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
+                        <span className="grid size-5 shrink-0 place-items-center rounded-full bg-current/10">
                           {slot.status === 1 ? <Check size={10} /> : <Info size={10} />}
                         </span>
                       </div>
                       <p className="break-words text-sm font-bold">
                         {t('customer.compartment', { slotNumber: slot.slotNumber })}
                       </p>
-                      <p className="mt-1 text-xs font-medium text-primary">
+                      <p className="mt-1 text-xs font-medium">
                         {t(`catalogUi.slotStatuses.${slot.status}`, { defaultValue: t('customer.orders.unknown') })}
                       </p>
-                      <p className="mt-1 break-words text-xs text-muted-foreground">
+                      <p className="mt-1 break-words text-xs opacity-80">
                         {t(LOCKER_SLOT_SIZES[slot.size] || 'customer.sizeNotSpecified')}
                       </p>
                     </div>

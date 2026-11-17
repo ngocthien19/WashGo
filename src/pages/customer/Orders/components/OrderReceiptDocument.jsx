@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { formatCurrency, formatDateTime } from '~/utils/format/formats'
+import { formatCurrency, formatDateTime, formatNumber } from '~/utils/format/formats'
 
 export default function OrderReceiptDocument({ order: receipt }) {
   const { t } = useTranslation()
@@ -91,6 +91,16 @@ export default function OrderReceiptDocument({ order: receipt }) {
             </dd>
           </div>
         ))}
+        {Number.isSafeInteger(receipt.redeemedPoints) && receipt.redeemedPoints > 0 && (
+          <div className="flex justify-between gap-4">
+            <dt>
+              {t('loyalty.redeemedPoints')}
+            </dt>
+            <dd className="font-bold">
+              {formatNumber(receipt.redeemedPoints)}
+            </dd>
+          </div>
+        )}
       </dl>
       <section className="grid gap-2 text-sm">
         <h3 className="font-bold">

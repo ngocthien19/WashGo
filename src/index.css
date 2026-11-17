@@ -217,6 +217,21 @@ label:has([data-slot="checkbox"][data-disabled]) {
   }
 }
 
+@keyframes deposit-expired-ring {
+  0%, 24%, 100% { transform: rotate(0deg); }
+  4%, 12%, 20% { transform: rotate(-14deg); }
+  8%, 16% { transform: rotate(14deg); }
+}
+
+.deposit-expired-clock {
+  transform-origin: 50% 20%;
+  animation: deposit-expired-ring 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deposit-expired-clock { animation: none; }
+}
+
 .dark {
   --background: #1c1c1f;
   --foreground: #f1f1f3;
@@ -250,4 +265,59 @@ label:has([data-slot="checkbox"][data-disabled]) {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Dialogs share one bounded layout; form footers stay inside their native form. */
+[data-dialog-fixed] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+[data-dialog-fixed] [data-dialog-layout] {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+}
+[data-dialog-fixed] [data-dialog-layout] > * { margin-block: 0; }
+[data-dialog-fixed] [data-dialog-header] {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 1.25rem 1.5rem;
+  padding-right: 3.5rem;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--card);
+}
+[data-dialog-fixed] [data-dialog-body] {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.5rem;
+}
+[data-dialog-fixed] [data-dialog-body] > * + * { margin-top: 1.25rem; }
+[data-dialog-fixed] [data-dialog-footer] {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background-color: var(--card);
+}
+@media (min-width: 640px) {
+  [data-dialog-fixed] [data-dialog-header],
+  [data-dialog-fixed] [data-dialog-body],
+  [data-dialog-fixed] [data-dialog-footer] { padding-inline: 2rem; }
+  [data-dialog-fixed] [data-dialog-header] { padding-right: 3.5rem; }
+}
+
+[data-dialog-fixed] [data-dialog-header] > h2 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }

@@ -1,3 +1,4 @@
+import { expectFixedDialog } from '../helpers/dialogLayout'
 import { test, expect } from '@playwright/test'
 import { merchantSession } from '../helpers/merchantSession'
 
@@ -36,7 +37,7 @@ test('service tabs navigate and the detail modal displays returned photos', asyn
 async function setup(page, options = {}) {
   await merchantSession(page, options)
 
-  const service = { id, version: 'version-1', canProposeUpdate: true, hasPendingProposal: false, code: 'SVC-TEST', name: 'Everyday service', description: 'Care for everyday clothes', imageUrls: options.images ? ['/uploads/mock/service.svg'] : [], unitPrice: 50000, pricePerKg: 15000, pricePerItem: null, serviceType: 1, unit: 'kg', estimatedDurationHours: 24, isActive: true, approvalStatus: 2 }
+  const service = { id, categoryId: 'ca000000-0000-0000-0000-000000000001', categoryName: 'Standard wash', categoryIsActive: true, effectiveIsActive: true, version: 'version-1', canProposeUpdate: true, hasPendingProposal: false, code: 'SVC-TEST', name: 'Everyday service', description: 'Care for everyday clothes', imageUrls: options.images ? ['/uploads/mock/service.svg'] : [], unitPrice: 50000, pricePerKg: 15000, pricePerItem: null, serviceType: 1, unit: 'kg', estimatedDurationHours: 24, isActive: true, approvalStatus: 2 }
   const state = { service, lists: [], writes: [], failWrite: false, failRead: false, summaryError: false, summaryCalls: 0, conflict: false, proposal: { id: proposalId, serviceId: id, requestType: 2, status: 3, proposed: { ...service, name: 'Revised service', unitPrice: 60000, imageUrls: [] }, current: { ...service, imageUrls: [] }, rejectionReason: 'Please revise the price', reason: 'Customer request', createdAt: '2026-11-07T01:00:00Z' } }
   await page.route('**/api/**', async (route) => {
     const req = route.request()
@@ -48,6 +49,9 @@ async function setup(page, options = {}) {
     const fail = () => route.fulfill({ status: 500, json: { succeeded: false, message: 'merchant.invalidResponse' } })
     expect(path.startsWith('/wash-service')).toBe(false)
     expect(path.startsWith('/customer/services')).toBe(false)
+    if (path === '/merchant/service-categories') {
+      return route.fulfill({ json: { succeeded: true, list: [{ id: 'ca000000-0000-0000-0000-000000000001', code: 'WASH', name: 'Standard wash', isActive: true }, { id: 'ca000000-0000-0000-0000-000000000006', code: 'SPECIAL', name: 'Special care', isActive: true }], total: 2, currentPage: 1, totalPages: 1 } })
+    }
     if (path === '/auth/me') {
       return ok({ id: 'merchant-test', role: 'Merchant', fullName: 'Store Owner' })
     }
@@ -109,6 +113,8 @@ async function action(page, name, item = 'Everyday service') {
 async function newDraft(page) {
   await page.getByRole('button', { name: 'Propose new service', exact: true }).click()
   const dialog = page.getByRole('dialog')
+  await dialog.getByRole('combobox', { name: 'Category', exact: true }).click()
+  await page.getByRole('option', { name: 'Special care', exact: true }).click()
   await dialog.getByLabel('Service name', { exact: false }).fill('New service')
   await dialog.getByLabel('Base price (VND)', { exact: false }).fill('60000')
   return dialog
@@ -139,6 +145,8 @@ test('new proposal validates, uploads photos and stays pending without changing 
   await dialog.getByRole('button', { name: 'Submit proposal' }).click()
   await expect(dialog.getByText('Enter a service name, up to 200 characters.')).toBeVisible()
   expect(state.writes).toHaveLength(0)
+  await dialog.getByRole('combobox', { name: 'Category', exact: true }).click()
+  await page.getByRole('option', { name: 'Special care', exact: true }).click()
   await dialog.getByLabel('Service name', { exact: false }).fill('New service')
   await dialog.getByLabel('Base price (VND)', { exact: false }).fill('60000')
   await dialog.getByLabel('Proposal reason', { exact: true }).fill('New customer need')
@@ -159,13 +167,13 @@ test('update proposals keep unit/category and show the before/after snapshot', a
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByLabel('Unit', { exact: false }).first()).toHaveValue('kg')
   await expect(dialog.getByLabel('Unit', { exact: false }).first()).toHaveAttribute('readonly', '')
-  await expect(dialog.getByRole('combobox', { name: 'Category', exact: true })).toBeDisabled()
+  await expect(dialog.getByRole('combobox', { name: 'Processing type', exact: true })).toBeDisabled()
   await dialog.getByLabel('Base price (VND)', { exact: false }).fill('65000')
   await dialog.getByRole('button', { name: 'Submit proposal' }).click()
   await expect(page.getByRole('tab', { name: 'My proposals', exact: true })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('table')).toContainText('Everyday service')
   expect(state.writes).toHaveLength(1)
-  expect(state.writes[0]).toMatchObject({ path: `/merchant-service/${id}/proposals`, body: { unitPrice: 65000, unit: 'kg', serviceType: 1, imageUrls: null, expectedVersion: 'version-1', clientRequestId: expect.any(String) } })
+  expect(state.writes[0]).toMatchObject({ path: `/merchant-service/${id}/proposals`, body: { categoryId: 'ca000000-0000-0000-0000-000000000001', unitPrice: 65000, unit: 'kg', serviceType: 1, imageUrls: null, expectedVersion: 'version-1', clientRequestId: expect.any(String) } })
   expect(state.service.unitPrice).toBe(50000)
   await action(page, 'Proposal details')
   await expect(page.getByRole('heading', { name: 'Snapshot when submitted' })).toBeVisible()
@@ -301,4 +309,21 @@ test('summary failure has its own retry without using page totals', async ({ pag
   state.summaryError = false
   await summary.getByRole('button', { name: 'Try again' }).click()
   await expect(summary.getByRole('heading', { name: 'Shared services', exact: true })).toBeVisible()
+})
+
+
+test('workspace Merchant service name opens details with a fixed header and footer', async ({ page }) => {
+  await setup(page, { images: true, dark: true })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.setViewportSize({ width: 390, height: 650 })
+  await page.goto('/merchant/services')
+  await expect(page.locator('main h1')).toHaveCSS('font-size', '30px')
+  await expect(page.locator('main h1 + p')).toHaveCSS('font-size', '16px')
+  await page.getByRole('button', { name: 'Everyday service', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('button', { name: 'Close', exact: true }).last()).toBeVisible()
+  await expectFixedDialog(dialog)
+  if (process.env.WORKSPACE_QA) {
+    await page.screenshot({ path: 'test-results/workspace-merchant-dialog.png' })
+  }
 })

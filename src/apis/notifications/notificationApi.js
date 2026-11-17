@@ -17,6 +17,13 @@ const count = (value) => {
   return value
 }
 export const notificationApi = {
+  deliverySummary: signal => authorizedAxios.get(`${endpoint}/outbox/summary`, { signal }).then(unwrap).then(value => {
+    if (!value || !['pending', 'sending', 'deadLetter'].every(key => Number.isInteger(value[key]) && value[key] >= 0)
+      || !Number.isFinite(Date.parse(value.serverNow)) || value.oldestPendingAt != null && !Number.isFinite(Date.parse(value.oldestPendingAt))) {
+      throw invalid()
+    }
+    return value
+  }),
   filter: async (filter, signal) => {
     const body = Object.fromEntries(['keyword', 'groups', 'types', 'unreadOnly', 'fromDate', 'toDate', 'sort', 'page', 'take'].filter((key) => filter[key] !== undefined).map((key) => [key, filter[key]]))
     const { data } = await authorizedAxios.post(`${endpoint}/filter`, { ...body, take: filter.take === 1 ? 1 : NOTIFICATION_CONFIG.PAGE_SIZE }, { signal })

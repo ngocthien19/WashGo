@@ -71,11 +71,11 @@ export default function PromotionsPage() {
     <Reveal className="mx-auto max-w-[1600px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <Tags className="text-primary" />
             {t('admin.nav.promotions')}
           </h1>
-          <p className="mt-2 text-base text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {t('admin.promotions.description')}
           </p>
         </div>
@@ -248,7 +248,7 @@ export default function PromotionsPage() {
                     <TableCell className="min-w-64">
                       <button
                         onClick={() => setModal({ kind: 'detail', id: row.id })}
-                        className="rounded-lg bg-primary/10 px-3 py-2 font-semibold text-primary hover:bg-primary/20"
+                        className="cursor-pointer font-semibold text-primary underline-offset-4 hover:underline"
                       >
                         {row.code}
                       </button>

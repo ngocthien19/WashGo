@@ -17,6 +17,9 @@ async function setup(page, denied = false) {
     if (path === '/policy/current' || path === '/policy/customer') {
       return ok(policy)
     }
+    if (path === '/customer/service-categories') {
+      return paged([{ id: 'ca000000-0000-0000-0000-000000000006', code: 'SPECIAL', name: 'Special care', isActive: true }])
+    }
     if (path === '/auth/me') {
       return ok(user)
     }
@@ -59,8 +62,8 @@ test('guests land on Home and can search, filter and read catalog without privat
   await expect(page.locator('main').getByRole('button', { name: 'Register', exact: true })).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'What customers say about WashGo', exact: true })).toBeVisible()
   await page.goto('/services')
-  await page.getByRole('checkbox', { name: 'Standard wash', exact: true }).click()
-  await expect(page).toHaveURL(/serviceType=1/)
+  await page.getByRole('checkbox', { name: 'Special care', exact: true }).click()
+  await expect(page).toHaveURL(/categoryId=ca000000-0000-0000-0000-000000000006/)
   const search = page.getByRole('combobox').first()
   await search.fill('GUEST')
   await expect(page.getByRole('option', { name: /Guest laundry/ })).toBeVisible()
@@ -200,6 +203,22 @@ test('Home layers readable content over its image and services are visible befor
   }
 })
 
+test('standalone locker map and list remain usable after sliding in and fit mobile', async ({ page }) => {
+  await setup(page)
+  await page.route(/\/api\/customer\/lockers(?:\?|$)/, route => route.fulfill({ json: {
+    succeeded: true, currentPage: 1, totalPages: 1, total: 1,
+    list: [{ ...locker, latitude: 10.7769, longitude: 106.7009 }]
+  } }))
+  await page.route('https://tile.openstreetmap.de/**', route => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" />' }))
+  await page.goto('/lockers')
+  const select = page.getByRole('button', { name: 'Show on map', exact: true })
+  await select.click()
+  await expect(select).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('region', { name: 'Locker location map', exact: true })).toBeVisible()
+  await page.setViewportSize({ width: 375, height: 900 })
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
+
 test('Home locker map and list remain usable after their slide-in animation', async ({ page }) => {
   await setup(page)
   await page.route(/\/api\/customer\/lockers(?:\?|$)/, route => route.fulfill({ json: {
@@ -247,6 +266,9 @@ test('service cards stay compact with square images and usable actions on narrow
         expect(first.y).toBeCloseTo(second.y, 0)
       }
       for (const card of await cards.all()) {
+        await expect(card.locator('h3')).toHaveCSS('white-space', 'nowrap')
+        await expect(card.locator('h3')).toHaveCSS('text-overflow', 'ellipsis')
+        await expect(card.getByText(catalog[0].description, { exact: true })).toHaveCSS('-webkit-line-clamp', '2')
         const image = await card.locator('.aspect-square').boundingBox()
         expect(Math.abs(image.width - image.height)).toBeLessThan(1)
         const action = await card.getByRole('button').boundingBox()

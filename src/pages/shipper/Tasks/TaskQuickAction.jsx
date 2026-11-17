@@ -35,18 +35,21 @@ export default function TaskQuickAction({ row, profile, onClose, onSaved, onUnkn
         className="[&_button]:text-base"
         ready={!resource.loading && !profile.loading}
         closeLabel="common.close"
+        data-dialog-fixed
       >
         <DialogHeader>
           <DialogTitle className="pr-8 text-xl font-bold">
             {t(taskActionLabel(row.assignedTaskType))}
           </DialogTitle>
         </DialogHeader>
-        <ResourceFeedback
-          error={resource.error || profile.error || 'shipper.tasks.changed'}
-          retry={() => {
-            resource.retry(); profile.retry()
-          }}
-        />
+        <div data-dialog-body>
+          <ResourceFeedback
+            error={resource.error || profile.error || 'shipper.tasks.changed'}
+            retry={() => {
+              resource.retry(); profile.retry()
+            }}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   )

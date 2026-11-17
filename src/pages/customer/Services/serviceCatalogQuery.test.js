@@ -45,3 +45,13 @@ describe('service catalog query', () => {
     }
   })
 })
+
+
+it('round-trips dynamic UUID categories without interpreting them as processing types', () => {
+  const id = 'ca000000-0000-0000-0000-000000000006'
+  const query = readServiceQuery(new URLSearchParams(`categoryId=${id}&categoryId=${id}&categoryId=6`))
+  expect(query.categoryIds).toEqual([id])
+  expect(buildServiceFilter(query).categoryIds).toEqual([id])
+  expect(buildServiceFilter(query).serviceTypes).toEqual([])
+  expect(readServiceQuery(writeServiceQuery(query))).toEqual(query)
+})

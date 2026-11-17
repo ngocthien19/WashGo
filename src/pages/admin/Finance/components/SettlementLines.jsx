@@ -40,6 +40,7 @@ export default function SettlementLines({ id, initial }) {
                 </Link>
               ) },
               ...['collected', 'refunded', 'commission', 'payout'].map(key => ({ key, label: { collected: 'admin.finance.fields.grossRevenue', refunded: 'admin.finance.fields.refundedAmount', commission: 'admin.finance.fields.commissionAmount', payout: 'admin.finance.fields.payoutAmount' }[key], render: row => row[key] == null ? '—' : formatCurrency(row[key]) })),
+              ...['pointsFunding', 'netCash'].map(key => ({ key, label: `loyalty.${key}`, render: row => Number.isFinite(row[key]) ? formatCurrency(row[key]) : '—' })),
               { key: 'rate', label: 'merchant.orderView.commissionRate', render: row => row.commissionRate == null ? '—' : `${formatNumber(row.commissionRate)}%` }
             ]}
           />

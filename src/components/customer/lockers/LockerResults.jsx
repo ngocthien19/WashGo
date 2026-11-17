@@ -68,7 +68,7 @@ export default function LockerResults({ lockers, position, animate = false }) {
                       />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
-                          <h3 className="min-w-0 flex-1 line-clamp-2 font-semibold [overflow-wrap:anywhere]">
+                          <h3 className="text-base min-w-0 flex-1 line-clamp-2 font-semibold [overflow-wrap:anywhere]">
                             {locker.name}
                           </h3>
                           {distance && (

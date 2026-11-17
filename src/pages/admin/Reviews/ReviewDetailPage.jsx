@@ -50,11 +50,11 @@ function ReviewPage({ id }) {
             <ArrowLeft />
             {t('admin.reviews.back')}
           </Button>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <Star className="text-primary" />
             {t('admin.reviews.detail')}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-[16px]">
             {t('admin.reviews.detailHint')}
           </p>
         </div>

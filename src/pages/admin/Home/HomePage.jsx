@@ -94,10 +94,10 @@ export default function HomePage() {
           <p className="mb-1 text-sm font-semibold text-primary">
             {t('admin.workspace')}
           </p>
-          <h1 className="text-3xl font-bold">
+          <h1 className="font-bold text-[30px]">
             {t('admin.overview')}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {from}
             {' '}
             —

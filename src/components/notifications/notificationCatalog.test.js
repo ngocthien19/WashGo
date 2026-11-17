@@ -18,7 +18,7 @@ it('Admin service and Merchant profile navigation filters types without sending 
   const types = notificationTypesFor('Admin'), categories = NOTIFICATION_CATEGORIES.Admin
   expect(notificationFilters(new URLSearchParams('group=services'), types, categories)).toMatchObject({ groups: undefined, types: [46] })
   expect(notificationFilters(new URLSearchParams('group=merchant'), types, categories)).toMatchObject({ groups: undefined, types: [47] })
-  expect(notificationFilters(new URLSearchParams('group=order'), types, categories)).toMatchObject({ groups: undefined, types: [22, 23, 43, 44, 45] })
+  expect(notificationFilters(new URLSearchParams('group=order'), types, categories)).toMatchObject({ groups: undefined, types: [1, 6, 10, 15, 16, 22, 23, 43, 44, 45, 50] })
 })
 it('a stale type from another category cannot accidentally empty the new navigation', () => {
   const filters = notificationFilters(new URLSearchParams('group=refunds&type=46'), notificationTypesFor('Admin'), NOTIFICATION_CATEGORIES.Admin)

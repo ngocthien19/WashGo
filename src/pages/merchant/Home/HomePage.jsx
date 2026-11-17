@@ -44,10 +44,10 @@ export default function HomePage() {
     <Reveal className="mx-auto max-w-[1440px] space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="font-bold tracking-tight text-foreground text-[30px]">
             {t('merchant.overview')}
           </h1>
-          <p className="mt-2 text-base text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {profile.data?.businessName || t('merchant.welcome')}
           </p>
         </div>

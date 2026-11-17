@@ -1,3 +1,4 @@
+import RecordLink from '~/components/RecordLink'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -110,11 +111,11 @@ export default function MerchantsPage() {
     <Reveal className="mx-auto max-w-[1600px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <Store className="text-primary" />
             {t('admin.nav.merchants')}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {t('admin.merchants.description')}
           </p>
         </div>
@@ -322,9 +323,12 @@ export default function MerchantsPage() {
                               icon={Store}
                             />
                             <div className="min-w-0">
-                              <p className="break-words text-base font-bold">
+                              <RecordLink
+                                className="break-words text-base font-bold"
+                                onClick={() => setDialog({ kind: 'detail', id: row.id })}
+                              >
                                 {row.businessName}
-                              </p>
+                              </RecordLink>
                               <p className="mt-1 text-sm text-muted-foreground">
                                 {row.phone}
                               </p>
@@ -355,7 +359,9 @@ export default function MerchantsPage() {
                     ) : (
                       <>
                         <TableCell className="max-w-72 whitespace-normal px-5 py-5 font-bold">
-                          {row.merchantName}
+                          <RecordLink onClick={() => setDialog({ kind: 'request', id: row.id })}>
+                            {row.merchantName}
+                          </RecordLink>
                         </TableCell>
                         <TableCell className="px-5 py-5 text-sm text-muted-foreground">
                           {formatDateTime(row.createdAt)}

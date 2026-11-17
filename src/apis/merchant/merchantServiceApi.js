@@ -12,7 +12,7 @@ const validProposal = (item) => item?.id && [1, 2, 3].includes(item.status) && i
 const validService = (item) => item?.id && item.code && typeof item.name === 'string' && typeof item.isActive === 'boolean'
 export const merchantServiceApi = {
   catalog: async (filter, signal) => {
-    const body = pick(filter, ['keyword', 'serviceType', 'isActive', 'page', 'take', 'sortBy'])
+    const body = pick(filter, ['keyword', 'serviceType', 'categoryIds', 'isActive', 'page', 'take', 'sortBy'])
     const { data } = await authorizedAxios.post('/merchant-service/filter', body, { signal })
     return pageResult(data, filter.page, filter.take, validService)
   },
@@ -48,7 +48,7 @@ export const merchantServiceApi = {
       throw new Error('merchant.services.changed')
     }
     const path = serviceId ? `/merchant-service/${encodeURIComponent(serviceId)}/proposals` : '/merchant-service/proposals'
-    const { data } = await authorizedAxios.post(path, pick(value, ['name', 'description', 'unitPrice', 'pricePerKg', 'pricePerItem', 'estimatedDurationHours', 'serviceType', 'unit', 'imageUrls', 'reason', 'expectedVersion', 'clientRequestId']))
+    const { data } = await authorizedAxios.post(path, pick(value, ['name', 'description', 'unitPrice', 'pricePerKg', 'pricePerItem', 'estimatedDurationHours', 'serviceType', 'categoryId', 'unit', 'imageUrls', 'reason', 'expectedVersion', 'clientRequestId']))
     if (data?.succeeded !== true || !validProposal(data.data) || data.data.requestType !== (serviceId ? 2 : 1) || data.data.status !== 1 && data.meta?.replayed !== true || serviceId && data.data.serviceId !== serviceId) {
       const error = invalid()
       error.uncertain = true

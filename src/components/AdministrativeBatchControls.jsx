@@ -57,7 +57,10 @@ export default function AdministrativeBatchControls({ module, path, command, lab
       <FormError>
         {error}
       </FormError>
-      <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
+      <footer
+        data-dialog-footer
+        className="flex flex-wrap justify-end gap-3 border-t border-border pt-4"
+      >
         <Button
           variant="secondary"
           disabled={busy}

@@ -37,17 +37,15 @@ export default function ServiceGrid({ services, className, featured = false, sli
                 className="aspect-square h-auto w-full rounded-xl"
               />
               <span className="absolute left-1.5 top-1.5 max-w-[calc(100%-0.75rem)] truncate rounded-full border border-border/60 bg-card/95 px-2 py-1 text-[11px] font-medium text-foreground shadow-sm sm:left-2 sm:top-2 sm:text-xs">
-                {t(SERVICE_TYPES.find((type) => type.value === String(service.serviceType))?.label || 'customer.laundry')}
+                {service.categoryName || t(SERVICE_TYPES.find((type) => type.value === String(service.serviceType))?.label || 'customer.laundry')}
               </span>
             </div>
-            <h3 className="line-clamp-2 break-words text-sm font-bold leading-5 [overflow-wrap:anywhere] sm:text-base sm:leading-6">
+            <h3 className="truncate text-sm font-bold leading-5 sm:text-base sm:leading-6">
               {service.name}
             </h3>
-            {service.description && (
-              <p className="mt-1 hidden break-words text-sm leading-5 text-muted-foreground [overflow-wrap:anywhere] sm:line-clamp-1">
-                {service.description}
-              </p>
-            )}
+            <p className="mt-1 min-h-10 line-clamp-2 break-words text-sm leading-5 text-muted-foreground [overflow-wrap:anywhere]">
+              {service.description}
+            </p>
             <p className="mt-2 flex items-start gap-1 text-xs leading-4 text-muted-foreground">
               <Clock3
                 size={13}

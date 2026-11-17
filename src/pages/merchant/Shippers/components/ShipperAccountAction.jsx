@@ -66,6 +66,7 @@ export default function ShipperAccountAction({ action, shippers, bulk, onClose }
       <DialogContent
         closeLabel="common.close"
         className="max-w-lg"
+        data-dialog-fixed
       >
         <DialogHeader tone={action === 'delete' ? 'danger' : action === 'unlock' ? 'success' : 'warning'}>
           <DialogTitle className="flex items-center gap-3 pr-8 text-xl font-bold">
@@ -86,32 +87,38 @@ export default function ShipperAccountAction({ action, shippers, bulk, onClose }
         <form
           onSubmit={submit}
           className="mt-5 space-y-4"
+          data-dialog-layout
         >
-          <label className="flex flex-col gap-3 text-base font-semibold">
-            <span>
-              {t('merchant.shipperSync.reason')}
-              {action !== 'unlock' && <span className="ml-1 text-destructive">*</span>}
-            </span>
-            <textarea
-              rows={3}
-              maxLength={500}
-              required={action !== 'unlock'}
-              disabled={pending || unknown}
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              placeholder={t('merchant.shipperSync.reasonPlaceholder')}
-              className="w-full rounded-xl border border-input bg-background p-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            />
-          </label>
-          {error && (
-            <p
-              role="alert"
-              className="text-sm text-destructive"
-            >
-              {resolveMessage(error)}
-            </p>
-          )}
-          <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+          <div data-dialog-body>
+            <label className="flex flex-col gap-3 text-base font-semibold">
+              <span>
+                {t('merchant.shipperSync.reason')}
+                {action !== 'unlock' && <span className="ml-1 text-destructive">*</span>}
+              </span>
+              <textarea
+                rows={3}
+                maxLength={500}
+                required={action !== 'unlock'}
+                disabled={pending || unknown}
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                placeholder={t('merchant.shipperSync.reasonPlaceholder')}
+                className="w-full rounded-xl border border-input bg-background p-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              />
+            </label>
+            {error && (
+              <p
+                role="alert"
+                className="text-sm text-destructive"
+              >
+                {resolveMessage(error)}
+              </p>
+            )}
+          </div>
+          <div
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+            data-dialog-footer
+          >
             <Button
               type="button"
               variant="secondary"

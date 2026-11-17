@@ -1,3 +1,5 @@
+import RecordLink from '~/components/RecordLink'
+import CategorySelect from '~/components/categories/CategorySelect'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -52,11 +54,11 @@ export default function ServicesPage() {
     <Reveal className="mx-auto max-w-[1600px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <Shirt className="text-primary" />
             {t('merchant.nav.services')}
           </h1>
-          <p className="mt-2 text-base text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {t('merchant.services.sharedHint')}
           </p>
         </div>
@@ -107,6 +109,17 @@ export default function ServicesPage() {
           value={query.tab}
           className="grid gap-6 outline-none"
         >
+          {catalog && (
+            <div className="workspace-filters rounded-xl border border-border bg-card p-4">
+              <CategorySelect
+                role="Merchant"
+                filter
+                includeInactive={false}
+                value={query.categoryId}
+                onChange={categoryId => update({ categoryId })}
+              />
+            </div>
+          )}
           <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
             <div className="grid gap-2">
               <p className="text-sm text-muted-foreground">
@@ -129,11 +142,11 @@ export default function ServicesPage() {
                 htmlFor="service-type-filter"
                 className="text-sm text-muted-foreground"
               >
-                {t(catalog ? 'merchant.services.category' : 'merchant.services.requestType')}
+                {t(catalog ? 'categories.processingType' : 'merchant.services.requestType')}
               </label>
               <SelectField
                 id="service-type-filter"
-                label={t(catalog ? 'merchant.services.category' : 'merchant.services.requestType')}
+                label={t(catalog ? 'categories.processingType' : 'merchant.services.requestType')}
                 value={query.type}
                 onValueChange={(type) => update({ type })}
                 options={[{ value: '', label: t('common.all') }, ...(catalog ? SERVICE_TYPES.filter((item) => item.value).map((item) => ({ value: item.value, label: t(item.label) })) : [1, 2].map((value) => ({ value: String(value), label: t(`merchant.services.requestTypes.${value}`) })))]}
@@ -230,9 +243,12 @@ export default function ServicesPage() {
                                 icon={Shirt}
                               />
                               <div className="min-w-0">
-                                <p className="font-bold">
+                                <RecordLink
+                                  className="font-bold"
+                                  onClick={() => setSelected({ kind: catalog ? 'service' : 'proposal', id: row.id, code: row.code })}
+                                >
                                   {service.name}
-                                </p>
+                                </RecordLink>
                                 {catalog && (
                                   <div className="mt-1 grid gap-1">
                                     <p className="text-sm text-muted-foreground">
@@ -254,7 +270,7 @@ export default function ServicesPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {catalog ? categoryLabel(row.serviceType) : t(`merchant.services.requestTypes.${row.requestType}`, { defaultValue: '—' })}
+                            {catalog ? row.categoryName || categoryLabel(row.serviceType) : t(`merchant.services.requestTypes.${row.requestType}`, { defaultValue: '—' })}
                           </TableCell>
                           <TableCell className="whitespace-nowrap font-semibold text-primary">
                             {formatCurrency(service.unitPrice)}
@@ -268,8 +284,13 @@ export default function ServicesPage() {
                             </TableCell>
                           )}
                           <TableCell>
-                            <span className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold ${catalog ? row.isActive ? approvalClass(2) : 'bg-muted text-muted-foreground' : approvalClass(row.status)}`}>
-                              {t(`merchant.services.${catalog ? 'activity' : 'approval'}.${catalog ? row.isActive : row.status}`)}
+                            <span className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold ${catalog ? (row.effectiveIsActive ?? row.isActive) ? approvalClass(2) : 'bg-muted text-muted-foreground' : approvalClass(row.status)}`}>
+                              {t(`merchant.services.${catalog ? 'activity' : 'approval'}.${catalog ? (row.effectiveIsActive ?? row.isActive) : row.status}`)}
+                              {row.categoryIsActive === false && (
+                                <span className="ml-2 text-xs">
+                                  {t('categories.categoryBlocked')}
+                                </span>
+                              )}
                             </span>
                           </TableCell>
                           <TableCell>

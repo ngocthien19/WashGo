@@ -203,6 +203,7 @@ export default function PromotionDialog({ id, kind, onClose, onSaved }) {
         ready={!resource.loading}
         className={detail ? 'max-w-5xl' : 'max-w-xl'}
         closeLabel="common.close"
+        data-dialog-fixed
       >
         <DialogHeader tone={kind === 'delete' ? 'danger' : detail ? 'info' : value?.isActive ? 'warning' : 'success'}>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -213,86 +214,91 @@ export default function PromotionDialog({ id, kind, onClose, onSaved }) {
             {t(detail ? 'admin.promotions.detailHint' : kind === 'delete' ? 'admin.promotions.deleteHint' : 'admin.promotions.statusHint')}
           </DialogDescription>
         </DialogHeader>
-        {!value ? (
-          <ResourceFeedback
-            {...resource}
-            loadingText="merchant.loading"
-          />
-        ) : (
-          <div className="mt-5 space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border p-4">
-              <div>
-                <p className="text-xl font-semibold text-primary">
-                  {value.code}
-                </p>
-                <p className="mt-2 max-w-xl whitespace-pre-wrap break-words text-sm text-muted-foreground">
-                  {value.description || '—'}
-                </p>
-              </div>
-              <span className={`rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(value.status)}`}>
-                {t(`admin.promotions.statuses.${value.status}`)}
-              </span>
-            </div>
-            {detail ? (
-              <DetailTabs
-                label={t('admin.promotions.detail')}
-                tabs={[{ value: 'conditions', label: t('admin.promotions.conditions') }, { value: 'statistics', label: t('admin.promotions.statistics') }, { value: 'usages', label: t('admin.sync.promotionUsages') }]}
-                value={tab}
-                onChange={setTab}
-              >
-                {tab === 'conditions' && (
-                  <section className="rounded-2xl border border-border p-5">
-                    <h2 className="-mx-5 -mt-5 mb-5 flex items-center gap-3 rounded-t-2xl border-b border-primary/15 bg-primary/5 p-5 text-lg font-semibold">
-                      <ClipboardCheck className="size-5 text-primary" />
-                      {t('admin.promotions.conditions')}
-                    </h2>
-                    <dl className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                      {[
-                        ['discountType', t(`admin.promotions.types.${value.discountType}`)], ['discountValue', value.discountType === 1 ? `${formatNumber(value.discountValue)}%` : formatCurrency(value.discountValue)], ['minOrderAmount', formatCurrency(value.minOrderAmount)], ['maxDiscountAmount', value.maxDiscountAmount == null ? t('admin.promotions.unlimited') : formatCurrency(value.maxDiscountAmount)], ['startAt', formatPromotionTime(value.startAt)], ['endAt', formatPromotionTime(value.endAt)], ['usageLimit', value.usageLimit ?? t('admin.promotions.unlimited')], ['usageLimitPerCustomer', value.usageLimitPerCustomer ?? t('admin.promotions.unlimited')], ['usedCount', formatNumber(value.usedCount)]
-                      ].map(([key, text]) => (
-                        <div key={key}>
-                          <dt className="text-base text-muted-foreground">
-                            {t(`admin.promotions.fields.${key}`)}
-                          </dt>
-                          <dd className="mt-2 text-base font-semibold">
-                            {text}
-                          </dd>
-                        </div>
-                      ))}
-                    </dl>
-                  </section>
-                )}
-                {tab === 'statistics' && <PromotionStatistics id={id} />}
-                {tab === 'usages' && <PromotionUsages id={id} />}
-              </DetailTabs>
-            ) : (
-              <>
-                {kind === 'delete' && (value.canDelete === false || value.usedCount > 0) && (
-                  <p className="text-sm text-destructive">
-                    {t('admin.promotions.usedRule')}
+        <div data-dialog-body>
+          {!value ? (
+            <ResourceFeedback
+              {...resource}
+              loadingText="merchant.loading"
+            />
+          ) : (
+            <div className="mt-5 space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border p-4">
+                <div>
+                  <p className="text-xl font-semibold text-primary">
+                    {value.code}
                   </p>
-                )}
-                <label className="flex items-center gap-3 text-base">
-                  <Checkbox
-                    checked={confirmed}
-                    onCheckedChange={setConfirmed}
-                    disabled={pending || blocked || kind === 'delete' && (value.canDelete === false || value.usedCount > 0)}
-                  />
-                  {t('admin.promotions.confirmHint')}
-                </label>
-              </>
-            )}
-            {error && (
-              <p
-                role="alert"
-                className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
-              >
-                {t(error)}
-              </p>
-            )}
-          </div>
-        )}
-        <footer className="mt-5 flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+                  <p className="mt-2 max-w-xl whitespace-pre-wrap break-words text-sm text-muted-foreground">
+                    {value.description || '—'}
+                  </p>
+                </div>
+                <span className={`rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(value.status)}`}>
+                  {t(`admin.promotions.statuses.${value.status}`)}
+                </span>
+              </div>
+              {detail ? (
+                <DetailTabs
+                  label={t('admin.promotions.detail')}
+                  tabs={[{ value: 'conditions', label: t('admin.promotions.conditions') }, { value: 'statistics', label: t('admin.promotions.statistics') }, { value: 'usages', label: t('admin.sync.promotionUsages') }]}
+                  value={tab}
+                  onChange={setTab}
+                >
+                  {tab === 'conditions' && (
+                    <section className="rounded-2xl border border-border p-5">
+                      <h2 className="-mx-5 -mt-5 mb-5 flex items-center gap-3 rounded-t-2xl border-b border-primary/15 bg-primary/5 p-5 text-lg font-semibold">
+                        <ClipboardCheck className="size-5 text-primary" />
+                        {t('admin.promotions.conditions')}
+                      </h2>
+                      <dl className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        {[
+                          ['discountType', t(`admin.promotions.types.${value.discountType}`)], ['discountValue', value.discountType === 1 ? `${formatNumber(value.discountValue)}%` : formatCurrency(value.discountValue)], ['minOrderAmount', formatCurrency(value.minOrderAmount)], ['maxDiscountAmount', value.maxDiscountAmount == null ? t('admin.promotions.unlimited') : formatCurrency(value.maxDiscountAmount)], ['startAt', formatPromotionTime(value.startAt)], ['endAt', formatPromotionTime(value.endAt)], ['usageLimit', value.usageLimit ?? t('admin.promotions.unlimited')], ['usageLimitPerCustomer', value.usageLimitPerCustomer ?? t('admin.promotions.unlimited')], ['usedCount', formatNumber(value.usedCount)]
+                        ].map(([key, text]) => (
+                          <div key={key}>
+                            <dt className="text-base text-muted-foreground">
+                              {t(`admin.promotions.fields.${key}`)}
+                            </dt>
+                            <dd className="mt-2 text-base font-semibold">
+                              {text}
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </section>
+                  )}
+                  {tab === 'statistics' && <PromotionStatistics id={id} />}
+                  {tab === 'usages' && <PromotionUsages id={id} />}
+                </DetailTabs>
+              ) : (
+                <>
+                  {kind === 'delete' && (value.canDelete === false || value.usedCount > 0) && (
+                    <p className="text-sm text-destructive">
+                      {t('admin.promotions.usedRule')}
+                    </p>
+                  )}
+                  <label className="flex items-center gap-3 text-base">
+                    <Checkbox
+                      checked={confirmed}
+                      onCheckedChange={setConfirmed}
+                      disabled={pending || blocked || kind === 'delete' && (value.canDelete === false || value.usedCount > 0)}
+                    />
+                    {t('admin.promotions.confirmHint')}
+                  </label>
+                </>
+              )}
+              {error && (
+                <p
+                  role="alert"
+                  className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
+                >
+                  {t(error)}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+        <footer
+          className="mt-5 flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+          data-dialog-footer
+        >
           <Button
             variant="secondary"
             onClick={onClose}

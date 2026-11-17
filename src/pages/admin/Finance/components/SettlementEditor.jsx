@@ -68,6 +68,7 @@ export default function SettlementEditor({ merchants, defaultMerchant, onClose, 
       <DialogContent
         className="max-w-2xl"
         closeLabel="common.close"
+        data-dialog-fixed
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -82,98 +83,104 @@ export default function SettlementEditor({ merchants, defaultMerchant, onClose, 
           noValidate
           onSubmit={event => handleSubmit(submit)(event)}
           className="mt-5 space-y-5"
+          data-dialog-layout
         >
-          <fieldset
-            disabled={pending || blocked || Boolean(preview)}
-            className="workspace-filters grid gap-4 sm:grid-cols-2"
-          >
-            <label className="grid gap-3 text-base font-medium sm:col-span-2">
-              <span>
-                {t('admin.complaints.merchant')}
-              </span>
-              <Controller
-                name="merchantId"
-                control={control}
-                render={({ field }) => (
-                  <SelectField
-                    label={t('admin.complaints.merchant')}
-                    className="h-12 text-base font-normal"
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    options={[{ value: '', label: t('admin.finance.chooseMerchant') }, ...merchants.map(row => ({ value: row.id, label: row.name }))]}
-                  />
-                )}
-              />
-              {errors.merchantId && (
-                <span
-                  role="alert"
-                  className="text-destructive"
-                >
-                  {t('admin.finance.chooseMerchant')}
-                </span>
-              )}
-            </label>
-            {['from', 'to'].map(key => (
-              <label
-                key={key}
-                className="grid gap-3 text-base font-medium"
-              >
+          <div data-dialog-body>
+            <fieldset
+              disabled={pending || blocked || Boolean(preview)}
+              className="workspace-filters grid gap-4 sm:grid-cols-2"
+            >
+              <label className="grid gap-3 text-base font-medium sm:col-span-2">
                 <span>
-                  {t(`merchant.orders.${key}Day`)}
+                  {t('admin.complaints.merchant')}
                 </span>
-                <Input
-                  {...register(key)}
-                  type="date"
-                  aria-label={t(`merchant.orders.${key}Day`)}
-                  min="1970-01-02"
-                  max={yesterday}
-                  className="h-11 rounded-xl text-base font-normal [color-scheme:light] dark:[color-scheme:dark]"
+                <Controller
+                  name="merchantId"
+                  control={control}
+                  render={({ field }) => (
+                    <SelectField
+                      label={t('admin.complaints.merchant')}
+                      className="h-12 text-base font-normal"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      options={[{ value: '', label: t('admin.finance.chooseMerchant') }, ...merchants.map(row => ({ value: row.id, label: row.name }))]}
+                    />
+                  )}
                 />
+                {errors.merchantId && (
+                  <span
+                    role="alert"
+                    className="text-destructive"
+                  >
+                    {t('admin.finance.chooseMerchant')}
+                  </span>
+                )}
               </label>
-            ))}
-            {(errors.from || errors.to) && (
-              <p
-                role="alert"
-                className="text-sm text-destructive sm:col-span-2"
-              >
-                {t('admin.finance.closedRange')}
-              </p>
-            )}
-          </fieldset>
-          {preview && (
-            <>
-              <FinanceBreakdown value={preview.row} />
-              {!preview.quote.canCreate && (
+              {['from', 'to'].map(key => (
+                <label
+                  key={key}
+                  className="grid gap-3 text-base font-medium"
+                >
+                  <span>
+                    {t(`merchant.orders.${key}Day`)}
+                  </span>
+                  <Input
+                    {...register(key)}
+                    type="date"
+                    aria-label={t(`merchant.orders.${key}Day`)}
+                    min="1970-01-02"
+                    max={yesterday}
+                    className="h-11 rounded-xl text-base font-normal [color-scheme:light] dark:[color-scheme:dark]"
+                  />
+                </label>
+              ))}
+              {(errors.from || errors.to) && (
                 <p
                   role="alert"
-                  className="rounded-xl bg-destructive/10 p-4 text-destructive"
+                  className="text-sm text-destructive sm:col-span-2"
                 >
-                  {t('admin.sync.cannotCreate')}
+                  {t('admin.finance.closedRange')}
                 </p>
               )}
-              <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
-                {t('admin.finance.commissionHint')}
+            </fieldset>
+            {preview && (
+              <>
+                <FinanceBreakdown value={preview.row} />
+                {!preview.quote.canCreate && (
+                  <p
+                    role="alert"
+                    className="rounded-xl bg-destructive/10 p-4 text-destructive"
+                  >
+                    {t('admin.sync.cannotCreate')}
+                  </p>
+                )}
+                <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
+                  {t('admin.finance.commissionHint')}
+                </p>
+                <label className="flex items-start gap-3 text-base">
+                  <Checkbox
+                    checked={confirmed}
+                    onCheckedChange={setConfirmed}
+                    disabled={pending || blocked}
+                    className="mt-1"
+                  />
+                  {t('admin.finance.confirmCreate')}
+                </label>
+              </>
+            )}
+            {error && (
+              <p
+                role="alert"
+                className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
+              >
+                {t(error)}
               </p>
-              <label className="flex items-start gap-3 text-base">
-                <Checkbox
-                  checked={confirmed}
-                  onCheckedChange={setConfirmed}
-                  disabled={pending || blocked}
-                  className="mt-1"
-                />
-                {t('admin.finance.confirmCreate')}
-              </label>
-            </>
-          )}
-          {error && (
-            <p
-              role="alert"
-              className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
-            >
-              {t(error)}
-            </p>
-          )}
-          <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+            )}
+          </div>
+          <footer
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+            data-dialog-footer
+          >
             {preview && (
               <Button
                 type="button"

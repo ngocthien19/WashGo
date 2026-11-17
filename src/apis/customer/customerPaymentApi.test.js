@@ -8,6 +8,17 @@ const envelope = (data) => ({ data: { succeeded: true, data } })
 beforeEach(() => vi.clearAllMocks())
 
 describe('payment API contract', () => {
+  it('submits exact whole points only for laundry, never fee payments', async () => {
+    authorizedAxios.post.mockResolvedValue(envelope({ orderId: order.id }))
+    await customerPaymentApi.createUrl(order.id, 2, 36000)
+    expect(authorizedAxios.post).toHaveBeenLastCalledWith('/payment/create-url', { orderId: order.id, paymentMethod: 2, pointsToRedeem: 36000 })
+    await customerPaymentApi.createFeeUrl(order.id, 3, 'cancellation')
+    expect(authorizedAxios.post).toHaveBeenLastCalledWith('/payment/cancellation-fee/create-url', { orderId: order.id, paymentMethod: 3 })
+    for (const points of [-1, .5, Number.MAX_SAFE_INTEGER + 1]) {
+      expect(() => customerPaymentApi.createUrl(order.id, 2, points)).toThrow()
+    }
+    expect(authorizedAxios.post).toHaveBeenCalledTimes(2)
+  })
   it('sends identifiers without client prices or signatures', async () => {
     authorizedAxios.post.mockResolvedValue(envelope({ orderId: order.id, paymentUrl: 'https://test-payment.momo.vn/pay' }))
     await customerPaymentApi.createUrl(order.id, 3)

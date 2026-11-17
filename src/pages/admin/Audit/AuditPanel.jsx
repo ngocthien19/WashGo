@@ -1,3 +1,4 @@
+import RecordLink from '~/components/RecordLink'
 import { auditResourceCode } from './auditResourceCode'
 import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '~/components/ui/table'
@@ -47,6 +48,7 @@ function AuditDetail({ id, onClose, resourceContext }) {
         closeLabel="common.close"
         ready={!resource.loading}
         className="max-w-2xl"
+        data-dialog-fixed
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-bold">
@@ -57,46 +59,51 @@ function AuditDetail({ id, onClose, resourceContext }) {
             {row ? `${row.module} · ${row.action}` : t('admin.loading')}
           </DialogDescription>
         </DialogHeader>
-        {resource.error || !row ? <ResourceFeedback {...resource} /> : (
-          <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-            {['actorName', 'actorRole', 'resourceType', 'resourceCode', 'reason', 'errorCode', 'correlationId'].map(key => (
-              <div
-                key={key}
-                className="min-w-0 rounded-xl border border-border bg-muted/20 p-3"
-              >
-                <dt className="text-sm text-muted-foreground">
-                  {t(`admin.workspaceSync.auditFields.${key}`)}
+        <div data-dialog-body>
+          {resource.error || !row ? <ResourceFeedback {...resource} /> : (
+            <dl className="mt-5 grid gap-4 sm:grid-cols-2">
+              {['actorName', 'actorRole', 'resourceType', 'resourceCode', 'reason', 'errorCode', 'correlationId'].map(key => (
+                <div
+                  key={key}
+                  className="min-w-0 rounded-xl border border-border bg-muted/20 p-3"
+                >
+                  <dt className="text-sm text-muted-foreground">
+                    {t(`admin.workspaceSync.auditFields.${key}`)}
+                  </dt>
+                  <dd className="mt-2 break-words text-base font-medium">
+                    <TruncatedText>
+                      {key === 'resourceCode' ? auditResourceCode(row, resourceContext) : row[key]}
+                    </TruncatedText>
+                  </dd>
+                </div>
+              ))}
+              <div className="sm:col-span-2">
+                <dt>
+                  {t('admin.workspaceSync.changedFields')}
                 </dt>
                 <dd className="mt-2 break-words text-base font-medium">
-                  <TruncatedText>
-                    {key === 'resourceCode' ? auditResourceCode(row, resourceContext) : row[key]}
-                  </TruncatedText>
+                  {row.changedFields.filter(key => !['actorId', 'resourceId'].includes(key)).join(', ') || '—'}
                 </dd>
               </div>
-            ))}
-            <div className="sm:col-span-2">
-              <dt>
-                {t('admin.workspaceSync.changedFields')}
-              </dt>
-              <dd className="mt-2 break-words text-base font-medium">
-                {row.changedFields.filter(key => !['actorId', 'resourceId'].includes(key)).join(', ') || '—'}
-              </dd>
-            </div>
-            {row.details && (
-              <div className="min-w-0 sm:col-span-2">
-                <dt>
-                  {t('admin.workspaceSync.auditValues')}
-                </dt>
-                <dd>
-                  <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-muted p-4 text-sm">
-                    {JSON.stringify(row.details, hideInternalIds, 2)}
-                  </pre>
-                </dd>
-              </div>
-            )}
-          </dl>
-        )}
-        <footer className="mt-5 flex justify-end border-t border-border pt-4">
+              {row.details && (
+                <div className="min-w-0 sm:col-span-2">
+                  <dt>
+                    {t('admin.workspaceSync.auditValues')}
+                  </dt>
+                  <dd>
+                    <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-muted p-4 text-sm">
+                      {JSON.stringify(row.details, hideInternalIds, 2)}
+                    </pre>
+                  </dd>
+                </div>
+              )}
+            </dl>
+          )}
+        </div>
+        <footer
+          className="mt-5 flex justify-end border-t border-border pt-4"
+          data-dialog-footer
+        >
           <Button
             variant="secondary"
             onClick={onClose}
@@ -296,7 +303,9 @@ export default function AuditPanel({ personal = false, settings = false, resourc
                   ) : resource.data.list.map(row => (
                     <TableRow key={row.id}>
                       <TableCell className="whitespace-nowrap px-4 py-4 text-muted-foreground">
-                        {formatDateTime(row.occurredAt)}
+                        <RecordLink onClick={() => setDetail(row.id)}>
+                          {formatDateTime(row.occurredAt)}
+                        </RecordLink>
                       </TableCell>
                       <TableCell className="min-w-44 px-4 py-4 font-semibold">
                         {`${row.module} · ${row.action}`}

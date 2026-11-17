@@ -57,6 +57,7 @@ export default function PromotionEditor({ value, onClose, onSaved }) {
       <DialogContent
         className="max-w-3xl"
         closeLabel="common.close"
+        data-dialog-fixed
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -71,86 +72,92 @@ export default function PromotionEditor({ value, onClose, onSaved }) {
           noValidate
           onSubmit={event => handleSubmit(submit)(event)}
           className="mt-5 space-y-5"
+          data-dialog-layout
         >
-          <fieldset
-            disabled={pending || blocked}
-            className="grid min-w-0 gap-5 sm:grid-cols-2"
-          >
-            {['code', 'discountType', 'discountValue', 'minOrderAmount', 'maxDiscountAmount', 'usageLimit', 'usageLimitPerCustomer', 'startAt', 'endAt', 'description'].map(key => (
-              <label
-                key={key}
-                className={`grid min-w-0 content-start gap-2 text-sm font-medium ${['description', 'maxDiscountAmount'].includes(key) ? 'sm:col-span-2' : ''}`}
-              >
-                <span>
-                  {t(`admin.promotions.fields.${key}`)}
-                  {['code', 'discountValue', 'minOrderAmount', 'startAt', 'endAt'].includes(key) && <span className="ml-1 text-destructive">*</span>}
-                </span>
-                {key === 'discountType' ? (
+          <div data-dialog-body>
+            <fieldset
+              disabled={pending || blocked}
+              className="grid min-w-0 gap-5 sm:grid-cols-2"
+            >
+              {['code', 'discountType', 'discountValue', 'minOrderAmount', 'maxDiscountAmount', 'usageLimit', 'usageLimitPerCustomer', 'startAt', 'endAt', 'description'].map(key => (
+                <label
+                  key={key}
+                  className={`grid min-w-0 content-start gap-2 text-sm font-medium ${['description', 'maxDiscountAmount'].includes(key) ? 'sm:col-span-2' : ''}`}
+                >
+                  <span>
+                    {t(`admin.promotions.fields.${key}`)}
+                    {['code', 'discountValue', 'minOrderAmount', 'startAt', 'endAt'].includes(key) && <span className="ml-1 text-destructive">*</span>}
+                  </span>
+                  {key === 'discountType' ? (
+                    <Controller
+                      name="discountType"
+                      control={control}
+                      render={({ field }) => (
+                        <SelectField
+                          label={t('admin.promotions.fields.discountType')}
+                          value={String(field.value)}
+                          onValueChange={next => field.onChange(Number(next))}
+                          options={[1, 2].map(type => ({ value: String(type), label: t(`admin.promotions.types.${type}`) }))}
+                        />
+                      )}
+                    />
+                  ) : (
+                    <Input
+                      {...register(key)}
+                      aria-label={t(`admin.promotions.fields.${key}`)}
+                      aria-invalid={!!errors[key]}
+                      readOnly={key === 'code' && (value?.canChangeCode === false)}
+                      type={['startAt', 'endAt'].includes(key) ? 'datetime-local' : ['code', 'description'].includes(key) ? 'text' : 'number'}
+                      step={['startAt', 'endAt'].includes(key) ? '60' : key.includes('usage') ? '1' : '0.01'}
+                      maxLength={key === 'code' ? 50 : key === 'description' ? 500 : undefined}
+                      placeholder={t(`admin.promotions.placeholders.${key}`)}
+                      className="h-11 min-w-0 rounded-xl text-base font-normal [color-scheme:light] dark:[color-scheme:dark]"
+                    />
+                  )}
+                  {errors[key] && (
+                    <span
+                      role="alert"
+                      className="text-sm font-normal text-destructive"
+                    >
+                      {t('admin.promotions.invalidField')}
+                    </span>
+                  )}
+                </label>
+              ))}
+              {!value && (
+                <label className="flex items-center gap-3 text-base">
                   <Controller
-                    name="discountType"
+                    name="isActive"
                     control={control}
                     render={({ field }) => (
-                      <SelectField
-                        label={t('admin.promotions.fields.discountType')}
-                        value={String(field.value)}
-                        onValueChange={next => field.onChange(Number(next))}
-                        options={[1, 2].map(type => ({ value: String(type), label: t(`admin.promotions.types.${type}`) }))}
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
                       />
                     )}
                   />
-                ) : (
-                  <Input
-                    {...register(key)}
-                    aria-label={t(`admin.promotions.fields.${key}`)}
-                    aria-invalid={!!errors[key]}
-                    readOnly={key === 'code' && (value?.canChangeCode === false)}
-                    type={['startAt', 'endAt'].includes(key) ? 'datetime-local' : ['code', 'description'].includes(key) ? 'text' : 'number'}
-                    step={['startAt', 'endAt'].includes(key) ? '60' : key.includes('usage') ? '1' : '0.01'}
-                    maxLength={key === 'code' ? 50 : key === 'description' ? 500 : undefined}
-                    placeholder={t(`admin.promotions.placeholders.${key}`)}
-                    className="h-11 min-w-0 rounded-xl text-base font-normal [color-scheme:light] dark:[color-scheme:dark]"
-                  />
-                )}
-                {errors[key] && (
-                  <span
-                    role="alert"
-                    className="text-sm font-normal text-destructive"
-                  >
-                    {t('admin.promotions.invalidField')}
-                  </span>
-                )}
-              </label>
-            ))}
-            {!value && (
-              <label className="flex items-center gap-3 text-base">
-                <Controller
-                  name="isActive"
-                  control={control}
-                  render={({ field }) => (
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  )}
-                />
-                {t('admin.promotions.fields.isActive')}
-              </label>
+                  {t('admin.promotions.fields.isActive')}
+                </label>
+              )}
+            </fieldset>
+            {value && (
+              <p className="text-sm text-muted-foreground">
+                {t('admin.promotions.usedRule')}
+              </p>
             )}
-          </fieldset>
-          {value && (
-            <p className="text-sm text-muted-foreground">
-              {t('admin.promotions.usedRule')}
-            </p>
-          )}
-          {error && (
-            <p
-              role="alert"
-              className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
-            >
-              {t(error)}
-            </p>
-          )}
-          <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+            {error && (
+              <p
+                role="alert"
+                className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
+              >
+                {t(error)}
+              </p>
+            )}
+          </div>
+          <footer
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+            data-dialog-footer
+          >
             <Button
               type="button"
               variant="secondary"

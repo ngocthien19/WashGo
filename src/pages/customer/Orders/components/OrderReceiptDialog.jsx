@@ -46,8 +46,8 @@ export default function OrderReceiptDialog({ orderId, onClose }) {
         className="max-w-4xl overflow-hidden p-0 sm:p-0"
         closeLabel="common.close"
       >
-        <div className="flex max-h-[85dvh] flex-col">
-          <div className="shrink-0 border-b border-border px-5 py-5 pr-14 sm:px-7">
+        <div className="flex max-h-[85dvh] flex-col" >
+          <div className="shrink-0 border-b border-border px-5 py-5 pr-14 sm:px-7" >
             <DialogTitle className="flex items-center gap-2 text-lg font-bold">
               <ReceiptText className="size-5 text-primary" />
               {t('customer.orders.receipt.action')}
@@ -73,7 +73,7 @@ export default function OrderReceiptDialog({ orderId, onClose }) {
               </p>
             )}
           </div>
-          <div className="flex shrink-0 flex-wrap justify-end gap-2 border-t border-border bg-card px-5 py-4 sm:px-7">
+          <div className="flex shrink-0 flex-wrap justify-end gap-2 border-t border-border bg-card px-5 py-4 sm:px-7" >
             <ReceiptDownload
               orderId={orderId}
               disabled={!printable || resource.loading || !!resource.error}

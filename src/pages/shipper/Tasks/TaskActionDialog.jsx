@@ -86,7 +86,10 @@ function NormalTaskActionDialog({ order, shipperId, onClose, onSaved, onUnknown 
         }
       }}
     >
-      <DialogContent className="max-w-2xl [&_button]:text-base">
+      <DialogContent
+        className="max-w-2xl [&_button]:text-base"
+        data-dialog-fixed
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-bold">
             <Icon />
@@ -96,117 +99,125 @@ function NormalTaskActionDialog({ order, shipperId, onClose, onSaved, onUnknown 
             {t('shipper.tasks.credentialHelp')}
           </DialogDescription>
         </DialogHeader>
-        <div className="my-5 rounded-xl border border-border p-4">
-          <p className="font-bold text-primary">
-            {order.orderCode}
-          </p>
-          <div className="mt-3">
-            <DeliveryLocker
-              {...taskLocker(order)}
-              autoBox={type === 2}
-            />
+        <div data-dialog-body>
+          <div className="my-5 rounded-xl border border-border p-4">
+            <p className="font-bold text-primary">
+              {order.orderCode}
+            </p>
+            <div className="mt-3">
+              <DeliveryLocker
+                {...taskLocker(order)}
+                autoBox={type === 2}
+              />
+            </div>
           </div>
         </div>
         <form
           className="space-y-5"
           onSubmit={(event) => handleSubmit(submit)(event)}
+          data-dialog-layout
         >
-          <FormError>
-            {error}
-          </FormError>
-          {unknown && (
-            <Button
-              type="button"
-              disabled={pending}
-              onClick={check}
+          <div data-dialog-body>
+            <FormError>
+              {error}
+            </FormError>
+            {unknown && (
+              <Button
+                type="button"
+                disabled={pending}
+                onClick={check}
+              >
+                {t('admin.sync.checkResult')}
+              </Button>
+            )}
+            <fieldset
+              disabled={pending || blocked || unknown}
+              className="space-y-4"
             >
-              {t('admin.sync.checkResult')}
-            </Button>
-          )}
-          <fieldset
-            disabled={pending || blocked || unknown}
-            className="space-y-4"
-          >
-            <div className="flex gap-2 border-b border-border">
-              <Button
-                type="button"
-                variant="ghost"
-                className={`h-12 min-w-28 rounded-none border-x-0 border-t-0 border-b-2 bg-transparent px-5 text-base hover:bg-transparent dark:hover:bg-transparent ${mode === 'pin' ? 'border-b-primary text-primary hover:text-primary' : 'border-b-transparent text-muted-foreground'}`}
-                aria-pressed={mode === 'pin'}
-                onClick={() => changeMode('pin')}
-              >
-                PIN
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className={`h-12 min-w-28 rounded-none border-x-0 border-t-0 border-b-2 bg-transparent px-5 text-base hover:bg-transparent dark:hover:bg-transparent ${mode === 'qr' ? 'border-b-primary text-primary hover:text-primary' : 'border-b-transparent text-muted-foreground'}`}
-                aria-pressed={mode === 'qr'}
-                onClick={() => changeMode('qr')}
-              >
-                QR
-              </Button>
-            </div>
-            {mode === 'pin' ? (
-              <div>
-                <p className="mb-3 text-sm font-medium">
-                  {t('shipper.tasks.pin')}
-                </p>
-                <Controller
-                  name="pinCode"
-                  control={control}
-                  render={({ field }) => (
-                    <OtpInput
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      inputRef={field.ref}
-                      masked
-                      autoComplete="off"
-                      disabled={pending || blocked || unknown}
-                      label="shipper.tasks.pin"
-                      digitLabel="shipper.media.pinDigit"
-                      error={errors.pinCode ? { message: 'shipper.tasks.invalidPin' } : undefined}
-                    />
-                  )}
-                />
+              <div className="flex gap-2 border-b border-border">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className={`h-12 min-w-28 rounded-none border-x-0 border-t-0 border-b-2 bg-transparent px-5 text-base hover:bg-transparent dark:hover:bg-transparent ${mode === 'pin' ? 'border-b-primary text-primary hover:text-primary' : 'border-b-transparent text-muted-foreground'}`}
+                  aria-pressed={mode === 'pin'}
+                  onClick={() => changeMode('pin')}
+                >
+                  PIN
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className={`h-12 min-w-28 rounded-none border-x-0 border-t-0 border-b-2 bg-transparent px-5 text-base hover:bg-transparent dark:hover:bg-transparent ${mode === 'qr' ? 'border-b-primary text-primary hover:text-primary' : 'border-b-transparent text-muted-foreground'}`}
+                  aria-pressed={mode === 'qr'}
+                  onClick={() => changeMode('qr')}
+                >
+                  QR
+                </Button>
               </div>
-            ) : (
-              <>
-                <QrScanInput
-                  disabled={pending || blocked || unknown}
-                  hasCode={Boolean(qrCode)}
-                  onCode={(code) => setValue('qrCode', code, { shouldValidate: true })}
-                  onClear={() => setValue('qrCode', '')}
-                />
-                {errors.qrCode && (
-                  <p
-                    role="alert"
-                    className="text-sm text-destructive"
-                  >
-                    {t('shipper.tasks.wrongQr')}
+              {mode === 'pin' ? (
+                <div>
+                  <p className="mb-3 text-sm font-medium">
+                    {t('shipper.tasks.pin')}
                   </p>
-                )}
-              </>
-            )}
-            <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
-              <input
-                type="checkbox"
-                className="mt-1 size-5 shrink-0 accent-primary"
-                {...register('confirmed')}
-              />
-              {t(type === 1 ? 'shipper.tasks.collectCheck' : 'shipper.tasks.returnCheck')}
-            </label>
-            {errors.confirmed && (
-              <p
-                role="alert"
-                className="text-sm text-destructive"
-              >
-                {t('shipper.tasks.checkRequired')}
-              </p>
-            )}
-          </fieldset>
-          <div className="flex justify-end gap-3 border-t border-border pt-5">
+                  <Controller
+                    name="pinCode"
+                    control={control}
+                    render={({ field }) => (
+                      <OtpInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        inputRef={field.ref}
+                        masked
+                        autoComplete="off"
+                        disabled={pending || blocked || unknown}
+                        label="shipper.tasks.pin"
+                        digitLabel="shipper.media.pinDigit"
+                        error={errors.pinCode ? { message: 'shipper.tasks.invalidPin' } : undefined}
+                      />
+                    )}
+                  />
+                </div>
+              ) : (
+                <>
+                  <QrScanInput
+                    disabled={pending || blocked || unknown}
+                    hasCode={Boolean(qrCode)}
+                    onCode={(code) => setValue('qrCode', code, { shouldValidate: true })}
+                    onClear={() => setValue('qrCode', '')}
+                  />
+                  {errors.qrCode && (
+                    <p
+                      role="alert"
+                      className="text-sm text-destructive"
+                    >
+                      {t('shipper.tasks.wrongQr')}
+                    </p>
+                  )}
+                </>
+              )}
+              <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+                <input
+                  type="checkbox"
+                  className="mt-1 size-5 shrink-0 accent-primary"
+                  {...register('confirmed')}
+                />
+                {t(type === 1 ? 'shipper.tasks.collectCheck' : 'shipper.tasks.returnCheck')}
+              </label>
+              {errors.confirmed && (
+                <p
+                  role="alert"
+                  className="text-sm text-destructive"
+                >
+                  {t('shipper.tasks.checkRequired')}
+                </p>
+              )}
+            </fieldset>
+          </div>
+          <div
+            className="flex justify-end gap-3 border-t border-border pt-5"
+            data-dialog-footer
+          >
             <Button
               type="button"
               variant="secondary"
@@ -241,7 +252,10 @@ export default function TaskActionDialog(props) {
       open
       onOpenChange={open => !open && props.onClose()}
     >
-      <DialogContent className="max-w-3xl">
+      <DialogContent
+        className="max-w-3xl"
+        data-dialog-fixed
+      >
         <DialogHeader>
           <DialogTitle>
             {t('storage.taskAction')}
@@ -250,12 +264,14 @@ export default function TaskActionDialog(props) {
             {t('storage.simulation')}
           </DialogDescription>
         </DialogHeader>
-        <StorageOrderPanel
-          order={props.order}
-          role="Shipper"
-          taskId={props.order.taskId}
-          onUpdated={() => props.onSaved({ storage: true })}
-        />
+        <div data-dialog-body>
+          <StorageOrderPanel
+            order={props.order}
+            role="Shipper"
+            taskId={props.order.taskId}
+            onUpdated={() => props.onSaved({ storage: true })}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   )

@@ -14,7 +14,7 @@ import { getApiError } from '~/utils/http/apiError'
 import { resolveMessage } from '~/i18n/messages'
 import { settingGroups, settingsSchema, settingPayload, settingSnapshot, settingChanges, unknownWrite } from './settingModel'
 
-const icons = { sla: Clock3, commission: Percent, penalty: ShieldCheck }
+const icons = { loyalty: Percent, sla: Clock3, commission: Percent, penalty: ShieldCheck }
 export default function SettingForm({ group, data, onDirty, onBusy, onSaved }) {
   const { t } = useTranslation()
   const fields = settingGroups[group], Icon = icons[group]
@@ -198,6 +198,7 @@ export default function SettingForm({ group, data, onDirty, onBusy, onSaved }) {
           <DialogContent
             className="max-w-2xl"
             closeLabel="common.close"
+            data-dialog-fixed
           >
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -208,52 +209,60 @@ export default function SettingForm({ group, data, onDirty, onBusy, onSaved }) {
                 {t('admin.settings.applyHint')}
               </DialogDescription>
             </DialogHeader>
-            <div className="mt-5 space-y-4">
-              <h3 className="border-b border-border pb-3 text-lg font-semibold">
-                {t(`admin.settings.groups.${group}`)}
-              </h3>
-              <dl className="max-h-72 space-y-3 overflow-y-auto">
-                {settingChanges(group, data, review).map(field => (
-                  <div
-                    key={field.key}
-                    className="rounded-xl border border-border p-4"
+            <div
+              className="mt-5 space-y-4"
+              data-dialog-layout
+            >
+              <div data-dialog-body>
+                <h3 className="border-b border-border pb-3 text-lg font-semibold">
+                  {t(`admin.settings.groups.${group}`)}
+                </h3>
+                <dl className="max-h-72 space-y-3 overflow-y-auto">
+                  {settingChanges(group, data, review).map(field => (
+                    <div
+                      key={field.key}
+                      className="rounded-xl border border-border p-4"
+                    >
+                      <dt className="text-sm font-medium">
+                        {t(`admin.settings.fields.${field.key}`)}
+                      </dt>
+                      <dd className="mt-2 flex flex-wrap items-center gap-3 text-base">
+                        <span className="text-muted-foreground">
+                          {format(field, data[field.key])}
+                        </span>
+                        <ArrowRight
+                          size={17}
+                          className="text-muted-foreground"
+                        />
+                        <strong className="font-semibold text-primary">
+                          {format(field, review[field.key])}
+                        </strong>
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                <label className="flex items-start gap-3 text-base">
+                  <Checkbox
+                    checked={confirmed}
+                    onCheckedChange={setConfirmed}
+                    disabled={pending || blocked}
+                    className="mt-1"
+                  />
+                  {t('admin.settings.confirmCheck')}
+                </label>
+                {error && (
+                  <p
+                    role="alert"
+                    className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
                   >
-                    <dt className="text-sm font-medium">
-                      {t(`admin.settings.fields.${field.key}`)}
-                    </dt>
-                    <dd className="mt-2 flex flex-wrap items-center gap-3 text-base">
-                      <span className="text-muted-foreground">
-                        {format(field, data[field.key])}
-                      </span>
-                      <ArrowRight
-                        size={17}
-                        className="text-muted-foreground"
-                      />
-                      <strong className="font-semibold text-primary">
-                        {format(field, review[field.key])}
-                      </strong>
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-              <label className="flex items-start gap-3 text-base">
-                <Checkbox
-                  checked={confirmed}
-                  onCheckedChange={setConfirmed}
-                  disabled={pending || blocked}
-                  className="mt-1"
-                />
-                {t('admin.settings.confirmCheck')}
-              </label>
-              {error && (
-                <p
-                  role="alert"
-                  className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
-                >
-                  {resolveMessage(error)}
-                </p>
-              )}
-              <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+                    {resolveMessage(error)}
+                  </p>
+                )}
+              </div>
+              <footer
+                className="flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+                data-dialog-footer
+              >
                 <Button
                   variant="secondary"
                   disabled={pending}

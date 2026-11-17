@@ -42,11 +42,11 @@ export default function ComplaintsPage() {
     <Reveal className="mx-auto max-w-[1600px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <MessageSquareWarning className="text-primary" />
             {t('admin.nav.complaints')}
           </h1>
-          <p className="mt-2 text-base text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {t('admin.complaints.description')}
           </p>
         </div>
@@ -195,15 +195,15 @@ export default function ComplaintsPage() {
                     <TableCell className="min-w-48">
                       <Link
                         to={`${ADMIN_ROUTES.COMPLAINTS}/${row.id}`}
-                        className="rounded-lg bg-primary/10 px-3 py-2 font-semibold text-primary hover:bg-primary/20"
+                        className="cursor-pointer font-semibold text-primary underline-offset-4 hover:underline"
                       >
                         {row.orderCode}
                       </Link>
                     </TableCell>
-                    <TableCell className="min-w-72">
+                    <TableCell className="min-w-[380px]">
                       <ComplaintContact value={customerContact(row)} />
                     </TableCell>
-                    <TableCell className="min-w-80">
+                    <TableCell className="min-w-[380px]">
                       <ComplaintContact
                         kind="merchant"
                         value={merchantContact(row, merchants.data?.find(item => item.id === row.merchantId))}

@@ -4,8 +4,6 @@ import { isWeightService } from '../orderModel'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 import { catalogImages } from '~/apis/customer/customerCatalogApi'
 import { useTranslation } from 'react-i18next'
-import { Controller } from 'react-hook-form'
-import PaymentMethodPicker from '~/components/customer/payments/PaymentMethodPicker'
 import { Banknote, TicketPercent, PackageCheck, PanelsTopLeft, Info } from 'lucide-react'
 import FormError from '~/components/ui/FormError'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
@@ -44,7 +42,7 @@ export default function OrderConfirmation({ items, locker, box, form, quote, pro
                     <p className="text-sm text-muted-foreground">
                       {formatCurrency(isWeightService(service) ? service.unitPrice : service.pricePerItem ?? service.unitPrice)}
                       {' / 1 '}
-                      {isWeightService(service) ? t('customer.order.package') : service.unit}
+                      {service.unit}
                     </p>
                   </div>
                   <span className="shrink-0 rounded-lg bg-violet-500/8 px-3 py-1.5 text-sm tabular-nums text-violet-700 dark:text-violet-300">
@@ -90,17 +88,6 @@ export default function OrderConfirmation({ items, locker, box, form, quote, pro
           </div>
         </ScrollSection>
         <ScrollSection className="space-y-5 rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
-          <Controller
-            name="paymentMethod"
-            control={form.control}
-            render={({ field }) => (
-              <PaymentMethodPicker
-                value={field.value}
-                onChange={field.onChange}
-                disabled={busy}
-              />
-            )}
-          />
           <div className="flex items-start gap-3 rounded-xl bg-emerald-500/8 p-4">
             <Banknote className="shrink-0 text-emerald-700 dark:text-emerald-400" />
             <div>

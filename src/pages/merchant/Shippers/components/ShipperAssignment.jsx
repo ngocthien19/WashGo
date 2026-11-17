@@ -36,18 +36,25 @@ function AssignmentConfirmation({ id, onClose }) {
         }
       }}
     >
-      <DialogContent closeLabel="common.close">
-        <DialogTitle>
-          {t('merchant.shippers.assign')}
-        </DialogTitle>
-        <DialogDescription>
-          {t('merchant.shippers.assign')}
-        </DialogDescription>
-        <ResourceFeedback
-          {...resource}
-          loadingText="merchant.loading"
-          empty="merchant.shippers.orderChanged"
-        />
+      <DialogContent
+        closeLabel="common.close"
+        data-dialog-fixed
+      >
+        <div data-dialog-header>
+          <DialogTitle>
+            {t('merchant.shippers.assign')}
+          </DialogTitle>
+          <DialogDescription>
+            {t('merchant.shippers.assign')}
+          </DialogDescription>
+        </div>
+        <div data-dialog-body>
+          <ResourceFeedback
+            {...resource}
+            loadingText="merchant.loading"
+            empty="merchant.shippers.orderChanged"
+          />
+        </div>
       </DialogContent>
     </Dialog>
   )
@@ -80,81 +87,86 @@ export default function ShipperAssignment({ onClose }) {
         data-pagination-scope
         closeLabel="common.close"
         className="max-w-2xl border-primary/15"
+        data-dialog-fixed
       >
-        <DialogTitle className="-mx-6 -mt-6 flex items-center gap-3 border-b border-primary/10 bg-primary/5 px-6 py-5 pr-12 text-2xl font-bold sm:-mx-8 sm:-mt-8 sm:px-8">
-          <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
-            <ClipboardPlus size={23} />
-          </span>
-          {t('merchant.shippers.assign')}
-        </DialogTitle>
-        <DialogDescription className="mt-2 text-base">
-          {t('merchant.shippers.assignmentHint')}
-        </DialogDescription>
-        <div className="workspace-filters mt-5 grid items-center gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-[2fr_1fr]">
-          <CatalogToolbar
-            suggestionSource={merchantOrderApi.list}
-            suggestionFilter={{ ...query, take: 6, paymentStatus: query.status === 9 ? 2 : undefined, sortBy: [{ field: 'CreatedOn', isDescending: true }] }}
-            resetKey={resetVersion}
-            embedded
-            keyword={query.keyword}
-            label={t('merchant.orders.search')}
-            placeholder={t('merchant.orders.searchHint')}
-            onSearch={(keyword) => setQuery({ ...query, keyword, page: 1 })}
-          />
-          <SelectField
-            label={t('merchant.shippers.taskType')}
-            value={query.status}
-            onValueChange={(status) => setQuery({ ...query, status, page: 1 })}
-            options={[2, 9, 99].map((value) => ({ value, label: t(`merchant.shippers.tasks.${value}`) }))}
-          />
-          <ClearFiltersButton
-            className="sm:col-span-2"
-            active={query.keyword || query.status !== 2}
-            onClear={() => {
-              setResetVersion(value => value + 1); setQuery({ keyword: '', status: 2, page: 1 }); setId(null)
-            }}
-          />
+        <div data-dialog-header>
+          <DialogTitle className="-mx-6 -mt-6 flex items-center gap-3 border-b border-primary/10 bg-primary/5 px-6 py-5 pr-12 text-2xl font-bold sm:-mx-8 sm:-mt-8 sm:px-8">
+            <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
+              <ClipboardPlus size={23} />
+            </span>
+            {t('merchant.shippers.assign')}
+          </DialogTitle>
+          <DialogDescription className="mt-2 text-base">
+            {t('merchant.shippers.assignmentHint')}
+          </DialogDescription>
         </div>
-        {resource.loading || resource.error || !resource.data?.list.length ? (
-          <ResourceFeedback
-            {...resource}
-            loadingText="merchant.loading"
-            empty="merchant.shippers.noAssignableOrders"
-          />
-        ) : (
-          <div className="mt-4 space-y-3">
-            {resource.data.list.map((order) => (
-              <Button
-                key={order.id}
-                variant="outline"
-                className="h-auto w-full justify-between gap-4 rounded-2xl border-border p-4 text-left text-base hover:border-primary/40 hover:bg-primary/5"
-                onClick={() => setId(order.id)}
-              >
-                <span>
-                  <strong className="block text-primary">
-                    {order.orderCode}
-                  </strong>
-                  <span className="mt-1 block font-normal text-muted-foreground">
-                    {order.lockerName || '—'}
-                  </span>
-                </span>
-                <ArrowRight
-                  className="shrink-0"
-                  size={18}
-                />
-              </Button>
-            ))}
-            <TablePagination
-              currentPage={query.page}
-              totalPages={resource.data.totalPages}
-              onPageChange={(page) => setQuery({ ...query, page })}
-              className="border-0 p-0"
-              total={resource.data.total}
-              pageSize={6}
-              rowCount={resource.data.list.length}
+        <div data-dialog-body>
+          <div className="workspace-filters mt-5 grid items-center gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-[2fr_1fr]">
+            <CatalogToolbar
+              suggestionSource={merchantOrderApi.list}
+              suggestionFilter={{ ...query, take: 6, paymentStatus: query.status === 9 ? 2 : undefined, sortBy: [{ field: 'CreatedOn', isDescending: true }] }}
+              resetKey={resetVersion}
+              embedded
+              keyword={query.keyword}
+              label={t('merchant.orders.search')}
+              placeholder={t('merchant.orders.searchHint')}
+              onSearch={(keyword) => setQuery({ ...query, keyword, page: 1 })}
+            />
+            <SelectField
+              label={t('merchant.shippers.taskType')}
+              value={query.status}
+              onValueChange={(status) => setQuery({ ...query, status, page: 1 })}
+              options={[2, 9, 99].map((value) => ({ value, label: t(`merchant.shippers.tasks.${value}`) }))}
+            />
+            <ClearFiltersButton
+              className="sm:col-span-2"
+              active={query.keyword || query.status !== 2}
+              onClear={() => {
+                setResetVersion(value => value + 1); setQuery({ keyword: '', status: 2, page: 1 }); setId(null)
+              }}
             />
           </div>
-        )}
+          {resource.loading || resource.error || !resource.data?.list.length ? (
+            <ResourceFeedback
+              {...resource}
+              loadingText="merchant.loading"
+              empty="merchant.shippers.noAssignableOrders"
+            />
+          ) : (
+            <div className="mt-4 space-y-3">
+              {resource.data.list.map((order) => (
+                <Button
+                  key={order.id}
+                  variant="outline"
+                  className="h-auto w-full justify-between gap-4 rounded-2xl border-border p-4 text-left text-base hover:border-primary/40 hover:bg-primary/5"
+                  onClick={() => setId(order.id)}
+                >
+                  <span>
+                    <strong className="block text-primary">
+                      {order.orderCode}
+                    </strong>
+                    <span className="mt-1 block font-normal text-muted-foreground">
+                      {order.lockerName || '—'}
+                    </span>
+                  </span>
+                  <ArrowRight
+                    className="shrink-0"
+                    size={18}
+                  />
+                </Button>
+              ))}
+              <TablePagination
+                currentPage={query.page}
+                totalPages={resource.data.totalPages}
+                onPageChange={(page) => setQuery({ ...query, page })}
+                className="border-0 p-0"
+                total={resource.data.total}
+                pageSize={6}
+                rowCount={resource.data.list.length}
+              />
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   )

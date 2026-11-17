@@ -1,12 +1,14 @@
 import { useTranslation } from 'react-i18next'
-import { Check } from 'lucide-react'
+import OrderStatusIcon from '~/components/orders/OrderStatusIcon'
+import OrderStatusDescription from '~/components/orders/OrderStatusDescription'
 import { ORDER_WORKFLOW, ORDER_STATUS_OPTIONS } from '~/utils/config/constants'
 import { formatDateTime } from '~/utils/format/formats'
+import { milestoneEvents } from '~/utils/orders/orderEvents'
 import { cn } from '~/lib/utils'
 
 export default function OrderTimeline({ order }) {
   const { t } = useTranslation()
-  const events = [...(order.timeline || [])].sort((a, b) => a.timestamp - b.timestamp)
+  const events = milestoneEvents(order.timeline || [])
   const workflow = Array.isArray(order.workflowSteps) ? order.workflowSteps.filter((step) => step.isApplicable) : []
   const currentStatus = workflow.find((step) => step.isCurrent)?.status ?? order.status
   const steps = workflow.length ? workflow.map((step) => ORDER_STATUS_OPTIONS.find((option) => Number(option.value) === step.status) || { value: String(step.status), label: 'customer.orders.unknown' }) : [...ORDER_WORKFLOW]
@@ -22,7 +24,9 @@ export default function OrderTimeline({ order }) {
   }
   // This is a workflow summary, not the audit log. Match BE's first-reached milestone.
   const rows = steps.map((step) => {
-    const event = events.find((event) => event.status === Number(step.value))
+    const recorded = events.find((event) => event.status === Number(step.value))
+    const milestone = workflow.find(item => item.status === Number(step.value))
+    const event = milestone?.timestamp != null ? { ...recorded, timestamp: milestone.timestamp } : recorded
     return {
       step,
       event,
@@ -47,12 +51,10 @@ export default function OrderTimeline({ order }) {
             <span className={cn('absolute -left-3 top-0 grid size-6 place-items-center rounded-full border-2 border-border bg-card ring-4 ring-card',
               (event || current) && 'border-primary bg-primary text-primary-foreground', current && 'ring-primary/15')}
             >
-              {(event || current) && (
-                <Check
-                  size={14}
-                  aria-hidden="true"
-                />
-              )}
+              <OrderStatusIcon
+                status={Number(step.value)}
+                size={14}
+              />
             </span>
             <div className="flex flex-wrap items-start justify-between gap-2">
               <p className={cn('text-sm font-bold', current ? 'text-primary' : !event && 'text-muted-foreground')}>
@@ -70,8 +72,13 @@ export default function OrderTimeline({ order }) {
               )}
             </div>
             <p className="mt-2 whitespace-pre-wrap break-words text-xs leading-6 text-muted-foreground">
-              {event?.note || t(event ? 'customer.orders.recordedStep' : current ? 'customer.orders.currentStep' : 'customer.orders.noStepRecord')}
+              {event || current ? <OrderStatusDescription status={Number(step.value)} /> : t('customer.orders.noStepRecord')}
             </p>
+            {event?.note && (
+              <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-6 text-muted-foreground">
+                {event.note}
+              </p>
+            )}
           </li>
         )
       })}

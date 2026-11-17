@@ -82,7 +82,10 @@ export default function ProfileEditor({ profile, onClose, onSaved }) {
         }
       }}
     >
-      <DialogContent className="max-w-2xl [&_button]:text-base">
+      <DialogContent
+        className="max-w-2xl [&_button]:text-base"
+        data-dialog-fixed
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-bold">
             <UserRound />
@@ -95,121 +98,127 @@ export default function ProfileEditor({ profile, onClose, onSaved }) {
         <form
           onSubmit={(event) => handleSubmit(submit)(event)}
           className="mt-5 space-y-5"
+          data-dialog-layout
         >
-          <FormError>
-            {error}
-          </FormError>
-          {unknown && (
-            <Button
-              type="button"
-              onClick={check}
-              disabled={pending}
+          <div data-dialog-body>
+            <FormError>
+              {error}
+            </FormError>
+            {unknown && (
+              <Button
+                type="button"
+                onClick={check}
+                disabled={pending}
+              >
+                {t('admin.sync.checkResult')}
+              </Button>
+            )}
+            <fieldset
+              disabled={pending || blocked}
+              className="space-y-5"
             >
-              {t('admin.sync.checkResult')}
-            </Button>
-          )}
-          <fieldset
-            disabled={pending || blocked}
-            className="space-y-5"
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <label
-                  htmlFor="shipper-email"
-                  className="mb-2 flex items-center gap-2 text-sm font-medium"
-                >
-                  <Mail
-                    size={17}
-                    className="shrink-0 text-primary"
-                    aria-hidden="true"
-                  />
-                  {t('merchant.shippers.email')}
-                </label>
-                <Input
-                  id="shipper-email"
-                  type="email"
-                  value={profile.email}
-                  disabled
-                  className="h-12 bg-muted/40 text-base disabled:opacity-100"
-                />
-              </div>
-              {[['fullName', UserRound], ['phone', Phone], ['vehiclePlate', Truck]].map(([key, Icon]) => (
-                <div key={key}>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
                   <label
-                    htmlFor={`shipper-${key}`}
+                    htmlFor="shipper-email"
                     className="mb-2 flex items-center gap-2 text-sm font-medium"
                   >
-                    <Icon
+                    <Mail
                       size={17}
                       className="shrink-0 text-primary"
                       aria-hidden="true"
                     />
-                    {t(`merchant.shippers.${key}`)}
+                    {t('merchant.shippers.email')}
                   </label>
                   <Input
-                    id={`shipper-${key}`}
-                    {...register(key)}
-                    className="h-12 text-base"
-                    aria-invalid={!!errors[key]}
-                    aria-describedby={errors[key] ? `shipper-${key}-error` : undefined}
+                    id="shipper-email"
+                    type="email"
+                    value={profile.email}
+                    disabled
+                    className="h-12 bg-muted/40 text-base disabled:opacity-100"
                   />
-                  {errors[key] && (
-                    <p
-                      id={`shipper-${key}-error`}
-                      role="alert"
-                      className="mt-1 text-sm text-destructive"
-                    >
-                      {t(`shipper.validation.${key}`)}
-                    </p>
-                  )}
                 </div>
-              ))}
+                {[['fullName', UserRound], ['phone', Phone], ['vehiclePlate', Truck]].map(([key, Icon]) => (
+                  <div key={key}>
+                    <label
+                      htmlFor={`shipper-${key}`}
+                      className="mb-2 flex items-center gap-2 text-sm font-medium"
+                    >
+                      <Icon
+                        size={17}
+                        className="shrink-0 text-primary"
+                        aria-hidden="true"
+                      />
+                      {t(`merchant.shippers.${key}`)}
+                    </label>
+                    <Input
+                      id={`shipper-${key}`}
+                      {...register(key)}
+                      className="h-12 text-base"
+                      aria-invalid={!!errors[key]}
+                      aria-describedby={errors[key] ? `shipper-${key}-error` : undefined}
+                    />
+                    {errors[key] && (
+                      <p
+                        id={`shipper-${key}-error`}
+                        role="alert"
+                        className="mt-1 text-sm text-destructive"
+                      >
+                        {t(`shipper.validation.${key}`)}
+                      </p>
+                    )}
+                  </div>
+                ))}
+                <div>
+                  <label
+                    htmlFor="shipper-vehicle"
+                    className="mb-2 flex items-center gap-2 text-sm font-medium"
+                  >
+                    <Bike
+                      size={17}
+                      className="shrink-0 text-primary"
+                      aria-hidden="true"
+                    />
+                    {t('merchant.shippers.vehicleType')}
+                  </label>
+                  <Controller
+                    name="vehicleType"
+                    control={control}
+                    render={({ field }) => (
+                      <SelectField
+                        id="shipper-vehicle"
+                        label={t('merchant.shippers.vehicleType')}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        options={[1, 2, 3].map((value) => ({ value, label: t(`merchant.shippers.vehicles.${value}`) }))}
+                        disabled={pending || blocked}
+                        className="h-12 text-base"
+                      />
+                    )}
+                  />
+                </div>
+              </div>
               <div>
-                <label
-                  htmlFor="shipper-vehicle"
-                  className="mb-2 flex items-center gap-2 text-sm font-medium"
-                >
-                  <Bike
+                <p className="mb-2 flex items-center gap-2 text-sm font-medium">
+                  <Camera
                     size={17}
                     className="shrink-0 text-primary"
                     aria-hidden="true"
                   />
-                  {t('merchant.shippers.vehicleType')}
-                </label>
-                <Controller
-                  name="vehicleType"
-                  control={control}
-                  render={({ field }) => (
-                    <SelectField
-                      id="shipper-vehicle"
-                      label={t('merchant.shippers.vehicleType')}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      options={[1, 2, 3].map((value) => ({ value, label: t(`merchant.shippers.vehicles.${value}`) }))}
-                      disabled={pending || blocked}
-                      className="h-12 text-base"
-                    />
-                  )}
+                  {t('shipper.avatar')}
+                </p>
+                <CustomerImagePicker
+                  selection={avatar}
+                  disabled={pending || blocked}
+                  help={t('shipper.avatarHint')}
                 />
               </div>
-            </div>
-            <div>
-              <p className="mb-2 flex items-center gap-2 text-sm font-medium">
-                <Camera
-                  size={17}
-                  className="shrink-0 text-primary"
-                  aria-hidden="true"
-                />
-                {t('shipper.avatar')}
-              </p>
-              <CustomerImagePicker
-                selection={avatar}
-                disabled={pending || blocked}
-                help={t('shipper.avatarHint')}
-              />
-            </div>
-          </fieldset>
-          <div className="flex justify-end gap-3 border-t border-border pt-5">
+            </fieldset>
+          </div>
+          <div
+            className="flex justify-end gap-3 border-t border-border pt-5"
+            data-dialog-footer
+          >
             <Button
               type="button"
               variant="secondary"

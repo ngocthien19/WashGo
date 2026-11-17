@@ -355,3 +355,14 @@ test('pending review operation remains locked after navigating from list to deta
   await expect(page.getByRole('dialog')).toHaveCount(0)
   expect(state.writes).toHaveLength(1)
 })
+
+
+test('workspace review order code opens review details and keeps return navigation', async ({ page }) => {
+  await setup(page)
+  await page.goto('/admin/reviews')
+  const code = page.getByRole('table').getByRole('link', { name: 'WG-REVIEW-1', exact: true })
+  await expect(code).toHaveAttribute('href', `/admin/reviews/${first}`)
+  await code.click()
+  await expect(page).toHaveURL(new RegExp(`/admin/reviews/${first}`))
+  await expect(page.locator('main')).toContainText('Excellent service')
+})

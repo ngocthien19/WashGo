@@ -180,6 +180,23 @@ test('weighing gates processing, server-confirmed price is shown, and processing
   await expect(page.locator('main').getByText('Washing', { exact: true })).toBeVisible()
 })
 
+test('processing confirms each stage in order even when the server allows skipping ahead', async ({ page }) => {
+  const state = await setup(page, { status: 4 })
+  await page.goto(`/merchant/orders/${id}`)
+  for (const [status, name] of [[5, 'Drying'], [6, 'Ironing'], [7, 'Folding'], [8, 'Awaiting payment']]) {
+    await page.getByRole('button', { name: 'Update processing', exact: true }).click()
+    const dialog = page.getByRole('dialog')
+    await dialog.getByRole('combobox', { name: 'Next status', exact: true }).click()
+    await expect(page.getByRole('option')).toHaveCount(1)
+    await page.getByRole('option', { name, exact: true }).click()
+    await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
+    await expect(dialog).toHaveCount(0)
+    expect(state.writes.at(-1).body).toMatchObject({ newStatus: status, expectedStatus: status - 1 })
+  }
+  expect(state.writes.map(write => write.body.newStatus)).toEqual([5, 6, 7, 8])
+  await expect(page.getByRole('button', { name: 'Update processing', exact: true })).toHaveCount(0)
+})
+
 test('assignment loads eligible shippers and submits collection or return without spoofing actor or status', async ({ page }) => {
   const state = await setup(page, { status: 9, paymentStatus: 2 })
   await page.goto(`/merchant/orders/${id}`)
@@ -384,8 +401,12 @@ test('Merchant uses enriched order images and actual finances without catalog or
   await page.getByRole('link', { name: 'WG-ORDER-123', exact: true }).click()
   await expect(page.getByText('assigned@example.test', { exact: true })).toBeVisible()
   await expect(page.locator('dd').filter({ hasText: 'assigned@example.test' })).toHaveCSS('font-size', '16px')
-  await expect(page.getByText('The customer created the order via the app or website.', { exact: true })).toBeVisible()
-  await expect(page.getByText('The customer opened the locker using a PIN/QR code and successfully deposited the laundry.', { exact: true })).toBeVisible()
+  await expect(page.getByText('Your order is created. Bring your laundry to the locker and confirm drop-off before the deadline.', { exact: true })).toBeVisible()
+  await expect(page.getByText('Your laundry is in the locker, ready for the shipper to collect.', { exact: true })).toBeVisible()
+  const actor = page.getByText('Collection staff', { exact: true })
+  await expect(actor).toHaveCSS('font-weight', '700')
+  await expect(actor.locator('svg')).toHaveCount(0)
+  await expect(page.getByText('Collected at the store', { exact: true })).toBeVisible()
   const dropoff = page.getByRole('heading', { name: 'Drop-off', exact: true }).locator('..')
   await expect(dropoff.getByText('123 Test Street', { exact: true })).toBeVisible()
   expect(await dropoff.getByText('Ben Thanh Locker', { exact: true }).evaluate(el => el.parentElement.textContent)).toContain('123 Test Street')

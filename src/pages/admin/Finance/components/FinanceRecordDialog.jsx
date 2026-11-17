@@ -13,7 +13,7 @@ import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminFinanceApi } from '~/apis/admin/adminFinanceApi'
 import { ADMIN_ROUTES } from '~/utils/config/constants'
-import { formatCurrency, formatDateTime } from '~/utils/format/formats'
+import { formatCurrency, formatDateTime, formatNumber } from '~/utils/format/formats'
 import { notify } from '~/utils/notifications/notifications'
 import { getApiError } from '~/utils/http/apiError'
 import { actionSchema, actionAllowed, settlementSnapshot, refundSnapshot, unknownWrite, statusClass } from '../financeModel'
@@ -61,6 +61,7 @@ export default function FinanceRecordDialog({ kind, value: original, period, onC
       locked.current = false; setPending(false)
     }
   }
+  const pointsOnly = refund && value?.amount === 0 && value.pointsAmount > 0
   const title = detail ? 'admin.finance.detail' : `admin.finance.${kind}`
   const reference = ['pay', 'confirmRefund'].includes(kind), Icon = kind === 'reject' ? X : refund ? Undo2 : Wallet
   return (
@@ -76,6 +77,7 @@ export default function FinanceRecordDialog({ kind, value: original, period, onC
         ready={!resource.loading}
         className="max-w-2xl"
         closeLabel="common.close"
+        data-dialog-fixed
       >
         <DialogHeader tone={kind === 'reject' ? 'danger' : detail ? 'info' : 'success'}>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -83,170 +85,208 @@ export default function FinanceRecordDialog({ kind, value: original, period, onC
             {t(title)}
           </DialogTitle>
           <DialogDescription className="mt-3 text-base text-muted-foreground">
-            {t(detail ? commission ? 'admin.finance.commissionHint' : refund ? 'admin.finance.refundHint' : 'admin.finance.settlementHint' : reference ? 'admin.finance.manualHint' : kind === 'reject' ? 'admin.finance.rejectHint' : 'admin.finance.reviewHint')}
+            {t(pointsOnly ? 'loyalty.pointsOnlyHint' : detail ? commission ? 'admin.finance.commissionHint' : refund ? 'admin.finance.refundHint' : 'admin.finance.settlementHint' : reference ? 'admin.finance.manualHint' : kind === 'reject' ? 'admin.finance.rejectHint' : 'admin.finance.reviewHint')}
           </DialogDescription>
         </DialogHeader>
         {!value ? (
-          <ResourceFeedback
-            {...resource}
-            loadingText="merchant.loading"
-          />
+          <div data-dialog-body>
+            <ResourceFeedback
+              {...resource}
+              loadingText="merchant.loading"
+            />
+          </div>
         ) : (
-          <div className="mt-5 space-y-5">
-            {!refund && !commission && detail && (
-              <SettlementLines
-                id={value.id}
-                initial={value.sourceLines}
-              />
-            )}
-            {refund ? (
-              <section className="space-y-4 rounded-2xl border border-border p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <Link
-                    to={`${ADMIN_ROUTES.ORDERS}/${value.orderId}`}
-                    className="font-semibold text-primary"
-                  >
-                    {value.orderCode || original.orderCode || t('customer.incidents.relatedOrder')}
-                  </Link>
-                  <span className={`rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(value.status)}`}>
-                    {t(`admin.finance.refundStatuses.${value.status}`)}
-                  </span>
-                </div>
-                <p className="font-semibold">
-                  {value.customerName || original.customerName || '—'}
-                </p>
-                <p className="text-2xl font-bold text-primary">
-                  {formatCurrency(value.amount)}
-                </p>
-                <p className="whitespace-pre-wrap break-words">
-                  {value.reason}
-                </p>
-                <dl className="grid gap-4 text-sm sm:grid-cols-2">
-                  {[['reviewNote', value.reviewNote || '—'], ['refundReference', value.refundReference || '—'], ['reviewedAt', formatDateTime(value.reviewedAt)], ['refundedAt', formatDateTime(value.refundedAt)]].map(([key, text]) => (
-                    <div key={key}>
-                      <dt className="text-muted-foreground">
-                        {t(`admin.finance.${key}`)}
-                      </dt>
-                      <dd className="mt-2 whitespace-pre-wrap break-words font-medium">
-                        {text}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
-            ) : (
-              <>
-                {!commission && (
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDateTime(value.periodFrom, 'Asia/Ho_Chi_Minh')}
-                      {' '}
-                      →
-                      {' '}
-                      {formatDateTime(value.periodTo, 'Asia/Ho_Chi_Minh')}
-                    </p>
-                    <span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(value.status)}`}>
-                      {t(`admin.finance.settlementStatuses.${value.status}`)}
-                    </span>
-                  </>
-                )}
-                <FinanceBreakdown
-                  value={value}
-                  settlement={!commission}
+          <div
+            className="mt-5 space-y-5"
+            data-dialog-layout
+          >
+            <div data-dialog-body>
+              {!refund && !commission && detail && (
+                <SettlementLines
+                  id={value.id}
+                  initial={value.sourceLines}
                 />
-                {kind === 'pay' && (
-                  <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
-                    {t('admin.finance.commissionHint')}
+              )}
+              {refund ? (
+                <section className="space-y-4 rounded-2xl border border-border p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <Link
+                      to={`${ADMIN_ROUTES.ORDERS}/${value.orderId}`}
+                      className="font-semibold text-primary"
+                    >
+                      {value.orderCode || original.orderCode || t('customer.incidents.relatedOrder')}
+                    </Link>
+                    <span className={`rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(value.status)}`}>
+                      {t(`admin.finance.refundStatuses.${value.status}`)}
+                    </span>
+                  </div>
+                  <p className="font-semibold">
+                    {value.customerName || original.customerName || '—'}
                   </p>
-                )}
-                {!commission && (
+                  <p className="text-2xl font-bold text-primary">
+                    {formatCurrency(value.amount)}
+                  </p>
+                  {value.pointsAmount > 0 && (
+                    <p className="font-semibold text-primary">
+                      {t('loyalty.refundPointsValue', { points: formatNumber(value.pointsAmount) })}
+                    </p>
+                  )}
+                  {Number.isSafeInteger(value.rewardPointsReversed) && (
+                    <p className="text-sm text-muted-foreground">
+                      {t('loyalty.rewardReversedValue', { points: formatNumber(value.rewardPointsReversed) })}
+                    </p>
+                  )}
+                  {value.isExcessPayment && (
+                    <p className="rounded-xl bg-amber-500/10 p-3 text-sm">
+                      {t('paymentReview.excess')}
+                    </p>
+                  )}
+                  <p className="whitespace-pre-wrap break-words">
+                    {value.reason}
+                  </p>
                   <dl className="grid gap-4 text-sm sm:grid-cols-2">
-                    <div>
-                      <dt className="text-muted-foreground">
-                        {t('admin.finance.reference')}
-                      </dt>
-                      <dd className="mt-2 break-words font-semibold">
-                        {value.paymentReference || '—'}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground">
-                        {t('admin.finance.paidAt')}
-                      </dt>
-                      <dd className="mt-2 font-semibold">
-                        {formatDateTime(value.paidAt)}
-                      </dd>
-                    </div>
+                    {value.originalPaymentTransactionId && (
+                      <div className="sm:col-span-2">
+                        <dt className="text-muted-foreground">
+                          {t('paymentReview.originalPayment')}
+                        </dt>
+                        <dd className="mt-2 break-all font-semibold">
+                          {value.originalPaymentTransactionId}
+                        </dd>
+                      </div>
+                    )}
+                    {[['reviewNote', value.reviewNote || '—'], ['refundReference', value.refundReference || '—'], ['reviewedAt', formatDateTime(value.reviewedAt)], ['refundedAt', formatDateTime(value.refundedAt)]].map(([key, text]) => (
+                      <div key={key}>
+                        <dt className="text-muted-foreground">
+                          {t(`admin.finance.${key}`)}
+                        </dt>
+                        <dd className="mt-2 whitespace-pre-wrap break-words font-medium">
+                          {text}
+                        </dd>
+                      </div>
+                    ))}
                   </dl>
-                )}
-              </>
-            )}
+                </section>
+              ) : (
+                <>
+                  {!commission && (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        {formatDateTime(value.periodFrom, 'Asia/Ho_Chi_Minh')}
+                        {' '}
+                        →
+                        {' '}
+                        {formatDateTime(value.periodTo, 'Asia/Ho_Chi_Minh')}
+                      </p>
+                      <span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(value.status)}`}>
+                        {t(`admin.finance.settlementStatuses.${value.status}`)}
+                      </span>
+                    </>
+                  )}
+                  <FinanceBreakdown
+                    value={value}
+                    settlement={!commission}
+                  />
+                  {kind === 'pay' && (
+                    <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
+                      {t('admin.finance.commissionHint')}
+                    </p>
+                  )}
+                  {!commission && (
+                    <dl className="grid gap-4 text-sm sm:grid-cols-2">
+                      <div>
+                        <dt className="text-muted-foreground">
+                          {t('admin.finance.reference')}
+                        </dt>
+                        <dd className="mt-2 break-words font-semibold">
+                          {value.paymentReference || '—'}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">
+                          {t('admin.finance.paidAt')}
+                        </dt>
+                        <dd className="mt-2 font-semibold">
+                          {formatDateTime(value.paidAt)}
+                        </dd>
+                      </div>
+                    </dl>
+                  )}
+                </>
+              )}
+            </div>
             {!detail && (
               <form
                 noValidate
                 onSubmit={event => handleSubmit(submit)(event)}
                 className="space-y-5"
+                data-dialog-layout
               >
-                {!actionAllowed(kind, value) && (
-                  <p
-                    role="alert"
-                    className="text-sm text-destructive"
+                <div data-dialog-body>
+                  {!actionAllowed(kind, value) && (
+                    <p
+                      role="alert"
+                      className="text-sm text-destructive"
+                    >
+                      {t('admin.finance.unavailable')}
+                    </p>
+                  )}
+                  <fieldset
+                    disabled={pending || blocked || !actionAllowed(kind, value)}
+                    className="space-y-4"
                   >
-                    {t('admin.finance.unavailable')}
-                  </p>
-                )}
-                <fieldset
-                  disabled={pending || blocked || !actionAllowed(kind, value)}
-                  className="space-y-4"
-                >
-                  <label className="grid gap-3 text-sm font-medium">
-                    <span>
-                      {t(reference ? 'admin.finance.reference' : 'admin.finance.reviewNote')}
-                    </span>
-                    {reference ? (
-                      <Input
-                        {...register('text')}
-                        maxLength={120}
-                        aria-label={t('admin.finance.reference')}
-                        placeholder={t('admin.finance.referenceHint')}
-                        className="h-11 rounded-xl text-base font-normal"
-                      />
-                    ) : (
-                      <textarea
-                        {...register('text')}
-                        aria-label={t('admin.finance.reviewNote')}
-                        maxLength={1000}
-                        placeholder={t('admin.finance.noteHint')}
-                        className="min-h-24 rounded-xl border border-input bg-background p-3 text-base font-normal"
-                      />
-                    )}
-                    {errors.text && (
-                      <span
-                        role="alert"
-                        className="text-sm text-destructive"
-                      >
-                        {t('admin.finance.invalidField')}
+                    <label className="grid gap-3 text-sm font-medium">
+                      <span>
+                        {t(pointsOnly ? 'loyalty.receiptReference' : reference ? 'admin.finance.reference' : 'admin.finance.reviewNote')}
                       </span>
-                    )}
-                  </label>
-                  <label className="flex items-start gap-3 text-base">
-                    <Checkbox
-                      checked={confirmed}
-                      onCheckedChange={setConfirmed}
-                      className="mt-1"
-                    />
-                    {t(reference ? 'admin.finance.confirmTransferred' : 'admin.finance.confirmReview')}
-                  </label>
-                </fieldset>
-                {error && (
-                  <p
-                    role="alert"
-                    className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
-                  >
-                    {t(error)}
-                  </p>
-                )}
-                <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+                      {reference ? (
+                        <Input
+                          {...register('text')}
+                          maxLength={120}
+                          aria-label={t(pointsOnly ? 'loyalty.receiptReference' : 'admin.finance.reference')}
+                          placeholder={t('admin.finance.referenceHint')}
+                          className="h-11 rounded-xl text-base font-normal"
+                        />
+                      ) : (
+                        <textarea
+                          {...register('text')}
+                          aria-label={t('admin.finance.reviewNote')}
+                          maxLength={1000}
+                          placeholder={t('admin.finance.noteHint')}
+                          className="min-h-24 rounded-xl border border-input bg-background p-3 text-base font-normal"
+                        />
+                      )}
+                      {errors.text && (
+                        <span
+                          role="alert"
+                          className="text-sm text-destructive"
+                        >
+                          {t('admin.finance.invalidField')}
+                        </span>
+                      )}
+                    </label>
+                    <label className="flex items-start gap-3 text-base">
+                      <Checkbox
+                        checked={confirmed}
+                        onCheckedChange={setConfirmed}
+                        className="mt-1"
+                      />
+                      {t(pointsOnly ? 'loyalty.confirmPointsRefund' : reference ? 'admin.finance.confirmTransferred' : 'admin.finance.confirmReview')}
+                    </label>
+                  </fieldset>
+                  {error && (
+                    <p
+                      role="alert"
+                      className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
+                    >
+                      {t(error)}
+                    </p>
+                  )}
+                </div>
+                <footer
+                  className="flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+                  data-dialog-footer
+                >
                   <Button
                     type="button"
                     variant="secondary"
@@ -271,7 +311,10 @@ export default function FinanceRecordDialog({ kind, value: original, period, onC
           </div>
         )}
         {detail && (
-          <footer className="mt-5 flex justify-end border-t border-border pt-5">
+          <footer
+            className="mt-5 flex justify-end border-t border-border pt-5"
+            data-dialog-footer
+          >
             <Button
               variant="secondary"
               onClick={onClose}

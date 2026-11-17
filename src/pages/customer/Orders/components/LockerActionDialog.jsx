@@ -132,8 +132,9 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
       <DialogContent
         closeLabel="common.close"
         className="max-w-4xl overflow-hidden p-0 sm:p-0 [&>button]:z-10"
+        data-dialog-fixed
       >
-        <div className="grid max-h-[85dvh] md:h-[min(48rem,85dvh)] md:grid-cols-[0.85fr_1fr]">
+        <div className="grid min-h-0 flex-1 max-h-[85dvh] md:h-[min(48rem,85dvh)] md:grid-cols-[0.85fr_1fr]" >
           <div className="hidden min-h-0 flex-col items-center justify-center gap-5 bg-linear-to-br from-blue-100 via-blue-50 to-indigo-100 px-7 py-6 text-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 dark:text-white md:flex md:rounded-l-2xl">
             <p className="flex items-center gap-2 text-sm font-semibold">
               <DoorOpen className="size-5 text-blue-600 dark:text-emerald-300" />
@@ -168,168 +169,181 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
               {t('customer.orders.dropoff.previewNote')}
             </p>
           </div>
-          <div className="max-h-[85dvh] min-h-0 overflow-y-auto overscroll-contain p-6 sm:p-8 md:max-h-none">
-            <DialogTitle className="flex items-center gap-3 pr-7 text-xl font-bold">
-              <DoorOpen className="text-primary" />
-              {t(deposit ? 'customer.orders.scan.deposit' : 'customer.orders.scan.pickup')}
-            </DialogTitle>
-            <DialogDescription className="mt-3 text-sm leading-6 text-muted-foreground">
-              {t('customer.orders.scan.simulationNote')}
-            </DialogDescription>
-            {deposit && (
-              <div className="mt-4">
-                <DepositDeadlineNotice order={order} />
-              </div>
-            )}
-            {deposit && (
-              <>
-                <dl className="mt-5 grid grid-cols-2 gap-4 rounded-2xl border border-border bg-muted/35 p-4 text-sm">
-                  <div>
-                    <dt className="text-xs text-muted-foreground">
-                      {t('customer.order.locker')}
-                    </dt>
-                    <dd className="mt-1 break-words font-semibold">
-                      {order.lockerName}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs text-muted-foreground">
-                      {t('customer.orders.compartmentSize')}
-                    </dt>
-                    <dd className="mt-1 font-medium">
-                      {t(LOCKER_SLOT_SIZES[order.boxSize] || 'customer.orders.unknown')}
-                    </dd>
-                  </div>
-                  <div className="col-span-2 flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-300">
-                    <DoorOpen size={18} />
-                    {t('customer.order.box', { number: order.boxNumber })}
-                  </div>
-                </dl>
-                <div className="mt-4 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
-                  <HandHeart className="mt-0.5 size-6 shrink-0 text-amber-600 dark:text-amber-300" />
-                  <div>
-                    <p className="font-semibold">
-                      {t('customer.orders.dropoff.instruction')}
-                    </p>
-                    <p className="mt-1 text-sm leading-6">
-                      {t('customer.orders.dropoff.instructionNote', { number: order.boxNumber })}
-                    </p>
-                  </div>
+          <div
+            className="max-h-[85dvh] min-h-0 overflow-y-auto overscroll-contain p-6 sm:p-8 md:max-h-none"
+            data-dialog-layout
+          >
+            <div data-dialog-header>
+              <DialogTitle className="flex items-center gap-3 pr-7 text-xl font-bold">
+                <DoorOpen className="text-primary" />
+                {t(deposit ? 'customer.orders.scan.deposit' : 'customer.orders.scan.pickup')}
+              </DialogTitle>
+              <DialogDescription className="mt-3 text-sm leading-6 text-muted-foreground">
+                {t('customer.orders.scan.simulationNote')}
+              </DialogDescription>
+            </div>
+            <div data-dialog-body>
+              {deposit && (
+                <div className="mt-4">
+                  <DepositDeadlineNotice order={order} />
                 </div>
-              </>
-            )}
+              )}
+              {deposit && (
+                <>
+                  <dl className="mt-5 grid grid-cols-2 gap-4 rounded-2xl border border-border bg-muted/35 p-4 text-sm">
+                    <div>
+                      <dt className="text-xs text-muted-foreground">
+                        {t('customer.order.locker')}
+                      </dt>
+                      <dd className="mt-1 break-words font-semibold">
+                        {order.lockerName}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">
+                        {t('customer.orders.compartmentSize')}
+                      </dt>
+                      <dd className="mt-1 font-medium">
+                        {t(LOCKER_SLOT_SIZES[order.boxSize] || 'customer.orders.unknown')}
+                      </dd>
+                    </div>
+                    <div className="col-span-2 flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-300">
+                      <DoorOpen size={18} />
+                      {t('customer.order.box', { number: order.boxNumber })}
+                    </div>
+                  </dl>
+                  <div className="mt-4 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
+                    <HandHeart className="mt-0.5 size-6 shrink-0 text-amber-600 dark:text-amber-300" />
+                    <div>
+                      <p className="font-semibold">
+                        {t('customer.orders.dropoff.instruction')}
+                      </p>
+                      <p className="mt-1 text-sm leading-6">
+                        {t('customer.orders.dropoff.instructionNote', { number: order.boxNumber })}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
             <form
               onSubmit={submit}
               noValidate
               className="mt-5 space-y-5"
+              data-dialog-layout
             >
-              {!deposit && !session && <ReturnLockerInfo order={order} />}
-              {!deposit && !session && (
-                <div className="space-y-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 dark:border-sky-400/20 dark:bg-sky-400/10">
-                  <p className="flex items-center gap-2 font-semibold text-sky-800 dark:text-sky-200">
-                    <PackageCheck size={18} />
-                    {t('customer.orders.pickup.ready')}
-                  </p>
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    {t('customer.orders.pickup.instructions')}
-                  </p>
-                  {order.returnBoxNumber && (
-                    <p className="text-sm font-medium">
-                      {t('customer.orders.returnBox', { number: order.returnBoxNumber })}
+              <div data-dialog-body>
+                {!deposit && !session && <ReturnLockerInfo order={order} />}
+                {!deposit && !session && (
+                  <div className="space-y-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 dark:border-sky-400/20 dark:bg-sky-400/10">
+                    <p className="flex items-center gap-2 font-semibold text-sky-800 dark:text-sky-200">
+                      <PackageCheck size={18} />
+                      {t('customer.orders.pickup.ready')}
                     </p>
-                  )}
-                  {order.pickupDeadline && (
-                    <p className="text-xs leading-6 text-muted-foreground">
-                      {t('customer.orders.pickupDeadline', { date: formatDateTime(order.pickupDeadline) })}
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      {t('customer.orders.pickup.instructions')}
                     </p>
-                  )}
-                </div>
-              )}
-              {session ? (
-                <div className="space-y-3 rounded-xl bg-emerald-500/10 p-4">
-                  <p className="font-semibold text-emerald-700 dark:text-emerald-300">
-                    {t('customer.orders.scan.sessionOpened')}
-                  </p>
-                  <p className="text-sm">
-                    {session.returnLockerName}
-                    {' '}
-                    -
-                    {' '}
-                    {t('customer.order.box', { number: session.returnBoxNumber })}
-                  </p>
-                  <p className="text-xs leading-6 text-muted-foreground">
-                    {t('customer.orders.scan.confirmNote')}
-                  </p>
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-emerald-500/15 pt-3 text-sm">
-                    <span className="flex items-center gap-2">
-                      <Timer size={16} />
-                      {t('customer.orders.pickup.sessionTime')}
-                    </span>
-                    <span className="font-semibold tabular-nums">
-                      {formatCountdown(remainingSeconds)}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <RadioGroup
-                    value={mode}
-                    onValueChange={(value) => {
-                      setMode(value)
-                      setError('')
-                      setPin('')
-                      setQr('')
-                    }}
-                    disabled={busy || unknown}
-                    aria-label={t('customer.orders.scan.method')}
-                    className="grid-cols-2 gap-3"
-                  >
-                    {['pin', 'qr'].map((value) => (
-                      <label
-                        key={value}
-                        className="flex cursor-pointer items-center gap-2 rounded-xl border border-border p-3"
-                      >
-                        <RadioGroupItem
-                          value={value}
-                          aria-label={value === 'pin' ? 'PIN' : 'QR'}
-                        />
-                        {value === 'pin' ? 'PIN' : 'QR'}
-                      </label>
-                    ))}
-                  </RadioGroup>
-                  {mode === 'pin' ? (
-                    <div className="space-y-2">
+                    {order.returnBoxNumber && (
                       <p className="text-sm font-medium">
-                        {t('customer.orders.scan.enterPin')}
+                        {t('customer.orders.returnBox', { number: order.returnBoxNumber })}
                       </p>
-                      <OtpInput
-                        masked
-                        autoComplete="off"
-                        value={pin}
-                        onChange={setPin}
-                        disabled={busy || unknown}
-                        label="customer.orders.scan.enterPin"
-                        digitLabel="customer.orders.scan.pinDigit"
-                      />
-                    </div>
-                  )
-                    : (
-                      <QrScanInput
-                        onCode={acceptQr}
-                        onClear={() => {
-                          setQr('')
-                          setError('')
-                        }}
-                        disabled={busy || unknown}
-                        hasCode={!!qr}
-                      />
                     )}
-                </>
-              )}
-              <FormError>
-                {expired ? 'customer.orders.scan.expired' : error}
-              </FormError>
-              <div className="flex items-stretch justify-end gap-2 border-t border-border pt-4">
+                    {order.pickupDeadline && (
+                      <p className="text-xs leading-6 text-muted-foreground">
+                        {t('customer.orders.pickupDeadline', { date: formatDateTime(order.pickupDeadline) })}
+                      </p>
+                    )}
+                  </div>
+                )}
+                {session ? (
+                  <div className="space-y-3 rounded-xl bg-emerald-500/10 p-4">
+                    <p className="font-semibold text-emerald-700 dark:text-emerald-300">
+                      {t('customer.orders.scan.sessionOpened')}
+                    </p>
+                    <p className="text-sm">
+                      {session.returnLockerName}
+                      {' '}
+                      -
+                      {' '}
+                      {t('customer.order.box', { number: session.returnBoxNumber })}
+                    </p>
+                    <p className="text-xs leading-6 text-muted-foreground">
+                      {t('customer.orders.scan.confirmNote')}
+                    </p>
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-emerald-500/15 pt-3 text-sm">
+                      <span className="flex items-center gap-2">
+                        <Timer size={16} />
+                        {t('customer.orders.pickup.sessionTime')}
+                      </span>
+                      <span className="font-semibold tabular-nums">
+                        {formatCountdown(remainingSeconds)}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <RadioGroup
+                      value={mode}
+                      onValueChange={(value) => {
+                        setMode(value)
+                        setError('')
+                        setPin('')
+                        setQr('')
+                      }}
+                      disabled={busy || unknown}
+                      aria-label={t('customer.orders.scan.method')}
+                      className="grid-cols-2 gap-3"
+                    >
+                      {['pin', 'qr'].map((value) => (
+                        <label
+                          key={value}
+                          className="flex cursor-pointer items-center gap-2 rounded-xl border border-border p-3"
+                        >
+                          <RadioGroupItem
+                            value={value}
+                            aria-label={value === 'pin' ? 'PIN' : 'QR'}
+                          />
+                          {value === 'pin' ? 'PIN' : 'QR'}
+                        </label>
+                      ))}
+                    </RadioGroup>
+                    {mode === 'pin' ? (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">
+                          {t('customer.orders.scan.enterPin')}
+                        </p>
+                        <OtpInput
+                          masked
+                          autoComplete="off"
+                          value={pin}
+                          onChange={setPin}
+                          disabled={busy || unknown}
+                          label="customer.orders.scan.enterPin"
+                          digitLabel="customer.orders.scan.pinDigit"
+                        />
+                      </div>
+                    )
+                      : (
+                        <QrScanInput
+                          onCode={acceptQr}
+                          onClear={() => {
+                            setQr('')
+                            setError('')
+                          }}
+                          disabled={busy || unknown}
+                          hasCode={!!qr}
+                        />
+                      )}
+                  </>
+                )}
+                <FormError>
+                  {expired ? 'customer.orders.scan.expired' : error}
+                </FormError>
+              </div>
+              <div
+                className="flex items-stretch justify-end gap-2 border-t border-border pt-4"
+                data-dialog-footer
+              >
                 <Button
                   variant="secondary"
                   className="h-auto min-h-11 px-4"

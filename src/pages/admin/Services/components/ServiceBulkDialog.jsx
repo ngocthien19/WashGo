@@ -10,7 +10,7 @@ export default function ServiceBulkDialog({ services, onClose, onSaved }) {
   const [frozen, setFrozen] = useState(false), [busy, setBusy] = useState(false)
   const { t } = useTranslation()
   const [action, setAction] = useState('pause')
-  const affected = services.filter(service => action === 'delete' || service.approvalStatus === 2 && service.isActive === (action === 'pause'))
+  const affected = services.filter(service => action === 'delete' || service.approvalStatus === 2 && (action !== 'activate' || service.categoryIsActive !== false) && service.isActive === (action === 'pause'))
   return (
     <Dialog
       open
@@ -23,6 +23,7 @@ export default function ServiceBulkDialog({ services, onClose, onSaved }) {
       <DialogContent
         className="max-w-2xl"
         closeLabel="common.close"
+        data-dialog-fixed
       >
         <DialogHeader tone={action === 'delete' ? 'danger' : action === 'activate' ? 'success' : 'warning'}>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -33,61 +34,66 @@ export default function ServiceBulkDialog({ services, onClose, onSaved }) {
             {t('admin.services.selected', { count: services.length })}
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-5 space-y-5">
-          <div
-            role="tablist"
-            aria-label={t('admin.services.bulk')}
-            className="flex flex-wrap gap-2 border-b border-border"
-          >
-            {['pause', 'activate', 'delete'].map(key => (
-              <Button
-                key={key}
-                variant="ghost"
-                role="tab"
-                aria-selected={action === key}
-                disabled={frozen}
-                onClick={() => setAction(key)}
-                className={`h-12 rounded-none border-x-0 border-t-0 border-b-2 bg-transparent px-3 text-base font-medium hover:bg-transparent dark:hover:bg-transparent ${key === action ? 'border-b-primary text-primary' : 'border-b-transparent text-muted-foreground'}`}
-              >
-                {key === 'delete' ? <Trash2 size={17} /> : <Power size={17} />}
-                {t(`admin.services.bulkActions.${key}`)}
-              </Button>
-            ))}
+        <div
+          className="mt-5 space-y-5"
+          data-dialog-layout
+        >
+          <div data-dialog-body>
+            <div
+              role="tablist"
+              aria-label={t('admin.services.bulk')}
+              className="flex flex-wrap gap-2 border-b border-border"
+            >
+              {['pause', 'activate', 'delete'].map(key => (
+                <Button
+                  key={key}
+                  variant="ghost"
+                  role="tab"
+                  aria-selected={action === key}
+                  disabled={frozen}
+                  onClick={() => setAction(key)}
+                  className={`h-12 rounded-none border-x-0 border-t-0 border-b-2 bg-transparent px-3 text-base font-medium hover:bg-transparent dark:hover:bg-transparent ${key === action ? 'border-b-primary text-primary' : 'border-b-transparent text-muted-foreground'}`}
+                >
+                  {key === 'delete' ? <Trash2 size={17} /> : <Power size={17} />}
+                  {t(`admin.services.bulkActions.${key}`)}
+                </Button>
+              ))}
+            </div>
+            <p className="text-sm leading-6 text-muted-foreground">
+              {t(action === 'delete' ? 'admin.services.deleteHint' : 'admin.services.bulkStatusHint')}
+            </p>
+            <ul
+              className="max-h-72 space-y-3 overflow-y-auto pr-1"
+              aria-label={t('admin.services.selectedList')}
+            >
+              {services.map(service => (
+                <li
+                  key={service.id}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 p-3"
+                >
+                  <ResourceThumbnail
+                    urls={service.imageUrls}
+                    name={service.name}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-primary">
+                      {service.code}
+                    </p>
+                    <p className="mt-1 break-words font-semibold">
+                      {service.name}
+                    </p>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {t(`merchant.services.activity.${service.isActive}`)}
+                      {!affected.some(item => item.id === service.id) && ` · ${t('admin.services.bulkSkipped')}`}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <p className="text-sm font-medium">
+              {t('admin.services.bulkAffected', { count: affected.length })}
+            </p>
           </div>
-          <p className="text-sm leading-6 text-muted-foreground">
-            {t(action === 'delete' ? 'admin.services.deleteHint' : 'admin.services.bulkStatusHint')}
-          </p>
-          <ul
-            className="max-h-72 space-y-3 overflow-y-auto pr-1"
-            aria-label={t('admin.services.selectedList')}
-          >
-            {services.map(service => (
-              <li
-                key={service.id}
-                className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 p-3"
-              >
-                <ResourceThumbnail
-                  urls={service.imageUrls}
-                  name={service.name}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-primary">
-                    {service.code}
-                  </p>
-                  <p className="mt-1 break-words font-semibold">
-                    {service.name}
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {t(`merchant.services.activity.${service.isActive}`)}
-                    {!affected.some(item => item.id === service.id) && ` · ${t('admin.services.bulkSkipped')}`}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <p className="text-sm font-medium">
-            {t('admin.services.bulkAffected', { count: affected.length })}
-          </p>
           <AdministrativeBatchControls
             module="Service"
             path="/wash-service/batch"

@@ -61,6 +61,7 @@ export default function LockerActionDialog({ locker, box, onClose, onSaved }) {
       <DialogContent
         className="max-w-xl"
         closeLabel="common.close"
+        data-dialog-fixed
       >
         <LockerDialogHeader tone={removing ? 'danger' : restoring ? 'success' : 'warning'}>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -71,55 +72,63 @@ export default function LockerActionDialog({ locker, box, onClose, onSaved }) {
             {t(removing ? 'admin.lockers.deleteHint' : 'admin.lockers.boxStatusHint')}
           </DialogDescription>
         </LockerDialogHeader>
-        <div className="mt-5 space-y-5">
-          <div className="flex items-center gap-4 rounded-xl border border-border bg-muted/20 p-4">
-            <ResourceThumbnail
-              urls={locker.imageUrls}
-              name={locker.name}
-            />
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-primary">
-                {locker.code}
-              </p>
-              <p className="mt-1 text-lg font-semibold">
-                {locker.name}
-              </p>
-              {box && (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {t('customer.order.box', { number: box.boxNumber })}
-                  {' '}
-                  ·
-                  {' '}
-                  {t(`merchant.lockers.boxStates.${box.status}`)}
-                  {' '}
-                  →
-                  {' '}
-                  {t(`merchant.lockers.boxStates.${restoring ? 1 : 4}`)}
+        <div
+          className="mt-5 space-y-5"
+          data-dialog-layout
+        >
+          <div data-dialog-body>
+            <div className="flex items-center gap-4 rounded-xl border border-border bg-muted/20 p-4">
+              <ResourceThumbnail
+                urls={locker.imageUrls}
+                name={locker.name}
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-primary">
+                  {locker.code}
                 </p>
-              )}
+                <p className="mt-1 text-lg font-semibold">
+                  {locker.name}
+                </p>
+                {box && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {t('customer.order.box', { number: box.boxNumber })}
+                    {' '}
+                    ·
+                    {' '}
+                    {t(`merchant.lockers.boxStates.${box.status}`)}
+                    {' '}
+                    →
+                    {' '}
+                    {t(`merchant.lockers.boxStates.${restoring ? 1 : 4}`)}
+                  </p>
+                )}
+              </div>
             </div>
+            <label className="flex cursor-pointer items-start gap-3 text-base leading-6">
+              <input
+                type="checkbox"
+                checked={confirmed}
+                disabled={pending || uncertain}
+                onChange={event => setConfirmed(event.target.checked)}
+                className="mt-1 size-5 shrink-0 accent-primary"
+              />
+              <span>
+                {t(removing ? 'admin.lockers.deleteConfirm' : 'admin.lockers.boxConfirm')}
+              </span>
+            </label>
+            {error && (
+              <p
+                role="alert"
+                className="rounded-xl bg-destructive/10 p-4 text-sm leading-6 text-destructive"
+              >
+                {t(error)}
+              </p>
+            )}
           </div>
-          <label className="flex cursor-pointer items-start gap-3 text-base leading-6">
-            <input
-              type="checkbox"
-              checked={confirmed}
-              disabled={pending || uncertain}
-              onChange={event => setConfirmed(event.target.checked)}
-              className="mt-1 size-5 shrink-0 accent-primary"
-            />
-            <span>
-              {t(removing ? 'admin.lockers.deleteConfirm' : 'admin.lockers.boxConfirm')}
-            </span>
-          </label>
-          {error && (
-            <p
-              role="alert"
-              className="rounded-xl bg-destructive/10 p-4 text-sm leading-6 text-destructive"
-            >
-              {t(error)}
-            </p>
-          )}
-          <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
+          <footer
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-4"
+            data-dialog-footer
+          >
             <Button
               variant="secondary"
               disabled={pending}

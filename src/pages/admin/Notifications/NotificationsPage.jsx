@@ -11,11 +11,11 @@ export default function NotificationsPage() {
   return (
     <div className="mx-auto max-w-[1600px] space-y-6">
       <header>
-        <h1 className="flex items-center gap-3 text-3xl font-bold">
+        <h1 className="flex items-center gap-3  font-bold text-[30px]">
           <Bell className="text-primary" />
           {t('customer.profile.allNotifications')}
         </h1>
-        <p className="mt-2 text-base text-muted-foreground">
+        <p className="mt-2  text-muted-foreground text-[16px]">
           {t('admin.notificationDescription')}
         </p>
       </header>

@@ -1,6 +1,14 @@
 import { expect, it } from 'vitest'
 import { settingsSchema, settingPayload, settingSnapshot, settingChanges, validSettings } from './settingModel'
 import { systemSettingsFixture } from '~/test/fixtures/systemSettings'
+it('validates loyalty policy ranges and includes rates in stale-write checks', () => {
+  const good = { earnPercent: 1.25, maxUsePercent: 20 }
+  expect(settingsSchema('loyalty').isValidSync(good)).toBe(true)
+  for (const patch of [{ earnPercent: -1 }, { earnPercent: 100.01 }, { maxUsePercent: 100 }, { maxUsePercent: 1.001 }, { maxUsePercent: '' }]) {
+    expect(settingsSchema('loyalty').isValidSync({ ...good, ...patch })).toBe(false)
+  }
+  expect(settingSnapshot(good)).not.toBe(settingSnapshot({ ...good, earnPercent: 2 }))
+})
 
 it('accepts valid settings and rejects incomplete or invalid configuration responses', () => {
   const value = systemSettingsFixture()

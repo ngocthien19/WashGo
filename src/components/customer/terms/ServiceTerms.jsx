@@ -24,8 +24,9 @@ export default function ServiceTerms({ children, guest = false }) {
   const [confirmedVersion, setConfirmedVersion] = useState(null)
   const lock = useRef(false)
   const open = manual || !!(policy?.requiresAcceptance && dismissed !== policy.terms.version)
+  const canClose = guest || !!policy?.accepted && !policy.requiresAcceptance
   const close = () => {
-    if (lock.current) {
+    if (lock.current || !canClose) {
       return
     }
     setManual(false)
@@ -64,6 +65,7 @@ export default function ServiceTerms({ children, guest = false }) {
       >
         <DialogContent
           closeLabel="common.close"
+          showClose={canClose && !busy}
           className="flex max-w-3xl flex-col overflow-hidden p-0 sm:p-0"
         >
           <div className="shrink-0 border-b border-border bg-primary/5 p-6 pr-14">
@@ -88,34 +90,38 @@ export default function ServiceTerms({ children, guest = false }) {
               {error}
             </FormError>
           </div>
-          <div className="grid shrink-0 gap-4 border-t border-border bg-card p-5 sm:px-6">
-            {policy?.requiresAcceptance && (
-              <label className="flex cursor-pointer items-start gap-3 text-sm font-medium leading-6 sm:text-base">
-                <Checkbox
-                  className="mt-0.5"
-                  checked={confirmedVersion === policy.terms.version}
-                  onCheckedChange={(checked) => setConfirmedVersion(checked ? policy.terms.version : null)}
-                  disabled={busy || resource.loading}
-                />
-                <span>
-                  {t('customer.sync.confirmTerms')}
-                </span>
-              </label>
-            )}
-            <div className="flex items-center justify-end gap-3">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t border-border bg-card p-5 sm:px-6">
+            <div className={policy?.requiresAcceptance ? 'w-full sm:min-w-0 sm:flex-1 sm:w-auto' : 'min-w-0 flex-1'}>
+              {policy?.requiresAcceptance && (
+                <label className="flex cursor-pointer items-start gap-3 text-sm font-medium leading-6 sm:text-base">
+                  <Checkbox
+                    className="mt-0.5"
+                    checked={confirmedVersion === policy.terms.version}
+                    onCheckedChange={(checked) => setConfirmedVersion(checked ? policy.terms.version : null)}
+                    disabled={busy || resource.loading}
+                  />
+                  <span>
+                    {t('customer.sync.confirmTerms')}
+                  </span>
+                </label>
+              )}
               {policy?.accepted && (
                 <p className="mr-auto min-w-0 text-sm text-emerald-700 dark:text-emerald-300">
                   {t('customer.sync.acceptedAt', { date: formatDateTime(policy.acceptedAt) })}
                 </p>
               )}
-              <Button
-                variant="secondary"
-                className="h-12 rounded-xl px-4 text-base font-semibold sm:px-6"
-                disabled={busy}
-                onClick={close}
-              >
-                {t('common.close')}
-              </Button>
+            </div>
+            <div className="ml-auto flex items-center justify-end gap-3">
+              {canClose && (
+                <Button
+                  variant="secondary"
+                  className="h-12 rounded-xl px-4 text-base font-semibold sm:px-6"
+                  disabled={busy}
+                  onClick={close}
+                >
+                  {t('common.close')}
+                </Button>
+              )}
               {policy?.requiresAcceptance && (
                 <Button
                   className="h-12 rounded-xl px-4 text-base font-semibold sm:px-6"

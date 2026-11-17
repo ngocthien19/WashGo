@@ -1,3 +1,5 @@
+import RecordLink from '~/components/RecordLink'
+import CategorySelect from '~/components/categories/CategorySelect'
 import ClearFiltersButton from '~/components/ClearFiltersButton'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -75,7 +77,7 @@ export default function ServicesPage() {
     document.title = `${t('admin.nav.services')} | WashGo`
   }, [t])
   const options = [
-    { key: 'type', label: catalog ? 'merchant.services.category' : 'merchant.services.requestType', values: catalog ? SERVICE_TYPES.filter(item => item.value !== '').map(item => ({ value: String(item.value), label: t(item.label) })) : [1, 2].map(value => ({ value: String(value), label: t(`merchant.services.requestTypes.${value}`) })) },
+    { key: 'type', label: catalog ? 'categories.processingType' : 'merchant.services.requestType', values: catalog ? SERVICE_TYPES.filter(item => item.value !== '').map(item => ({ value: String(item.value), label: t(item.label) })) : [1, 2].map(value => ({ value: String(value), label: t(`merchant.services.requestTypes.${value}`) })) },
     { key: 'state', label: catalog ? 'merchant.services.activityLabel' : 'merchant.services.approvalLabel', values: (catalog ? ['true', 'false'] : ['1', '2', '3']).map(value => ({ value, label: t(catalog ? `merchant.services.activity.${value}` : `merchant.services.approval.${value}`) })) }
   ]
   const merchantOptions = merchants.data || []
@@ -83,11 +85,11 @@ export default function ServicesPage() {
     <Reveal className="mx-auto max-w-[1600px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <Shirt className="text-primary" />
             {t('admin.nav.services')}
           </h1>
-          <p className="mt-2 text-base text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {t('admin.services.description')}
           </p>
         </div>
@@ -147,6 +149,17 @@ export default function ServicesPage() {
           </Button>
         ))}
       </div>
+      {catalog && (
+        <div className="workspace-filters rounded-xl border border-border bg-card p-4">
+          <CategorySelect
+            role="Admin"
+            filter
+            includeInactive={true}
+            value={query.categoryId}
+            onChange={categoryId => update({ categoryId })}
+          />
+        </div>
+      )}
       <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-4">
         <div className="grid gap-2">
           <p className="text-sm">
@@ -322,9 +335,12 @@ export default function ServicesPage() {
                             icon={Shirt}
                           />
                           <div>
-                            <p className="font-semibold">
+                            <RecordLink
+                              className="font-semibold"
+                              onClick={() => setModal({ kind: catalog ? 'detail' : 'proposal', id: row.id })}
+                            >
                               {value.name}
-                            </p>
+                            </RecordLink>
                             {catalog && (
                               <p className="mt-1 text-sm text-muted-foreground">
                                 {row.code}
@@ -336,7 +352,12 @@ export default function ServicesPage() {
                       {catalog ? (
                         <>
                           <TableCell>
-                            {t(SERVICE_TYPES.find(item => Number(item.value) === row.serviceType)?.label || 'merchant.services.unknown')}
+                            {row.categoryName || t('categories.unavailable')}
+                            {row.categoryIsActive === false && (
+                              <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+                                {t('categories.categoryBlocked')}
+                              </p>
+                            )}
                           </TableCell>
                           <TableCell className="min-w-[200px] whitespace-nowrap font-semibold">
                             {formatCurrency(row.unitPrice)}
@@ -352,7 +373,7 @@ export default function ServicesPage() {
                       ) : (
                         <>
                           <TableCell className="min-w-40 whitespace-nowrap">
-                            {t(SERVICE_TYPES.find(item => item.value !== '' && Number(item.value) === value.serviceType)?.label || 'merchant.services.unknown')}
+                            {value.categoryName || t('categories.unavailable')}
                           </TableCell>
                           <TableCell className="min-w-52">
                             <div className="flex items-center gap-3">
@@ -381,8 +402,8 @@ export default function ServicesPage() {
                       </TableCell>
                       {catalog && (
                         <TableCell>
-                          <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium ${row.isActive ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
-                            {t(`merchant.services.activity.${row.isActive}`)}
+                          <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium ${(row.effectiveIsActive ?? row.isActive) ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+                            {t(`merchant.services.activity.${row.effectiveIsActive ?? row.isActive}`)}
                           </span>
                         </TableCell>
                       )}
@@ -422,7 +443,7 @@ export default function ServicesPage() {
                             {catalog && (
                               <>
                                 <DropdownMenuItem
-                                  disabled={row.canChangeAvailability === false || row.approvalStatus !== 2}
+                                  disabled={row.canChangeAvailability === false || row.approvalStatus !== 2 || !row.isActive && row.categoryIsActive === false}
                                   onClick={() => setModal({ kind: 'toggle', id: row.id })}
                                 >
                                   <Power

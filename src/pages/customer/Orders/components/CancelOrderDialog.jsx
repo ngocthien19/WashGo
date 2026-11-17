@@ -11,28 +11,42 @@ import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { customerOrderApi } from '~/apis/customer/customerOrderApi'
 import { getApiError } from '~/utils/http/apiError'
-import { formatCurrency } from '~/utils/format/formats'
-import { ORDER_LIST } from '~/utils/config/constants'
+import { formatCurrency, formatNumber } from '~/utils/format/formats'
+import { ORDER_LIST, ORDER_PAYMENT_METHODS } from '~/utils/config/constants'
+import FeePaymentAction from '~/components/customer/payments/FeePaymentAction'
+import PaymentMethodPicker from '~/components/customer/payments/PaymentMethodPicker'
+import { paymentEligibility } from '~/utils/orders/paymentEligibility'
+
 
 const schema = yup.object({ reason: yup.string().trim().required('customer.orders.cancel.reasonRequired').max(ORDER_LIST.REASON_MAX, 'customer.orders.cancel.reasonTooLong') })
 
-export default function CancelOrderDialog({ orderId, onClose, onCancelled }) {
+export default function CancelOrderDialog({ orderId, onClose, onCancelled, payImmediately = false }) {
   const { t } = useTranslation()
   const [error, setError] = useState('')
   const [unknown, setUnknown] = useState(false)
+  const [cancelled, setCancelled] = useState(null)
+  const [method, setMethod] = useState(ORDER_PAYMENT_METHODS.VNPAY)
   const pending = useRef(false)
   const load = useCallback((signal) => customerOrderApi.cancellationQuote(orderId, signal), [orderId])
   const quote = useCatalogResource(load)
+  const amount = quote.data?.feeOutstanding
+  const onlineAvailable = [2, 3].some(value => paymentEligibility(value, amount).allowed)
+  const withPayment = payImmediately && amount > 0 && onlineAvailable
+  const amountAllowed = paymentEligibility(method, amount).allowed
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({ resolver: yupResolver(schema), defaultValues: { reason: '' } })
   const cancel = (event) => handleSubmit(async ({ reason }) => {
-    if (pending.current || !quote.data?.canCancel || unknown) {
+    if (pending.current || withPayment && !amountAllowed || !quote.data?.canCancel || unknown) {
       return
     }
     pending.current = true
     setError('')
     try {
-      await customerOrderApi.cancel(orderId, reason)
-      onCancelled()
+      const result = await customerOrderApi.cancel(orderId, reason)
+      if (payImmediately && Number.isFinite(result.cancellationFeeOutstanding) && result.cancellationFeeOutstanding > 0) {
+        setCancelled({ order: result, autoStart: withPayment && result.cancellationFeeOutstanding === quote.data.feeOutstanding })
+      } else {
+        onCancelled()
+      }
     } catch (failure) {
       const status = failure.response?.status
       const uncertain = !status || status >= 500
@@ -41,6 +55,19 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled }) {
       pending.current = uncertain
     }
   })(event)
+  if (cancelled) {
+    return (
+      <FeePaymentAction
+        order={cancelled.order}
+        autoOpen
+        autoStart={cancelled.autoStart}
+        initialMethod={method}
+        onClose={onCancelled}
+        onUpdated={onCancelled}
+      />
+    )
+  }
+
   return (
     <Dialog
       open
@@ -53,6 +80,7 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled }) {
       <DialogContent
         closeLabel="common.close"
         className="p-0 sm:p-0"
+        data-dialog-fixed
       >
         <DialogHeader
           tone="danger"
@@ -70,69 +98,100 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled }) {
           onSubmit={cancel}
           noValidate
           className="space-y-5 p-6"
+          data-dialog-layout
         >
-          {quote.loading || quote.error ? (
-            <CatalogFeedback
-              {...quote}
-              loadingText="customer.orders.cancel.loading"
-            />
-          ) : (
-            <>
-              <dl className="space-y-3 rounded-xl bg-muted/40 p-4 text-sm">
-                {[
-                  ['fee', quote.data.feeAmount], ['refund', quote.data.refundAmount], ['outstanding', quote.data.feeOutstanding]
-                ].map(([label, amount]) => (
-                  <div
-                    key={label}
-                    className="flex flex-wrap justify-between gap-2"
+          <div data-dialog-body>
+            {quote.loading || quote.error ? (
+              <CatalogFeedback
+                {...quote}
+                loadingText="customer.orders.cancel.loading"
+              />
+            ) : (
+              <>
+                <dl className="space-y-3 rounded-xl bg-muted/40 p-4 text-sm">
+                  {[
+                    ['fee', quote.data.feeAmount], ['refund', quote.data.refundAmount], ['outstanding', quote.data.feeOutstanding]
+                  ].map(([label, amount]) => (
+                    <div
+                      key={label}
+                      className="flex flex-wrap justify-between gap-2"
+                    >
+                      <dt className="text-muted-foreground">
+                        {t(`customer.orders.cancel.${label}`)}
+                      </dt>
+                      <dd className="font-semibold tabular-nums">
+                        {formatCurrency(amount)}
+                      </dd>
+                    </div>
+                  ))}
+                  {Number.isSafeInteger(quote.data.refundPoints) && (
+                    <div className="flex flex-wrap justify-between gap-2">
+                      <dt className="text-muted-foreground">
+                        {t('loyalty.refundPoints')}
+                      </dt>
+                      <dd className="font-semibold tabular-nums">
+                        {formatNumber(quote.data.refundPoints)}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+                {!quote.data.canCancel && (
+                  <FormError>
+                    {quote.data.reason || 'customer.orders.cancel.notAllowed'}
+                  </FormError>
+                )}
+                <label className="block space-y-2">
+                  <span className="text-sm font-medium">
+                    {t('customer.orders.cancel.reason')}
+                  </span>
+                  <textarea
+                    {...register('reason')}
+                    rows={3}
+                    maxLength={ORDER_LIST.REASON_MAX}
+                    required
+                    disabled={isSubmitting || unknown || !quote.data.canCancel}
+                    aria-invalid={!!errors.reason}
+                    aria-describedby={errors.reason ? 'cancel-reason-error' : undefined}
+                    className="w-full resize-y rounded-xl border border-input bg-background p-3 outline-none transition-[border-color,box-shadow] delay-0 duration-200 ease-in-out focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/20"
+                  />
+                </label>
+                {errors.reason && (
+                  <p
+                    id="cancel-reason-error"
+                    role="alert"
+                    className="text-sm text-destructive"
                   >
-                    <dt className="text-muted-foreground">
-                      {t(`customer.orders.cancel.${label}`)}
-                    </dt>
-                    <dd className="font-semibold tabular-nums">
-                      {formatCurrency(amount)}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-              {!quote.data.canCancel && (
-                <FormError>
-                  {quote.data.reason || 'customer.orders.cancel.notAllowed'}
-                </FormError>
-              )}
-              <label className="block space-y-2">
-                <span className="text-sm font-medium">
-                  {t('customer.orders.cancel.reason')}
-                </span>
-                <textarea
-                  {...register('reason')}
-                  rows={3}
-                  maxLength={ORDER_LIST.REASON_MAX}
-                  required
-                  disabled={isSubmitting || unknown || !quote.data.canCancel}
-                  aria-invalid={!!errors.reason}
-                  aria-describedby={errors.reason ? 'cancel-reason-error' : undefined}
-                  className="w-full resize-y rounded-xl border border-input bg-background p-3 outline-none transition-[border-color,box-shadow] delay-0 duration-200 ease-in-out focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/20"
-                />
-              </label>
-              {errors.reason && (
-                <p
-                  id="cancel-reason-error"
-                  role="alert"
-                  className="text-sm text-destructive"
-                >
-                  {t(errors.reason.message)}
-                </p>
-              )}
-            </>
-          )}
-          <FormError>
-            {error}
-          </FormError>
-          <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+                    {t(errors.reason.message)}
+                  </p>
+                )}
+                {payImmediately && amount > 0 && (
+                  <>
+                    <PaymentMethodPicker
+                      value={method}
+                      onChange={setMethod}
+                      disabled={isSubmitting || unknown || !quote.data.canCancel}
+                      onlineOnly
+                      amount={amount}
+                    />
+                    <p className="rounded-xl bg-amber-500/10 p-4 text-sm leading-6">
+                      {t('customer.orders.cancel.payHint')}
+                    </p>
+                  </>
+                )}
+              </>
+            )}
+            <FormError>
+              {error}
+            </FormError>
+          </div>
+          <div
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+            data-dialog-footer
+          >
             <Button
               className="h-12 text-base px-4"
               variant="secondary"
+              type="button"
               disabled={isSubmitting}
               onClick={onClose}
             >
@@ -142,9 +201,9 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled }) {
               className="h-12 text-base px-4"
               type="submit"
               variant="destructive"
-              disabled={isSubmitting || unknown || quote.loading || !!quote.error || !quote.data?.canCancel}
+              disabled={isSubmitting || withPayment && !amountAllowed || unknown || quote.loading || !!quote.error || !quote.data?.canCancel}
             >
-              {t(isSubmitting ? 'customer.orders.cancel.submitting' : 'customer.orders.cancel.confirm')}
+              {t(isSubmitting ? 'customer.orders.cancel.submitting' : withPayment ? 'customer.orders.cancel.confirmAndPay' : 'customer.orders.cancel.confirm')}
             </Button>
           </div>
         </form>

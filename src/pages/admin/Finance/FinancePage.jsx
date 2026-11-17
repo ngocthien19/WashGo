@@ -1,8 +1,11 @@
+import RecordLink from '~/components/RecordLink'
+import PaymentReconciliations from './components/PaymentReconciliations'
+import PointsFundingSummary from '~/components/finance/PointsFundingSummary'
 import CommissionReview from './components/CommissionReview'
 import FinanceFilters from './components/FinanceFilters'
 import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Wallet, RefreshCw, Download, Plus, MoreHorizontal, Eye, Check, X, Banknote, Undo2, Shirt, TrendingUp } from 'lucide-react'
 import { Button } from '~/components/ui/button'
@@ -26,9 +29,10 @@ import FinanceRecordDialog from './components/FinanceRecordDialog'
 export default function FinancePage() {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams(), [modal, setModal] = useState(null), [exporting, setExporting] = useState(false)
+  const [paymentRevision, setPaymentRevision] = useState(0)
   const exportLock = useRef(false)
   const query = useMemo(() => readQuery(params), [params])
-  const load = useCallback(signal => query.tab === 'commissionReview' ? Promise.resolve({}) : query.tab === 'settlements' ? adminFinanceApi.settlements(settlementFilter(query), signal) : query.tab === 'refunds' ? adminFinanceApi.refunds(settlementFilter(query), signal) : adminFinanceApi[query.tab](periodFilter(query), signal), [query])
+  const load = useCallback(signal => ['commissionReview', 'paymentReview'].includes(query.tab) ? Promise.resolve({}) : query.tab === 'settlements' ? adminFinanceApi.settlements(settlementFilter(query), signal) : query.tab === 'refunds' ? adminFinanceApi.refunds(settlementFilter(query), signal) : adminFinanceApi[query.tab](periodFilter(query), signal), [query])
   const resource = useCatalogResource(load), merchants = useCatalogResource(adminFinanceApi.merchants)
   const update = patch => setParams(writeQuery({ ...query, ...patch, page: patch.page || 1 }))
   const rowMerchant = row => merchants.data?.find(item => item.id === row.merchantId)
@@ -38,9 +42,13 @@ export default function FinancePage() {
         name={row.merchantName}
         urls={rowMerchant(row)?.imageUrls}
       />
-      <span className="font-semibold">
+      <RecordLink
+        className="font-semibold"
+        to={['settlements', 'commissions'].includes(query.tab) ? undefined : `${ADMIN_ROUTES.MERCHANTS}?merchant=${row.merchantId}`}
+        onClick={['settlements', 'commissions'].includes(query.tab) ? () => setModal({ kind: query.tab === 'settlements' ? 'settlementDetail' : 'commissionDetail', value: row }) : undefined}
+      >
         {row.merchantName}
-      </span>
+      </RecordLink>
     </div>
   )
   const moneyColumn = key => ({ key, label: `admin.finance.fields.${key}`, className: 'min-w-44 whitespace-nowrap', render: row => (
@@ -112,18 +120,20 @@ export default function FinancePage() {
     <Reveal className="mx-auto max-w-[1600px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <Wallet className="text-primary" />
             {t('admin.nav.finance')}
           </h1>
-          <p className="mt-2 text-muted-foreground">
+          <p className="mt-2 text-muted-foreground text-[16px]">
             {t('admin.finance.description')}
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
           <Button
             variant="outline"
-            onClick={resource.retry}
+            onClick={() => {
+              resource.retry(); setPaymentRevision(value => value + 1)
+            }}
             disabled={resource.loading || exporting}
             className="h-11 px-5 text-base"
           >
@@ -170,11 +180,13 @@ export default function FinancePage() {
           </Button>
         ))}
       </div>
-      <FinanceFilters
-        query={query}
-        merchants={merchants}
-        onChange={update}
-      />
+      {query.tab !== 'paymentReview' && (
+        <FinanceFilters
+          query={query}
+          merchants={merchants}
+          onChange={update}
+        />
+      )}
       {query.tab === 'refunds' && query.orderId && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/15 bg-primary/5 p-4">
           <p className="text-sm">
@@ -192,7 +204,9 @@ export default function FinancePage() {
         data-pagination-scope
         className="space-y-6"
       >
-        {query.tab === 'commissionReview' ? (
+        {query.tab === 'paymentReview' ? (
+          <PaymentReconciliations revision={paymentRevision} />
+        ) : query.tab === 'commissionReview' ? (
           <CommissionReview
             key={query.merchantId}
             merchantId={query.merchantId}
@@ -204,6 +218,7 @@ export default function FinancePage() {
           />
         ) : (
           <>
+            <PointsFundingSummary value={resource.data} />
             {report && (
               <>
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -276,7 +291,11 @@ export default function FinancePage() {
                     rows={report.byService}
                     rowKey={row => row.serviceId}
                     label="admin.finance.serviceResults"
-                    columns={[{ key: 'service', label: 'admin.finance.service', className: 'min-w-72', render: row => row.serviceName }, { key: 'quantity', label: 'admin.finance.quantity', render: row => formatNumber(row.quantity) }, { key: 'amount', label: 'admin.finance.listValue', render: row => formatCurrency(row.amount) }]}
+                    columns={[{ key: 'service', label: 'admin.finance.service', className: 'min-w-72', render: row => row.serviceId ? (
+                      <RecordLink to={`${ADMIN_ROUTES.SERVICES}?service=${row.serviceId}`}>
+                        {row.serviceName}
+                      </RecordLink>
+                    ) : row.serviceName }, { key: 'quantity', label: 'admin.finance.quantity', render: row => formatNumber(row.quantity) }, { key: 'amount', label: 'admin.finance.listValue', render: row => formatCurrency(row.amount) }]}
                   />
                 </section>
               </>
@@ -344,12 +363,12 @@ export default function FinancePage() {
                 label="admin.finance.refundResults"
                 minWidth="min-w-[1250px]"
                 columns={[{ key: 'order', label: 'admin.complaints.columns.order', className: 'min-w-48', render: row => (
-                  <Link
-                    to={`${ADMIN_ROUTES.ORDERS}/${row.orderId}`}
-                    className="font-semibold text-primary"
+                  <RecordLink
+                    className="font-semibold"
+                    onClick={() => setModal({ kind: 'refundDetail', value: row })}
                   >
                     {row.orderCode || t('customer.incidents.relatedOrder')}
-                  </Link>
+                  </RecordLink>
                 ) }, { key: 'customer', label: 'admin.complaints.customer', className: 'min-w-52', render: row => (
                   <div className="flex items-center gap-3">
                     <UserAvatar
@@ -369,7 +388,23 @@ export default function FinancePage() {
                       </p>
                     </div>
                   </div>
-                ) }, { key: 'amount', label: 'admin.finance.refundAmount', className: 'min-w-44 whitespace-nowrap', render: row => formatCurrency(row.amount) }, { key: 'reason', label: 'admin.finance.reason', className: 'min-w-72 max-w-96', render: row => (
+                ) }, { key: 'amount', label: 'admin.finance.refundAmount', className: 'min-w-44 whitespace-nowrap', render: row => (
+                  <div>
+                    <p>
+                      {formatCurrency(row.amount)}
+                    </p>
+                    {row.pointsAmount > 0 && (
+                      <p className="mt-1 text-sm text-primary">
+                        {t('loyalty.refundPointsValue', { points: formatNumber(row.pointsAmount) })}
+                      </p>
+                    )}
+                    {row.isExcessPayment && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {t('paymentReview.excess')}
+                      </p>
+                    )}
+                  </div>
+                ) }, { key: 'reason', label: 'admin.finance.reason', className: 'min-w-72 max-w-96', render: row => (
                   <p className="whitespace-pre-wrap break-words">
                     {row.reason}
                   </p>

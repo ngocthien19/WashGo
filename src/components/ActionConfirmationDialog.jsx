@@ -16,6 +16,7 @@ export default function ActionConfirmationDialog({ title, description, icon: Ico
       <DialogContent
         className="max-w-xl"
         closeLabel="common.close"
+        data-dialog-fixed
       >
         <DialogHeader tone={tone}>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -26,18 +27,23 @@ export default function ActionConfirmationDialog({ title, description, icon: Ico
             {description}
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-5 space-y-4">
-          {children}
+        <div data-dialog-body>
+          <div className="mt-5 space-y-4">
+            {children}
+          </div>
+          {error && (
+            <p
+              role="alert"
+              className="mt-4 rounded-xl bg-destructive/10 p-4 text-base text-destructive"
+            >
+              {t(error)}
+            </p>
+          )}
         </div>
-        {error && (
-          <p
-            role="alert"
-            className="mt-4 rounded-xl bg-destructive/10 p-4 text-base text-destructive"
-          >
-            {t(error)}
-          </p>
-        )}
-        <footer className="mt-5 flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+        <footer
+          className="mt-5 flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+          data-dialog-footer
+        >
           <Button
             variant="secondary"
             disabled={pending}

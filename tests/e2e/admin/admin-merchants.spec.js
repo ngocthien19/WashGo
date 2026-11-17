@@ -1,3 +1,4 @@
+import { expectFixedDialog } from '../helpers/dialogLayout'
 import { expect, test } from '@playwright/test'
 import { setupAdminMerchants as setup, merchantId, requestId } from '../helpers/adminMerchantSession'
 
@@ -219,4 +220,24 @@ test('Merchant region and detail fields use readable text and blue section heade
   expect(await value.evaluate(el => getComputedStyle(el).fontSize)).toBe('16px')
   await expect(dialog.getByRole('heading', { name: 'Contact information', exact: true })).toHaveClass(/bg-primary\/5/)
   await expect(dialog.getByRole('heading', { name: 'Contact information', exact: true }).locator('span')).toHaveClass(/text-primary/)
+})
+
+
+test('workspace typography and plain Merchant name link open a bounded detail modal', async ({ page }) => {
+  await setup(page)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.setViewportSize({ width: 390, height: 650 })
+  await page.goto('/admin/merchants')
+  await expect(page.locator('main h1')).toHaveCSS('font-size', '30px')
+  await expect(page.locator('main h1 + p')).toHaveCSS('font-size', '16px')
+  const link = page.getByRole('button', { name: 'Ben Thanh Laundry', exact: true })
+  await expect(link).toHaveCSS('cursor', 'pointer')
+  await expect(link).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+  await link.click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { name: 'Contact information', exact: true })).toBeVisible()
+  await expectFixedDialog(dialog)
+  if (process.env.WORKSPACE_QA) {
+    await page.screenshot({ path: 'test-results/workspace-admin-dialog.png' })
+  }
 })

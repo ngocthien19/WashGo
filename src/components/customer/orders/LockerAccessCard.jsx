@@ -7,12 +7,14 @@ import OrderPin from '~/components/customer/orders/OrderPin'
 import { ORDER_STATUSES } from '~/utils/config/constants'
 import { canPickupFromLocker } from '~/components/customer/orders/orderWorkflow'
 import { notify } from '~/utils/notifications/notifications'
+import useDepositDeadline from '~/hooks/customer/useDepositDeadline'
 
 export default function LockerAccessCard({ order, defaultShowQr = false }) {
   const { t } = useTranslation()
   const [showQr, setShowQr] = useState(defaultShowQr)
   const canvas = useRef(null)
-  const deposit = order.status === ORDER_STATUSES.PENDING
+  const deadline = useDepositDeadline(order)
+  const deposit = order.status === ORDER_STATUSES.PENDING && !deadline.expired
   const pickup = canPickupFromLocker(order)
   if (!deposit && !pickup) {
     return null

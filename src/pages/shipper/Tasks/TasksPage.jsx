@@ -49,11 +49,11 @@ export default function TasksPage() {
     <Reveal className="mx-auto max-w-[1600px] space-y-6 [&_button]:text-base">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <Truck className="text-primary" />
             {t('shipper.nav.tasks')}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {t('shipper.tasks.description')}
           </p>
         </div>
@@ -188,7 +188,7 @@ export default function TasksPage() {
                     <TableCell className="px-5 py-5">
                       <Link
                         to={href}
-                        className="inline-block whitespace-nowrap rounded-lg bg-primary/10 px-3 py-2 font-bold text-primary hover:underline"
+                        className="cursor-pointer inline-block whitespace-nowrap font-bold text-primary underline-offset-4 hover:underline"
                       >
                         {row.orderCode}
                       </Link>

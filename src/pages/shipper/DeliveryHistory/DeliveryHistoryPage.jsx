@@ -1,3 +1,4 @@
+import RecordLink from '~/components/RecordLink'
 import DeliveryTypeBadge from '../components/DeliveryTypeBadge'
 import HistoryDetail from './HistoryDetail'
 import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
@@ -57,11 +58,11 @@ export default function DeliveryHistoryPage() {
     <Reveal className="mx-auto max-w-[1600px] space-y-6 [&_button]:text-base">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <History className="text-primary" />
             {t('shipper.nav.history')}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {t('shipper.deliveryHistory.description')}
           </p>
         </div>
@@ -206,9 +207,12 @@ export default function DeliveryHistoryPage() {
                   return (
                     <TableRow key={row.eventId}>
                       <TableCell className="px-5 py-5">
-                        <strong className="inline-flex whitespace-nowrap rounded-lg bg-primary/10 px-3 py-2 text-primary">
+                        <RecordLink
+                          className="whitespace-nowrap font-bold"
+                          onClick={() => setSelected(row.eventId)}
+                        >
                           {row.orderCode}
-                        </strong>
+                        </RecordLink>
                       </TableCell>
                       <TableCell className="px-5 py-5">
                         <DeliveryTypeBadge type={row.taskType} />

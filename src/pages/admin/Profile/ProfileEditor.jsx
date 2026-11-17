@@ -58,6 +58,7 @@ export default function ProfileEditor({ user, onClose, onSaved }) {
       <DialogContent
         closeLabel="common.close"
         className="max-w-2xl"
+        data-dialog-fixed
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-bold">
@@ -72,49 +73,55 @@ export default function ProfileEditor({ user, onClose, onSaved }) {
           noValidate
           className="mt-5 space-y-5"
           onSubmit={event => handleSubmit(submit)(event)}
+          data-dialog-layout
         >
-          <FormError>
-            {error}
-          </FormError>
-          <fieldset
-            disabled={busy || blocked}
-            className="space-y-4"
-          >
-            <label className="grid gap-2">
-              {t('admin.profile.email')}
-              <Input
-                value={user.email}
-                disabled
-                className="h-12 text-base"
-              />
-            </label>
-            {['fullName', 'phone'].map(key => (
-              <label
-                key={key}
-                className="grid gap-2"
-              >
-                {t(`admin.profile.${key}`)}
+          <div data-dialog-body>
+            <FormError>
+              {error}
+            </FormError>
+            <fieldset
+              disabled={busy || blocked}
+              className="space-y-4"
+            >
+              <label className="grid gap-2">
+                {t('admin.profile.email')}
                 <Input
-                  {...register(key)}
-                  aria-label={t(`admin.profile.${key}`)}
-                  disabled={!user.editableFields.includes(key)}
-                  maxLength={key === 'fullName' ? 100 : 10}
+                  value={user.email}
+                  disabled
                   className="h-12 text-base"
                 />
-                <FormError>
-                  {errors[key]?.message}
-                </FormError>
               </label>
-            ))}
-            {user.editableFields.includes('avatar') && (
-              <ImagePicker
-                selection={images}
-                disabled={busy || blocked}
-                help={t('admin.workspaceSync.avatarHint')}
-              />
-            )}
-          </fieldset>
-          <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+              {['fullName', 'phone'].map(key => (
+                <label
+                  key={key}
+                  className="grid gap-2"
+                >
+                  {t(`admin.profile.${key}`)}
+                  <Input
+                    {...register(key)}
+                    aria-label={t(`admin.profile.${key}`)}
+                    disabled={!user.editableFields.includes(key)}
+                    maxLength={key === 'fullName' ? 100 : 10}
+                    className="h-12 text-base"
+                  />
+                  <FormError>
+                    {errors[key]?.message}
+                  </FormError>
+                </label>
+              ))}
+              {user.editableFields.includes('avatar') && (
+                <ImagePicker
+                  selection={images}
+                  disabled={busy || blocked}
+                  help={t('admin.workspaceSync.avatarHint')}
+                />
+              )}
+            </fieldset>
+          </div>
+          <footer
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+            data-dialog-footer
+          >
             <Button
               type="button"
               variant="secondary"

@@ -44,6 +44,9 @@ export async function setupNotifications(page, { role = 'Customer', dark = false
     if (path === '/merchant-profile') {
       return ok({ id: 'notification-customer', businessName: 'Store name', status: 1 })
     }
+    if (path === '/notification/outbox/summary') {
+      return ok({ pending: 2, sending: 1, deadLetter: 0, oldestPendingAt: '2026-11-17T02:00:00Z', serverNow: '2026-11-17T02:05:00Z' })
+    }
     if (path === '/notification/unread-count') {
       return ok(state.items.filter((item) => !item.isRead).length)
     }
