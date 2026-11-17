@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Bell, ArrowUpRight, X } from 'lucide-react'
@@ -12,6 +12,7 @@ export default function NotificationBell() {
   const { t } = useTranslation()
   const { unread, listHref = CUSTOMER_ROUTES.NOTIFICATIONS } = useNotifications()
   const [open, setOpen] = useState(false)
+  const scrollRoot = useRef(null)
   return (
     <Popover.Root
       open={open}
@@ -65,9 +66,13 @@ export default function NotificationBell() {
                 <X size={18} />
               </Popover.Close>
             </div>
-            <div className="min-h-0 overflow-y-auto">
+            <div
+              ref={scrollRoot}
+              className="min-h-0 overflow-y-auto"
+            >
               <NotificationInbox
                 compact
+                scrollRoot={scrollRoot}
                 onNavigate={() => setOpen(false)}
               />
             </div>

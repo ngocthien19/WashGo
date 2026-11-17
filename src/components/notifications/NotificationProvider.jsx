@@ -20,6 +20,7 @@ export default function NotificationProvider({ children, listHref, resolveHref }
       key={`${userId || 'guest'}:${role || ''}`}
       categories={NOTIFICATION_CATEGORIES[role] || NOTIFICATION_CATEGORIES.Customer}
       store={store}
+      role={role}
       listHref={listHref}
       resolveHref={resolveHref}
     >
@@ -28,12 +29,25 @@ export default function NotificationProvider({ children, listHref, resolveHref }
   )
 }
 
-function NotificationSession({ children, store, listHref, resolveHref, categories }) {
+function NotificationSession({ children, store, role, listHref, resolveHref, categories }) {
   const [revision, setRevision] = useState(0)
   const [unread, setUnread] = useState(null)
   const [live, setLive] = useState(false)
   const generation = useRef(0)
   const announced = useRef(new Set())
+  const settled = useRef(new Set())
+  const settledBefore = useRef(0)
+  const suppress = useCallback((ids = [], allAt) => {
+    for (const id of ids) {
+      settled.current.add(id)
+    }
+    if (allAt != null && Number.isFinite(allAt)) {
+      settledBefore.current = Math.max(settledBefore.current, allAt)
+    }
+    while (settled.current.size > NOTIFICATION_CONFIG.TOAST_HISTORY_LIMIT) {
+      settled.current.delete(settled.current.values().next().value)
+    }
+  }, [])
   const refresh = useCallback(() => setRevision((value) => value + 1), [])
   useEffect(() => {
     if (live) {
@@ -74,7 +88,10 @@ function NotificationSession({ children, store, listHref, resolveHref, categorie
     const received = (item) => {
       if (!disposed && isNotification(item)) {
         refresh()
-        if (!item.isRead && !announced.current.has(item.id)) {
+        if (item.isRead) {
+          suppress([item.id])
+        }
+        if (!item.isRead && !settled.current.has(item.id) && !(item.createdOn <= settledBefore.current) && !announced.current.has(item.id)) {
           announced.current.add(item.id)
           // Keep a bounded, session-only history across reconnects.
           if (announced.current.size > NOTIFICATION_CONFIG.TOAST_HISTORY_LIMIT) {
@@ -90,6 +107,7 @@ function NotificationSession({ children, store, listHref, resolveHref, categorie
     connection.on(NOTIFICATION_CONFIG.EVENT, received)
     const stateChanged = (state) => {
       if (!disposed && ['read', 'readAll', 'deleted', 'deletedAll'].includes(state?.action) && Number.isInteger(state.unreadCount) && state.unreadCount >= 0) {
+        suppress(Array.isArray(state.ids) ? state.ids : [], ['readAll', 'deletedAll'].includes(state.action) ? Date.parse(state.at) / 1000 : undefined)
         refresh()
       }
     }
@@ -137,9 +155,9 @@ function NotificationSession({ children, store, listHref, resolveHref, categorie
       connection.off('notificationState', stateChanged)
       connection.stop().catch(() => {})
     }
-  }, [store, refresh])
+  }, [store, refresh, suppress])
   return (
-    <NotificationContext.Provider value={{ unread, live, revision, refresh, listHref, resolveHref, categories }}>
+    <NotificationContext.Provider value={{ unread, live, revision, refresh, suppress, listHref, resolveHref, categories, role }}>
       {children}
     </NotificationContext.Provider>
   )

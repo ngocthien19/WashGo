@@ -8,9 +8,14 @@ export default function NotificationsPage() {
   const { t } = useTranslation()
   return (
     <Reveal className="mx-auto max-w-[1440px] space-y-6">
-      <h1 className="text-3xl font-bold">
-        {t('customer.profile.allNotifications')}
-      </h1>
+      <header>
+        <h1 className="font-bold text-[30px]">
+          {t('customer.profile.allNotifications')}
+        </h1>
+        <p className="mt-2 text-[16px] text-muted-foreground">
+          {t('notificationNav.shipperDescription')}
+        </p>
+      </header>
       <NotificationCenter
         advanced
         types={types}

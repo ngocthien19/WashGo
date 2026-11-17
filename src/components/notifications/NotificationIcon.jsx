@@ -16,7 +16,7 @@ const types = {
   33: [Clock, 'amber'], 34: [Clock, 'amber'], 40: [MessageSquareWarning, 'rose'],
   41: [CircleDollarSign, 'amber'], 42: [CircleCheck, 'violet'],
   43: [PackageCheck, 'teal'], 44: [CircleCheck, 'emerald'], 45: [Clock, 'rose'],
-  46: [ReceiptText, 'violet'], 47: [Bell, 'blue']
+  46: [ReceiptText, 'violet'], 47: [Bell, 'blue'], 50: [PackageCheck, 'blue']
 }
 const colors = {
   blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-300',
