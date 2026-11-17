@@ -182,133 +182,144 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
       <DialogContent
         closeLabel="common.close"
         className="max-w-xl border-primary/15"
+        data-dialog-fixed
       >
-        <DialogTitle className="-mx-6 -mt-6 flex items-center gap-3 border-b border-primary/10 bg-primary/5 px-6 py-5 pr-12 text-2xl font-semibold sm:-mx-8 sm:-mt-8 sm:px-8">
-          {action === 'assign' && (
-            <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
-              <Truck size={23} />
+        <div data-dialog-header>
+          <DialogTitle className="-mx-6 -mt-6 flex items-center gap-3 border-b border-primary/10 bg-primary/5 px-6 py-5 pr-12 text-2xl font-semibold sm:-mx-8 sm:-mt-8 sm:px-8">
+            {action === 'assign' && (
+              <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
+                <Truck size={23} />
+              </span>
+            )}
+            {t(`merchant.orders.${action}`)}
+          </DialogTitle>
+          <DialogDescription className="mt-2 border-b border-border pb-5 text-base text-muted-foreground">
+            <span className="mr-2 inline-flex rounded-lg border border-primary/20 bg-primary/10 px-3 py-1 font-semibold text-primary">
+              {order.orderCode}
             </span>
+            {' '}
+            ·
+            {' '}
+            {t(`merchant.orders.${action}Note`)}
+          </DialogDescription>
+        </div>
+        <div data-dialog-body>
+          {action === 'assign' && (
+            <div className="mt-4 grid gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4 sm:grid-cols-2">
+              <div className="flex gap-2">
+                <MapPin
+                  size={18}
+                  className="mt-1 shrink-0 text-primary"
+                />
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {t('merchant.shippers.assignmentLocation')}
+                  </p>
+                  <p className="mt-1 text-base font-semibold">
+                    {assignmentTask(order) === 2 ? t('merchant.shippers.returnTask') : (order.lockerName || '—')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Package
+                  size={18}
+                  className="mt-1 shrink-0 text-primary"
+                />
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {t('merchant.shippers.taskType')}
+                  </p>
+                  <p className="mt-1 text-base font-semibold">
+                    {t(assignmentTask(order) === 1 ? 'merchant.orders.assignCollect' : 'merchant.orders.assignReturn')}
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
-          {t(`merchant.orders.${action}`)}
-        </DialogTitle>
-        <DialogDescription className="mt-2 border-b border-border pb-5 text-base text-muted-foreground">
-          <span className="mr-2 inline-flex rounded-lg border border-primary/20 bg-primary/10 px-3 py-1 font-semibold text-primary">
-            {order.orderCode}
-          </span>
-          {' '}
-          ·
-          {' '}
-          {t(`merchant.orders.${action}Note`)}
-        </DialogDescription>
-        {action === 'assign' && (
-          <div className="mt-4 grid gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4 sm:grid-cols-2">
-            <div className="flex gap-2">
-              <MapPin
-                size={18}
-                className="mt-1 shrink-0 text-primary"
-              />
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t('merchant.shippers.assignmentLocation')}
-                </p>
-                <p className="mt-1 text-base font-semibold">
-                  {assignmentTask(order) === 2 ? t('merchant.shippers.returnTask') : (order.lockerName || '—')}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Package
-                size={18}
-                className="mt-1 shrink-0 text-primary"
-              />
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t('merchant.shippers.taskType')}
-                </p>
-                <p className="mt-1 text-base font-semibold">
-                  {t(assignmentTask(order) === 1 ? 'merchant.orders.assignCollect' : 'merchant.orders.assignReturn')}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
         <form
           onSubmit={submit}
           className="mt-5 space-y-5"
+          data-dialog-layout
         >
-          <fieldset
-            disabled={pending || uncertain}
-            className="space-y-4"
+          <div data-dialog-body>
+            <fieldset
+              disabled={pending || uncertain}
+              className="space-y-4"
+            >
+              {action === 'weigh' && (
+                <label className="block space-y-2 text-base font-medium">
+                  <span>
+                    {t('merchant.orders.weightInput')}
+                  </span>
+                  <Input
+                    type="number"
+                    min="0.01"
+                    max="1000"
+                    step="0.01"
+                    required
+                    value={weight}
+                    onChange={(event) => setWeight(event.target.value)}
+                    className="h-12 text-base"
+                  />
+                </label>
+              )}
+              {action === 'process' && (
+                <SelectField
+                  label={t('merchant.orders.nextStatus')}
+                  value={next}
+                  onValueChange={setNext}
+                  disabled={pending || uncertain}
+                  options={processingSteps(order).map((value) => ({ value: String(value), label: t(statusLabel(value)) }))}
+                />
+              )}
+              {action === 'assign' && (
+                <ShipperSelection
+                  id={order.id}
+                  value={shipper}
+                  onChange={setShipper}
+                  disabled={pending || uncertain}
+                />
+              )}
+              {action !== 'weigh' && (
+                <label className="block space-y-2 text-base">
+                  <span>
+                    {t('merchant.orders.note')}
+                  </span>
+                  <textarea
+                    value={note}
+                    maxLength={500}
+                    onChange={(event) => setNote(event.target.value)}
+                    rows={3}
+                    className="w-full rounded-xl border border-input bg-background px-3 py-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  />
+                </label>
+              )}
+            </fieldset>
+            {error && (
+              <p
+                role="alert"
+                className="text-base text-destructive"
+              >
+                {t(error)}
+              </p>
+            )}
+            {canCheck && (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 px-4 text-base"
+                disabled={pending}
+                onClick={checkResult}
+              >
+                {t('merchant.orderSync.checkResult')}
+              </Button>
+            )}
+          </div>
+          <div
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-4"
+            data-dialog-footer
           >
-            {action === 'weigh' && (
-              <label className="block space-y-2 text-base font-medium">
-                <span>
-                  {t('merchant.orders.weightInput')}
-                </span>
-                <Input
-                  type="number"
-                  min="0.01"
-                  max="1000"
-                  step="0.01"
-                  required
-                  value={weight}
-                  onChange={(event) => setWeight(event.target.value)}
-                  className="h-12 text-base"
-                />
-              </label>
-            )}
-            {action === 'process' && (
-              <SelectField
-                label={t('merchant.orders.nextStatus')}
-                value={next}
-                onValueChange={setNext}
-                disabled={pending || uncertain}
-                options={processingSteps(order).map((value) => ({ value: String(value), label: t(statusLabel(value)) }))}
-              />
-            )}
-            {action === 'assign' && (
-              <ShipperSelection
-                id={order.id}
-                value={shipper}
-                onChange={setShipper}
-                disabled={pending || uncertain}
-              />
-            )}
-            {action !== 'weigh' && (
-              <label className="block space-y-2 text-base">
-                <span>
-                  {t('merchant.orders.note')}
-                </span>
-                <textarea
-                  value={note}
-                  maxLength={500}
-                  onChange={(event) => setNote(event.target.value)}
-                  rows={3}
-                  className="w-full rounded-xl border border-input bg-background px-3 py-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                />
-              </label>
-            )}
-          </fieldset>
-          {error && (
-            <p
-              role="alert"
-              className="text-base text-destructive"
-            >
-              {t(error)}
-            </p>
-          )}
-          {canCheck && (
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11 px-4 text-base"
-              disabled={pending}
-              onClick={checkResult}
-            >
-              {t('merchant.orderSync.checkResult')}
-            </Button>
-          )}
-          <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
             <Button
               type="button"
               variant="secondary"

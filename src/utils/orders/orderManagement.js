@@ -3,7 +3,9 @@ import { ORDER_STATUS_OPTIONS } from '~/utils/config/constants'
 export const PAGE_SIZE = 12
 export const statusLabel = (status) => ORDER_STATUS_OPTIONS.find((item) => Number(item.value) === status)?.label || 'customer.orders.unknown'
 export const processingSteps = (order) => {
-  return Array.isArray(order.allowedActions?.allowedNextStatuses) ? order.allowedActions.allowedNextStatuses.filter((value) => [4, 5, 6, 7, 8].includes(value)) : []
+  const next = { 3: 4, 4: 5, 5: 6, 6: 7, 7: 8 }[order.status]
+  const allowed = order.allowedActions?.allowedNextStatuses
+  return next && Array.isArray(allowed) && allowed.includes(next) ? [next] : []
 }
 export const canWeigh = (order) => order.allowedActions?.canUpdateWeight === true
 export const assignmentTask = (order) => order.allowedActions?.canAssignShipper === true && [1, 2].includes(order.allowedActions.assignTaskType) ? order.allowedActions.assignTaskType : null

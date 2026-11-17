@@ -11,7 +11,7 @@ import FormError from '~/components/ui/FormError'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminOrderApi } from '~/apis/admin/adminOrderApi'
-import { formatCurrency, formatDateTime } from '~/utils/format/formats'
+import { formatCurrency, formatDateTime, formatNumber } from '~/utils/format/formats'
 import { getApiError } from '~/utils/http/apiError'
 import { notify } from '~/utils/notifications/notifications'
 
@@ -29,7 +29,7 @@ export default function CancelExpiredDialog({ id, onClose, onSaved }) {
     lock.current = true; setBusy(true); setError('')
     try {
       const latest = await load()
-      if (!latest.canCancel || latest.revision !== quote.revision || ['feeAmount', 'refundAmount', 'feeOutstanding', 'paidAmount'].some(key => latest[key] !== quote[key])) {
+      if (!latest.canCancel || latest.revision !== quote.revision || ['feeAmount', 'refundAmount', 'refundPoints', 'feeOutstanding', 'paidAmount'].some(key => latest[key] !== quote[key])) {
         setBlocked(true); throw new Error('admin.orderManagement.changed')
       }
       await adminOrderApi.cancelExpired(quote, values.reason.trim())
@@ -56,6 +56,7 @@ export default function CancelExpiredDialog({ id, onClose, onSaved }) {
         closeLabel="common.close"
         ready={!resource.loading}
         className="max-w-2xl"
+        data-dialog-fixed
       >
         <DialogHeader tone="danger">
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -66,70 +67,90 @@ export default function CancelExpiredDialog({ id, onClose, onSaved }) {
             {t('admin.sync.cancelHint')}
           </DialogDescription>
         </DialogHeader>
-        {!quote ? <ResourceFeedback {...resource} /> : (
+        {!quote ? (
+          <div data-dialog-body>
+            <ResourceFeedback {...resource} />
+          </div>
+        ) : (
           <form
             onSubmit={event => handleSubmit(submit)(event)}
             className="mt-5 space-y-5"
+            data-dialog-layout
           >
-            <p className="rounded-xl border border-border bg-muted/20 p-4">
-              {t('admin.sync.depositDeadline')}
-              :
-              {' '}
-              <strong>
-                {formatDateTime(quote.depositDeadline)}
-              </strong>
-            </p>
-            <dl className="grid gap-3 sm:grid-cols-2">
-              {['paidAmount', 'feeAmount', 'refundAmount', 'feeOutstanding'].map(key => (
-                <div
-                  key={key}
-                  className="rounded-xl border border-border p-4"
-                >
-                  <dt className="text-sm text-muted-foreground">
-                    {t(`admin.sync.${key}`)}
-                  </dt>
-                  <dd className="mt-2 text-lg font-semibold">
-                    {formatCurrency(quote[key])}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            {!quote.canCancel && (
-              <p className="rounded-xl bg-amber-500/10 p-4">
-                {quote.reason || quote.reasonCode}
+            <div data-dialog-body>
+              <p className="rounded-xl border border-border bg-muted/20 p-4">
+                {t('admin.sync.depositDeadline')}
+                :
+                {' '}
+                <strong>
+                  {formatDateTime(quote.depositDeadline)}
+                </strong>
               </p>
-            )}
-            <fieldset
-              disabled={busy || blocked || !quote.canCancel}
-              className="space-y-4"
-            >
-              <label className="grid gap-2">
-                {t('admin.sync.cancelReason')}
-                <Input
-                  {...register('reason')}
-                  maxLength={500}
-                  className="h-12 text-base"
-                />
+              <dl className="grid gap-3 sm:grid-cols-2">
+                {Number.isSafeInteger(quote.refundPoints) && (
+                  <div className="rounded-xl border border-border p-4">
+                    <dt className="text-sm text-muted-foreground">
+                      {t('loyalty.refundPoints')}
+                    </dt>
+                    <dd className="mt-2 text-lg font-semibold">
+                      {formatNumber(quote.refundPoints)}
+                    </dd>
+                  </div>
+                )}
+                {['paidAmount', 'feeAmount', 'refundAmount', 'feeOutstanding'].map(key => (
+                  <div
+                    key={key}
+                    className="rounded-xl border border-border p-4"
+                  >
+                    <dt className="text-sm text-muted-foreground">
+                      {t(`admin.sync.${key}`)}
+                    </dt>
+                    <dd className="mt-2 text-lg font-semibold">
+                      {formatCurrency(quote[key])}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              {!quote.canCancel && (
+                <p className="rounded-xl bg-amber-500/10 p-4">
+                  {quote.reason || quote.reasonCode}
+                </p>
+              )}
+              <fieldset
+                disabled={busy || blocked || !quote.canCancel}
+                className="space-y-4"
+              >
+                <label className="grid gap-2">
+                  {t('admin.sync.cancelReason')}
+                  <Input
+                    {...register('reason')}
+                    maxLength={500}
+                    className="h-12 text-base"
+                  />
+                  <FormError>
+                    {errors.reason?.message}
+                  </FormError>
+                </label>
+                <label className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    {...register('confirmed')}
+                    className="mt-1 size-5"
+                  />
+                  {t('admin.sync.cancelConfirm')}
+                </label>
                 <FormError>
-                  {errors.reason?.message}
+                  {errors.confirmed?.message}
                 </FormError>
-              </label>
-              <label className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  {...register('confirmed')}
-                  className="mt-1 size-5"
-                />
-                {t('admin.sync.cancelConfirm')}
-              </label>
+              </fieldset>
               <FormError>
-                {errors.confirmed?.message}
+                {error}
               </FormError>
-            </fieldset>
-            <FormError>
-              {error}
-            </FormError>
-            <footer className="flex justify-end gap-3 border-t border-border pt-5">
+            </div>
+            <footer
+              className="flex justify-end gap-3 border-t border-border pt-5"
+              data-dialog-footer
+            >
               <Button
                 type="button"
                 variant="secondary"

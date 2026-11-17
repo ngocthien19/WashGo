@@ -4,7 +4,25 @@ import { setupAdminOrders, orderId, merchantId, serviceId } from '../helpers/adm
 test('backend sync: expired deposit cancellation reviews fees and sends guarded reason once', async ({ page }) => {
   const state = await setupAdminOrders(page, { status: 1 })
   state.orders[0].isDepositExpired = true
+  state.orders[0].depositDeadline = '2026-11-08T09:30:00Z'
+  state.orders[2].status = 3
+  state.orders[2].isDepositExpired = true
+  await page.goto('/admin/orders')
+  const expired = page.getByRole('row').filter({ has: page.getByRole('link', { name: 'WG-ADMIN-01', exact: true }) })
+  await expect(expired).toHaveAttribute('data-deposit-expired', 'true')
+  await expect(expired.getByText('Drop-off deadline passed', { exact: true })).toBeVisible()
+  await expect(page.locator('tr[data-deposit-expired="true"]')).toHaveCount(1)
+  await expect(expired.getByRole('cell').first()).toHaveCSS('box-shadow', /inset/)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(expired.locator('.deposit-expired-clock')).toHaveCSS('animation-name', 'none')
   await page.goto(`/admin/orders/${orderId}`)
+  const deadlines = page.getByRole('region', { name: 'Order deadlines', exact: true })
+  await expect(deadlines.locator('[data-deadline="deposit"]')).toHaveAttribute('data-overdue', 'true')
+  await expect(deadlines.locator('[data-deadline="deposit"]')).toContainText('30 minutes overdue')
+  await expect(deadlines.locator('[data-deadline="pickup"]')).not.toHaveAttribute('data-overdue')
+  await page.setViewportSize({ width: 375, height: 812 })
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.setViewportSize({ width: 1280, height: 800 })
   await page.getByRole('button', { name: 'Cancel expired order', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await expect(dialog).toContainText('15,000')
@@ -39,6 +57,11 @@ test('order detail shows people and history but never locker access secrets or A
   await page.goto(`/admin/orders/${orderId}`)
   await expect(page.getByRole('heading', { name: 'WG-ADMIN-01', exact: true })).toBeVisible()
   await expect(page.getByText('Test Customer', { exact: true }).first()).toBeVisible()
+  const actor = page.getByText('Test Customer', { exact: true }).last()
+  await expect(actor).toHaveCSS('font-weight', '700')
+  await expect(actor.locator('svg')).toHaveCount(0)
+  await expect(page.getByText('Your laundry is in the locker, ready for the shipper to collect.', { exact: true })).toBeVisible()
+  await expect(page.getByText('Deposited', { exact: true })).toBeVisible()
   await expect(page.getByText('SECRET_DEPOSIT')).toHaveCount(0)
   await expect(page.getByText('SECRET_PICKUP')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Weigh and confirm price', exact: true })).toHaveCount(0)
@@ -209,5 +232,22 @@ test('Admin order presentation keeps overdue filtering grouped and uses stored c
   await expect(commission).toContainText('20%')
   await expect(commission).toContainText('10,000')
   await expect(commission).toContainText('40,000')
+  expect(state.writes).toHaveLength(0)
+})
+
+test('captured timeline preserves server sequence and displays assignment snapshots', async ({ page }) => {
+  const state = await setupAdminOrders(page, { merchant: true })
+  state.orders[0].timeline = [
+    { id: 'deposit', eventType: 'Deposited', basis: 'Captured', sequence: 1, status: 2, fromStatus: 1, timestamp: 1794009600 },
+    { id: 'assign', eventType: 'MerchantAssigned', basis: 'Captured', sequence: 2, status: 2, fromStatus: 2, timestamp: 1793000000, merchantName: 'Historical shop', actorName: 'Admin actor' },
+    { id: 'reassign', eventType: 'ShipperReassigned', basis: 'Captured', sequence: 3, status: 2, fromStatus: 2, timestamp: 1793000000, shipperName: 'Snapshot driver', taskType: 1 }
+  ]
+  await page.goto(`/admin/orders/${orderId}`)
+  await expect(page.getByText('Historical shop', { exact: true })).toBeVisible()
+  const history = page.locator('ol').filter({ has: page.getByText('Historical shop', { exact: true }) })
+  await expect(history.locator('li').nth(0)).toContainText('Laundry dropped off')
+  await expect(history.locator('li').nth(1)).toContainText('Laundry shop assigned')
+  await expect(history.locator('li').nth(2)).toContainText('Shipper reassigned')
+  await expect(history.getByText('Snapshot driver', { exact: true })).toBeVisible()
   expect(state.writes).toHaveLength(0)
 })

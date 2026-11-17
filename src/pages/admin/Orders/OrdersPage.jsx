@@ -2,7 +2,7 @@ import CancelExpiredDialog from './components/CancelExpiredDialog'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ClipboardList, RefreshCw, Eye, MoreHorizontal, Store, WandSparkles, X, ListFilter } from 'lucide-react'
+import { ClipboardList, RefreshCw, Eye, MoreHorizontal, Store, WandSparkles, X, ListFilter, Timer } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
 import { Checkbox } from '~/components/ui/checkbox'
@@ -20,7 +20,7 @@ import OrderSummary from '~/components/orders/OrderSummary'
 import Reveal from '~/components/motion/Reveal'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminOrderApi } from '~/apis/admin/adminOrderApi'
-import { ADMIN_ROUTES, ORDER_STATUS_OPTIONS, ORDER_SORT_OPTIONS, PAYMENT_STATUSES } from '~/utils/config/constants'
+import { ADMIN_ROUTES, ORDER_STATUS_OPTIONS, ORDER_SORT_OPTIONS, PAYMENT_STATUSES, ORDER_STATUSES } from '~/utils/config/constants'
 import { formatCurrency, formatDateTime, formatDurationMinutes, formatNumber } from '~/utils/format/formats'
 import { TAKE, readAdminOrdersQuery, writeAdminOrdersQuery, listFilter, scopeFilter, waitingFilter } from './ordersModel'
 import MerchantAssignmentDialog from './components/MerchantAssignmentDialog'
@@ -96,11 +96,11 @@ export default function OrdersPage() {
     <Reveal className="mx-auto max-w-[1600px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <ClipboardList className="text-primary" />
             {t('admin.nav.orders')}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {t('admin.orderManagement.description')}
           </p>
         </div>
@@ -317,167 +317,180 @@ export default function OrdersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map(row => (
-                  <TableRow
-                    key={row.id}
-                    className={waiting && row.isOverdue ? 'bg-rose-500/5' : ''}
-                  >
-                    {waiting && (
-                      <TableCell>
-                        <Checkbox
-                          aria-label={t('admin.orderManagement.selectOrder', { code: row.orderCode })}
-                          checked={selected.includes(row.id)}
-                          onCheckedChange={checked => toggle(row.id, checked)}
-                        />
-                      </TableCell>
-                    )}
-                    <TableCell>
-                      <Link
-                        to={`${ADMIN_ROUTES.ORDERS}/${row.id}`}
-                        className="font-semibold text-primary hover:underline"
-                      >
-                        {row.orderCode}
-                      </Link>
-                      {!waiting && (
-                        <p className="mt-2 whitespace-nowrap text-xs text-muted-foreground">
-                          {formatDateTime(row.createdOn)}
-                        </p>
-                      )}
-                    </TableCell>
-                    {!waiting && (
-                      <>
+                {rows.map(row => {
+                  const depositExpired = !waiting && row.status === ORDER_STATUSES.PENDING && row.isDepositExpired === true
+                  return (
+                    <TableRow
+                      key={row.id}
+                      data-deposit-expired={depositExpired || undefined}
+                      className={depositExpired ? 'bg-amber-500/8 hover:bg-amber-500/12 [&>td:first-child]:shadow-[inset_4px_0_0_var(--color-amber-500)]' : waiting && row.isOverdue ? 'bg-rose-500/5' : ''}
+                    >
+                      {waiting && (
                         <TableCell>
-                          <div className="flex items-center gap-3">
-                            <UserAvatar
-                              avatar={row.customerAvatarUrl}
-                              fullName={row.customerName}
-                              alt={row.customerName || ''}
-                              className="size-11"
-                            />
-                            <div>
-                              <p className="text-base font-semibold">
-                                {row.customerName || '—'}
-                              </p>
-                              <p className="mt-1 text-xs text-muted-foreground">
-                                {row.customerPhoneNumber || '—'}
-                              </p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="min-w-[250px] whitespace-normal">
-                          <div className="flex items-center gap-3">
-                            <UserAvatar
-                              avatar={row.merchantImageUrls?.[0] || merchantMedia.get(row.merchantId)?.[0]}
-                              fullName={row.merchantName}
-                              alt={row.merchantName || ''}
-                              className="size-11"
-                            />
-                            <div className="min-w-0">
-                              <p className="text-base font-semibold">
-                                {row.merchantName || t('admin.orderManagement.unassigned')}
-                              </p>
-                              {row.merchantId && (
-                                <p className="mt-1 whitespace-nowrap text-sm text-muted-foreground">
-                                  {row.merchantPhoneNumber || merchantPhones.get(row.merchantId) || '—'}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </TableCell>
-                      </>
-                    )}
-                    <TableCell className="min-w-[340px] whitespace-normal">
-                      <div className="flex items-center gap-3">
-                        <ResourceThumbnail
-                          urls={row.lockerImageUrls || lockerMedia.get(row.lockerId) || []}
-                          name={row.lockerName}
-                        />
-                        <div>
-                          <p className="text-base font-semibold">
-                            {row.lockerName}
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {t('merchant.orders.box')}
-                            :
-                            {' '}
-                            {row.boxNumber || '—'}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    {waiting ? (
-                      <>
-                        <TableCell className="max-w-56 whitespace-normal">
-                          {row.services.join(', ') || '—'}
-                        </TableCell>
-                        <TableCell>
-                          {formatDateTime(row.depositedAt)}
-                        </TableCell>
-                        <TableCell>
-                          <p className={row.isOverdue ? 'font-semibold text-rose-600 dark:text-rose-300' : ''}>
-                            {formatDurationMinutes(row.waitingMinutes)}
-                          </p>
-                          {row.isOverdue && (
-                            <p className="mt-1 text-xs text-rose-600 dark:text-rose-300">
-                              {t('admin.overdue')}
-                            </p>
-                          )}
-                        </TableCell>
-                      </>
-                    ) : (
-                      <>
-                        <TableCell>
-                          <OrderStatus status={row.status} />
-                        </TableCell>
-                        <TableCell>
-                          <PaymentStatus status={row.paymentStatus} />
-                        </TableCell>
-                        <TableCell className="font-semibold tabular-nums">
-                          {formatCurrency(row.finalAmount)}
-                        </TableCell>
-                        <TableCell className="font-semibold tabular-nums">
-                          {row.commissionStatus !== 'Missing' && Number.isFinite(row.commissionRateApplied) && row.commissionRateApplied >= 0 && row.commissionRateApplied <= 100 ? `${formatNumber(row.commissionRateApplied)}%` : '—'}
-                        </TableCell>
-                      </>
-                    )}
-                    <TableCell className="sticky right-0 z-10 border-l border-border bg-card text-center">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger render={(
-                          <Button
-                            variant="secondary"
-                            size="icon"
-                            aria-label={t('admin.orderManagement.actionsFor', { code: row.orderCode })}
-                            className="size-10 rounded-xl"
+                          <Checkbox
+                            aria-label={t('admin.orderManagement.selectOrder', { code: row.orderCode })}
+                            checked={selected.includes(row.id)}
+                            onCheckedChange={checked => toggle(row.id, checked)}
                           />
-                        )}
+                        </TableCell>
+                      )}
+                      <TableCell>
+                        <Link
+                          to={`${ADMIN_ROUTES.ORDERS}/${row.id}`}
+                          className="font-semibold text-primary hover:underline"
                         >
-                          <MoreHorizontal size={18} />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem render={<Link to={`${ADMIN_ROUTES.ORDERS}/${row.id}`} />}>
-                            <Eye size={16} />
-                            {t('admin.merchants.details')}
-                          </DropdownMenuItem>
-                          {row.allowedActions?.canCancelExpiredDeposit && (
-                            <DropdownMenuItem
-                              onClick={() => setCancelId(row.id)}
-                              className="text-destructive"
-                            >
-                              <X size={16} />
-                              {t('admin.sync.cancelExpired')}
-                            </DropdownMenuItem>
+                          {row.orderCode}
+                        </Link>
+                        {!waiting && (
+                          <p className="mt-2 whitespace-nowrap text-xs text-muted-foreground">
+                            {formatDateTime(row.createdOn)}
+                          </p>
+                        )}
+                      </TableCell>
+                      {!waiting && (
+                        <>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <UserAvatar
+                                avatar={row.customerAvatarUrl}
+                                fullName={row.customerName}
+                                alt={row.customerName || ''}
+                                className="size-11"
+                              />
+                              <div>
+                                <p className="text-base font-semibold">
+                                  {row.customerName || '—'}
+                                </p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                  {row.customerPhoneNumber || '—'}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="min-w-[250px] whitespace-normal">
+                            <div className="flex items-center gap-3">
+                              <UserAvatar
+                                avatar={row.merchantImageUrls?.[0] || merchantMedia.get(row.merchantId)?.[0]}
+                                fullName={row.merchantName}
+                                alt={row.merchantName || ''}
+                                className="size-11"
+                              />
+                              <div className="min-w-0">
+                                <p className="text-base font-semibold">
+                                  {row.merchantName || t('admin.orderManagement.unassigned')}
+                                </p>
+                                {row.merchantId && (
+                                  <p className="mt-1 whitespace-nowrap text-sm text-muted-foreground">
+                                    {row.merchantPhoneNumber || merchantPhones.get(row.merchantId) || '—'}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                        </>
+                      )}
+                      <TableCell className="min-w-[340px] whitespace-normal">
+                        <div className="flex items-center gap-3">
+                          <ResourceThumbnail
+                            urls={row.lockerImageUrls || lockerMedia.get(row.lockerId) || []}
+                            name={row.lockerName}
+                          />
+                          <div>
+                            <p className="text-base font-semibold">
+                              {row.lockerName}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {t('merchant.orders.box')}
+                              :
+                              {' '}
+                              {row.boxNumber || '—'}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      {waiting ? (
+                        <>
+                          <TableCell className="max-w-56 whitespace-normal">
+                            {row.services.join(', ') || '—'}
+                          </TableCell>
+                          <TableCell>
+                            {formatDateTime(row.depositedAt)}
+                          </TableCell>
+                          <TableCell>
+                            <p className={row.isOverdue ? 'font-semibold text-rose-600 dark:text-rose-300' : ''}>
+                              {formatDurationMinutes(row.waitingMinutes)}
+                            </p>
+                            {row.isOverdue && (
+                              <p className="mt-1 text-xs text-rose-600 dark:text-rose-300">
+                                {t('admin.overdue')}
+                              </p>
+                            )}
+                          </TableCell>
+                        </>
+                      ) : (
+                        <>
+                          <TableCell>
+                            <OrderStatus status={row.status} />
+                            {depositExpired && (
+                              <span className="mt-2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:text-amber-200">
+                                <Timer
+                                  aria-hidden="true"
+                                  className="deposit-expired-clock size-3.5 shrink-0"
+                                />
+                                {t('customer.sync.cardDepositExpired')}
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <PaymentStatus status={row.paymentStatus} />
+                          </TableCell>
+                          <TableCell className="font-semibold tabular-nums">
+                            {formatCurrency(row.finalAmount)}
+                          </TableCell>
+                          <TableCell className="font-semibold tabular-nums">
+                            {row.commissionStatus !== 'Missing' && Number.isFinite(row.commissionRateApplied) && row.commissionRateApplied >= 0 && row.commissionRateApplied <= 100 ? `${formatNumber(row.commissionRateApplied)}%` : '—'}
+                          </TableCell>
+                        </>
+                      )}
+                      <TableCell className={`sticky right-0 z-10 border-l border-border text-center ${depositExpired ? 'bg-[color-mix(in_srgb,var(--color-amber-500)_8%,var(--card))]' : 'bg-card'}`}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger render={(
+                            <Button
+                              variant="secondary"
+                              size="icon"
+                              aria-label={t('admin.orderManagement.actionsFor', { code: row.orderCode })}
+                              className="size-10 rounded-xl"
+                            />
                           )}
-                          {waiting && (
-                            <DropdownMenuItem onClick={() => setAssignment({ id: row.id })}>
-                              <Store size={16} />
-                              {t('admin.orderManagement.assignMerchant')}
+                          >
+                            <MoreHorizontal size={18} />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem render={<Link to={`${ADMIN_ROUTES.ORDERS}/${row.id}`} />}>
+                              <Eye size={16} />
+                              {t('admin.merchants.details')}
                             </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                            {row.allowedActions?.canCancelExpiredDeposit && (
+                              <DropdownMenuItem
+                                onClick={() => setCancelId(row.id)}
+                                className="text-destructive"
+                              >
+                                <X size={16} />
+                                {t('admin.sync.cancelExpired')}
+                              </DropdownMenuItem>
+                            )}
+                            {waiting && (
+                              <DropdownMenuItem onClick={() => setAssignment({ id: row.id })}>
+                                <Store size={16} />
+                                {t('admin.orderManagement.assignMerchant')}
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
             <TablePagination

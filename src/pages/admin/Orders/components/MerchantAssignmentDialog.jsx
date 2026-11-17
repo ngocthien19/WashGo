@@ -82,8 +82,12 @@ export default function MerchantAssignmentDialog({ id, ids, onClose, onSaved }) 
       <DialogContent
         closeLabel="common.close"
         className="max-w-2xl"
+        data-dialog-fixed
       >
-        <div className="-mx-6 -mt-6 border-b border-primary/15 bg-primary/5 px-6 py-5 sm:-mx-8 sm:-mt-8 sm:px-8">
+        <div
+          className="-mx-6 -mt-6 border-b border-primary/15 bg-primary/5 px-6 py-5 sm:-mx-8 sm:-mt-8 sm:px-8"
+          data-dialog-header
+        >
           <DialogTitle className="flex items-center gap-3 pr-8 text-xl font-semibold">
             {bulk ? <WandSparkles className="text-primary" /> : <Store className="text-primary" />}
             {t(bulk ? 'admin.orderManagement.suggest' : 'admin.orderManagement.assignMerchant')}
@@ -92,104 +96,112 @@ export default function MerchantAssignmentDialog({ id, ids, onClose, onSaved }) 
             {t(bulk ? 'admin.orderManagement.suggestHint' : 'admin.orderManagement.assignHint')}
           </DialogDescription>
         </div>
-        <div className="mt-5 space-y-4">
-          {resource.loading || resource.error || !value ? (
-            <ResourceFeedback
-              {...resource}
-              loadingText="admin.loading"
-            />
-          ) : bulk ? (
-            <div className="space-y-3">
-              {suggestions.map(item => (
-                <div
-                  key={item.orderId}
-                  className="rounded-xl border border-border p-4"
-                >
-                  <p className="border-b border-border pb-3 font-medium">
-                    {item.orderCode}
-                  </p>
-                  {item.suggested ? (
-                    <>
-                      <p className="mt-2 text-primary">
-                        {item.suggested.businessName}
+        <div
+          className="mt-5 space-y-4"
+          data-dialog-layout
+        >
+          <div data-dialog-body>
+            {resource.loading || resource.error || !value ? (
+              <ResourceFeedback
+                {...resource}
+                loadingText="admin.loading"
+              />
+            ) : bulk ? (
+              <div className="space-y-3">
+                {suggestions.map(item => (
+                  <div
+                    key={item.orderId}
+                    className="rounded-xl border border-border p-4"
+                  >
+                    <p className="border-b border-border pb-3 font-medium">
+                      {item.orderCode}
+                    </p>
+                    {item.suggested ? (
+                      <>
+                        <p className="mt-2 text-primary">
+                          {item.suggested.businessName}
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {t('admin.orderManagement.load', { current: item.suggested.currentLoad, max: item.suggested.maxCapacity })}
+                          {' '}
+                          ·
+                          {' '}
+                          {t('admin.orderManagement.score', { value: formatNumber(item.suggested.score) })}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                        {t('admin.orderManagement.noCandidate')}
                       </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {t('admin.orderManagement.load', { current: item.suggested.currentLoad, max: item.suggested.maxCapacity })}
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : !value.merchants.length ? (
+              <p className="text-sm text-muted-foreground">
+                {t('admin.orderManagement.noCandidate')}
+              </p>
+            ) : (
+              <fieldset
+                disabled={pending || blocked}
+                className="space-y-3"
+              >
+                <legend className="mb-4 w-full border-b border-border pb-3 font-medium">
+                  {value.order.orderCode}
+                </legend>
+                {value.merchants.map(item => (
+                  <label
+                    key={item.merchantId}
+                    className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${selected === item.merchantId ? 'border-primary bg-primary/5' : 'border-border'} ${item.currentLoad >= item.maxCapacity ? 'cursor-not-allowed opacity-50' : ''}`}
+                  >
+                    <input
+                      type="radio"
+                      name="merchant"
+                      aria-label={item.businessName}
+                      checked={selected === item.merchantId}
+                      disabled={item.currentLoad >= item.maxCapacity}
+                      onChange={() => setSelected(item.merchantId)}
+                      className="mt-1 size-4 accent-primary"
+                    />
+                    <span className="min-w-0">
+                      <span className="block break-words font-medium">
+                        {item.businessName}
+                      </span>
+                      <span className="mt-2 block text-sm text-muted-foreground">
+                        {t('admin.orderManagement.load', { current: item.currentLoad, max: item.maxCapacity })}
                         {' '}
                         ·
                         {' '}
-                        {t('admin.orderManagement.score', { value: formatNumber(item.suggested.score) })}
-                      </p>
-                    </>
-                  ) : (
-                    <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
-                      {t('admin.orderManagement.noCandidate')}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : !value.merchants.length ? (
-            <p className="text-sm text-muted-foreground">
-              {t('admin.orderManagement.noCandidate')}
-            </p>
-          ) : (
-            <fieldset
-              disabled={pending || blocked}
-              className="space-y-3"
-            >
-              <legend className="mb-4 w-full border-b border-border pb-3 font-medium">
-                {value.order.orderCode}
-              </legend>
-              {value.merchants.map(item => (
-                <label
-                  key={item.merchantId}
-                  className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${selected === item.merchantId ? 'border-primary bg-primary/5' : 'border-border'} ${item.currentLoad >= item.maxCapacity ? 'cursor-not-allowed opacity-50' : ''}`}
-                >
-                  <input
-                    type="radio"
-                    name="merchant"
-                    aria-label={item.businessName}
-                    checked={selected === item.merchantId}
-                    disabled={item.currentLoad >= item.maxCapacity}
-                    onChange={() => setSelected(item.merchantId)}
-                    className="mt-1 size-4 accent-primary"
-                  />
-                  <span className="min-w-0">
-                    <span className="block break-words font-medium">
-                      {item.businessName}
+                        {t('admin.orderManagement.priority', { value: item.priority })}
+                      </span>
+                      <span className="mt-1 block text-sm text-muted-foreground">
+                        {t('admin.orderManagement.score', { value: formatNumber(item.score) })}
+                        {item.distanceKm != null && ` · ${formatNumber(item.distanceKm)} km`}
+                      </span>
+                      <span className="mt-1 block text-sm text-muted-foreground">
+                        {t('admin.merchants.fields.commissionRate')}
+                        :
+                        {item.commissionRate}
+                        %
+                      </span>
                     </span>
-                    <span className="mt-2 block text-sm text-muted-foreground">
-                      {t('admin.orderManagement.load', { current: item.currentLoad, max: item.maxCapacity })}
-                      {' '}
-                      ·
-                      {' '}
-                      {t('admin.orderManagement.priority', { value: item.priority })}
-                    </span>
-                    <span className="mt-1 block text-sm text-muted-foreground">
-                      {t('admin.orderManagement.score', { value: formatNumber(item.score) })}
-                      {item.distanceKm != null && ` · ${formatNumber(item.distanceKm)} km`}
-                    </span>
-                    <span className="mt-1 block text-sm text-muted-foreground">
-                      {t('admin.merchants.fields.commissionRate')}
-                      :
-                      {item.commissionRate}
-                      %
-                    </span>
-                  </span>
-                </label>
-              ))}
-            </fieldset>
-          )}
-          {error && (
-            <p
-              role="alert"
-              className="text-sm leading-6 text-destructive"
-            >
-              {t(error)}
-            </p>
-          )}
-          <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+                  </label>
+                ))}
+              </fieldset>
+            )}
+            {error && (
+              <p
+                role="alert"
+                className="text-sm leading-6 text-destructive"
+              >
+                {t(error)}
+              </p>
+            )}
+          </div>
+          <div
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+            data-dialog-footer
+          >
             <Button
               variant="secondary"
               className="h-11 px-5 text-base"

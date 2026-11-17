@@ -33,3 +33,34 @@ it('keeps one current milestone and unrecorded future steps when history repeats
   expect(container.querySelector('[aria-current="step"] time')).toBeNull()
   expect(screen.getAllByText('No event has been recorded for this step.').length).toBeGreaterThan(0)
 })
+
+it('explains processing milestones with distinct icons while preserving the actual event note', () => {
+  render(<OrderTimeline order={{ status: 6, timeline: [
+    { id: 'washing', status: 4, timestamp: 1794000000, note: 'Handle the silk separately' },
+    { id: 'drying', status: 5, timestamp: 1794100000 }
+  ] }}
+  />)
+  expect(screen.getByText('Your laundry is being washed according to your selected services.')).toBeVisible()
+  expect(screen.getByText('Handle the silk separately')).toBeVisible()
+  const washing = screen.getByText('Washing', { exact: true }).closest('li')
+  const drying = screen.getByText('Drying', { exact: true }).closest('li')
+  const ironing = screen.getByText('Ironing', { exact: true }).closest('li')
+  expect(washing.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+  expect(washing.querySelector('svg').innerHTML).not.toEqual(drying.querySelector('svg').innerHTML)
+  expect(within(ironing).getByText('Your garments are being ironed for a neat, smooth finish.')).toBeVisible()
+  expect(screen.queryByText('This step has been recorded.')).not.toBeInTheDocument()
+})
+
+it('uses captured transitions and workflow timestamps instead of assignment events', () => {
+  render(<OrderTimeline order={{ status: 3, workflowSteps: [
+    { status: 2, isApplicable: true, isCompleted: true, timestamp: 1794000000 },
+    { status: 3, isApplicable: true, isCurrent: true }
+  ], timeline: [
+    { id: 'assigned', eventType: 'MerchantAssigned', basis: 'Captured', fromStatus: 2, status: 2, timestamp: 1793000000, note: 'Assignment is not a milestone' },
+    { id: 'deposit', eventType: 'Deposited', basis: 'Captured', fromStatus: 1, status: 2, timestamp: 1794100000, note: 'Deposit confirmation' }
+  ] }}
+  />)
+  expect(screen.queryByText('Assignment is not a milestone')).not.toBeInTheDocument()
+  expect(screen.getByText('Deposit confirmation')).toBeVisible()
+  expect(screen.getByText(formatDateTime(1794000000))).toBeVisible()
+})

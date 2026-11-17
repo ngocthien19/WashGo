@@ -39,7 +39,7 @@ export default function StorageWorkspace({ role }) {
   return (
     <div className="mx-auto max-w-[1500px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="flex items-center gap-3 text-3xl font-bold">
+        <h1 className="flex items-center gap-3 text-[30px] font-bold">
           <Warehouse className="text-primary" />
           {t('storage.title')}
         </h1>

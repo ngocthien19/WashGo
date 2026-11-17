@@ -8,7 +8,10 @@ export default function DepositDeadlineNotice({ order }) {
   const deadline = useDepositDeadline(order)
   return (
     <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-amber-950 dark:text-amber-100">
-      <Timer className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-300" />
+      <Timer
+        aria-hidden="true"
+        className={`mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-300 ${deadline.expired ? 'deposit-expired-clock' : ''}`}
+      />
       <div className="grid gap-2">
         <p className="text-sm font-semibold">
           {t('customer.orders.dropoff.deadlineTitle')}

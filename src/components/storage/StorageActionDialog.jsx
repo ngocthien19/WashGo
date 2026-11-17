@@ -28,7 +28,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
     shipperId: action === 'assign' ? yup.string().required('storage.required') : yup.string(),
     reason: role === 'Admin' || action === 'exception' ? yup.string().trim().required('storage.required').max(500) : yup.string().trim().max(500),
     verificationReference: action === 'verify-legacy' ? yup.string().trim().required('storage.required').max(120) : yup.string(),
-    receiptReference: action === 'handover' ? yup.string().trim().required('storage.required').max(120) : yup.string(),
+    receiptReference: action === 'handover' ? yup.string().trim().max(120) : yup.string(),
     pinCode: credential && mode === 'pin' ? yup.string().matches(/^[0-9]{6}$/, 'storage.invalidPin').required('storage.invalidPin') : yup.string(),
     qrCode: credential && mode === 'qr' ? yup.string().trim().required('storage.required').max(500) : yup.string()
   })
@@ -58,7 +58,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
           body.quoteToken = quote.quoteToken
         }
         if (credential) {
-          Object.assign(body, { taskId, ...(mode === 'pin' ? { pinCode: values.pinCode } : { qrCode: values.qrCode.trim() }), ...(action === 'handover' ? { receiptReference: values.receiptReference } : {}) })
+          Object.assign(body, { taskId, ...(mode === 'pin' ? { pinCode: values.pinCode } : { qrCode: values.qrCode.trim() }), ...(action === 'handover' ? { receiptReference: values.receiptReference || undefined } : {}) })
         }
         await storageApi.execute(order.id, action, cycle?.orderRevision ?? order.revision, body)
       }
@@ -81,7 +81,10 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
       open
       onOpenChange={open => !open && !lock.current && onClose()}
     >
-      <DialogContent className="max-w-xl">
+      <DialogContent
+        className="max-w-xl"
+        data-dialog-fixed
+      >
         <DialogHeader>
           <DialogTitle>
             {t(`storage.actions.${action}`)}
@@ -93,112 +96,118 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
         <form
           className="mt-5 space-y-4"
           onSubmit={event => handleSubmit(values => execute(values))(event)}
+          data-dialog-layout
         >
-          <FormError>
-            {error}
-          </FormError>
-          {Number.isInteger(attempts?.remaining) && (
-            <p className="text-sm text-destructive">
-              {t('storage.remainingAttempts', { count: attempts.remaining })}
-            </p>
-          )}
-          {attempts?.until && (
-            <p className="text-sm text-destructive">
-              {t('storage.lockoutUntil', { time: formatDateTime(attempts.until) })}
-            </p>
-          )}
-          {unknown && (
-            <p className="rounded-xl bg-amber-500/10 p-4">
-              {t('storage.unknown')}
-            </p>
-          )}
-          <fieldset
-            disabled={busy || unknown || blocked}
-            className="space-y-4"
-          >
-            {action === 'assign' && (
-              <>
-                {shippers.loading || shippers.error ? <ResourceFeedback {...shippers} /> : (
-                  <SelectField
-                    value={shipperId}
-                    label={t('storage.shipper')}
-                    options={[{ value: '', label: t('storage.chooseShipper') }, ...(shippers.data || []).map(row => ({ value: row.id, label: `${row.fullName} · ${row.phone || row.email || '—'}` }))]}
-                    onValueChange={value => setValue('shipperId', value, { shouldValidate: true })}
+          <div data-dialog-body>
+            <FormError>
+              {error}
+            </FormError>
+            {Number.isInteger(attempts?.remaining) && (
+              <p className="text-sm text-destructive">
+                {t('storage.remainingAttempts', { count: attempts.remaining })}
+              </p>
+            )}
+            {attempts?.until && (
+              <p className="text-sm text-destructive">
+                {t('storage.lockoutUntil', { time: formatDateTime(attempts.until) })}
+              </p>
+            )}
+            {unknown && (
+              <p className="rounded-xl bg-amber-500/10 p-4">
+                {t('storage.unknown')}
+              </p>
+            )}
+            <fieldset
+              disabled={busy || unknown || blocked}
+              className="space-y-4"
+            >
+              {action === 'assign' && (
+                <>
+                  {shippers.loading || shippers.error ? <ResourceFeedback {...shippers} /> : (
+                    <SelectField
+                      value={shipperId}
+                      label={t('storage.shipper')}
+                      options={[{ value: '', label: t('storage.chooseShipper') }, ...(shippers.data || []).map(row => ({ value: row.id, label: `${row.fullName} · ${row.phone || row.email || '—'}` }))]}
+                      onValueChange={value => setValue('shipperId', value, { shouldValidate: true })}
+                    />
+                  )}
+                </>
+              )}
+              {(role === 'Admin' || action === 'exception') && (
+                <label className="grid gap-2">
+                  {t('storage.reason')}
+                  <textarea
+                    className="min-h-24 rounded-xl border border-input bg-background p-3"
+                    maxLength={500}
+                    {...register('reason')}
                   />
-                )}
-              </>
-            )}
-            {(role === 'Admin' || action === 'exception') && (
-              <label className="grid gap-2">
-                {t('storage.reason')}
-                <textarea
-                  className="min-h-24 rounded-xl border border-input bg-background p-3"
-                  maxLength={500}
-                  {...register('reason')}
-                />
-              </label>
-            )}
-            {['handover', 'verify-legacy'].includes(action) && (
-              <label className="grid gap-2">
-                {t(action === 'handover' ? 'storage.receipt' : 'storage.proof')}
-                <Input
-                  maxLength={120}
-                  {...register(action === 'handover' ? 'receiptReference' : 'verificationReference')}
-                />
-              </label>
-            )}
-            {credential && (
-              <>
-                <SelectField
-                  label={t('storage.credential')}
-                  value={mode}
-                  options={[{ value: 'pin', label: 'PIN' }, { value: 'qr', label: 'QR' }]}
-                  onValueChange={value => {
-                    setMode(value); setValue('pinCode', ''); setValue('qrCode', '')
-                  }}
-                />
-                {mode === 'pin' ? (
+                </label>
+              )}
+              {['handover', 'verify-legacy'].includes(action) && (
+                <label className="grid gap-2">
+                  {t(action === 'handover' ? 'storage.receiptOptional' : 'storage.proof')}
                   <Input
-                    type="password"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    maxLength={6}
-                    aria-label="PIN"
-                    {...register('pinCode')}
+                    maxLength={120}
+                    {...register(action === 'handover' ? 'receiptReference' : 'verificationReference')}
                   />
-                ) : (
-                  <>
+                </label>
+              )}
+              {credential && (
+                <>
+                  <SelectField
+                    label={t('storage.credential')}
+                    value={mode}
+                    options={[{ value: 'pin', label: 'PIN' }, { value: 'qr', label: 'QR' }]}
+                    onValueChange={value => {
+                      setMode(value); setValue('pinCode', ''); setValue('qrCode', '')
+                    }}
+                  />
+                  {mode === 'pin' ? (
                     <Input
-                      aria-label="QR"
+                      type="password"
+                      inputMode="numeric"
                       autoComplete="off"
-                      maxLength={500}
-                      {...register('qrCode')}
+                      maxLength={6}
+                      aria-label="PIN"
+                      {...register('pinCode')}
                     />
-                    <QrScanInput
-                      onCode={code => setValue('qrCode', code, { shouldValidate: true })}
-                      onClear={() => setValue('qrCode', '')}
-                    />
-                  </>
-                )}
-              </>
-            )}
-            <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                className="mt-1 size-5"
-                {...register('confirmed')}
-              />
-              <span>
-                {t('storage.confirmed')}
-              </span>
-            </label>
-            {Object.values(errors).map((error, index) => (
-              <FormError key={index}>
-                {error.message}
-              </FormError>
-            ))}
-          </fieldset>
-          <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
+                  ) : (
+                    <>
+                      <Input
+                        aria-label="QR"
+                        autoComplete="off"
+                        maxLength={500}
+                        {...register('qrCode')}
+                      />
+                      <QrScanInput
+                        onCode={code => setValue('qrCode', code, { shouldValidate: true })}
+                        onClear={() => setValue('qrCode', '')}
+                      />
+                    </>
+                  )}
+                </>
+              )}
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  className="mt-1 size-5"
+                  {...register('confirmed')}
+                />
+                <span>
+                  {t('storage.confirmed')}
+                </span>
+              </label>
+              {Object.values(errors).map((error, index) => (
+                <FormError key={index}>
+                  {error.message}
+                </FormError>
+              ))}
+            </fieldset>
+          </div>
+          <footer
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-4"
+            data-dialog-footer
+          >
             <Button
               type="button"
               variant="secondary"

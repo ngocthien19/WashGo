@@ -4,13 +4,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { QRCodeSVG } from 'qrcode.react'
-import { ArrowLeft, RefreshCw, Package, Scale, Truck, WashingMachine, MapPin, ReceiptText, History, UserRound } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Package, Scale, Truck, WashingMachine, MapPin, ReceiptText, History } from 'lucide-react'
+import OrderEventHistory from '~/components/orders/OrderEventHistory'
 import { Button } from '~/components/ui/button'
 import OrderStatus from '~/components/orders/OrderStatus'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantOrderApi } from '~/apis/merchant/merchantOrderApi'
-import { MERCHANT_ROUTES, ORDER_STATUS_OPTIONS, ORDER_STATUS_BORDER_COLORS } from '~/utils/config/constants'
+import { MERCHANT_ROUTES } from '~/utils/config/constants'
 import { formatCurrency, formatDateTime } from '~/utils/format/formats'
 import { processingSteps, canWeigh, assignmentTask } from './orderModel'
 import OrderActionDialog from './components/OrderActionDialog'
@@ -80,10 +81,10 @@ export default function OrderDetailPage() {
         <>
           <header className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-primary">
+              <h1 className="font-bold text-primary text-[30px]">
                 {order.orderCode}
               </h1>
-              <p className="mt-2 text-base text-muted-foreground">
+              <p className="mt-2  text-muted-foreground text-[16px]">
                 {order.merchantOrderCode && `${order.merchantOrderCode} · `}
                 {formatDateTime(order.createdOn)}
               </p>
@@ -177,46 +178,7 @@ export default function OrderDetailPage() {
                 icon={History}
                 title={t('merchant.orders.history')}
               >
-                {!order.timeline?.length ? (
-                  <p className="text-base text-muted-foreground">
-                    {t('customer.orders.noTimeline')}
-                  </p>
-                ) : (
-                  <ol className="space-y-5">
-                    {[...order.timeline].sort((a, b) => b.timestamp - a.timestamp).map((entry, index) => (
-                      <li
-                        key={entry.id || index}
-                        className={`border-l-2 pl-4 ${ORDER_STATUS_BORDER_COLORS[ORDER_STATUS_OPTIONS.find(option => Number(option.value) === entry.status)?.color || 'slate']}`}
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <OrderStatus
-                            status={entry.status}
-                            showDot={false}
-                          />
-                          <span className="text-sm text-muted-foreground">
-                            {formatDateTime(entry.timestamp)}
-                          </span>
-                        </div>
-                        {entry.actorName && (
-                          <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
-                            <UserRound size={13} />
-                            {entry.actorName}
-                          </span>
-                        )}
-                        {entry.note && (
-                          <p className="mt-2 break-words text-sm font-normal leading-relaxed text-muted-foreground">
-                            {entry.note}
-                          </p>
-                        )}
-                        {!entry.note && entry.actorRole === 'Customer' && [1, 2].includes(entry.status) && (
-                          <p className="mt-2 text-sm font-normal leading-relaxed text-muted-foreground">
-                            {t(`merchant.orderView.customerEvent.${entry.status}`)}
-                          </p>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                )}
+                <OrderEventHistory entries={order.timeline} />
               </Panel>
             </div>
             <div className="min-w-0 space-y-6">

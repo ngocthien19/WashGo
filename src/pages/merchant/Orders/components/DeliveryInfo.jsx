@@ -44,7 +44,7 @@ export default function DeliveryInfo({ order, depositImages, returnImages }) {
         ))}
       </div>
       <dl className="grid gap-5 sm:grid-cols-2">
-        {[['weight', order.actualWeightKg == null ? t('customer.orders.notWeighed') : `${formatNumber(order.actualWeightKg)} kg`], ['eta', order.predictedFinishAt || order.estimatedFinishAt ? formatDateTime(order.predictedFinishAt || order.estimatedFinishAt) : t('merchant.orders.noEta')], ['storage', order.storageLocation], ['storageReference', order.storageReference]].map(([key, value]) => (
+        {[['weight', order.actualWeightKg == null ? t('customer.orders.notWeighed') : `${formatNumber(order.actualWeightKg)} kg`], ['eta', order.predictedFinishAt || order.estimatedFinishAt ? formatDateTime(order.predictedFinishAt || order.estimatedFinishAt) : t('merchant.orders.noEta')], ...(order.storageLocation ? [['storage', order.storageLocation]] : []), ...(order.storageReference ? [['storageReference', order.storageReference]] : [])].map(([key, value]) => (
           <div key={key}>
             <dt className="text-sm text-muted-foreground">
               {t(key === 'storageReference' ? 'merchant.orderView.storageReference' : `merchant.orders.${key}`)}
