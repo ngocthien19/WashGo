@@ -1,3 +1,4 @@
+import { expectFixedDialog } from '../helpers/dialogLayout'
 import { expect, test } from '@playwright/test'
 import { merchantSession } from '../helpers/merchantSession'
 const photo = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#c7d2fe"/></svg>')}`
@@ -117,4 +118,22 @@ test('guests never request delivery records', async ({ page }) => {
   await page.goto('/shipper/history')
   await expect(page).toHaveURL('/login')
   expect(state.filters).toHaveLength(0)
+})
+
+
+test('workspace Shipper history code opens the existing event detail in a bounded modal', async ({ page }) => {
+  await setup(page, { dark: true })
+  await page.route('**/api/shipper-delivery/history/event-0', route => route.fulfill({ json: { succeeded: true, data: { eventId: 'event-0', orderCode: 'WG-0', lockerName: 'Deposit Locker', lockerAddress: 'Historical address', completedAt: '2026-11-09T12:00:00Z', merchantName: 'Test merchant', note: 'Historical note. '.repeat(100) } } }))
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.setViewportSize({ width: 390, height: 650 })
+  await page.goto('/shipper/history')
+  await expect(page.locator('main h1')).toHaveCSS('font-size', '30px')
+  await expect(page.locator('main h1 + p')).toHaveCSS('font-size', '16px')
+  await page.getByRole('button', { name: 'WG-0', exact: true }).first().click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toContainText('Test merchant')
+  await expectFixedDialog(dialog)
+  if (process.env.WORKSPACE_QA) {
+    await page.screenshot({ path: 'test-results/workspace-shipper-dialog.png' })
+  }
 })

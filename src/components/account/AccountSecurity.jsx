@@ -48,6 +48,7 @@ function PasswordDialog({ onClose, onSaved }) {
       <DialogContent
         closeLabel="common.close"
         className="max-w-xl"
+        data-dialog-fixed
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-bold">
@@ -61,43 +62,49 @@ function PasswordDialog({ onClose, onSaved }) {
         <form
           className="mt-5 space-y-4"
           onSubmit={event => handleSubmit(submit)(event)}
+          data-dialog-layout
         >
-          <FormError>
-            {error}
-          </FormError>
-          <fieldset
-            disabled={busy || blocked}
-            className="space-y-4"
-          >
-            {['currentPassword', 'newPassword', 'confirmNewPassword'].map(key => (
-              <label
-                key={key}
-                className="grid gap-2"
-              >
-                {t(`admin.workspaceSync.${key}`)}
-                <Input
-                  {...register(key)}
-                  aria-label={t(`admin.workspaceSync.${key}`)}
-                  type="password"
-                  maxLength={128}
-                  autoComplete={key === 'currentPassword' ? 'current-password' : 'new-password'}
-                  className="h-12 text-base"
+          <div data-dialog-body>
+            <FormError>
+              {error}
+            </FormError>
+            <fieldset
+              disabled={busy || blocked}
+              className="space-y-4"
+            >
+              {['currentPassword', 'newPassword', 'confirmNewPassword'].map(key => (
+                <label
+                  key={key}
+                  className="grid gap-2"
+                >
+                  {t(`admin.workspaceSync.${key}`)}
+                  <Input
+                    {...register(key)}
+                    aria-label={t(`admin.workspaceSync.${key}`)}
+                    type="password"
+                    maxLength={128}
+                    autoComplete={key === 'currentPassword' ? 'current-password' : 'new-password'}
+                    className="h-12 text-base"
+                  />
+                  <FormError>
+                    {errors[key]?.message}
+                  </FormError>
+                </label>
+              ))}
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  {...register('revokeOtherSessions')}
+                  className="mt-1 size-5"
                 />
-                <FormError>
-                  {errors[key]?.message}
-                </FormError>
+                {t('admin.workspaceSync.revokeOnPassword')}
               </label>
-            ))}
-            <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                {...register('revokeOtherSessions')}
-                className="mt-1 size-5"
-              />
-              {t('admin.workspaceSync.revokeOnPassword')}
-            </label>
-          </fieldset>
-          <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+            </fieldset>
+          </div>
+          <footer
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+            data-dialog-footer
+          >
             <Button
               type="button"
               variant="secondary"
@@ -290,6 +297,7 @@ export default function AccountSecurity({ revision = 0 }) {
           <DialogContent
             closeLabel="common.close"
             className="max-w-lg"
+            data-dialog-fixed
           >
             <DialogHeader tone="warning">
               <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-bold">
@@ -300,10 +308,15 @@ export default function AccountSecurity({ revision = 0 }) {
                 {t('admin.workspaceSync.revokeHint')}
               </DialogDescription>
             </DialogHeader>
-            <FormError>
-              {error}
-            </FormError>
-            <footer className="mt-5 flex justify-end gap-3">
+            <div data-dialog-body>
+              <FormError>
+                {error}
+              </FormError>
+            </div>
+            <footer
+              className="mt-5 flex justify-end gap-3"
+              data-dialog-footer
+            >
               <Button
                 variant="secondary"
                 disabled={busy}

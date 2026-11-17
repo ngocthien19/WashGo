@@ -31,10 +31,10 @@ export default function ProfilePage() {
     <Reveal className="mx-auto max-w-[1400px] space-y-6 [&_button]:text-base">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">
+          <h1 className="font-bold text-[30px]">
             {t('shipper.nav.profile')}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {t('shipper.profileDescription')}
           </p>
         </div>

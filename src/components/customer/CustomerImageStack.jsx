@@ -50,9 +50,16 @@ export default function CustomerImageStack({ urls = [] }) {
           <DialogContent
             className="max-w-2xl overflow-hidden p-0 sm:p-0"
             closeLabel="common.close"
+            data-dialog-fixed
           >
-            <div className="flex max-h-[85dvh] flex-col">
-              <div className="shrink-0 border-b border-border p-5 pr-14">
+            <div
+              className="flex max-h-[85dvh] flex-col"
+              data-dialog-layout
+            >
+              <div
+                className="shrink-0 border-b border-border p-5 pr-14"
+                data-dialog-header
+              >
                 <DialogTitle className="flex items-center gap-2 text-lg font-bold">
                   <Images className="size-5 text-primary" />
                   {t('customer.imageUpload.galleryTitle')}
@@ -61,10 +68,15 @@ export default function CustomerImageStack({ urls = [] }) {
                   {t('customer.imageUpload.viewAll', { count: urls.length })}
                 </DialogDescription>
               </div>
-              <div className="min-h-0 overflow-y-auto p-5">
-                <CustomerImageGallery urls={urls} />
+              <div data-dialog-body>
+                <div className="min-h-0 overflow-y-auto p-5">
+                  <CustomerImageGallery urls={urls} />
+                </div>
               </div>
-              <div className="flex shrink-0 justify-end border-t border-border bg-muted/25 px-5 py-4">
+              <div
+                className="flex shrink-0 justify-end border-t border-border bg-muted/25 px-5 py-4"
+                data-dialog-footer
+              >
                 <Button
                   variant="secondary"
                   className="h-11 rounded-xl px-4"

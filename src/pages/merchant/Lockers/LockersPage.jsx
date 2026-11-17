@@ -1,3 +1,4 @@
+import RecordLink from '~/components/RecordLink'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -40,11 +41,11 @@ export default function LockersPage() {
     <Reveal className="mx-auto max-w-[1600px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <PanelsTopLeft className="text-primary" />
             {t('merchant.nav.lockers')}
           </h1>
-          <p className="mt-2 text-base text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {t('merchant.lockers.description')}
           </p>
         </div>
@@ -160,9 +161,12 @@ export default function LockersPage() {
                           icon={PanelsTopLeft}
                         />
                         <div className="min-w-0">
-                          <p className="font-bold">
+                          <RecordLink
+                            className="font-bold"
+                            onClick={() => setSelected({ id: locker.id, tab: 'details' })}
+                          >
                             {locker.name}
-                          </p>
+                          </RecordLink>
                           <p className="mt-1 text-sm text-muted-foreground">
                             {locker.code}
                           </p>

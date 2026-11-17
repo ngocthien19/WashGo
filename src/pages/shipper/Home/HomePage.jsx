@@ -39,10 +39,10 @@ export default function HomePage() {
     <Reveal className="mx-auto max-w-[1440px] space-y-6 [&_button]:text-base">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">
+          <h1 className="font-bold text-[30px]">
             {t('shipper.overview')}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {t('shipper.dashboardDescription')}
           </p>
         </div>

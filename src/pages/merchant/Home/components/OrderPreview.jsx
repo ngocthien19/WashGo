@@ -34,70 +34,75 @@ export default function OrderPreview({ id, onClose }) {
       <DialogContent
         closeLabel="common.close"
         className="max-w-2xl"
+        data-dialog-fixed
       >
-        <DialogTitle className="flex items-center gap-3 text-xl font-bold">
-          <Package className="text-primary" />
-          {order?.orderCode || t('customer.order.orderDetails')}
-        </DialogTitle>
-        <DialogDescription className="mt-2 text-sm text-muted-foreground">
-          {t('merchant.orderPreview')}
-        </DialogDescription>
-        {!order || resource.loading || resource.error ? (
-          <ResourceFeedback
-            {...resource}
-            loadingText="merchant.loading"
-          />
-        ) : (
-          <div className="mt-6 space-y-5">
-            <Button
-              render={<Link to={`${MERCHANT_ROUTES.ORDERS}/${id}`} />}
-              nativeButton={false}
-              className="h-11 px-4 text-base"
-            >
-              {t('merchant.orders.manage')}
-            </Button>
-            <p className="text-sm text-muted-foreground">
-              {formatDateTime(order.createdOn)}
-            </p>
-            <p className="font-semibold">
-              {order.lockerName}
-              {' '}
-              ·
-              {' '}
-              {t('customer.order.box', { number: order.boxNumber })}
-            </p>
-            <div className="divide-y divide-border">
-              {order.items.map((item, index) => (
-                <div
-                  key={item.id || index}
-                  className="flex justify-between gap-4 py-3"
-                >
-                  <span className="break-words">
-                    {item.serviceName}
-                    {' '}
-                    ×
-                    {' '}
-                    <strong>
-                      {item.quantity}
+        <div data-dialog-header>
+          <DialogTitle className="flex items-center gap-3 text-xl font-bold">
+            <Package className="text-primary" />
+            {order?.orderCode || t('customer.order.orderDetails')}
+          </DialogTitle>
+          <DialogDescription className="mt-2 text-sm text-muted-foreground">
+            {t('merchant.orderPreview')}
+          </DialogDescription>
+        </div>
+        <div data-dialog-body>
+          {!order || resource.loading || resource.error ? (
+            <ResourceFeedback
+              {...resource}
+              loadingText="merchant.loading"
+            />
+          ) : (
+            <div className="mt-6 space-y-5">
+              <Button
+                render={<Link to={`${MERCHANT_ROUTES.ORDERS}/${id}`} />}
+                nativeButton={false}
+                className="h-11 px-4 text-base"
+              >
+                {t('merchant.orders.manage')}
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                {formatDateTime(order.createdOn)}
+              </p>
+              <p className="font-semibold">
+                {order.lockerName}
+                {' '}
+                ·
+                {' '}
+                {t('customer.order.box', { number: order.boxNumber })}
+              </p>
+              <div className="divide-y divide-border">
+                {order.items.map((item, index) => (
+                  <div
+                    key={item.id || index}
+                    className="flex justify-between gap-4 py-3"
+                  >
+                    <span className="break-words">
+                      {item.serviceName}
+                      {' '}
+                      ×
+                      {' '}
+                      <strong>
+                        {item.quantity}
+                      </strong>
+                    </span>
+                    <strong className="shrink-0">
+                      {formatCurrency(item.subTotal)}
                     </strong>
-                  </span>
-                  <strong className="shrink-0">
-                    {formatCurrency(item.subTotal)}
-                  </strong>
-                </div>
-              ))}
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between border-t border-border pt-4">
+                <span>
+                  {t('customer.orders.total')}
+                </span>
+                <strong className="text-xl text-primary">
+                  {formatCurrency(order.finalAmount)}
+                </strong>
+              </div>
+              <OrderCommission order={order} />
             </div>
-            <div className="flex justify-between border-t border-border pt-4">
-              <span>
-                {t('customer.orders.total')}
-              </span>
-              <strong className="text-xl text-primary">
-                {formatCurrency(order.finalAmount)}
-              </strong>
-            </div>
-            <OrderCommission order={order} />
-          </div>
-        )}
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   )

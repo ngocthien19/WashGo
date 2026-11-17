@@ -45,6 +45,7 @@ function Detail({ merchant, onClose }) {
       <DialogContent
         closeLabel="common.close"
         className="max-w-3xl"
+        data-dialog-fixed
       >
         <MerchantDialogHeader>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -57,88 +58,96 @@ function Detail({ merchant, onClose }) {
             <MerchantStatus status={merchant.status} />
           </DialogDescription>
         </MerchantDialogHeader>
-        <div className="mt-5 space-y-5">
-          <ResourceGallery
-            urls={merchant.imageUrls || []}
-            name={merchant.businessName}
-            thumbnails
-          />
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[['totalOrders', formatNumber(merchant.totalOrders), Package, 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300'], ['unfinishedOrders', formatNumber(merchant.unfinishedOrders), Clock, 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300'], ['paidValue', formatCurrency(merchant.totalRevenue), Wallet, 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300']].map(([key, value, Icon, color]) => (
-              <div
-                key={key}
-                className={`min-w-0 rounded-xl border p-4 ${color}`}
-              >
-                <Icon
-                  size={18}
-                  className="mb-3"
+        <div
+          className="mt-5 space-y-5"
+          data-dialog-layout
+        >
+          <div data-dialog-body>
+            <ResourceGallery
+              urls={merchant.imageUrls || []}
+              name={merchant.businessName}
+              thumbnails
+            />
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[['totalOrders', formatNumber(merchant.totalOrders), Package, 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300'], ['unfinishedOrders', formatNumber(merchant.unfinishedOrders), Clock, 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300'], ['paidValue', formatCurrency(merchant.totalRevenue), Wallet, 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300']].map(([key, value, Icon, color]) => (
+                <div
+                  key={key}
+                  className={`min-w-0 rounded-xl border p-4 ${color}`}
+                >
+                  <Icon
+                    size={18}
+                    className="mb-3"
+                  />
+                  <p className="text-base leading-5">
+                    {t(`admin.merchants.${key}`)}
+                  </p>
+                  <p className="mt-2 break-words text-xl font-semibold tabular-nums">
+                    {value}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {merchant.documents?.map(document => (
+                <PrivateDocumentCard
+                  key={document.fileId}
+                  document={document}
+                  label={t(`merchant.backendSync.${{ 1: 'businessLicense', 2: 'contract', 3: 'sla' }[document.kind]}`)}
                 />
-                <p className="text-base leading-5">
-                  {t(`admin.merchants.${key}`)}
-                </p>
-                <p className="mt-2 break-words text-xl font-semibold tabular-nums">
-                  {value}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {groups.map(({ key: groupKey, icon: Icon, fields }) => (
+                <section
+                  key={groupKey}
+                  className="min-w-0 rounded-2xl border border-border bg-card p-4"
+                >
+                  <h3 className="-mx-4 -mt-4 mb-4 flex items-center gap-3 rounded-t-2xl border-b border-primary/15 bg-primary/5 p-4 text-base font-semibold">
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Icon size={17} />
+                    </span>
+                    {t(`admin.merchants.detailGroups.${groupKey}`)}
+                  </h3>
+                  <dl className="space-y-4">
+                    {fields.map((key) => (
+                      <div
+                        key={key}
+                        className="min-w-0"
+                      >
+                        <dt className="text-base text-muted-foreground">
+                          {t(`admin.merchants.fields.${key}`)}
+                        </dt>
+                        <dd className="mt-1 whitespace-pre-wrap break-words text-base leading-6">
+                          {['businessLicense', 'openingHours'].includes(key) ? displayJsonText(merchant[key]) || '—' : key === 'slaDocUrl' && merchant[key] && safeDocumentUrl(merchant[key]) ? (
+                            <a
+                              className="text-primary underline"
+                              href={getImageUrl(merchant[key])}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {t('admin.merchants.openDocument')}
+                            </a>
+                          ) : key === 'depositAmount' ? formatCurrency(merchant[key]) : key === 'commissionRate' ? Number.isFinite(merchant[key]) ? `${merchant[key]}%` : '—' : key.includes('Date') ? contractDay(merchant[key]).split('-').reverse().join('/') || '—' : merchant[key] == null || merchant[key] === '' ? '—' : String(merchant[key])}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              ))}
+            </div>
+            {merchant.rejectionReason && (
+              <p className="rounded-xl bg-rose-500/10 p-4 text-base font-semibold text-rose-700 dark:text-rose-300">
+                {t('admin.merchants.reason')}
+                :
+                {' '}
+                {merchant.rejectionReason}
+              </p>
+            )}
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {merchant.documents?.map(document => (
-              <PrivateDocumentCard
-                key={document.fileId}
-                document={document}
-                label={t(`merchant.backendSync.${{ 1: 'businessLicense', 2: 'contract', 3: 'sla' }[document.kind]}`)}
-              />
-            ))}
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {groups.map(({ key: groupKey, icon: Icon, fields }) => (
-              <section
-                key={groupKey}
-                className="min-w-0 rounded-2xl border border-border bg-card p-4"
-              >
-                <h3 className="-mx-4 -mt-4 mb-4 flex items-center gap-3 rounded-t-2xl border-b border-primary/15 bg-primary/5 p-4 text-base font-semibold">
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Icon size={17} />
-                  </span>
-                  {t(`admin.merchants.detailGroups.${groupKey}`)}
-                </h3>
-                <dl className="space-y-4">
-                  {fields.map((key) => (
-                    <div
-                      key={key}
-                      className="min-w-0"
-                    >
-                      <dt className="text-base text-muted-foreground">
-                        {t(`admin.merchants.fields.${key}`)}
-                      </dt>
-                      <dd className="mt-1 whitespace-pre-wrap break-words text-base leading-6">
-                        {['businessLicense', 'openingHours'].includes(key) ? displayJsonText(merchant[key]) || '—' : key === 'slaDocUrl' && merchant[key] && safeDocumentUrl(merchant[key]) ? (
-                          <a
-                            className="text-primary underline"
-                            href={getImageUrl(merchant[key])}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {t('admin.merchants.openDocument')}
-                          </a>
-                        ) : key === 'depositAmount' ? formatCurrency(merchant[key]) : key === 'commissionRate' ? Number.isFinite(merchant[key]) ? `${merchant[key]}%` : '—' : key.includes('Date') ? contractDay(merchant[key]).split('-').reverse().join('/') || '—' : merchant[key] == null || merchant[key] === '' ? '—' : String(merchant[key])}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
-            ))}
-          </div>
-          {merchant.rejectionReason && (
-            <p className="rounded-xl bg-rose-500/10 p-4 text-base font-semibold text-rose-700 dark:text-rose-300">
-              {t('admin.merchants.reason')}
-              :
-              {' '}
-              {merchant.rejectionReason}
-            </p>
-          )}
-          <div className="flex justify-end border-t border-border pt-4">
+          <div
+            className="flex justify-end border-t border-border pt-4"
+            data-dialog-footer
+          >
             <Button
               variant="secondary"
               className="h-11 px-5 text-base font-semibold"
@@ -191,7 +200,10 @@ function StatusDialog({ merchant, onClose, onSaved }) {
         }
       }}
     >
-      <DialogContent closeLabel="common.close">
+      <DialogContent
+        closeLabel="common.close"
+        data-dialog-fixed
+      >
         <MerchantDialogHeader tone={locking ? 'warning' : 'success'}>
           <DialogTitle className="flex items-center gap-3 pr-8 text-xl font-semibold">
             <span className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${locking ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'}`}>
@@ -203,69 +215,77 @@ function StatusDialog({ merchant, onClose, onSaved }) {
             {t(locking ? 'admin.merchants.lockHint' : 'admin.merchants.unlockHint')}
           </DialogDescription>
         </MerchantDialogHeader>
-        <div className={`mt-5 flex items-center gap-3 rounded-xl border p-4 ${locking ? 'border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20' : 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900 dark:bg-emerald-950/20'}`}>
-          <Store
-            size={20}
-            className="shrink-0 text-muted-foreground"
-          />
-          <div className="min-w-0">
-            <p className="break-words text-base font-medium">
-              {merchant.businessName}
-            </p>
-            <p className="mt-1 break-all text-sm text-muted-foreground">
-              {merchant.email}
-            </p>
+        <div data-dialog-body>
+          <div className={`mt-5 flex items-center gap-3 rounded-xl border p-4 ${locking ? 'border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20' : 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900 dark:bg-emerald-950/20'}`}>
+            <Store
+              size={20}
+              className="shrink-0 text-muted-foreground"
+            />
+            <div className="min-w-0">
+              <p className="break-words text-base font-medium">
+                {merchant.businessName}
+              </p>
+              <p className="mt-1 break-all text-sm text-muted-foreground">
+                {merchant.email}
+              </p>
+            </div>
           </div>
         </div>
         <form
           onSubmit={submit}
           className="mt-5 space-y-5"
+          data-dialog-layout
         >
-          <fieldset
-            disabled={pending || blocked}
-            className="space-y-5"
-          >
-            {locking ? (
-              <>
-                <label className="flex flex-col gap-3 text-sm font-medium">
-                  <span>
-                    {t('admin.merchants.reason')}
-                    {' '}
-                    <span className="text-destructive">*</span>
-                  </span>
-                  <textarea
-                    required
-                    maxLength={1000}
-                    value={reason}
-                    placeholder={t('admin.merchants.reasonPlaceholder')}
-                    onChange={(event) => setReason(event.target.value)}
-                    className="min-h-28 w-full rounded-xl border border-input bg-background p-3 text-base font-normal outline-none focus:ring-2 focus:ring-primary/30"
-                  />
-                </label>
-                {merchant.unfinishedOrders > 0 && (
-                  <label className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 dark:border-amber-900 dark:bg-amber-950/20">
-                    <Checkbox
-                      checked={confirmed}
-                      onCheckedChange={setConfirmed}
-                      className="mt-1"
-                    />
-                    <span>
-                      {t('admin.merchants.confirmUnfinished', { count: merchant.unfinishedOrders })}
-                    </span>
-                  </label>
-                )}
-              </>
-            ) : null}
-          </fieldset>
-          {error && (
-            <p
-              role="alert"
-              className="text-sm text-destructive"
+          <div data-dialog-body>
+            <fieldset
+              disabled={pending || blocked}
+              className="space-y-5"
             >
-              {t(error)}
-            </p>
-          )}
-          <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+              {locking ? (
+                <>
+                  <label className="flex flex-col gap-3 text-sm font-medium">
+                    <span>
+                      {t('admin.merchants.reason')}
+                      {' '}
+                      <span className="text-destructive">*</span>
+                    </span>
+                    <textarea
+                      required
+                      maxLength={1000}
+                      value={reason}
+                      placeholder={t('admin.merchants.reasonPlaceholder')}
+                      onChange={(event) => setReason(event.target.value)}
+                      className="min-h-28 w-full rounded-xl border border-input bg-background p-3 text-base font-normal outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </label>
+                  {merchant.unfinishedOrders > 0 && (
+                    <label className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 dark:border-amber-900 dark:bg-amber-950/20">
+                      <Checkbox
+                        checked={confirmed}
+                        onCheckedChange={setConfirmed}
+                        className="mt-1"
+                      />
+                      <span>
+                        {t('admin.merchants.confirmUnfinished', { count: merchant.unfinishedOrders })}
+                      </span>
+                    </label>
+                  )}
+                </>
+              ) : null}
+            </fieldset>
+            {error && (
+              <p
+                role="alert"
+                className="text-sm text-destructive"
+              >
+                {t(error)}
+              </p>
+            )}
+          </div>
+          <div
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+            data-dialog-footer
+          >
             <Button
               type="button"
               variant="secondary"
@@ -302,16 +322,21 @@ export default function MerchantRecordDialog({ kind, id, onClose, onSaved }) {
           }
         }}
       >
-        <DialogContent closeLabel="common.close">
+        <DialogContent
+          closeLabel="common.close"
+          data-dialog-fixed
+        >
           <MerchantDialogHeader>
             <DialogTitle className="text-xl font-bold">
               {t('admin.merchants.details')}
             </DialogTitle>
           </MerchantDialogHeader>
-          <ResourceFeedback
-            {...resource}
-            loadingText="admin.loading"
-          />
+          <div data-dialog-body>
+            <ResourceFeedback
+              {...resource}
+              loadingText="admin.loading"
+            />
+          </div>
         </DialogContent>
       </Dialog>
     )

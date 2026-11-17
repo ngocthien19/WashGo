@@ -55,11 +55,11 @@ export default function ReviewsPage() {
     <Reveal className="mx-auto max-w-[1800px] space-y-6 [&_button]:text-base">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <Star className="size-8 text-primary" />
             {t('admin.nav.reviews')}
           </h1>
-          <p className="mt-2 text-base text-muted-foreground">
+          <p className="mt-2  text-muted-foreground text-[16px]">
             {t('admin.reviews.description')}
           </p>
         </div>
@@ -87,37 +87,6 @@ export default function ReviewsPage() {
           />
         ))}
       </div>
-      {summary.data?.histogram && (
-        <section className="rounded-2xl border border-border bg-card p-5">
-          <h2 className="mb-4 flex items-center gap-2 font-semibold">
-            <Star className="size-5 text-amber-500" />
-            {t('admin.reviews.distribution')}
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-5">
-            {[5, 4, 3, 2, 1].map(stars => (
-              <div
-                key={stars}
-                className="rounded-xl bg-muted/30 p-3"
-              >
-                <span className="font-medium">
-                  {stars}
-                  {' '}
-                  / 5
-                </span>
-                <strong className="float-right">
-                  {formatNumber(summary.data.histogram[String(stars)] || 0)}
-                </strong>
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full rounded-full bg-amber-400"
-                    style={{ width: `${summary.data.total ? (summary.data.histogram[String(stars)] || 0) / summary.data.total * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
       {summary.data?.unavailable && (
         <p className="text-sm text-muted-foreground">
           {t('admin.reviews.summaryPending')}
@@ -292,8 +261,10 @@ export default function ReviewsPage() {
                     </TableCell>
                     <TableCell>
                       <Link
-                        className="whitespace-nowrap font-semibold text-primary hover:underline"
-                        to={`${ADMIN_ROUTES.ORDERS}/${row.orderId}`}
+                        className="cursor-pointer whitespace-nowrap font-semibold text-primary underline-offset-4 hover:underline"
+                        to={`${ADMIN_ROUTES.REVIEWS}/${row.id}`}
+                        onClick={() => rememberReview(row)}
+                        state={{ returnSearch: params.toString() }}
                       >
                         {row.orderCode}
                       </Link>

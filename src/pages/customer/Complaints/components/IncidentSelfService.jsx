@@ -135,6 +135,7 @@ export function IncidentActions({ incident: summary, onSaved, menu = false }) {
           <DialogContent
             className="max-w-lg"
             closeLabel="common.close"
+            data-dialog-fixed
           >
             <DialogHeader tone="danger">
               <DialogTitle className="text-xl font-bold">
@@ -160,22 +161,28 @@ export function IncidentActions({ incident: summary, onSaved, menu = false }) {
                   lock.current = false; setBusy(false)
                 }
               }}
+              data-dialog-layout
             >
-              <label className="grid gap-2 text-base font-semibold">
-                {t('customer.sync.reason')}
-                <textarea
-                  maxLength={500}
-                  value={reason}
-                  onChange={(event) => setReason(event.target.value)}
-                  disabled={busy || uncertain}
-                  className="min-h-24 rounded-xl border border-input bg-background p-3 font-normal"
-                  placeholder={t('customer.sync.optionalReason')}
-                />
-              </label>
-              <FormError>
-                {uncertain ? 'customer.sync.uncertainMutation' : error}
-              </FormError>
-              <div className="flex flex-wrap justify-end gap-3">
+              <div data-dialog-body>
+                <label className="grid gap-2 text-base font-semibold">
+                  {t('customer.sync.reason')}
+                  <textarea
+                    maxLength={500}
+                    value={reason}
+                    onChange={(event) => setReason(event.target.value)}
+                    disabled={busy || uncertain}
+                    className="min-h-24 rounded-xl border border-input bg-background p-3 font-normal"
+                    placeholder={t('customer.sync.optionalReason')}
+                  />
+                </label>
+                <FormError>
+                  {uncertain ? 'customer.sync.uncertainMutation' : error}
+                </FormError>
+              </div>
+              <div
+                className="flex flex-wrap justify-end gap-3"
+                data-dialog-footer
+              >
                 <Button
                   className="h-12 text-base px-4"
                   type="button"

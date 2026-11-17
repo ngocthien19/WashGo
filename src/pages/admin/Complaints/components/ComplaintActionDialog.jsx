@@ -86,6 +86,7 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
         ready={!resource.loading && !settings.loading && !contacts.loading}
         className="max-w-2xl"
         closeLabel="common.close"
+        data-dialog-fixed
       >
         <DialogHeader tone={kind === 'reject' ? 'danger' : kind === 'pay' ? 'success' : 'info'}>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -97,182 +98,192 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
           </DialogDescription>
         </DialogHeader>
         {kind === 'pay' && value && (
-          <div className="mt-5 space-y-3">
-            <h2 className="font-semibold">
-              {t('admin.sync.paymentProof')}
-            </h2>
-            <ImagePicker
-              selection={proof}
-              disabled={pending || blocked}
-            />
+          <div data-dialog-body>
+            <div className="space-y-3">
+              <h2 className="font-semibold">
+                {t('admin.sync.paymentProof')}
+              </h2>
+              <ImagePicker
+                selection={proof}
+                disabled={pending || blocked}
+              />
+            </div>
           </div>
         )}
         {!value ? (
-          <ResourceFeedback
-            {...resource}
-            loadingText="merchant.loading"
-          />
+          <div data-dialog-body>
+            <ResourceFeedback
+              {...resource}
+              loadingText="merchant.loading"
+            />
+          </div>
         ) : (
           <form
             noValidate
             onSubmit={event => handleSubmit(submit)(event)}
             className="mt-5 space-y-5"
+            data-dialog-layout
           >
-            <div className="rounded-xl border border-border p-4">
-              <p className="font-semibold text-primary">
-                {value.orderCode}
-              </p>
-              <div className="mt-3">
-                <ComplaintContact value={contacts.data?.customer || customerContact(value)} />
+            <div data-dialog-body>
+              <div className="rounded-xl border border-border p-4">
+                <p className="font-semibold text-primary">
+                  {value.orderCode}
+                </p>
+                <div className="mt-3">
+                  <ComplaintContact value={contacts.data?.customer || customerContact(value)} />
+                </div>
+                <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">
+                  {value.description}
+                </p>
+                <Link
+                  to={`${ADMIN_ROUTES.COMPLAINTS}/${id}`}
+                  onClick={onClose}
+                  className="mt-3 inline-block text-sm font-medium text-primary hover:underline"
+                >
+                  {t('admin.complaints.detail')}
+                </Link>
+                {kind === 'pay' && (
+                  <p className="mt-2 text-xl font-semibold text-emerald-700 dark:text-emerald-300">
+                    {formatCurrency(value.compensationAmount)}
+                  </p>
+                )}
               </div>
-              <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">
-                {value.description}
-              </p>
-              <Link
-                to={`${ADMIN_ROUTES.COMPLAINTS}/${id}`}
-                onClick={onClose}
-                className="mt-3 inline-block text-sm font-medium text-primary hover:underline"
+              {!allowed && (
+                <p
+                  role="alert"
+                  className="rounded-xl bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200"
+                >
+                  {t('admin.complaints.unavailable')}
+                </p>
+              )}
+              <fieldset
+                disabled={pending || blocked || !allowed}
+                className="grid min-w-0 gap-4"
               >
-                {t('admin.complaints.detail')}
-              </Link>
-              {kind === 'pay' && (
-                <p className="mt-2 text-xl font-semibold text-emerald-700 dark:text-emerald-300">
-                  {formatCurrency(value.compensationAmount)}
+                <label className="grid gap-3 text-sm font-medium">
+                  <span>
+                    {t(kind === 'pay' ? 'customer.incidents.reference' : kind === 'reject' ? 'admin.complaints.rejectReason' : 'customer.incidents.resolution')}
+                  </span>
+                  {kind === 'pay' ? (
+                    <Input
+                      {...register('reference')}
+                      aria-label={t('customer.incidents.reference')}
+                      aria-invalid={!!errors.reference}
+                      maxLength={120}
+                      placeholder={t('admin.complaints.referenceHint')}
+                      className="h-11 rounded-xl text-base font-normal"
+                    />
+                  ) : (
+                    <textarea
+                      {...register('note')}
+                      aria-label={t(kind === 'reject' ? 'admin.complaints.rejectReason' : 'customer.incidents.resolution')}
+                      aria-invalid={!!errors.note}
+                      maxLength={2000}
+                      placeholder={t('admin.complaints.noteHint')}
+                      className="min-h-28 rounded-xl border border-input bg-background p-3 text-base font-normal"
+                    />
+                  )}
+                  {(errors.reference || errors.note) && (
+                    <span
+                      role="alert"
+                      className="text-sm text-destructive"
+                    >
+                      {t('admin.complaints.invalidField')}
+                    </span>
+                  )}
+                </label>
+                {kind === 'resolve' && (
+                  <>
+                    <label className="grid gap-3 text-sm font-medium">
+                      <span>
+                        {t('customer.incidents.responsibleParty')}
+                      </span>
+                      <Controller
+                        name="responsibleParty"
+                        control={control}
+                        render={({ field }) => (
+                          <SelectField
+                            label={t('customer.incidents.responsibleParty')}
+                            {...field}
+                            onValueChange={field.onChange}
+                            options={[{ value: '', label: t('admin.complaints.unspecified') }, ...[1, 2, 3, 4].map(party => ({ value: String(party), label: t(`customer.incidents.parties.${party}`) }))]}
+                          />
+                        )}
+                      />
+                    </label>
+                    {settings.error && <ResourceFeedback {...settings} />}
+                    <label className="grid gap-3 text-sm font-medium">
+                      <span>
+                        {t('admin.complaints.level')}
+                      </span>
+                      <Controller
+                        name="compensationLevel"
+                        control={control}
+                        render={({ field }) => (
+                          <SelectField
+                            label={t('admin.complaints.level')}
+                            value={String(field.value)}
+                            onValueChange={next => field.onChange(Number(next))}
+                            options={[0, ...(settings.data ? [1, 2, 3, 4] : [])].map(next => ({ value: String(next), label: `${t(`admin.complaints.levels.${next}`)}${next > 0 ? ` (${settings.data[compensationKeys[next - 1]]}%)` : ''}` }))}
+                          />
+                        )}
+                      />
+                    </label>
+                    {level > 0 && (
+                      <>
+                        <label className="grid gap-3 text-sm font-medium">
+                          <span>
+                            {t('customer.incidents.itemValue')}
+                          </span>
+                          <Input
+                            {...register('itemValue')}
+                            aria-label={t('customer.incidents.itemValue')}
+                            aria-invalid={!!errors.itemValue}
+                            type="number"
+                            step="0.01"
+                            min="0.01"
+                            max="100000000"
+                            placeholder={t('admin.complaints.valueHint')}
+                            className="h-11 rounded-xl text-base font-normal"
+                          />
+                          {errors.itemValue && (
+                            <span
+                              role="alert"
+                              className="text-sm text-destructive"
+                            >
+                              {t('admin.complaints.invalidValue')}
+                            </span>
+                          )}
+                        </label>
+                        <p className="rounded-xl bg-emerald-500/10 p-4 text-sm text-emerald-800 dark:text-emerald-200">
+                          {t('admin.complaints.estimate', { value: Number(itemValue) > 0 && percent != null ? formatCurrency(Math.round(Number(itemValue) * percent / 100)) : '—' })}
+                        </p>
+                      </>
+                    )}
+                  </>
+                )}
+                <label className="flex items-start gap-3 text-base">
+                  <Checkbox
+                    checked={confirmed}
+                    onCheckedChange={setConfirmed}
+                    className="mt-1"
+                  />
+                  {t(kind === 'pay' ? 'admin.complaints.confirmPaid' : 'admin.complaints.confirmHint')}
+                </label>
+              </fieldset>
+              {error && (
+                <p
+                  role="alert"
+                  className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
+                >
+                  {t(error)}
                 </p>
               )}
             </div>
-            {!allowed && (
-              <p
-                role="alert"
-                className="rounded-xl bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200"
-              >
-                {t('admin.complaints.unavailable')}
-              </p>
-            )}
-            <fieldset
-              disabled={pending || blocked || !allowed}
-              className="grid min-w-0 gap-4"
+            <footer
+              className="flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+              data-dialog-footer
             >
-              <label className="grid gap-3 text-sm font-medium">
-                <span>
-                  {t(kind === 'pay' ? 'customer.incidents.reference' : kind === 'reject' ? 'admin.complaints.rejectReason' : 'customer.incidents.resolution')}
-                </span>
-                {kind === 'pay' ? (
-                  <Input
-                    {...register('reference')}
-                    aria-label={t('customer.incidents.reference')}
-                    aria-invalid={!!errors.reference}
-                    maxLength={120}
-                    placeholder={t('admin.complaints.referenceHint')}
-                    className="h-11 rounded-xl text-base font-normal"
-                  />
-                ) : (
-                  <textarea
-                    {...register('note')}
-                    aria-label={t(kind === 'reject' ? 'admin.complaints.rejectReason' : 'customer.incidents.resolution')}
-                    aria-invalid={!!errors.note}
-                    maxLength={2000}
-                    placeholder={t('admin.complaints.noteHint')}
-                    className="min-h-28 rounded-xl border border-input bg-background p-3 text-base font-normal"
-                  />
-                )}
-                {(errors.reference || errors.note) && (
-                  <span
-                    role="alert"
-                    className="text-sm text-destructive"
-                  >
-                    {t('admin.complaints.invalidField')}
-                  </span>
-                )}
-              </label>
-              {kind === 'resolve' && (
-                <>
-                  <label className="grid gap-3 text-sm font-medium">
-                    <span>
-                      {t('customer.incidents.responsibleParty')}
-                    </span>
-                    <Controller
-                      name="responsibleParty"
-                      control={control}
-                      render={({ field }) => (
-                        <SelectField
-                          label={t('customer.incidents.responsibleParty')}
-                          {...field}
-                          onValueChange={field.onChange}
-                          options={[{ value: '', label: t('admin.complaints.unspecified') }, ...[1, 2, 3, 4].map(party => ({ value: String(party), label: t(`customer.incidents.parties.${party}`) }))]}
-                        />
-                      )}
-                    />
-                  </label>
-                  {settings.error && <ResourceFeedback {...settings} />}
-                  <label className="grid gap-3 text-sm font-medium">
-                    <span>
-                      {t('admin.complaints.level')}
-                    </span>
-                    <Controller
-                      name="compensationLevel"
-                      control={control}
-                      render={({ field }) => (
-                        <SelectField
-                          label={t('admin.complaints.level')}
-                          value={String(field.value)}
-                          onValueChange={next => field.onChange(Number(next))}
-                          options={[0, ...(settings.data ? [1, 2, 3, 4] : [])].map(next => ({ value: String(next), label: `${t(`admin.complaints.levels.${next}`)}${next > 0 ? ` (${settings.data[compensationKeys[next - 1]]}%)` : ''}` }))}
-                        />
-                      )}
-                    />
-                  </label>
-                  {level > 0 && (
-                    <>
-                      <label className="grid gap-3 text-sm font-medium">
-                        <span>
-                          {t('customer.incidents.itemValue')}
-                        </span>
-                        <Input
-                          {...register('itemValue')}
-                          aria-label={t('customer.incidents.itemValue')}
-                          aria-invalid={!!errors.itemValue}
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          max="100000000"
-                          placeholder={t('admin.complaints.valueHint')}
-                          className="h-11 rounded-xl text-base font-normal"
-                        />
-                        {errors.itemValue && (
-                          <span
-                            role="alert"
-                            className="text-sm text-destructive"
-                          >
-                            {t('admin.complaints.invalidValue')}
-                          </span>
-                        )}
-                      </label>
-                      <p className="rounded-xl bg-emerald-500/10 p-4 text-sm text-emerald-800 dark:text-emerald-200">
-                        {t('admin.complaints.estimate', { value: Number(itemValue) > 0 && percent != null ? formatCurrency(Math.round(Number(itemValue) * percent / 100)) : '—' })}
-                      </p>
-                    </>
-                  )}
-                </>
-              )}
-              <label className="flex items-start gap-3 text-base">
-                <Checkbox
-                  checked={confirmed}
-                  onCheckedChange={setConfirmed}
-                  className="mt-1"
-                />
-                {t(kind === 'pay' ? 'admin.complaints.confirmPaid' : 'admin.complaints.confirmHint')}
-              </label>
-            </fieldset>
-            {error && (
-              <p
-                role="alert"
-                className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
-              >
-                {t(error)}
-              </p>
-            )}
-            <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
               <Button
                 type="button"
                 variant="secondary"

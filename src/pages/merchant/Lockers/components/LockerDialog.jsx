@@ -32,192 +32,205 @@ export default function LockerDialog({ id, initialTab = 'details', onClose, api 
       <DialogContent
         className="max-w-4xl border-primary/15"
         closeLabel="common.close"
+        data-dialog-fixed
       >
-        <DialogTitle className="-mx-6 -mt-6 flex items-center gap-3 border-b border-primary/10 bg-primary/5 px-6 py-5 pr-12 text-2xl font-bold sm:-mx-8 sm:-mt-8 sm:px-8">
-          <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
-            <PanelsTopLeft size={23} />
-          </span>
-          {t('merchant.lockers.details')}
-        </DialogTitle>
-        <DialogDescription className="mt-3 text-base text-muted-foreground">
-          {t('merchant.lockers.detailsHint')}
-        </DialogDescription>
+        <div data-dialog-header>
+          <DialogTitle className="-mx-6 -mt-6 flex items-center gap-3 border-b border-primary/10 bg-primary/5 px-6 py-5 pr-12 text-2xl font-bold sm:-mx-8 sm:-mt-8 sm:px-8">
+            <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
+              <PanelsTopLeft size={23} />
+            </span>
+            {t('merchant.lockers.details')}
+          </DialogTitle>
+          <DialogDescription className="mt-3 text-base text-muted-foreground">
+            {t('merchant.lockers.detailsHint')}
+          </DialogDescription>
+        </div>
         {!locker ? (
-          <ResourceFeedback
-            {...resource}
-            loadingText="merchant.loading"
-          />
+          <div data-dialog-body>
+            <ResourceFeedback
+              {...resource}
+              loadingText="merchant.loading"
+            />
+          </div>
         ) : (
-          <div className="mt-5 grid gap-5">
-            <div className="flex items-start gap-4 rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-card p-4 sm:p-5">
-              <ResourceGallery
-                urls={locker.imageUrls}
-                imageLabel="merchant.lockers.image"
-                compact
-              />
-              <div className="flex min-w-0 flex-1 flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0 flex-1 basis-64">
-                  <p className="mb-2 flex items-center gap-1 text-sm text-muted-foreground">
-                    <Hash size={15} />
-                    {locker.code}
-                  </p>
-                  <h2 className="break-words text-2xl font-bold">
-                    {locker.name}
-                  </h2>
-                  <p className="mt-2 flex items-start gap-2 text-base text-muted-foreground">
-                    <MapPin
-                      size={18}
-                      className="mt-1 shrink-0 text-primary"
-                    />
-                    <span>
-                      {formatLockerAddress(locker)}
-                    </span>
-                  </p>
-                </div>
-                <span className={`rounded-full px-3 py-1.5 text-sm font-semibold ${lockerStateClass(locker.status)}`}>
-                  {t(`merchant.lockers.statuses.${locker.status}`, { defaultValue: '—' })}
-                </span>
-              </div>
-            </div>
-            <Tabs.Root
-              value={tab}
-              onValueChange={setTab}
-              className="grid gap-5"
-            >
-              <Tabs.List
-                activateOnFocus
-                className="grid grid-cols-2 gap-3 border-b border-border"
-                aria-label={t('merchant.lockers.views')}
-              >
-                {[['details', PanelsTopLeft], ['history', History]].map(([key, Icon]) => (
-                  <Tabs.Tab
-                    key={key}
-                    value={key}
-                    className="-mb-px flex cursor-pointer items-center justify-center gap-2 border-b-2 border-transparent px-2 py-4 text-base font-medium text-muted-foreground outline-none transition-colors hover:bg-primary/5 hover:text-primary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary data-active:border-primary data-active:font-semibold data-active:text-primary"
-                  >
-                    <Icon
-                      size={18}
-                      className="shrink-0"
-                    />
-                    {t(`merchant.lockers.${key}`)}
-                  </Tabs.Tab>
-                ))}
-              </Tabs.List>
-              <Tabs.Panel
-                value="history"
-                className="outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <LockerUsage
-                  key={id}
-                  locker={locker}
-                  api={api}
-                  orderBase={orderBase}
+          <div
+            className="mt-5 grid gap-5"
+            data-dialog-layout
+          >
+            <div data-dialog-body>
+              <div className="flex items-start gap-4 rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-card p-4 sm:p-5">
+                <ResourceGallery
+                  urls={locker.imageUrls}
+                  imageLabel="merchant.lockers.image"
+                  compact
                 />
-              </Tabs.Panel>
-              <Tabs.Panel
-                value="details"
-                className="grid gap-5 outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                {renderExtra?.(locker)}
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {[[1, DoorOpen], [2, Package], [3, Clock], [4, Wrench]].map(([status, Icon]) => (
-                    <div
-                      key={status}
-                      className={`rounded-xl border p-4 ${boxStateClass(status)}`}
-                    >
-                      <Icon size={21} />
-                      <p className="mt-2 text-2xl font-bold">
-                        <AnimatedNumber value={locker.boxes.filter((box) => box.status === status).length} />
-                      </p>
-                      <p className="mt-1 text-sm">
-                        {t(`merchant.lockers.boxStates.${status}`)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <dl className="grid gap-4 rounded-2xl border border-border p-5 sm:grid-cols-2">
-                  {[['type', t(`merchant.lockers.types.${locker.lockerType}`, { defaultValue: '—' })], ['area', locker.serviceAreaName || '—']].map(([key, value]) => (
-                    <div key={key}>
-                      <dt className="text-sm text-muted-foreground">
-                        {t(`merchant.lockers.${key}`)}
-                      </dt>
-                      <dd className="mt-1 text-base font-semibold">
-                        {value}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                {locker.description && (
-                  <p className="flex items-start gap-3 rounded-xl bg-muted/40 p-4 text-base leading-relaxed">
-                    <Info
-                      size={19}
-                      className="mt-1 shrink-0 text-primary"
-                    />
-                    <span className="whitespace-pre-wrap break-words">
-                      {locker.description}
-                    </span>
-                  </p>
-                )}
-                <section className="grid gap-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
-                    <h3 className="flex items-center gap-2 text-lg font-bold">
-                      <PanelsTopLeft
-                        size={20}
-                        className="text-primary"
+                <div className="flex min-w-0 flex-1 flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1 basis-64">
+                    <p className="mb-2 flex items-center gap-1 text-sm text-muted-foreground">
+                      <Hash size={15} />
+                      {locker.code}
+                    </p>
+                    <h2 className="break-words text-2xl font-bold">
+                      {locker.name}
+                    </h2>
+                    <p className="mt-2 flex items-start gap-2 text-base text-muted-foreground">
+                      <MapPin
+                        size={18}
+                        className="mt-1 shrink-0 text-primary"
                       />
-                      {t('merchant.lockers.boxes', { count: locker.boxes.length })}
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {[0, 1, 2, 3, 4].map((status) => (
-                        <Button
-                          key={status}
-                          variant={boxFilter === status ? 'default' : 'secondary'}
-                          aria-pressed={boxFilter === status}
-                          onClick={() => setBoxFilter(status)}
-                          className="h-11 px-4 text-base font-semibold"
-                        >
-                          {status ? t(`merchant.lockers.boxStates.${status}`) : t('common.all')}
-                        </Button>
-                      ))}
-                    </div>
+                      <span>
+                        {formatLockerAddress(locker)}
+                      </span>
+                    </p>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-                    {locker.boxes.filter((box) => !boxFilter || box.status === boxFilter).map((box) => (
+                  <span className={`rounded-full px-3 py-1.5 text-sm font-semibold ${lockerStateClass(locker.status)}`}>
+                    {t(`merchant.lockers.statuses.${locker.status}`, { defaultValue: '—' })}
+                  </span>
+                </div>
+              </div>
+              <Tabs.Root
+                value={tab}
+                onValueChange={setTab}
+                className="grid gap-5"
+              >
+                <Tabs.List
+                  activateOnFocus
+                  className="grid grid-cols-2 gap-3 border-b border-border"
+                  aria-label={t('merchant.lockers.views')}
+                >
+                  {[['details', PanelsTopLeft], ['history', History]].map(([key, Icon]) => (
+                    <Tabs.Tab
+                      key={key}
+                      value={key}
+                      className="-mb-px flex cursor-pointer items-center justify-center gap-2 border-b-2 border-transparent px-2 py-4 text-base font-medium text-muted-foreground outline-none transition-colors hover:bg-primary/5 hover:text-primary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary data-active:border-primary data-active:font-semibold data-active:text-primary"
+                    >
+                      <Icon
+                        size={18}
+                        className="shrink-0"
+                      />
+                      {t(`merchant.lockers.${key}`)}
+                    </Tabs.Tab>
+                  ))}
+                </Tabs.List>
+                <Tabs.Panel
+                  value="history"
+                  className="outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <LockerUsage
+                    key={id}
+                    locker={locker}
+                    api={api}
+                    orderBase={orderBase}
+                  />
+                </Tabs.Panel>
+                <Tabs.Panel
+                  value="details"
+                  className="grid gap-5 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  {renderExtra?.(locker)}
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {[[1, DoorOpen], [2, Package], [3, Clock], [4, Wrench]].map(([status, Icon]) => (
                       <div
-                        key={box.id}
-                        className={`grid min-w-0 gap-1 rounded-xl border p-3 ${boxStateClass(box.status)}`}
+                        key={status}
+                        className={`rounded-xl border p-4 ${boxStateClass(status)}`}
                       >
-                        <span className="flex items-center gap-1 font-bold">
-                          <DoorOpen size={16} />
-                          {t('customer.order.boxShort', { number: box.boxNumber })}
-                        </span>
-                        <span className="text-xs">
-                          {t(`merchant.lockers.sizes.${box.size}`, { defaultValue: '—' })}
-                        </span>
-                        <span className="text-xs font-medium">
-                          {t(`merchant.lockers.boxStates.${box.status}`, { defaultValue: '—' })}
-                        </span>
-                        {onBoxAction && [1, 4].includes(box.status) && (
-                          <Button
-                            variant="outline"
-                            className="mt-2 h-11 px-2 text-xs"
-                            onClick={() => onBoxAction(locker, box, resource.retry)}
-                          >
-                            {t(box.status === 1 ? 'admin.lockers.maintainBox' : 'admin.lockers.restoreBox')}
-                          </Button>
-                        )}
+                        <Icon size={21} />
+                        <p className="mt-2 text-2xl font-bold">
+                          <AnimatedNumber value={locker.boxes.filter((box) => box.status === status).length} />
+                        </p>
+                        <p className="mt-1 text-sm">
+                          {t(`merchant.lockers.boxStates.${status}`)}
+                        </p>
                       </div>
                     ))}
                   </div>
-                  {!locker.boxes.some((box) => !boxFilter || box.status === boxFilter) && (
-                    <p className="py-5 text-center text-muted-foreground">
-                      {t('merchant.lockers.noBoxes')}
+                  <dl className="grid gap-4 rounded-2xl border border-border p-5 sm:grid-cols-2">
+                    {[['type', t(`merchant.lockers.types.${locker.lockerType}`, { defaultValue: '—' })], ['area', locker.serviceAreaName || '—']].map(([key, value]) => (
+                      <div key={key}>
+                        <dt className="text-sm text-muted-foreground">
+                          {t(`merchant.lockers.${key}`)}
+                        </dt>
+                        <dd className="mt-1 text-base font-semibold">
+                          {value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                  {locker.description && (
+                    <p className="flex items-start gap-3 rounded-xl bg-muted/40 p-4 text-base leading-relaxed">
+                      <Info
+                        size={19}
+                        className="mt-1 shrink-0 text-primary"
+                      />
+                      <span className="whitespace-pre-wrap break-words">
+                        {locker.description}
+                      </span>
                     </p>
                   )}
-                </section>
-              </Tabs.Panel>
-            </Tabs.Root>
-            <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+                  <section className="grid gap-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+                      <h3 className="flex items-center gap-2 text-lg font-bold">
+                        <PanelsTopLeft
+                          size={20}
+                          className="text-primary"
+                        />
+                        {t('merchant.lockers.boxes', { count: locker.boxes.length })}
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {[0, 1, 2, 3, 4].map((status) => (
+                          <Button
+                            key={status}
+                            variant={boxFilter === status ? 'default' : 'secondary'}
+                            aria-pressed={boxFilter === status}
+                            onClick={() => setBoxFilter(status)}
+                            className="h-11 px-4 text-base font-semibold"
+                          >
+                            {status ? t(`merchant.lockers.boxStates.${status}`) : t('common.all')}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                      {locker.boxes.filter((box) => !boxFilter || box.status === boxFilter).map((box) => (
+                        <div
+                          key={box.id}
+                          className={`grid min-w-0 gap-1 rounded-xl border p-3 ${boxStateClass(box.status)}`}
+                        >
+                          <span className="flex items-center gap-1 font-bold">
+                            <DoorOpen size={16} />
+                            {t('customer.order.boxShort', { number: box.boxNumber })}
+                          </span>
+                          <span className="text-xs">
+                            {t(`merchant.lockers.sizes.${box.size}`, { defaultValue: '—' })}
+                          </span>
+                          <span className="text-xs font-medium">
+                            {t(`merchant.lockers.boxStates.${box.status}`, { defaultValue: '—' })}
+                          </span>
+                          {onBoxAction && [1, 4].includes(box.status) && (
+                            <Button
+                              variant="outline"
+                              className="mt-2 h-11 px-2 text-xs"
+                              onClick={() => onBoxAction(locker, box, resource.retry)}
+                            >
+                              {t(box.status === 1 ? 'admin.lockers.maintainBox' : 'admin.lockers.restoreBox')}
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {!locker.boxes.some((box) => !boxFilter || box.status === boxFilter) && (
+                      <p className="py-5 text-center text-muted-foreground">
+                        {t('merchant.lockers.noBoxes')}
+                      </p>
+                    )}
+                  </section>
+                </Tabs.Panel>
+              </Tabs.Root>
+            </div>
+            <footer
+              className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4"
+              data-dialog-footer
+            >
               <Button
                 variant="outline"
                 onClick={resource.retry}
