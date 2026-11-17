@@ -244,8 +244,7 @@ test('mixed services, server voucher and confirmation work with language switchi
   await page.getByRole('button', { name: 'Select Shirt ironing', exact: true }).click()
   await page.getByRole('spinbutton', { name: 'Quantity for Shirt ironing' }).fill('2')
   await chooseLocker(page)
-  await page.getByRole('radio', { name: 'MoMo', exact: true }).evaluate((element) => element.scrollIntoView({ block: 'center' }))
-  await page.getByRole('radio', { name: 'MoMo', exact: true }).click()
+  await expect(page.getByRole('radio', { name: /MoMo|VNPAY|Cash/ })).toHaveCount(0)
   await page.getByRole('textbox', { name: 'Order note (optional)' }).fill('Care for colours')
   await expect(page.getByLabel('Promotion code', { exact: true })).toHaveCount(0)
   await expect(page.getByRole('img', { name: 'Everyday wash', exact: true })).toBeVisible()
@@ -289,7 +288,7 @@ test('mixed services, server voucher and confirmation work with language switchi
   await page.getByRole('button', { name: 'Xác nhận tạo đơn', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Tạo đơn thành công!' })).toBeVisible()
   expect(state.creates).toHaveLength(1)
-  expect(state.creates[0]).toEqual({ lockerId: locker.id, boxId: slots[0].id, returnLockerId: locker.id, paymentMethod: 3, customerNote: 'Care for colours', promotionCode: 'SAVE5', items: [{ serviceId: 'iron', quantity: 2 }, { serviceId: 'wash', quantity: 1 }] })
+  expect(state.creates[0]).toEqual({ lockerId: locker.id, boxId: slots[0].id, returnLockerId: locker.id, paymentMethod: 1, customerNote: 'Care for colours', promotionCode: 'SAVE5', items: [{ serviceId: 'iron', quantity: 2 }, { serviceId: 'wash', quantity: 1 }] })
   await expect(page.getByText('654321', { exact: true })).toHaveCount(0)
   const persisted = await page.evaluate(() => localStorage.getItem('persist:root'))
   expect(persisted).not.toContain('654321')
@@ -364,15 +363,14 @@ test('new order navigation is active and reloading starts a fresh draft', async 
   expect(state.creates).toHaveLength(0)
 })
 
-test('whole service and locker choices keep readable, subdued surfaces in dark mode', async ({ page }) => {
+test('service and locker choices keep neutral surfaces with selected outlines', async ({ page }) => {
   await setup(page)
   const wash = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Everyday wash', exact: true }) })
   const ironing = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Shirt ironing', exact: true }) })
   const themeColors = () => page.evaluate(() => {
     const reference = document.createElement('div')
-    const dark = document.documentElement.classList.contains('dark')
-    reference.style.backgroundColor = dark ? '#293747' : 'var(--color-blue-50)'
-    reference.style.color = dark ? 'var(--foreground)' : 'var(--color-slate-900)'
+    reference.style.backgroundColor = 'var(--card)'
+    reference.style.color = 'var(--foreground)'
     document.body.append(reference)
     const color = { background: getComputedStyle(reference).backgroundColor, foreground: getComputedStyle(reference).color }
     reference.style.backgroundColor = 'var(--card)'
@@ -387,12 +385,9 @@ test('whole service and locker choices keep readable, subdued surfaces in dark m
   const lightSurface = await wash.evaluate((element) => getComputedStyle(element).backgroundColor)
   await wash.click()
   await expect(wash.getByRole('button')).toHaveAttribute('aria-pressed', 'true')
-  const badgeCrossesCorner = (choice) => choice.locator('svg.lucide-check').locator('..').evaluate((badge) => {
-    const bounds = badge.getBoundingClientRect()
-    const card = badge.parentElement.getBoundingClientRect()
-    return bounds.right > card.right && bounds.left < card.right && bounds.top < card.top && bounds.bottom > card.top
-  })
-  expect(await badgeCrossesCorner(wash)).toBe(true)
+  await expect(wash.getByText('Selected', { exact: true })).toBeVisible()
+  await expect(wash).toHaveCSS('outline-style', 'solid')
+  await expect(wash).toHaveCSS('outline-width', '2px')
   await wash.click()
   await expect(wash.getByRole('button')).toHaveAttribute('aria-pressed', 'false')
   await expect(wash).toHaveCSS('background-color', idleSurface)
@@ -426,7 +421,12 @@ test('whole service and locker choices keep readable, subdued surfaces in dark m
   await lockerChoice.hover()
   await expect(lockerChoice).toHaveCSS('background-color', lightSurface)
   await lockerChoice.click()
-  expect(await badgeCrossesCorner(lockerChoice)).toBe(true)
+  await expect(lockerChoice.getByText('Selected', { exact: true })).toBeVisible()
+  await expect(lockerChoice).toHaveCSS('outline-style', 'solid')
+  await expect(lockerChoice).toHaveCSS('outline-width', '2px')
+  if (process.env.CATALOG_QA) {
+    await page.screenshot({ path: 'test-results/order-choice-locker.png' })
+  }
   await page.getByRole('button', { name: 'Compartment 1 Standard', exact: true }).click()
   await expect(lockerChoice).toHaveCSS('background-color', lightSurface)
   await page.getByRole('button', { name: 'Switch to dark mode', exact: true }).click()
@@ -438,4 +438,32 @@ test('whole service and locker choices keep readable, subdued surfaces in dark m
   const back = page.getByRole('button', { name: 'Back', exact: true })
   await back.hover()
   await expect(back).toHaveCSS('color', 'rgb(255, 255, 255)')
+})
+
+
+test('service choice cards truncate long text, align prices and display the supplied kg unit', async ({ page }) => {
+  await setup(page)
+  await page.route('**/api/customer/services/filter', route => route.fulfill({ json: paged([
+    { ...services[0], name: 'Everyday wash with specialist fabric treatment and extra care for delicate clothing', description: 'Long description for everyday washing and specialist fabric treatment. '.repeat(8) },
+    { ...services[1], description: 'Short description' }
+  ]) }))
+  await page.goto('/customer/orders/new')
+  const first = page.locator('article').filter({ has: page.getByRole('button', { name: /Everyday wash/ }) }).first()
+  await expect(first).toBeVisible()
+  const cards = first.locator('..').locator('article')
+  await expect(cards).toHaveCount(2)
+  for (const width of [1280, 768]) {
+    await page.setViewportSize({ width, height: 960 })
+    await expect(first.locator('h2')).toHaveCSS('white-space', 'nowrap')
+    await expect(first.locator('h2')).toHaveCSS('text-overflow', 'ellipsis')
+    await expect(first.locator('p').first()).toHaveCSS('-webkit-line-clamp', '2')
+    const firstPrice = await cards.nth(0).locator('p.order-choice-primary').boundingBox()
+    const secondPrice = await cards.nth(1).locator('p.order-choice-primary').boundingBox()
+    expect(firstPrice.y).toBeCloseTo(secondPrice.y, 0)
+    await expect(cards.nth(0).locator('p.order-choice-primary')).toContainText('/ kg')
+    await expect(cards.nth(1).locator('p.order-choice-primary')).toContainText('/ piece')
+    if (process.env.CATALOG_QA) {
+      await first.locator('..').screenshot({ path: `test-results/order-choice-services-${width}.png` })
+    }
+  }
 })

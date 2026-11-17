@@ -67,7 +67,7 @@ export default function ServiceDetails({ id, onClose }) {
                     type={service.serviceType}
                     className="size-4"
                   />
-                  {t(SERVICE_TYPES.find((type) => type.value === String(service.serviceType))?.label || 'customer.laundryService')}
+                  {service.categoryName || t(SERVICE_TYPES.find((type) => type.value === String(service.serviceType))?.label || 'customer.laundryService')}
                 </span>
                 <h3 className="mt-3 break-words text-2xl font-bold leading-snug tracking-tight">
                   {service.name}

@@ -45,12 +45,16 @@ async function setup(page, dark = false) {
   return state
 }
 
-test('server acceptance survives reload; closing does not accept and a new version opens again', async ({ page }) => {
+test('server acceptance survives reload; required terms cannot be dismissed and a new version opens again', async ({ page }) => {
   const state = await setup(page)
   const dialog = page.getByRole('dialog', { name: 'Terms of service', exact: true })
   await expect(dialog).toBeVisible()
   await expect(dialog.getByText('Server policy content')).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toHaveCount(0)
   await page.keyboard.press('Escape')
+  await expect(dialog).toBeVisible()
+  await page.mouse.click(2, 2)
+  await expect(dialog).toBeVisible()
   expect(state.writes).toEqual([])
   await page.reload()
   await expect(dialog).toBeVisible()
@@ -58,6 +62,9 @@ test('server acceptance survives reload; closing does not accept and a new versi
   await expect(agree).toBeDisabled()
   await dialog.getByRole('checkbox').check()
   await expect(agree).toBeEnabled()
+  await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toHaveCount(0)
+  const checkboxBox = await dialog.getByRole('checkbox').boundingBox(), agreeBox = await agree.boundingBox()
+  expect(Math.abs(checkboxBox.y + checkboxBox.height / 2 - agreeBox.y - agreeBox.height / 2)).toBeLessThan(20)
   await agree.click()
   await expect(dialog).toHaveCount(0)
   expect(state.writes).toEqual([{ version: 'v1' }])

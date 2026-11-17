@@ -17,6 +17,7 @@ import { Button } from '~/components/ui/button'
 import { CUSTOMER_CATALOG, LOCKER_SLOT_SIZES, ORDER_CHOICE_STYLES } from '~/utils/config/constants'
 import { formatDistance, formatLockerAddress } from '~/utils/format/formats'
 import SelectionBadge from './SelectionBadge'
+import ChoiceIndicator from './ChoiceIndicator'
 
 const slotColors = {
   1: 'border-emerald-500/30 bg-emerald-500/5 text-emerald-700 hover:bg-emerald-500/10 hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200',
@@ -103,11 +104,11 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
               <ResourceThumbnail
                 urls={catalogImages(item)}
                 name={item.name}
-                className="size-16"
+                className="size-16 rounded-xl sm:size-20"
               />
               <span className="min-w-0 flex-1 space-y-2">
                 <span className="flex justify-between gap-2">
-                  <span className="text-base line-clamp-2 font-semibold [overflow-wrap:anywhere]">
+                  <span className="min-w-0 truncate text-base font-semibold">
                     {item.name}
                   </span>
                   {position && Number.isFinite(item.distanceKm) && (
@@ -121,13 +122,14 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
                 <span className="order-choice-muted block line-clamp-2 text-sm leading-6 text-muted-foreground">
                   {formatLockerAddress(item)}
                 </span>
-                <span className="order-choice-availability inline-block rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-700 dark:text-emerald-400">
-                  {t('customer.compartmentsAvailable', { availableSlotCount: item.availableSlotCount })}
+                <span className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <span className="order-choice-availability inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-700 dark:text-emerald-400">
+                    <span className="size-1.5 rounded-full bg-current" />
+                    {t('customer.compartmentsAvailable', { availableSlotCount: item.availableSlotCount })}
+                  </span>
+                  <ChoiceIndicator selected={locker?.id === item.id} />
                 </span>
               </span>
-              {locker?.id === item.id && (
-                <SelectionBadge />
-              )}
             </Button>
           ))}
           <Pagination
@@ -160,7 +162,7 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
             <Button
               variant="ghost"
               aria-pressed={slotFilter === 'available'}
-              className="rounded-full border border-emerald-500/20 px-3 text-emerald-700 aria-pressed:bg-emerald-500/10 [&:hover]:bg-emerald-500/15 [&:hover]:text-emerald-800 dark:text-emerald-300 dark:[&:hover]:text-emerald-200 h-11 text-base"
+              className="rounded-full border border-emerald-500/20 px-3 text-emerald-700 aria-pressed:bg-emerald-500/10 [&:hover]:bg-emerald-500/15 [&:hover]:text-emerald-800 dark:text-emerald-300 dark:[&:hover]:bg-emerald-500/15 dark:[&:hover]:text-emerald-200 h-11 text-base"
               onClick={() => setSlotFilter('available')}
             >
               <span className="size-2 rounded-full bg-emerald-500" />
@@ -169,7 +171,7 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
             <Button
               variant="ghost"
               aria-pressed={slotFilter === 'selected'}
-              className="rounded-full border border-violet-500/20 px-3 text-violet-700 aria-pressed:bg-violet-500/10 [&:hover]:bg-violet-500/15 [&:hover]:text-violet-800 dark:text-violet-300 dark:[&:hover]:text-violet-200 h-11 text-base"
+              className="rounded-full border border-violet-500/20 px-3 text-violet-700 aria-pressed:bg-violet-500/10 [&:hover]:bg-violet-500/15 [&:hover]:text-violet-800 dark:text-violet-300 dark:[&:hover]:bg-violet-500/15 dark:[&:hover]:text-violet-200 h-11 text-base"
               onClick={() => setSlotFilter('selected')}
             >
               <span className="size-2 rounded-full bg-violet-500" />
@@ -177,7 +179,7 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
             </Button>
             <Button
               variant="ghost"
-              className="rounded-full border border-red-500/20 px-3 text-red-700 aria-pressed:bg-red-500/10 [&:hover]:bg-red-500/15 [&:hover]:text-red-800 dark:text-red-300 dark:[&:hover]:text-red-200 h-11 text-base"
+              className="rounded-full border border-red-500/20 px-3 text-red-700 aria-pressed:bg-red-500/10 [&:hover]:bg-red-500/15 [&:hover]:text-red-800 dark:text-red-300 dark:[&:hover]:bg-red-500/15 dark:[&:hover]:text-red-200 h-11 text-base"
               aria-pressed={slotFilter === 'occupied'}
               onClick={() => setSlotFilter('occupied')}
             >
@@ -186,7 +188,7 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
             </Button>
             <Button
               variant="ghost"
-              className="h-11 rounded-full border border-amber-500/25 px-3 text-base text-amber-700 aria-pressed:bg-amber-500/10 hover:bg-amber-500/15 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200"
+              className="h-11 rounded-full border border-amber-500/25 px-3 text-base text-amber-700 aria-pressed:bg-amber-500/10 hover:bg-amber-500/15 hover:text-amber-800 dark:text-amber-300 dark:hover:bg-amber-500/15 dark:hover:text-amber-200"
               aria-pressed={slotFilter === 'reserved'}
               onClick={() => setSlotFilter('reserved')}
             >

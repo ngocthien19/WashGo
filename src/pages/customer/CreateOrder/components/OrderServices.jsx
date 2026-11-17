@@ -1,3 +1,4 @@
+import ScrollSection from '~/components/motion/ScrollSection'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 import { catalogImages } from '~/apis/customer/customerCatalogApi'
 import ClearFiltersButton from '~/components/ClearFiltersButton'
@@ -14,7 +15,7 @@ import { Input } from '~/components/ui/input'
 import { CUSTOMER_CATALOG, ORDER_LIMITS, ORDER_CHOICE_STYLES, ORDER_PANEL_HEADER_STYLES } from '~/utils/config/constants'
 import { formatCurrency } from '~/utils/format/formats'
 import { isWeightService } from '../orderModel'
-import SelectionBadge from './SelectionBadge'
+import ChoiceIndicator from './ChoiceIndicator'
 
 export default function OrderServices({ items, onChange }) {
   const { t } = useTranslation()
@@ -28,18 +29,23 @@ export default function OrderServices({ items, onChange }) {
     onChange(items.filter(({ service }) => service.id !== id))
   }
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[1fr_22rem]">
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <div
         data-pagination-scope
         className="min-w-0 space-y-5"
       >
-        <CatalogToolbar
-          suggestionType="service"
-          keyword={query.keyword}
-          onSearch={(keyword) => setQuery({ keyword, page: 1 })}
-          label={t('customer.order.findServices')}
-          placeholder={t('customer.order.findServices')}
-        />
+        <ScrollSection
+          as="div"
+          direction="left"
+        >
+          <CatalogToolbar
+            suggestionType="service"
+            keyword={query.keyword}
+            onSearch={(keyword) => setQuery({ keyword, page: 1 })}
+            label={t('customer.order.findServices')}
+            placeholder={t('customer.order.findServices')}
+          />
+        </ScrollSection>
         <ClearFiltersButton
           active={query.keyword}
           onClear={() => setQuery({ keyword: '', page: 1 })}
@@ -51,74 +57,82 @@ export default function OrderServices({ items, onChange }) {
             retry={retry}
           />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {data.list.map((service) => (
-              <article
-                key={service.id}
-                data-selected={selected.has(service.id)}
-                data-hover-suppressed={clearedId === service.id}
-                onPointerLeave={() => {
-                  if (clearedId === service.id) {
-                    setClearedId(null)
-                  }
-                }}
-                onPointerEnter={() => setClearedId(null)}
-                className={`relative isolate flex min-w-0 flex-col rounded-2xl border border-border/70 bg-card p-5 shadow-sm hover:shadow-md ${ORDER_CHOICE_STYLES}`}
-              >
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-[inherit] before:absolute before:-right-8 before:-top-8 before:size-28 before:rounded-full before:bg-primary/6 after:absolute after:-right-3 after:-top-3 after:size-20 after:rounded-full after:border after:border-primary/15"
-                />
-                <Button
-                  variant="ghost"
-                  className="absolute inset-0 z-10 h-full w-full rounded-2xl border-0 bg-transparent! p-0"
-                  aria-label={t(selected.has(service.id) ? 'customer.order.removeService' : 'customer.order.addService', { name: service.name })}
-                  aria-pressed={selected.has(service.id)}
-                  disabled={!selected.has(service.id) && items.length >= ORDER_LIMITS.MAX_SERVICES}
-                  onClick={() => {
-                    if (selected.has(service.id)) {
-                      remove(service.id)
-                    } else {
+          <ScrollSection
+            as="div"
+            direction="left"
+          >
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {data.list.map((service) => (
+                <article
+                  key={service.id}
+                  data-selected={selected.has(service.id)}
+                  data-hover-suppressed={clearedId === service.id}
+                  onPointerLeave={() => {
+                    if (clearedId === service.id) {
                       setClearedId(null)
-                      onChange([...items, { service, quantity: 1 }])
                     }
                   }}
+                  onPointerEnter={() => setClearedId(null)}
+                  className={`relative isolate flex min-w-0 flex-col rounded-2xl border border-border/70 bg-card p-5 shadow-sm ${ORDER_CHOICE_STYLES}`}
                 >
-                  <span className="sr-only">
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-[inherit] before:absolute before:-right-8 before:-top-8 before:size-28 before:rounded-full before:bg-primary/6 after:absolute after:-right-3 after:-top-3 after:size-20 after:rounded-full after:border after:border-primary/15"
+                  />
+                  <Button
+                    variant="ghost"
+                    className="absolute inset-0 z-10 h-full w-full rounded-2xl border-0 bg-transparent! p-0"
+                    aria-label={t(selected.has(service.id) ? 'customer.order.removeService' : 'customer.order.addService', { name: service.name })}
+                    aria-pressed={selected.has(service.id)}
+                    disabled={!selected.has(service.id) && items.length >= ORDER_LIMITS.MAX_SERVICES}
+                    onClick={() => {
+                      if (selected.has(service.id)) {
+                        remove(service.id)
+                      } else {
+                        setClearedId(null)
+                        onChange([...items, { service, quantity: 1 }])
+                      }
+                    }}
+                  >
+                    <span className="sr-only">
+                      {service.name}
+                    </span>
+                  </Button>
+                  <div className="mb-3 flex min-w-0 items-center justify-between gap-2">
+                    <span className="order-choice-muted truncate rounded-md bg-muted/60 px-2 py-1 text-xs font-medium text-muted-foreground">
+                      {service.categoryName || service.unit}
+                    </span>
+                    <ChoiceIndicator selected={selected.has(service.id)} />
+                  </div>
+                  <ResourceThumbnail
+                    urls={catalogImages(service)}
+                    name={service.name}
+                    className="mb-4 aspect-[4/3] h-auto w-full rounded-xl"
+                  />
+                  <h2 className="truncate text-base font-semibold">
                     {service.name}
-                  </span>
-                </Button>
-                {selected.has(service.id) && (
-                  <SelectionBadge />
-                )}
-                <ResourceThumbnail
-                  urls={catalogImages(service)}
-                  name={service.name}
-                  className="mb-4 aspect-square h-auto w-full"
-                />
-                <h2 className="line-clamp-2 pr-6 text-base font-semibold [overflow-wrap:anywhere]">
-                  {service.name}
-                </h2>
-                <p className="order-choice-muted mt-2 line-clamp-2 text-xs leading-6 text-muted-foreground">
-                  {service.description || service.unit}
-                </p>
-                {service.estimatedDurationHours > 0 && (
-                  <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Clock3 className="size-4" />
-                    {t('customer.estimatedHours', { estimatedDurationHours: service.estimatedDurationHours })}
+                  </h2>
+                  <p className="order-choice-muted mt-2 min-h-12 line-clamp-2 text-xs leading-6 text-muted-foreground">
+                    {service.description || service.unit}
                   </p>
-                )}
-                <p className="text-base order-choice-primary mt-5 font-semibold text-primary">
-                  {formatCurrency(isWeightService(service) ? service.unitPrice : service.pricePerItem ?? service.unitPrice)}
-                  <span className="order-choice-muted ml-1 text-xs font-normal text-muted-foreground">
-                    /
-                    {' '}
-                    {isWeightService(service) ? t('customer.order.package') : service.unit}
-                  </span>
-                </p>
-              </article>
-            ))}
-          </div>
+                  {service.estimatedDurationHours > 0 && (
+                    <p className="mb-4 mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock3 className="size-4" />
+                      {t('customer.estimatedHours', { estimatedDurationHours: service.estimatedDurationHours })}
+                    </p>
+                  )}
+                  <p className="text-base order-choice-primary mt-auto border-t border-border/60 pt-4 font-semibold text-primary">
+                    {formatCurrency(isWeightService(service) ? service.unitPrice : service.pricePerItem ?? service.unitPrice)}
+                    <span className="order-choice-muted ml-1 text-xs font-normal text-muted-foreground">
+                      /
+                      {' '}
+                      {service.unit}
+                    </span>
+                  </p>
+                </article>
+              ))}
+            </div>
+          </ScrollSection>
         )}
         <Pagination
           currentPage={query.page}
@@ -127,7 +141,11 @@ export default function OrderServices({ items, onChange }) {
           onPageChange={(page) => setQuery({ ...query, page })}
         />
       </div>
-      <aside className="overflow-hidden rounded-2xl border border-primary/15 bg-card shadow-sm lg:sticky lg:top-[var(--customer-header-offset)]">
+      <ScrollSection
+        as="aside"
+        direction="right"
+        className="overflow-hidden rounded-2xl border border-primary/15 bg-card shadow-sm lg:sticky lg:top-[var(--customer-header-offset)]"
+      >
         <div className={ORDER_PANEL_HEADER_STYLES}>
           <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
             <ListChecks size={22} />
@@ -199,7 +217,7 @@ export default function OrderServices({ items, onChange }) {
             </p>
           </details>
         </div>
-      </aside>
+      </ScrollSection>
     </div>
   )
 }

@@ -28,7 +28,7 @@ it('guests can read public terms without requesting customer consent or acknowle
   expect(customerPolicyApi.get).not.toHaveBeenCalled()
   expect(customerPolicyApi.acknowledge).not.toHaveBeenCalled()
 })
-it('closing does not acknowledge; explicit acceptance posts the displayed version and survives another mount', async () => {
+it('requires checked consent before acknowledging and only allows closing after acceptance', async () => {
   const user = userEvent.setup()
   let accepted = false
   customerPolicyApi.get.mockImplementation(async () => policy(accepted))
@@ -38,7 +38,9 @@ it('closing does not acknowledge; explicit acceptance posts the displayed versio
   const view = render(content())
   await screen.findByRole('dialog', { name: 'Terms', exact: true })
   await waitFor(() => expect(screen.getByText('Server policy content')).toBeVisible())
-  await user.click(screen.getAllByRole('button', { name: 'Close', exact: true }).at(-1))
+  expect(screen.queryByRole('button', { name: 'Close', exact: true })).not.toBeInTheDocument()
+  await user.keyboard('{Escape}')
+  expect(screen.getByRole('dialog')).toBeVisible()
   expect(customerPolicyApi.acknowledge).not.toHaveBeenCalled()
   view.rerender(content('b'))
   await screen.findByRole('dialog', { name: 'Terms', exact: true })
@@ -51,6 +53,7 @@ it('closing does not acknowledge; explicit acceptance posts the displayed versio
   await user.click(screen.getByRole('button', { name: 'Footer terms' }))
   await screen.findByText('Server policy content')
   expect(screen.queryByRole('button', { name: 'I agree to the terms' })).not.toBeInTheDocument()
+  expect(screen.getAllByRole('button', { name: 'Close', exact: true })).toHaveLength(2)
 })
 it('an acknowledgement failure keeps the version available for checking, without accepting locally', async () => {
   customerPolicyApi.get.mockResolvedValue(policy())
@@ -59,5 +62,6 @@ it('an acknowledgement failure keeps the version available for checking, without
   await userEvent.click(await screen.findByRole('checkbox'))
   await userEvent.click(screen.getByRole('button', { name: 'I agree to the terms' }))
   await screen.findByRole('alert')
+  expect(screen.queryByRole('button', { name: 'Close', exact: true })).not.toBeInTheDocument()
   await waitFor(() => expect(screen.getByRole('button', { name: 'I agree to the terms' })).toBeEnabled())
 })
