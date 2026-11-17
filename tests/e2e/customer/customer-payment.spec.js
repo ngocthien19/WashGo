@@ -52,7 +52,7 @@ async function setup(page, overrides = {}) {
       const points = state.calls.at(-1).pointsToRedeem
       return route.fulfill({ json: envelope({ orderId, paymentMethod: method, amount: state.order.finalAmount - points, pointsToRedeem: points, purpose: 1, transactionStatus: state.review ? 5 : 1, sessionState: 2, requiresReconciliation: state.review, transactionReference: reference, paymentUrl: `https://gateway.example.test/${method}`, ...state.resultPatch }) })
     }
-    if (path === '/customer/services/filter' || path === '/customer/lockers') {
+    if (path === '/customer/services/filter' || path === '/customer/lockers' || path === '/customer/service-categories') {
       return route.fulfill({ json: { succeeded: true, list: [], total: 0, currentPage: 1, totalPages: 0 } })
     }
     throw new Error(`Unexpected API call: ${path}`)

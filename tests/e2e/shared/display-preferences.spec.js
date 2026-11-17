@@ -8,6 +8,8 @@ const service = {
   description: 'Mô tả đầy đủ từ API.'
 }
 const envelope = (data) => ({ succeeded: true, statusCode: 200, data })
+const dryCategoryId = 'ca000000-0000-0000-0000-000000000002'
+const ironingCategoryId = 'ca000000-0000-0000-0000-000000000003'
 
 test.beforeEach(async ({ page }) => {
   await seedSeenTerms(page, user.id)
@@ -22,6 +24,11 @@ test.beforeEach(async ({ page }) => {
       response = envelope(user)
     } else if (path === '/customer/services/service-test') {
       response = envelope(service)
+    } else if (path === '/customer/service-categories') {
+      response = { succeeded: true, list: [
+        { id: dryCategoryId, name: 'Dry cleaning', isActive: true },
+        { id: ironingCategoryId, name: 'Ironing', isActive: true }
+      ], total: 2, currentPage: 1, totalPages: 1 }
     } else if (path === '/customer/services/filter' || path === '/customer/lockers') {
       const list = path.endsWith('/services/filter') ? [service] : []
       response = {
@@ -42,7 +49,7 @@ const chooseEnglish = async (page) => {
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
 }
 
-test('service checkboxes combine types and disjoint price ranges with sorting and removable badges', async ({ page }) => {
+test('service checkboxes combine categories and disjoint price ranges with sorting and removable badges', async ({ page }) => {
   const calls = []
   let fail = false
   await page.route('**/api/customer/services/filter', async (route) => {
@@ -63,17 +70,18 @@ test('service checkboxes combine types and disjoint price ranges with sorting an
   await page.getByLabel('Password', { exact: true }).fill('Password123')
   await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(page).toHaveURL('/')
-  await page.goto('/services?keyword=silk&serviceType=2&minPrice=30000&maxPrice=50000&sort=price-asc&page=2')
+  await page.goto(`/services?keyword=silk&categoryId=${dryCategoryId}&minPrice=30000&maxPrice=50000&sort=price-asc&page=2`)
   await expect(page.getByRole('heading', { name: 'Service 2-0', exact: true })).toBeVisible()
   const dry = page.getByRole('checkbox', { name: 'Dry cleaning', exact: true })
   await expect(dry).toBeChecked()
-  const typeToggle = page.getByRole('button', { name: 'Service type', exact: true })
+  const typeToggle = page.getByRole('button', { name: 'Category', exact: true })
   await typeToggle.click()
   await expect(dry).not.toBeVisible()
   await typeToggle.click()
   await expect(dry).toBeChecked()
   await page.getByRole('checkbox', { name: 'Ironing', exact: true }).click()
-  await expect.poll(() => calls.at(-1).serviceTypes).toEqual([2, 3])
+  await expect.poll(() => calls.at(-1).categoryIds).toEqual([dryCategoryId, ironingCategoryId])
+  expect(calls.at(-1).serviceTypes).toEqual([])
   await page.getByRole('checkbox', { name: /Over 100,000/, exact: false }).click()
   await expect.poll(() => calls.at(-1).priceRanges).toEqual([{ minPrice: 30000, maxPrice: 50000 }, { minPrice: 100000.01 }])
   expect(calls.at(-1).page).toBe(1)
@@ -90,7 +98,7 @@ test('service checkboxes combine types and disjoint price ranges with sorting an
   await expect(dry).toBeChecked()
   await expect(page.getByRole('checkbox', { name: 'Ironing', exact: true })).toBeChecked()
   await badges.getByRole('button', { name: 'Remove filter Dry cleaning', exact: true }).click()
-  await expect.poll(() => calls.at(-1).serviceTypes).toEqual([3])
+  await expect.poll(() => calls.at(-1).categoryIds).toEqual([ironingCategoryId])
   await badges.getByRole('button', { name: /Remove filter Over 100,000/ }).click()
   await expect.poll(() => calls.at(-1).priceRanges).toEqual([{ minPrice: 30000, maxPrice: 50000 }])
   await page.goBack()
