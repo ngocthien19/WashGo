@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Coins, PackageCheck, Sparkles } from 'lucide-react'
+import { Coins, PackageCheck } from 'lucide-react'
 import { formatCurrency, formatNumber } from '~/utils/format/formats'
 import { cn } from '~/lib/utils'
 
@@ -7,11 +7,10 @@ export default function ProfileStats({ profile }) {
   const { t } = useTranslation()
   const stats = [
     { label: 'customer.profile.totalOrders', value: formatNumber(profile.totalOrders), icon: PackageCheck, color: 'bg-primary/10 text-primary' },
-    { label: 'customer.profile.totalSpent', value: formatCurrency(profile.totalSpent), icon: Coins, color: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' },
-    { label: 'customer.profile.loyaltyPoints', value: formatNumber(profile.loyaltyPoints), icon: Sparkles, color: 'bg-amber-500/10 text-amber-700 dark:text-amber-400' }
+    { label: 'customer.profile.totalSpent', value: formatCurrency(profile.totalSpent), icon: Coins, color: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' }
   ]
   return (
-    <dl className="grid gap-3 sm:grid-cols-3">
+    <dl className="grid gap-3 sm:grid-cols-2">
       {stats.map(({ label, value, icon: Icon, color }) => (
         <div
           key={label}

@@ -10,7 +10,7 @@ const period = value => pick(value, ['merchantId', 'fromDate', 'toDate', 'granul
 const moneyKeys = ['grossRevenue', 'refundedAmount', 'netRevenue', 'commissionRate', 'commissionAmount', 'payoutAmount']
 const commission = value => isId(value?.merchantId) && typeof value.merchantName === 'string' && moneyKeys.every(key => Number.isFinite(value[key])) && Number.isInteger(value.paidOrderCount) && value.paidOrderCount >= 0
 const settlement = value => isId(value?.id) && isId(value.merchantId) && typeof value.merchantName === 'string' && moneyKeys.every(key => Number.isFinite(value[key])) && [1, 2, 3, 4].includes(value.status) && ['periodFrom', 'periodTo'].every(key => Number.isFinite(Date.parse(value[key]))) && Number.isInteger(value.orderCount) && value.orderCount >= 0
-const refund = value => isId(value?.id) && isId(value.orderId) && isId(value.customerId) && [1, 2, 3, 4].includes(value.status) && Number.isFinite(value.amount) && value.amount > 0 && typeof value.reason === 'string'
+const refund = value => isId(value?.id) && isId(value.orderId) && isId(value.customerId) && [1, 2, 3, 4].includes(value.status) && Number.isFinite(value.amount) && value.amount >= 0 && (value.amount > 0 || Number.isSafeInteger(value.pointsAmount) && value.pointsAmount > 0) && (value.pointsAmount == null || Number.isSafeInteger(value.pointsAmount) && value.pointsAmount >= 0) && (value.rewardPointsReversed == null || Number.isSafeInteger(value.rewardPointsReversed) && value.rewardPointsReversed >= 0) && typeof value.reason === 'string'
 const unwrap = (response, valid) => {
   if (response.data?.succeeded !== true || !valid(response.data.data)) {
     throw invalid()

@@ -53,11 +53,11 @@ export default function SystemSettingsPage() {
     <Reveal className="mx-auto max-w-[1400px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <h1 className="flex items-center gap-3  font-bold text-[30px]">
             <Settings className="text-primary" />
             {t('admin.nav.settings')}
           </h1>
-          <p className="mt-2 max-w-3xl text-muted-foreground">
+          <p className="mt-2 max-w-3xl text-muted-foreground text-[16px]">
             {t('admin.settings.description')}
           </p>
         </div>
@@ -90,7 +90,7 @@ export default function SystemSettingsPage() {
             key={key}
             role="tab"
             aria-selected={key === group}
-            disabled={busy}
+            disabled={busy || key === 'loyalty' && !Number.isFinite(resource.data?.earnPercent)}
             variant="ghost"
             onClick={() => navigate(key)}
             className={`h-12 shrink-0 rounded-none border-x-0 border-t-0 border-b-2 px-3 text-lg hover:bg-transparent ${key === group ? 'border-b-primary text-primary' : 'border-b-transparent text-muted-foreground'}`}
@@ -173,6 +173,7 @@ export default function SystemSettingsPage() {
           <DialogContent
             className="max-w-lg"
             closeLabel="common.close"
+            data-dialog-fixed
           >
             <DialogHeader tone="warning">
               <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -183,7 +184,10 @@ export default function SystemSettingsPage() {
                 {t('admin.settings.discardHint')}
               </DialogDescription>
             </DialogHeader>
-            <footer className="mt-5 flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+            <footer
+              className="mt-5 flex flex-wrap justify-end gap-3 border-t border-border pt-5"
+              data-dialog-footer
+            >
               <Button
                 variant="secondary"
                 onClick={() => setLeave(null)}

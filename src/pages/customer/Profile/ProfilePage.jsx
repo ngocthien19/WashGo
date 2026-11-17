@@ -8,6 +8,7 @@ import SectionHeading from '~/components/customer/SectionHeading/SectionHeading'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { CUSTOMER_ROUTES } from '~/utils/config/constants'
 import ProfileEditor from './components/ProfileEditor'
+import LoyaltyWallet from './components/LoyaltyWallet'
 
 export default function ProfilePage() {
   const { t } = useTranslation()
@@ -42,10 +43,13 @@ export default function ProfilePage() {
             />
           </div>
         ) : (
-          <ProfileEditor
-            key={data.id}
-            profile={data}
-          />
+          <>
+            <ProfileEditor
+              key={data.id}
+              profile={data}
+            />
+            <LoyaltyWallet key={`loyalty-${data.id}`} />
+          </>
         )}
       </div>
     </div>

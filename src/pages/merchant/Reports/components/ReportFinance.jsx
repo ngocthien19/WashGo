@@ -13,6 +13,11 @@ export default function ReportFinance({ data }) {
         <Wallet size={21} />
         {t('merchant.reportSync.finance')}
       </h2>
+      {data.fundingBasis && (
+        <p className="mt-4 rounded-xl bg-primary/5 p-4 text-sm leading-6 text-muted-foreground">
+          {t('loyalty.merchantFundingHint')}
+        </p>
+      )}
       {['current', 'previous'].filter(period => !coverage[`${period}Complete`]).map(period => (
         <p
           key={period}

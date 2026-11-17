@@ -36,5 +36,10 @@ export const customerPaymentApi = {
     // Fetch fresh, scoped detail rather than trusting redirect parameters or a cached order.
     return customerPaymentApi.getOrder(matches[0].id, signal)
   },
-  createUrl: (orderId, paymentMethod) => authorizedAxios.post(CUSTOMER_API_ENDPOINTS.PAYMENT, { orderId, paymentMethod }).then(unwrap)
+  createUrl: (orderId, paymentMethod, pointsToRedeem) => {
+    if (pointsToRedeem !== undefined && (!Number.isSafeInteger(pointsToRedeem) || pointsToRedeem < 0)) {
+      throw new Error('loyalty.invalidPoints')
+    }
+    return authorizedAxios.post(CUSTOMER_API_ENDPOINTS.PAYMENT, { orderId, paymentMethod, ...(pointsToRedeem === undefined ? {} : { pointsToRedeem }) }).then(unwrap)
+  }
 }

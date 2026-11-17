@@ -31,6 +31,10 @@ const mockCustomer = async (page, options = {}) => {
       json = envelope({ user: identity, accessToken: 'test-access', refreshToken: 'test-refresh', expiresAt: '2099-01-01T00:00:00Z' })
     } else if (path === '/auth/me') {
       json = envelope(identity)
+    } else if (path === '/customer/loyalty/balance') {
+      json = envelope({ totalPoints: 120, heldPoints: 20, availablePoints: 100, debtPoints: 0, vndPerPoint: 1, earnPercent: 1, maxUsePercent: 20 })
+    } else if (path === '/customer/loyalty/history') {
+      json = { succeeded: true, list: [{ id: 'ledger-1', orderId: initialProfile.id, kind: 'ReverseReward', pointsDelta: -30, heldDelta: 0, netPointsAfter: -10, heldPointsAfter: 20, createdAt: '2026-11-15T00:00:00Z' }], total: 1, currentPage: 1 }
     } else if (path === '/customer/me') {
       state.authorization.push(request.headers().authorization)
       if (request.method() === 'GET' && state.getFailures-- > 0) {
@@ -73,6 +77,30 @@ const signIn = async (page) => {
   await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(page).toHaveURL('/')
 }
+
+test('wallet separates available and held points and loads signed history on demand', async ({ page }) => {
+  await mockCustomer(page)
+  const ledgerRequests = []
+  page.on('request', request => {
+    if (request.url().includes('/customer/loyalty/history')) {
+      ledgerRequests.push(request.url())
+    }
+  })
+  await signIn(page)
+  await page.goto('/profile')
+  const wallet = page.getByRole('region', { name: 'WashGo points', exact: true })
+  await expect(wallet.getByText('100', { exact: true })).toBeVisible()
+  await expect(wallet.getByText('20', { exact: true })).toBeVisible()
+  expect(ledgerRequests).toHaveLength(0)
+  await wallet.getByRole('button', { name: 'Points history', exact: true }).click()
+  await expect(wallet.getByRole('cell', { name: 'Recover rewards', exact: true })).toBeVisible()
+  await expect(wallet.getByRole('cell', { name: '-30', exact: true })).toBeVisible()
+  expect(ledgerRequests).toHaveLength(1)
+  expect(new URL(ledgerRequests[0]).searchParams.get('take')).toBe('20')
+  await expect(wallet.getByRole('link', { name: 'Details', exact: true })).toHaveAttribute('href', `/orders/${initialProfile.id}`)
+  await page.setViewportSize({ width: 375, height: 900 })
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
 
 const mapAddress = {
   housenumber: '123', street: 'Lê Lợi', district: 'Phường Bến Thành',

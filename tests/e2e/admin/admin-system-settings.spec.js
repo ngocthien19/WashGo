@@ -70,6 +70,29 @@ async function review(page) {
   await page.getByRole('button', { name: 'Review & save', exact: true }).click()
   return page.getByRole('dialog')
 }
+
+test('loyalty settings use guarded rates and reject full points payment', async ({ page }) => {
+  const state = await setup(page)
+  Object.assign(state.value, { loyaltyEarnPercent: 1, loyaltyMaxUsePercent: 20 })
+  await page.goto('/admin/settings')
+  await page.getByRole('tab', { name: 'Loyalty points', exact: true }).click()
+  await page.getByLabel('Maximum points discount', { exact: true }).fill('100')
+  await page.getByRole('button', { name: 'Review & save', exact: true }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page.getByLabel('Maximum points discount', { exact: true }).fill('25')
+  await page.getByLabel('Points earning rate', { exact: true }).fill('1.25')
+  const dialog = await review(page)
+  // Mock the actual response names used by GET and PUT.
+  await page.route('**/api/system-setting/loyalty', async route => {
+    const body = route.request().postDataJSON()
+    state.writes.push({ path: '/system-setting/loyalty', body })
+    Object.assign(state.value, { loyaltyEarnPercent: body.earnPercent, loyaltyMaxUsePercent: body.maxUsePercent })
+    return route.fulfill({ json: { succeeded: true, data: state.value } })
+  })
+  await confirm(dialog)
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes[0].body).toMatchObject({ earnPercent: 1.25, maxUsePercent: 25, expectedVersion: expect.any(String), operationId: expect.any(String) })
+})
 async function confirm(dialog) {
   await dialog.getByRole('checkbox').check()
   await dialog.getByRole('button', { name: 'Confirm save', exact: true }).click()

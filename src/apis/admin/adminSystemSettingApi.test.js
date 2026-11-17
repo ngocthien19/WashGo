@@ -4,6 +4,14 @@ import authorizedAxios from '~/utils/http/authorizedAxios'
 import { systemSettingsFixture } from '~/test/fixtures/systemSettings'
 vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), put: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
+it('maps loyalty settings and writes only rates with version and operation identity', async () => {
+  const value = { ...systemSettingsFixture(), loyaltyEarnPercent: 1.25, loyaltyMaxUsePercent: 20 }
+  authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: value } })
+  expect(await adminSystemSettingApi.get()).toMatchObject({ earnPercent: 1.25, maxUsePercent: 20 })
+  authorizedAxios.put.mockResolvedValue({ data: { succeeded: true, data: value } })
+  await adminSystemSettingApi.update('loyalty', { earnPercent: 1.25, maxUsePercent: 20, customerId: 'fake' }, 'v-loyalty')
+  expect(authorizedAxios.put).toHaveBeenLastCalledWith('/system-setting/loyalty', { earnPercent: 1.25, maxUsePercent: 20, expectedVersion: 'v-loyalty', operationId: expect.any(String) })
+})
 it('reads actual settings and forwards cancellation signal', async () => {
   const value = systemSettingsFixture(), signal = new AbortController().signal
   authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: value } })

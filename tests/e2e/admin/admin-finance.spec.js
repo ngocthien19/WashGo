@@ -4,6 +4,39 @@ import { merchantSession } from '../helpers/merchantSession'
 
 const merchantId = 'a0000000-0000-4000-8000-000000000001', settlementId = 'b0000000-0000-4000-8000-000000000001', orderId = 'c0000000-0000-4000-8000-000000000001', refundId = 'd0000000-0000-4000-8000-000000000001', customerId = 'e0000000-0000-4000-8000-000000000001', serviceId = 'f0000000-0000-4000-8000-000000000001'
 
+test('payment reconciliation is read-only and filters resolved cases on the server', async ({ page }) => {
+  const state = await setup(page)
+  const queries = []
+  await page.route('**/api/payment/reconciliations?**', route => {
+    const params = Object.fromEntries(new URL(route.request().url()).searchParams)
+    queries.push(params)
+    return route.fulfill({ json: { succeeded: true, list: [{ id: settlementId, orderId, transactionReference: 'REVIEW-REFERENCE', providerTransactionId: null, purpose: 1, paymentMethod: 3, amount: 64000, status: 5, sessionState: 3, reason: 'Gateway verification required', refundRequestId: refundId, gatewayVerifiedAt: null, reconciledAt: null }], currentPage: Number(params.page), total: 1 } })
+  })
+  await page.goto('/admin/finance?tab=paymentReview')
+  await expect(page.getByText('REVIEW-REFERENCE', { exact: true })).toBeVisible()
+  await expect(page.getByRole('cell', { name: 'Needs reconciliation', exact: true })).toBeVisible()
+  await page.getByRole('checkbox', { name: 'Include resolved excess payments', exact: true }).check()
+  await expect.poll(() => queries.at(-1)?.includeResolved).toBe('true')
+  await expect(page.getByRole('link', { name: 'View refund request', exact: true })).toHaveAttribute('href', `/admin/finance?tab=refunds&orderId=${orderId}`)
+  expect(state.writes).toHaveLength(0)
+  await expect(page.getByRole('button', { name: 'Confirm', exact: true })).toHaveCount(0)
+})
+
+test('points-only refunds use a points receipt without requesting a zero bank transfer', async ({ page }) => {
+  const state = await setup(page)
+  Object.assign(state.refund, { amount: 0, pointsAmount: 500, rewardPointsReversed: 10, status: 2 })
+  await page.goto('/admin/finance?tab=refunds')
+  await menu(page, 'Record completed refund', true)
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByText('This request refunds points only', { exact: false })).toBeVisible()
+  await dialog.getByLabel('Points refund receipt reference', { exact: true }).fill('POINTS-RECEIPT-1')
+  await dialog.getByRole('checkbox').check()
+  await dialog.getByRole('button', { name: 'Confirm', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes).toHaveLength(1)
+  expect(state.writes[0].body).toMatchObject({ refundReference: 'POINTS-RECEIPT-1', expectedVersion: expect.any(String), operationId: expect.any(String) })
+})
+
 test('new backend: commission review requires evidence, accepts verified zero and guards settled rows', async ({ page }) => {
   await setup(page)
   const writes = []
@@ -357,4 +390,18 @@ test('finance filters are readable and aligned while preview identifies its Merc
   await page.setViewportSize({ width: 390, height: 844 })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   expect(state.writes).toHaveLength(0)
+})
+
+
+test('workspace finance first-column records open their matching existing details', async ({ page }) => {
+  await setup(page)
+  await page.goto('/admin/finance?tab=settlements')
+  await page.getByRole('table').getByRole('button', { name: 'Central Laundry', exact: true }).first().click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await expect(page.getByRole('dialog')).toContainText('Central Laundry')
+  await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).last().click()
+  await page.goto('/admin/finance?tab=refunds')
+  await page.getByRole('table').locator('tbody tr').first().locator('td').first().getByRole('button').click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).last()).toBeVisible()
 })
