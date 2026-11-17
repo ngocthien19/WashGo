@@ -37,7 +37,7 @@ test('Admin navigation covers real event domains and sends supported server filt
   await expect(page.getByText('Notification type', { exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Notifications', exact: true })).toHaveCount(0)
   await expect(nav.getByRole('button', { name: /Promotion|System/ })).toHaveCount(0)
-  for (const [name, types, visible] of [['Services', [46], 46], ['Merchant profile', [47], 47], ['Refunds', [41], 41], ['Ratings', [42], 42], ['Complaints', [17, 40], 40], ['Orders & operations', [22, 23, 43, 44, 45], 45]]) {
+  for (const [name, types, visible] of [['Services', [46], 46], ['Merchant profile', [47], 47], ['Refunds', [41], 41], ['Ratings', [42], 42], ['Complaints', [17, 40], 40], ['Orders & operations', [1, 6, 10, 15, 16, 22, 23, 43, 44, 45, 50], 45]]) {
     await nav.getByRole('button', { name, exact: true }).click()
     await expect(page.getByRole('heading', { name: `Admin event ${visible}`, exact: true })).toBeVisible()
     await expect.poll(() => state.filters.at(-1)?.types).toEqual(types)
