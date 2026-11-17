@@ -20,7 +20,7 @@ export default function ServiceInfo({ value }) {
       <dl className="grid gap-3 sm:grid-cols-2">
         {[
           ['unitPrice', Banknote, formatCurrency(value.unitPrice)], ['duration', Clock, t('merchant.services.hours', { count: value.estimatedDurationHours })],
-          ['category', Tags, category ? t(category) : '—'], ['unit', Scale, value.unit || '—'],
+          ['category', Tags, value.categoryName || (category ? t(category) : '—')], ['unit', Scale, value.unit || '—'],
           ['pricePerKg', Scale, formatCurrency(value.pricePerKg)], ['pricePerItem', Shirt, formatCurrency(value.pricePerItem)]
         ].map(([key, Icon, text]) => (
           <div

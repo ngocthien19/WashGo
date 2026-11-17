@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { proposalSchema, readServiceQuery, serviceFilter } from './serviceModel'
-const draft = { name: ' Test service ', unit: 'kg', unitPrice: 50000, pricePerKg: '', pricePerItem: '', serviceType: 1, estimatedDurationHours: 24, description: '', reason: '' }
+const draft = { categoryId: 'ca000000-0000-4000-8000-000000000001', name: ' Test service ', unit: 'kg', unitPrice: 50000, pricePerKg: '', pricePerItem: '', serviceType: 1, estimatedDurationHours: 24, description: '', reason: '' }
 it('normalizes optional amounts without treating zero as blank', async () => {
   expect(await proposalSchema.validate(draft)).toMatchObject({ name: 'Test service', pricePerKg: null, pricePerItem: null })
   await expect(proposalSchema.validate({ ...draft, pricePerKg: 0 })).rejects.toThrow()

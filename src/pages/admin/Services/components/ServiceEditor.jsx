@@ -1,3 +1,4 @@
+import CategorySelect from '~/components/categories/CategorySelect'
 import { useRef, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -17,12 +18,13 @@ import { defaults, payload, serviceSchema, snapshot, unknownWrite } from '../ser
 
 export default function ServiceEditor({ service, onClose, onSaved }) {
   const { t } = useTranslation()
+  const [categoryReady, setCategoryReady] = useState(false)
   const { register, control, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(serviceSchema), defaultValues: defaults(service) })
   const [pending, setPending] = useState(false), [error, setError] = useState(''), [blocked, setBlocked] = useState(false)
   const images = useImages(5, service?.imageUrls || [])
   const locked = useRef(false)
   const submit = async values => {
-    if (locked.current || blocked) {
+    if (locked.current || blocked || !categoryReady) {
       return
     }
     locked.current = true; setPending(true); setError('')
@@ -60,6 +62,7 @@ export default function ServiceEditor({ service, onClose, onSaved }) {
       <DialogContent
         className="max-w-3xl"
         closeLabel="common.close"
+        data-dialog-fixed
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -74,68 +77,98 @@ export default function ServiceEditor({ service, onClose, onSaved }) {
           noValidate
           className="mt-5 space-y-5"
           onSubmit={event => handleSubmit(submit)(event)}
+          data-dialog-layout
         >
-          <fieldset
-            disabled={pending || blocked}
-            className="grid min-w-0 gap-4 sm:grid-cols-2"
-          >
-            {['code', 'name', 'unitPrice', 'pricePerKg', 'pricePerItem', 'estimatedDurationHours', 'unit', 'description'].map(key => (
-              <label
-                key={key}
-                className={`grid min-w-0 gap-3 text-sm font-medium ${key === 'description' ? 'sm:col-span-2' : ''}`}
-              >
+          <div data-dialog-body>
+            <fieldset
+              disabled={pending || blocked}
+              className="grid min-w-0 gap-4 sm:grid-cols-2"
+            >
+              {['code', 'name', 'unitPrice', 'pricePerKg', 'pricePerItem', 'estimatedDurationHours', 'unit', 'description'].map(key => (
+                <label
+                  key={key}
+                  className={`grid min-w-0 gap-3 text-sm font-medium ${key === 'description' ? 'sm:col-span-2' : ''}`}
+                >
+                  <span>
+                    {t(`admin.services.fields.${key}`)}
+                    {['code', 'name', 'unitPrice', 'estimatedDurationHours', 'unit'].includes(key) && <span className="ml-1 text-destructive">*</span>}
+                  </span>
+                  <Input
+                    {...register(key)}
+                    aria-label={t(`admin.services.fields.${key}`)}
+                    aria-invalid={!!errors[key]}
+                    type={['unitPrice', 'pricePerKg', 'pricePerItem', 'estimatedDurationHours'].includes(key) ? 'number' : 'text'}
+                    step={key === 'estimatedDurationHours' ? '1' : '0.01'}
+                    placeholder={t(`admin.services.placeholders.${key}`)}
+                    maxLength={key === 'code' ? 50 : key === 'name' ? 200 : key === 'unit' ? 20 : key === 'description' ? 2000 : undefined}
+                    className="h-11 min-w-0 rounded-xl text-base font-normal"
+                  />
+                  {errors[key] && (
+                    <span className="text-xs font-normal text-destructive">
+                      {t('admin.services.invalidField')}
+                    </span>
+                  )}
+                </label>
+              ))}
+              <label className="grid gap-3 text-sm font-medium">
                 <span>
-                  {t(`admin.services.fields.${key}`)}
-                  {['code', 'name', 'unitPrice', 'estimatedDurationHours', 'unit'].includes(key) && <span className="ml-1 text-destructive">*</span>}
+                  {t('categories.processingType')}
                 </span>
-                <Input
-                  {...register(key)}
-                  aria-label={t(`admin.services.fields.${key}`)}
-                  aria-invalid={!!errors[key]}
-                  type={['unitPrice', 'pricePerKg', 'pricePerItem', 'estimatedDurationHours'].includes(key) ? 'number' : 'text'}
-                  step={key === 'estimatedDurationHours' ? '1' : '0.01'}
-                  placeholder={t(`admin.services.placeholders.${key}`)}
-                  maxLength={key === 'code' ? 50 : key === 'name' ? 200 : key === 'unit' ? 20 : key === 'description' ? 2000 : undefined}
-                  className="h-11 min-w-0 rounded-xl text-base font-normal"
+                <Controller
+                  name="serviceType"
+                  control={control}
+                  render={({ field }) => (
+                    <SelectField
+                      label={t('categories.processingType')}
+                      value={String(field.value)}
+                      onValueChange={value => field.onChange(Number(value))}
+                      options={SERVICE_TYPES.filter(item => item.value !== '').map(item => ({ value: String(item.value), label: t(item.label) }))}
+                    />
+                  )}
                 />
-                {errors[key] && (
-                  <span className="text-xs font-normal text-destructive">
-                    {t('admin.services.invalidField')}
+              </label>
+              <div className="grid gap-2 sm:col-span-2">
+                <span className="text-sm font-medium">
+                  {t('categories.category')}
+                </span>
+                <Controller
+                  name="categoryId"
+                  control={control}
+                  render={({ field }) => (
+                    <CategorySelect
+                      onReady={setCategoryReady}
+                      role="Admin"
+                      value={field.value}
+                      onChange={field.onChange}
+                      current={service}
+                      disabled={pending || blocked}
+                    />
+                  )}
+                />
+                {errors.categoryId && (
+                  <span className="text-sm text-destructive">
+                    {t('categories.choose')}
                   </span>
                 )}
-              </label>
-            ))}
-            <label className="grid gap-3 text-sm font-medium">
-              <span>
-                {t('merchant.services.category')}
-              </span>
-              <Controller
-                name="serviceType"
-                control={control}
-                render={({ field }) => (
-                  <SelectField
-                    label={t('merchant.services.category')}
-                    value={String(field.value)}
-                    onValueChange={value => field.onChange(Number(value))}
-                    options={SERVICE_TYPES.filter(item => item.value !== '').map(item => ({ value: String(item.value), label: t(item.label) }))}
-                  />
-                )}
-              />
-            </label>
-          </fieldset>
-          <ImagePicker
-            selection={images}
-            disabled={pending || blocked}
-          />
-          {error && (
-            <p
-              role="alert"
-              className="rounded-xl bg-destructive/10 p-4 text-sm text-destructive"
-            >
-              {t(error)}
-            </p>
-          )}
-          <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
+              </div>
+            </fieldset>
+            <ImagePicker
+              selection={images}
+              disabled={pending || blocked}
+            />
+            {error && (
+              <p
+                role="alert"
+                className="rounded-xl bg-destructive/10 p-4 text-sm text-destructive"
+              >
+                {t(error)}
+              </p>
+            )}
+          </div>
+          <footer
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-4"
+            data-dialog-footer
+          >
             <Button
               type="button"
               variant="secondary"
@@ -147,7 +180,7 @@ export default function ServiceEditor({ service, onClose, onSaved }) {
             </Button>
             <Button
               type="submit"
-              disabled={pending || blocked}
+              disabled={pending || blocked || !categoryReady}
               className="h-11 px-6 text-base"
             >
               <Save size={18} />

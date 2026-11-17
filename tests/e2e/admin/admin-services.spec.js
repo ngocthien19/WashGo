@@ -20,7 +20,7 @@ test('Admin search suggestions keep catalog/proposal scope and highlight matchin
 })
 async function setup(page, options = {}) {
   await merchantSession(page, { role: 'Admin', ...options })
-  const service = { id, merchantId, code: 'SVC_TEST', name: 'Everyday wash', description: 'Careful cleaning', unitPrice: 50000, pricePerKg: null, pricePerItem: null, estimatedDurationHours: 24, serviceType: 1, unit: 'kg', isActive: true, approvalStatus: 2, imageUrls: [] }
+  const service = { id, categoryId: 'ca000000-0000-0000-0000-000000000001', categoryName: 'Standard wash', categoryIsActive: true, effectiveIsActive: true, merchantId, code: 'SVC_TEST', name: 'Everyday wash', description: 'Careful cleaning', unitPrice: 50000, pricePerKg: null, pricePerItem: null, estimatedDurationHours: 24, serviceType: 1, unit: 'kg', isActive: true, approvalStatus: 2, imageUrls: [] }
   const state = { service, proposal: { id: proposalId, merchantId, merchantName: 'Central Laundry', merchantImageUrls: ['/uploads/mock/merchant.svg'], serviceId: id, requestType: 2, status: 1, current: { ...service }, proposed: { ...service, name: 'Premium wash', unitPrice: 60000 }, reason: 'Improve service', createdAt: '2026-11-08T00:00:00Z' }, filters: [], writes: [], stale: false, unknown: false, reads: 0, removed: false }
   await page.route('**/api/**', async route => {
     const req = route.request(), path = new URL(req.url()).pathname.replace(/^\/api/, ''), body = /application\/json/.test(req.headers()['content-type'] || '') ? req.postDataJSON() : undefined
@@ -28,6 +28,9 @@ async function setup(page, options = {}) {
     const list = (rows, total = rows.length) => route.fulfill({ json: { succeeded: true, list: rows, total, currentPage: body.page } })
     if (await adminUpgradeMocks(route, state, [{ id: merchantId, name: 'Central Laundry', status: 1 }])) {
       return
+    }
+    if (path === '/admin/lookups/service-categories') {
+      return route.fulfill({ json: { succeeded: true, list: [{ id: 'ca000000-0000-0000-0000-000000000001', code: 'WASH', name: 'Standard wash', isActive: true }, { id: 'ca000000-0000-0000-0000-000000000006', code: 'SPECIAL', name: 'Special care', isActive: true }], total: 2, currentPage: 1, totalPages: 1 } })
     }
     if (path === '/auth/me') {
       return ok({ id: 'admin-test', fullName: 'Test Admin', role: 'Admin' })
@@ -147,6 +150,8 @@ test('Admin creates and edits supported service fields and image list without ap
   for (const [label, value] of [['Service code', 'SVC_TEST'], ['Service name', 'Everyday wash'], ['Base price (VND)', '50000']]) {
     await dialog.getByLabel(label, { exact: true }).fill(value)
   }
+  await dialog.getByRole('combobox', { name: 'Category', exact: true }).click()
+  await page.getByRole('option', { name: 'Special care', exact: true }).click()
   await dialog.getByRole('button', { name: 'Save service', exact: true }).click()
   await expect(dialog).toHaveCount(0)
   await menu(page, 'Edit service')
@@ -335,4 +340,28 @@ test('service review confirmation closes independently and locks an unknown resu
   await expect(confirmation.getByRole('alert')).toBeVisible()
   await expect(confirmation.getByRole('button', { name: 'Confirm', exact: true })).toBeDisabled()
   expect(state.writes).toHaveLength(1)
+})
+
+test('category lock affects effective availability without changing the service own toggle meaning', async ({ page }) => {
+  const state = await setup(page)
+  Object.assign(state.service, { categoryIsActive: false, effectiveIsActive: false, isActive: true })
+  await page.goto('/admin/services')
+  await expect(page.getByRole('table')).toContainText('Service unavailable because its category is locked')
+  await page.getByRole('button', { name: 'Actions for Everyday wash', exact: true }).click()
+  await expect(page.getByRole('menuitem', { name: 'Pause service', exact: true })).toBeEnabled()
+  await page.keyboard.press('Escape')
+  state.service.isActive = false
+  await page.reload()
+  await page.getByRole('button', { name: 'Actions for Everyday wash', exact: true }).click()
+  await expect(page.getByRole('menuitem', { name: 'Activate service', exact: true })).toBeDisabled()
+  expect(state.writes).toHaveLength(0)
+})
+
+
+test('workspace Admin service name opens its detail modal', async ({ page }) => {
+  await setup(page)
+  await page.goto('/admin/services')
+  await page.getByRole('table').getByRole('button', { name: 'Everyday wash', exact: true }).click()
+  await expect(page.getByRole('dialog')).toContainText('Everyday wash')
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).last()).toBeVisible()
 })

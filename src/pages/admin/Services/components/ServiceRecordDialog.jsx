@@ -38,7 +38,7 @@ export default function ServiceRecordDialog({ id, kind, onClose, onSaved, mercha
       if (!proposal && action === 'toggle' && latest.approvalStatus !== 2) {
         throw new Error('admin.services.approvedOnly')
       }
-      if (!proposal && (action === 'delete' && latest.canDelete === false || action === 'toggle' && latest.canChangeAvailability === false)) {
+      if (!proposal && (action === 'delete' && latest.canDelete === false || action === 'toggle' && (latest.canChangeAvailability === false || !latest.isActive && latest.categoryIsActive === false))) {
         throw new Error('admin.services.changed')
       }
       writing = true
@@ -126,6 +126,7 @@ export default function ServiceRecordDialog({ id, kind, onClose, onSaved, mercha
         ready={!resource.loading}
         className={proposal ? 'max-w-5xl' : actionOnly ? 'max-w-xl' : 'max-w-3xl'}
         closeLabel="common.close"
+        data-dialog-fixed
       >
         <DialogHeader tone={kind === 'delete' ? 'danger' : kind === 'toggle' ? value?.isActive ? 'warning' : 'success' : 'info'}>
           <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
@@ -137,95 +138,105 @@ export default function ServiceRecordDialog({ id, kind, onClose, onSaved, mercha
           </DialogDescription>
         </DialogHeader>
         {!value ? (
-          <ResourceFeedback
-            {...resource}
-            loadingText="merchant.loading"
-          />
+          <div data-dialog-body>
+            <ResourceFeedback
+              {...resource}
+              loadingText="merchant.loading"
+            />
+          </div>
         ) : (
-          <div className="mt-5 space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-4">
-              <div className="flex min-w-0 items-center gap-3">
-                {proposal && (
-                  <ResourceThumbnail
-                    urls={value.merchantImageUrls || merchants.find(merchant => merchant.id === value.merchantId)?.imageUrls || []}
-                    name={value.merchantName}
-                    icon={Store}
-                  />
-                )}
-                <div className="min-w-0">
-                  <p className="font-semibold">
-                    {proposal ? value.merchantName : value.code}
-                  </p>
+          <div
+            className="mt-5 space-y-5"
+            data-dialog-layout
+          >
+            <div data-dialog-body>
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-4">
+                <div className="flex min-w-0 items-center gap-3">
                   {proposal && (
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {formatDateTime(value.createdAt)}
+                    <ResourceThumbnail
+                      urls={value.merchantImageUrls || merchants.find(merchant => merchant.id === value.merchantId)?.imageUrls || []}
+                      name={value.merchantName}
+                      icon={Store}
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-semibold">
+                      {proposal ? value.merchantName : value.code}
+                    </p>
+                    {proposal && (
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {formatDateTime(value.createdAt)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-sm font-medium ${approvalClass(proposal ? value.status : value.approvalStatus)}`}>
+                  {t(`merchant.services.approval.${proposal ? value.status : value.approvalStatus}`)}
+                </span>
+              </div>
+              {!proposal && value.approvalStatus !== 2 && (
+                <p className="rounded-xl bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
+                  {t('admin.services.approvedOnly')}
+                </p>
+              )}
+              {proposal ? (
+                <>
+                  <div className={`grid items-start gap-5 ${value.current ? 'lg:grid-cols-2' : ''}`}>
+                    {value.current && (
+                      <section className="rounded-2xl border border-border p-5">
+                        <h2 className="mb-4 border-b border-border pb-3 text-lg font-semibold">
+                          {t('merchant.services.before')}
+                        </h2>
+                        <ServiceInfo value={value.current} />
+                      </section>
+                    )}
+                    <section className="rounded-2xl border border-primary/20 bg-primary/3 p-5">
+                      <h2 className="mb-4 border-b border-border pb-3 text-lg font-semibold">
+                        {t('merchant.services.proposed')}
+                      </h2>
+                      <ServiceInfo value={value.proposed} />
+                    </section>
+                  </div>
+                  {value.reason && (
+                    <p className="whitespace-pre-wrap rounded-xl bg-muted/30 p-4 text-base">
+                      {t('merchant.services.reason')}
+                      :
+                      {' '}
+                      {value.reason}
                     </p>
                   )}
-                </div>
-              </div>
-              <span className={`rounded-full px-3 py-1 text-sm font-medium ${approvalClass(proposal ? value.status : value.approvalStatus)}`}>
-                {t(`merchant.services.approval.${proposal ? value.status : value.approvalStatus}`)}
-              </span>
-            </div>
-            {!proposal && value.approvalStatus !== 2 && (
-              <p className="rounded-xl bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
-                {t('admin.services.approvedOnly')}
-              </p>
-            )}
-            {proposal ? (
-              <>
-                <div className={`grid items-start gap-5 ${value.current ? 'lg:grid-cols-2' : ''}`}>
-                  {value.current && (
-                    <section className="rounded-2xl border border-border p-5">
-                      <h2 className="mb-4 border-b border-border pb-3 text-lg font-semibold">
-                        {t('merchant.services.before')}
-                      </h2>
-                      <ServiceInfo value={value.current} />
-                    </section>
+                  {value.rejectionReason && (
+                    <p className="whitespace-pre-wrap rounded-xl bg-red-500/10 p-4 text-base text-red-700 dark:text-red-300">
+                      {t('merchant.services.rejectionReason')}
+                      :
+                      {' '}
+                      {value.rejectionReason}
+                    </p>
                   )}
-                  <section className="rounded-2xl border border-primary/20 bg-primary/3 p-5">
-                    <h2 className="mb-4 border-b border-border pb-3 text-lg font-semibold">
-                      {t('merchant.services.proposed')}
-                    </h2>
-                    <ServiceInfo value={value.proposed} />
-                  </section>
-                </div>
-                {value.reason && (
-                  <p className="whitespace-pre-wrap rounded-xl bg-muted/30 p-4 text-base">
-                    {t('merchant.services.reason')}
-                    :
-                    {' '}
-                    {value.reason}
-                  </p>
-                )}
-                {value.rejectionReason && (
-                  <p className="whitespace-pre-wrap rounded-xl bg-red-500/10 p-4 text-base text-red-700 dark:text-red-300">
-                    {t('merchant.services.rejectionReason')}
-                    :
-                    {' '}
-                    {value.rejectionReason}
-                  </p>
-                )}
-                {value.reviewedAt && (
-                  <p className="text-sm text-muted-foreground">
-                    {t('merchant.services.reviewedAt')}
-                    :
-                    {' '}
-                    {formatDateTime(value.reviewedAt)}
-                  </p>
-                )}
-              </>
-            ) : !actionOnly && <ServiceInfo value={value} />}
-            {actionOnly && actionContent}
-            {error && !proposal && (
-              <p
-                role="alert"
-                className="rounded-xl bg-destructive/10 p-4 text-sm text-destructive"
-              >
-                {t(error)}
-              </p>
-            )}
-            <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
+                  {value.reviewedAt && (
+                    <p className="text-sm text-muted-foreground">
+                      {t('merchant.services.reviewedAt')}
+                      :
+                      {' '}
+                      {formatDateTime(value.reviewedAt)}
+                    </p>
+                  )}
+                </>
+              ) : !actionOnly && <ServiceInfo value={value} />}
+              {actionOnly && actionContent}
+              {error && !proposal && (
+                <p
+                  role="alert"
+                  className="rounded-xl bg-destructive/10 p-4 text-sm text-destructive"
+                >
+                  {t(error)}
+                </p>
+              )}
+            </div>
+            <footer
+              className="flex flex-wrap justify-end gap-3 border-t border-border pt-4"
+              data-dialog-footer
+            >
               <Button
                 variant="secondary"
                 onClick={onClose}

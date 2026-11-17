@@ -1,3 +1,4 @@
+import CategorySelect from '~/components/categories/CategorySelect'
 import { useRef, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -18,8 +19,9 @@ import { proposalSchema, serviceSnapshot, proposalBlockedMessage } from '../serv
 
 export default function ProposalEditor({ service, onClose, onSaved }) {
   const { t } = useTranslation()
+  const [categoryReady, setCategoryReady] = useState(false)
   const edit = Boolean(service)
-  const { register, control, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(proposalSchema), defaultValues: { name: service?.name || '', description: service?.description || '', unitPrice: service?.unitPrice ?? '', pricePerKg: service?.pricePerKg ?? '', pricePerItem: service?.pricePerItem ?? '', estimatedDurationHours: service?.estimatedDurationHours ?? 24, serviceType: service?.serviceType || 1, unit: service?.unit || 'kg', reason: '' } })
+  const { register, control, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(proposalSchema), defaultValues: { categoryId: service?.categoryId || '', name: service?.name || '', description: service?.description || '', unitPrice: service?.unitPrice ?? '', pricePerKg: service?.pricePerKg ?? '', pricePerItem: service?.pricePerItem ?? '', estimatedDurationHours: service?.estimatedDurationHours ?? 24, serviceType: service?.serviceType || 1, unit: service?.unit || 'kg', reason: '' } })
   const images = useImages(5, service?.imageUrls || [])
   const [pending, setPending] = useState(false)
   const [uncertain, setUncertain] = useState(false)
@@ -28,7 +30,7 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
   const [error, setError] = useState('')
   const lock = useRef(false)
   const submit = async (values) => {
-    if (lock.current || uncertain && !canRetry) {
+    if (lock.current || !categoryReady || uncertain && !canRetry) {
       return
     }
     lock.current = true
@@ -82,177 +84,210 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
       <DialogContent
         className="max-w-3xl border-primary/15"
         closeLabel="common.close"
+        data-dialog-fixed
       >
-        <DialogTitle className="-mx-6 -mt-6 flex items-center gap-3 border-b border-primary/10 bg-primary/5 px-6 py-5 pr-12 text-2xl font-bold sm:-mx-8 sm:-mt-8 sm:px-8">
-          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-            <FilePenLine size={23} />
-          </span>
-          {t(edit ? 'merchant.services.proposeEdit' : 'merchant.services.proposeNew')}
-        </DialogTitle>
-        <DialogDescription className="mt-3 text-base leading-relaxed text-muted-foreground">
-          {t('merchant.services.approvalHint')}
-        </DialogDescription>
+        <div data-dialog-header>
+          <DialogTitle className="-mx-6 -mt-6 flex items-center gap-3 border-b border-primary/10 bg-primary/5 px-6 py-5 pr-12 text-2xl font-bold sm:-mx-8 sm:-mt-8 sm:px-8">
+            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+              <FilePenLine size={23} />
+            </span>
+            {t(edit ? 'merchant.services.proposeEdit' : 'merchant.services.proposeNew')}
+          </DialogTitle>
+          <DialogDescription className="mt-3 text-base leading-relaxed text-muted-foreground">
+            {t('merchant.services.approvalHint')}
+          </DialogDescription>
+        </div>
         <form
           onSubmit={(event) => handleSubmit(submit)(event)}
           className="mt-5 grid gap-5"
           noValidate
+          data-dialog-layout
         >
-          <fieldset
-            disabled={pending || uncertain}
-            className="grid gap-4 sm:grid-cols-2"
-          >
-            {['name', 'unitPrice', 'estimatedDurationHours', 'pricePerKg', 'pricePerItem', 'unit'].map((key) => (
-              <div
-                key={key}
-                className={key === 'name' ? 'sm:col-span-2' : ''}
-              >
+          <div data-dialog-body>
+            <fieldset
+              disabled={pending || uncertain}
+              className="grid gap-4 sm:grid-cols-2"
+            >
+              {['name', 'unitPrice', 'estimatedDurationHours', 'pricePerKg', 'pricePerItem', 'unit'].map((key) => (
+                <div
+                  key={key}
+                  className={key === 'name' ? 'sm:col-span-2' : ''}
+                >
+                  <label
+                    htmlFor={`service-${key}`}
+                    className="mb-2 block text-base font-medium"
+                  >
+                    {t(`merchant.services.${key === 'estimatedDurationHours' ? 'duration' : key}`)}
+                    {['name', 'unitPrice', 'estimatedDurationHours', 'unit'].includes(key) && <span className="ml-1 text-destructive">*</span>}
+                  </label>
+                  <Input
+                    id={`service-${key}`}
+                    {...register(key)}
+                    type={['name', 'unit'].includes(key) ? 'text' : 'number'}
+                    step={key === 'estimatedDurationHours' ? '1' : '0.01'}
+                    readOnly={edit && key === 'unit'}
+                    placeholder={t(`merchant.services.placeholders.${key}`)}
+                    className="h-11 text-base"
+                    aria-invalid={Boolean(errors[key])}
+                  />
+                  {errors[key] && (
+                    <p
+                      role="alert"
+                      className="mt-1 text-sm text-destructive"
+                    >
+                      {t(['unitPrice', 'pricePerKg', 'pricePerItem'].includes(key) ? 'merchant.serviceSync.errors.InvalidPrice' : `merchant.services.invalid.${key}`)}
+                    </p>
+                  )}
+                </div>
+              ))}
+              <div>
                 <label
-                  htmlFor={`service-${key}`}
+                  htmlFor="service-category"
                   className="mb-2 block text-base font-medium"
                 >
-                  {t(`merchant.services.${key === 'estimatedDurationHours' ? 'duration' : key}`)}
-                  {['name', 'unitPrice', 'estimatedDurationHours', 'unit'].includes(key) && <span className="ml-1 text-destructive">*</span>}
+                  {t('categories.processingType')}
+                  <span className="ml-1 text-destructive">*</span>
                 </label>
-                <Input
-                  id={`service-${key}`}
-                  {...register(key)}
-                  type={['name', 'unit'].includes(key) ? 'text' : 'number'}
-                  step={key === 'estimatedDurationHours' ? '1' : '0.01'}
-                  readOnly={edit && key === 'unit'}
-                  placeholder={t(`merchant.services.placeholders.${key}`)}
-                  className="h-11 text-base"
-                  aria-invalid={Boolean(errors[key])}
+                <Controller
+                  name="serviceType"
+                  control={control}
+                  render={({ field }) => (
+                    <SelectField
+                      id="service-category"
+                      label={t('categories.processingType')}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={edit || pending || uncertain}
+                      options={SERVICE_TYPES.filter((item) => item.value).map((item) => ({ value: Number(item.value), label: t(item.label) }))}
+                    />
+                  )}
                 />
-                {errors[key] && (
-                  <p
-                    role="alert"
-                    className="mt-1 text-sm text-destructive"
-                  >
-                    {t(['unitPrice', 'pricePerKg', 'pricePerItem'].includes(key) ? 'merchant.serviceSync.errors.InvalidPrice' : `merchant.services.invalid.${key}`)}
-                  </p>
+              </div>
+              <div className="grid gap-2 sm:col-span-2">
+                <span className="text-sm font-medium">
+                  {t('categories.category')}
+                </span>
+                <Controller
+                  name="categoryId"
+                  control={control}
+                  render={({ field }) => (
+                    <CategorySelect
+                      onReady={setCategoryReady}
+                      role="Merchant"
+                      value={field.value}
+                      onChange={field.onChange}
+                      current={service}
+                      disabled={pending || uncertain}
+                    />
+                  )}
+                />
+                {errors.categoryId && (
+                  <span className="text-sm text-destructive">
+                    {t('categories.choose')}
+                  </span>
                 )}
               </div>
-            ))}
-            <div>
-              <label
-                htmlFor="service-category"
-                className="mb-2 block text-base font-medium"
-              >
-                {t('merchant.services.category')}
-                <span className="ml-1 text-destructive">*</span>
-              </label>
-              <Controller
-                name="serviceType"
-                control={control}
-                render={({ field }) => (
-                  <SelectField
-                    id="service-category"
-                    label={t('merchant.services.category')}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={edit || pending || uncertain}
-                    options={SERVICE_TYPES.filter((item) => item.value).map((item) => ({ value: Number(item.value), label: t(item.label) }))}
-                  />
-                )}
-              />
-            </div>
-            {['description', 'reason'].map((key) => (
-              <div
-                key={key}
-                className="sm:col-span-2"
-              >
-                <label
-                  htmlFor={`service-${key}`}
-                  className="mb-2 block text-base font-medium"
+              {['description', 'reason'].map((key) => (
+                <div
+                  key={key}
+                  className="sm:col-span-2"
                 >
-                  {t(`merchant.services.${key}`)}
+                  <label
+                    htmlFor={`service-${key}`}
+                    className="mb-2 block text-base font-medium"
+                  >
+                    {t(`merchant.services.${key}`)}
+                  </label>
+                  <textarea
+                    id={`service-${key}`}
+                    {...register(key)}
+                    rows={3}
+                    maxLength={key === 'reason' ? 1000 : 2000}
+                    placeholder={t(`merchant.services.placeholders.${key}`)}
+                    className="w-full rounded-xl border border-input bg-background px-3 py-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    aria-invalid={Boolean(errors[key])}
+                  />
+                  {errors[key] && (
+                    <p
+                      role="alert"
+                      className="text-sm text-destructive"
+                    >
+                      {t(`merchant.services.invalid.${key}`)}
+                    </p>
+                  )}
+                </div>
+              ))}
+              <div className="grid gap-3 rounded-2xl border border-border bg-muted/20 p-4 sm:col-span-2">
+                <label
+                  htmlFor="service-images"
+                  className="flex items-center gap-2 font-semibold"
+                >
+                  <ImagePlus
+                    size={19}
+                    className="text-primary"
+                  />
+                  {t('merchant.services.images')}
                 </label>
-                <textarea
-                  id={`service-${key}`}
-                  {...register(key)}
-                  rows={3}
-                  maxLength={key === 'reason' ? 1000 : 2000}
-                  placeholder={t(`merchant.services.placeholders.${key}`)}
-                  className="w-full rounded-xl border border-input bg-background px-3 py-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  aria-invalid={Boolean(errors[key])}
+                <p className="text-sm text-muted-foreground">
+                  {t('merchant.shop.imagesHint')}
+                </p>
+                <Input
+                  id="service-images"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="h-auto py-2 text-base"
+                  onChange={(event) => {
+                    images.addFiles(Array.from(event.target.files || [])); event.target.value = ''
+                  }}
                 />
-                {errors[key] && (
+                <div className="flex flex-wrap gap-3">
+                  {images.images.map((image, index) => (
+                    <div
+                      key={image.url}
+                      className="relative"
+                    >
+                      <img
+                        src={getImageUrl(image.url)}
+                        alt={t('merchant.services.image', { number: index + 1 })}
+                        className="size-20 rounded-xl object-cover"
+                      />
+                      <Button
+                        type="button"
+                        size="icon-xs"
+                        variant="destructive"
+                        aria-label={t('merchant.services.removeImage')}
+                        className="absolute -right-2 -top-2"
+                        onClick={() => images.removeImage(image)}
+                      >
+                        <X size={14} />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                {images.error && (
                   <p
                     role="alert"
                     className="text-sm text-destructive"
                   >
-                    {t(`merchant.services.invalid.${key}`)}
+                    {t(images.error)}
                   </p>
                 )}
               </div>
-            ))}
-            <div className="grid gap-3 rounded-2xl border border-border bg-muted/20 p-4 sm:col-span-2">
-              <label
-                htmlFor="service-images"
-                className="flex items-center gap-2 font-semibold"
+            </fieldset>
+            {error && (
+              <p
+                role="alert"
+                className="rounded-xl bg-destructive/10 p-4 text-base text-destructive"
               >
-                <ImagePlus
-                  size={19}
-                  className="text-primary"
-                />
-                {t('merchant.services.images')}
-              </label>
-              <p className="text-sm text-muted-foreground">
-                {t('merchant.shop.imagesHint')}
+                {resolveMessage(error)}
               </p>
-              <Input
-                id="service-images"
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                className="h-auto py-2 text-base"
-                onChange={(event) => {
-                  images.addFiles(Array.from(event.target.files || [])); event.target.value = ''
-                }}
-              />
-              <div className="flex flex-wrap gap-3">
-                {images.images.map((image, index) => (
-                  <div
-                    key={image.url}
-                    className="relative"
-                  >
-                    <img
-                      src={getImageUrl(image.url)}
-                      alt={t('merchant.services.image', { number: index + 1 })}
-                      className="size-20 rounded-xl object-cover"
-                    />
-                    <Button
-                      type="button"
-                      size="icon-xs"
-                      variant="destructive"
-                      aria-label={t('merchant.services.removeImage')}
-                      className="absolute -right-2 -top-2"
-                      onClick={() => images.removeImage(image)}
-                    >
-                      <X size={14} />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-              {images.error && (
-                <p
-                  role="alert"
-                  className="text-sm text-destructive"
-                >
-                  {t(images.error)}
-                </p>
-              )}
-            </div>
-          </fieldset>
-          {error && (
-            <p
-              role="alert"
-              className="rounded-xl bg-destructive/10 p-4 text-base text-destructive"
-            >
-              {resolveMessage(error)}
-            </p>
-          )}
-          <footer className="flex flex-wrap justify-end gap-3 border-t border-border pt-4">
+            )}
+          </div>
+          <footer
+            className="flex flex-wrap justify-end gap-3 border-t border-border pt-4"
+            data-dialog-footer
+          >
             <Button
               type="button"
               variant="secondary"
@@ -264,7 +299,7 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
             </Button>
             <Button
               type="submit"
-              disabled={pending || uncertain && !canRetry}
+              disabled={pending || !categoryReady || uncertain && !canRetry}
               className="h-11 px-5 text-base font-semibold"
             >
               <Send size={17} />

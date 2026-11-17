@@ -1,10 +1,11 @@
+import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import ScrollSection from '~/components/motion/ScrollSection'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { Banknote, ChevronDown, RotateCcw, Shirt } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
-import { SERVICE_PRICE_RANGES, SERVICE_TYPES, UI_TRANSITIONS } from '~/utils/config/constants'
+import { SERVICE_PRICE_RANGES, UI_TRANSITIONS } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 
 function FilterOptions({ id, title, icon: Icon, options, values, onChange }) {
@@ -60,7 +61,7 @@ function FilterOptions({ id, title, icon: Icon, options, values, onChange }) {
   )
 }
 
-export default function ServiceFilters({ values, onChange, onReset, hasFilters, priceRanges, minPrice, maxPrice, priceLabel, onPriceApply }) {
+export default function ServiceFilters({ categories = [], categoryResource, values, onChange, onReset, hasFilters, priceRanges, minPrice, maxPrice, priceLabel, onPriceApply }) {
   const { t } = useTranslation()
   const priceOptions = SERVICE_PRICE_RANGES.map((range) => ({ ...range, label: t(range.label) }))
   if (minPrice || maxPrice) {
@@ -75,14 +76,16 @@ export default function ServiceFilters({ values, onChange, onReset, hasFilters, 
       className="self-start rounded-3xl border border-border/80 bg-card p-5 shadow-sm lg:sticky lg:top-[var(--customer-header-offset)] xl:p-6"
     >
       <div>
-        <FilterOptions
-          id="service-type-heading"
-          title={t('customer.serviceType')}
-          icon={Shirt}
-          options={SERVICE_TYPES.map((type) => ({ ...type, label: t(type.label) }))}
-          values={values}
-          onChange={onChange}
-        />
+        {categoryResource?.loading || categoryResource?.error ? <ResourceFeedback {...categoryResource} /> : (
+          <FilterOptions
+            id="service-type-heading"
+            title={t('categories.category')}
+            icon={Shirt}
+            options={[{ value: '', label: t('common.all') }, ...categories.map(row => ({ value: row.id, label: row.name }))]}
+            values={values}
+            onChange={onChange}
+          />
+        )}
         <FilterOptions
           id="service-price-heading"
           title={t('customer.serviceCatalog.priceRange')}
