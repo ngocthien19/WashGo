@@ -28,7 +28,7 @@ export function DialogHeader({ children, tone = 'info', className }) {
   )
 }
 
-export function DialogContent({ children, className, closeLabel = 'common.closeServiceDetails', ready = true, ...props }) {
+export function DialogContent({ children, className, closeLabel = 'common.closeServiceDetails', ready = true, showClose = true, ...props }) {
   const { t } = useTranslation()
   const reduceMotion = useReducedMotion()
   const transition = { duration: reduceMotion ? 0 : UI_MOTION.MODAL_DURATION, ease: UI_MOTION.EASE }
@@ -59,18 +59,20 @@ export function DialogContent({ children, className, closeLabel = 'common.closeS
           />
         )}
       >
-        <DialogPrimitive.Close
-          render={(
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-3 top-3 z-20"
-              aria-label={t(closeLabel)}
-            />
-          )}
-        >
-          <X size={18} />
-        </DialogPrimitive.Close>
+        {showClose && (
+          <DialogPrimitive.Close
+            render={(
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-3 top-3 z-20"
+                aria-label={t(closeLabel)}
+              />
+            )}
+          >
+            <X size={18} />
+          </DialogPrimitive.Close>
+        )}
         {children}
       </DialogPrimitive.Popup>
     </DialogPrimitive.Portal>

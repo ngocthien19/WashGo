@@ -1,4 +1,150 @@
 {
+  "orderProgress": {
+    "descriptions": {
+      "1": "Your order is created. Bring your laundry to the locker and confirm drop-off before the deadline.",
+      "2": "Your laundry is in the locker, ready for the shipper to collect.",
+      "3": "The shipper has collected your laundry for the store to receive and prepare for processing.",
+      "4": "Your laundry is being washed according to your selected services.",
+      "5": "Your laundry is being dried in preparation for the next step.",
+      "6": "Your garments are being ironed for a neat, smooth finish.",
+      "7": "Your laundry is being folded and prepared for payment and return delivery.",
+      "8": "Processing is complete. Please review and pay to proceed with return delivery.",
+      "9": "Payment has been recorded. Return delivery to the locker is being arranged.",
+      "10": "Your laundry is ready at the locker. Please collect it before the deadline.",
+      "11": "Collection from the locker has been recorded.",
+      "12": "Your order is complete. Thank you for choosing WashGo!",
+      "13": "Your laundry is stored at the laundry shop, awaiting collection or redelivery arrangements.",
+      "14": "Your laundry is being transported to the laundry shop for storage.",
+      "15": "Your laundry is being delivered from the laundry shop back to the locker as requested.",
+      "99": "Your order has been cancelled. Please review any applicable fees and instructions for collecting your laundry."
+    }
+  },
+  "adminOrderTime": {
+    "title": "Order deadlines",
+    "deposit": "Drop-off deadline",
+    "payment": "Laundry payment deadline",
+    "pickup": "Locker pickup deadline",
+    "overdue": "Overdue",
+    "active": "Currently applicable",
+    "inactive": "This deadline has ended or no longer applies",
+    "missing": "No deadline provided",
+    "remaining": "{{duration}} remaining",
+    "lateBy": "{{duration}} overdue",
+    "depositHint": "The drop-off window has ended. Check cancellation fees and allowed actions before proceeding.",
+    "paymentHint": "Laundry payment is overdue. Check storage at the shop and payment reconciliation before proceeding.",
+    "pickupHint": "Locker pickup is overdue. Check overdue fees and the transfer-to-shop workflow.",
+    "note": "Time is based on the backend clock; refresh for the latest order state. These are order deadlines, not a VNPay session's 15-minute expiry. Without server time, only supplied dates and flags are shown."
+  },
+  "loyalty": {
+    "switchApplied": "Using {{points}} points for this order.",
+    "title": "WashGo points",
+    "availablePoints": "Available points",
+    "heldPoints": "Held points",
+    "totalPoints": "Total points",
+    "debtPoints": "Points to recover",
+    "policy": "1 point = 1 VND. Earn {{earn}}% of laundry paid through the gateway; redeem up to {{maximum}}% after vouchers. Cancellation, storage and overdue fees are excluded.",
+    "debtHint": "Previously spent rewards need to be recovered after a refund. Future points will cover this balance; you can still pay for new orders with money.",
+    "history": "Points history",
+    "empty": "No points transactions yet.",
+    "date": "Time",
+    "activity": "Activity",
+    "change": "Points change",
+    "heldChange": "Held points change",
+    "balanceAfter": "Balance after transaction",
+    "heldAfter": "Held after transaction",
+    "order": "Order",
+    "usePoints": "Use reward points",
+    "quoteLimit": "{{available}} points available · Redeem up to {{maximum}} for this order.",
+    "gatewayAmount": "Gateway payment amount",
+    "laundryAmount": "Laundry value after vouchers",
+    "expectedEarnedPoints": "Estimated reward points",
+    "pointsToRedeem": "Points to redeem",
+    "cashOnly": "Do not use points",
+    "applyFirst": "Apply your points to verify the quote before paying.",
+    "invalidPoints": "Enter a non-negative whole number within the allowed points limit.",
+    "invalidResponse": "Valid points information could not be loaded. Please refresh.",
+    "estimateHint": "This quote does not hold points. Availability is checked when creating a payment session; redemption and rewards are recorded only after payment is confirmed. Do not change points on an existing session.",
+    "refundPoints": "Points to refund",
+    "refundPointsValue": "Refund {{points}} points",
+    "rewardReversedValue": "Recover {{points}} reward points",
+    "redeemedPoints": "Redeemed points",
+    "pointsOnlyHint": "This request refunds points only; do not make a zero-value bank transfer. Verify the transaction and record a points-refund receipt reference before confirming.",
+    "receiptReference": "Points refund receipt reference",
+    "confirmPointsRefund": "I have checked and confirm the points refund for this request.",
+    "pointsFunding": "WashGo-funded points",
+    "netCash": "Net gateway cash for this settlement line",
+    "netGatewayCash": "Net gateway cash after refunds",
+    "platformCommissionAfterPoints": "Platform commission after points funding",
+    "fundingHint": "WashGo-funded points are separate from gateway cash. Merchant settlement value includes funded points; closed periods retain their frozen amounts.",
+    "merchantFundingHint": "Service revenue and Merchant settlement value include WashGo-funded points and differ from gateway cash received.",
+    "kinds": {
+      "Opening": "Opening balance",
+      "Hold": "Payment hold",
+      "Release": "Release held points",
+      "Redeem": "Redeem points",
+      "Earn": "Earn rewards",
+      "RefundPoints": "Refund points",
+      "ReverseReward": "Recover rewards"
+    },
+    "apply": "Apply points"
+  },
+  "paymentLimits": {
+    "invalid": "A valid payment amount is not available.",
+    "vnpayMinimum": "WashGo accepts VNPay from 10,000 VND to avoid bank limits on small payments.",
+    "momoMinimum": "MoMo wallet supports amounts from 1,000 VND.",
+    "momoMaximum": "MoMo supports up to 50,000,000 VND per transaction.",
+    "recommendWallet": "Recommended: use MoMo wallet for amounts below 10,000 VND. Choose wallet payment on MoMo; ATM and credit cards require at least 10,000 VND.",
+    "bankLimits": "Actual limits also depend on the bank, account and gateway configuration.",
+    "recommendBank": "This amount exceeds MoMo's limit. Consider VNPay and check your bank account's transaction limit.",
+    "unavailable": "No online method supports this amount. If using points, reduce them and apply again; for fees, contact WashGo. Fees are never increased to meet payment limits.",
+    "existingSession": "The existing session does not meet this amount policy. Contact WashGo to verify and close it before changing methods; do not create another payment session."
+  },
+  "paymentSession": {
+    "feeMethodLocked": "The cancellation fee session uses {{method}}. Continue with this method for the current session.",
+    "initializing": "The payment session is being created. Wait a few seconds and retry with the same method and points; do not open another session.",
+    "retrySame": "Retry the same session",
+    "PaymentVerificationRequired": "This payment session needs verification. Do not create another payment; refresh the order status or contact WashGo.",
+    "LegacyPaymentsRequireReview": "Older pending transactions require reconciliation. Please contact WashGo before paying again.",
+    "PaymentMethodConflict": "A session already uses another payment method. Continue that session or wait for verification; do not open another gateway.",
+    "PaymentPointsConflict": "A session already uses a different points amount. Continue that session or wait for verification; do not change points for this session.",
+    "PaymentAmountChanged": "The amount has changed. The existing session needs verification before another payment.",
+    "PaymentStateChanged": "The order changed while creating the session. Refresh the order and wait for verification of the existing session.",
+    "InsufficientPoints": "Available points have changed. The quote is being refreshed; select and apply your points again.",
+    "completedFee": "The session has been recorded. Refresh order details to see any remaining fees."
+  },
+  "paymentReview": {
+    "originalPayment": "Original payment transaction",
+    "title": "Payment reconciliation",
+    "includeResolved": "Include resolved excess payments",
+    "hint": "This is a read-only reconciliation list. Unknown sessions must be verified with the gateway; do not mark payments received or close sessions here. Excess payments are handled through their own source-linked refund requests.",
+    "reference": "Reference / Gateway ID",
+    "purpose": "Payment purpose",
+    "transactionStatus": "Transaction status",
+    "session": "Session status",
+    "verifiedAt": "Gateway verified at",
+    "reconciledAt": "Reconciled at",
+    "refund": "View refund request",
+    "excess": "An excess payment is refunded separately and excluded from laundry revenue and commission.",
+    "purposes": {
+      "1": "Laundry",
+      "2": "Storage / overdue fee",
+      "3": "Cancellation fee"
+    },
+    "statuses": {
+      "1": "Pending",
+      "2": "Received",
+      "3": "Confirmed failure",
+      "4": "Refunded",
+      "5": "Needs reconciliation"
+    },
+    "sessions": {
+      "0": "Legacy",
+      "1": "Creating",
+      "2": "URL ready",
+      "3": "Unknown",
+      "4": "Closed"
+    }
+  },
   "customerFeedbackActions": {
     "viewAll": "View all reviews",
     "allTitle": "All reviews"
@@ -282,8 +428,8 @@
     "storage": {
       "customer": {
         "private": {
-          "title": "Order storage update",
-          "content": "WashGo is keeping your items. View the order to check payments, storage fees and request redelivery to a locker."
+          "title": "Storage update",
+          "content": "WashGo is storing your laundry. View your order to check payment, storage fees and request redelivery to a locker."
         }
       }
     }
@@ -1005,7 +1151,7 @@
       "returnBox": "Return box",
       "weight": "Actual weight",
       "eta": "Estimated finish",
-      "storageLocation": "Storage location",
+      "storageLocation": "Storage shop address",
       "storageReference": "Storage reference",
       "actions": "Order actions",
       "totalAmount": "Service amount",
@@ -1180,7 +1326,8 @@
       "settings": "System settings",
       "profile": "Personal profile",
       "notifications": "Notifications",
-      "storage": "Storage and redelivery"
+      "storage": "Storage and redelivery",
+      "categories": "Category management"
     },
     "revenue": "Receipts after refunds",
     "orders": "Orders created in period",
@@ -1456,7 +1603,8 @@
         "revenue": "Collections & refunds",
         "commissions": "Merchant commissions",
         "settlements": "Settlements",
-        "refunds": "Refund requests"
+        "refunds": "Refund requests",
+        "paymentReview": "Payment reconciliation"
       },
       "period": "Period",
       "status": "Status",
@@ -1560,12 +1708,14 @@
       "groups": {
         "sla": "Timing & SLA",
         "commission": "Default commission",
-        "penalty": "Fees & compensation"
+        "penalty": "Fees & compensation",
+        "loyalty": "Loyalty points"
       },
       "hints": {
         "sla": "Set deposit, collection, return and free pickup time windows.",
         "commission": "Used for new Merchants when no individual rate is supplied. Existing Merchant rates remain separate.",
-        "penalty": "Configure overdue, storage and cancellation fees and compensation based on item value."
+        "penalty": "Configure overdue, storage and cancellation fees and compensation based on item value.",
+        "loyalty": "Set earning and redemption rates for laundry. Applies only to new payment sessions."
       },
       "sections": {
         "fees": "Overdue & storage fees",
@@ -1593,7 +1743,9 @@
         "compensationLightPercent": "Light damage",
         "compensationMediumPercent": "Medium damage",
         "compensationSeverePercent": "Severe damage",
-        "compensationLostPercent": "Lost items"
+        "compensationLostPercent": "Lost items",
+        "earnPercent": "Points earning rate",
+        "maxUsePercent": "Maximum points discount"
       },
       "fieldHints": {
         "depositWindowMinutes": "5–1,440 minutes to deposit items into the reserved locker box.",
@@ -1611,7 +1763,9 @@
         "compensationLightPercent": "0–500% of item value; no higher than medium damage.",
         "compensationMediumPercent": "0–500% of item value; no lower than light damage.",
         "compensationSeverePercent": "0–500% of item value; no lower than medium damage.",
-        "compensationLostPercent": "0–500% of item value; no lower than severe damage."
+        "compensationLostPercent": "0–500% of item value; no lower than severe damage.",
+        "earnPercent": "0–100% of laundry cash paid, up to 2 decimal places.",
+        "maxUsePercent": "0–99% of laundry after vouchers, up to 2 decimal places; a positive cash payment remains required."
       },
       "units": {
         "minutes": "min",
@@ -2272,7 +2426,7 @@
       "returnBox": "Return compartment",
       "eta": "Estimated completion",
       "noEta": "Not estimated yet",
-      "storage": "Storage location",
+      "storage": "Storage shop",
       "history": "Processing history",
       "processing": "Order processing",
       "payment": "Payment summary",
@@ -2283,7 +2437,7 @@
       "weighNote": "The system recalculates the price and estimated completion using the confirmed weight.",
       "weightInput": "Actual weight (kg)",
       "process": "Update processing",
-      "processNote": "Choose the next step that matches the order's actual progress.",
+      "processNote": "Confirm each step in order: washing → drying → ironing → folding → awaiting payment.",
       "nextStatus": "Next status",
       "assign": "Assign shipper",
       "assignNote": "Only eligible shippers belonging to your store are listed.",
@@ -2446,7 +2600,7 @@
         "compensationSeverePercent": "Compensation for severe damage: <strong>{{value}}</strong>%.",
         "compensationLostPercent": "Compensation for lost items: <strong>{{value}}</strong>%."
       },
-      "depositExpired": "The deposit deadline has passed. Check cancellation fees and create a new order if needed.",
+      "depositExpired": "The drop-off deadline has passed. Please review the cancellation fee and cancel this order to create a new one if needed.",
       "depositRemaining": "{{time}} remaining to deposit your items. Deadline: {{date}}.",
       "depositWindow": "Deposit window applied to this order: {{minutes}} minutes.",
       "prediction": {
@@ -2588,7 +2742,8 @@
         "44": "Customer picked up laundry",
         "45": "Overdue alert summary",
         "46": "New service proposal",
-        "47": "Merchant profile update requested"
+        "47": "Merchant profile update requested",
+        "50": "Order activity"
       },
       "editIncident": "Edit complaint",
       "withdrawIncident": "Withdraw complaint",
@@ -2681,7 +2836,8 @@
       "empty": "There are no notifications in this list.",
       "live": "Live updates connected",
       "offline": "Reconnecting. Refresh to check for new notifications.",
-      "invalidResponse": "Unable to load notifications. Please try again."
+      "invalidResponse": "Unable to load notifications. Please try again.",
+      "loadMore": "Load more notifications"
     },
     "imageUpload": {
       "viewAll": "View {{count}} photos",
@@ -2890,7 +3046,9 @@
       "depositPin": "Drop-off PIN",
       "showPin": "Show drop-off PIN",
       "hidePin": "Hide drop-off PIN",
-      "successNote": "Your compartment is reserved. Save your order code and PIN, then take your laundry to the selected locker. Keep your PIN private. Creating this order does not open the compartment or confirm a drop-off."
+      "successNote": "Your compartment is reserved. Save your order code and PIN, then take your laundry to the selected locker. Keep your PIN private. Creating this order does not open the compartment or confirm a drop-off.",
+      "chooseChoice": "Select",
+      "choiceSelected": "Selected"
     },
     "addressMap": {
       "open": "Choose on map",
@@ -3279,7 +3437,10 @@
         "notAllowed": "This order is no longer eligible for cancellation.",
         "confirm": "Confirm cancellation",
         "submitting": "Cancelling order…",
-        "unknownOutcome": "The cancellation outcome is unknown. Close this window and refresh the order to check before trying again."
+        "unknownOutcome": "The cancellation outcome is unknown. Close this window and refresh the order to check before trying again.",
+        "confirmAndPay": "Cancel and pay fee",
+        "payHint": "Confirm cancellation and continue directly to the selected gateway. The order remains cancelled if payment is not completed.",
+        "cancelledPayPending": "The order is cancelled. Complete the cancellation fee payment below; you do not need to cancel again."
       }
     },
     "payment": {
@@ -3614,6 +3775,201 @@
     "historyHint": "Storage and redelivery cycles for this order.",
     "returnStation": "Return locker · Current station information",
     "frozenLockerFee": "Frozen locker fees for this cycle",
-    "frozenWarehouseFee": "Frozen storage fees for this cycle"
+    "frozenWarehouseFee": "Frozen storage fees for this cycle",
+    "receiptOptional": "Handover receipt (optional)",
+    "storageReference": "Storage reference",
+    "merchantName": "Storage shop",
+    "referenceIssuedAt": "Reference issued at",
+    "historicalSnapshot": "Storage details for this cycle, not the current location.",
+    "verifiedExisting": "Reference issued when existing storage was verified.",
+    "currentLocationLabel": "Current location",
+    "locations": {
+      "AtShop": "Stored at the shop",
+      "InTransit": "In transit",
+      "OutsideShop": "Outside the storage shop",
+      "Unknown": "Location not confirmed"
+    }
+  },
+  "orderEvents": {
+    "labels": {
+      "OrderCreated": "Order created",
+      "MerchantAssigned": "Laundry shop assigned",
+      "ShipperAssigned": "Shipper assigned",
+      "ShipperReassigned": "Shipper reassigned",
+      "Deposited": "Laundry dropped off",
+      "ShipperCollected": "Laundry collected",
+      "ActualWeightConfirmed": "Weight and price confirmed",
+      "StatusChanged": "Order status updated",
+      "LaundryPaid": "Laundry payment confirmed",
+      "CancellationFeePaid": "Cancellation fee paid",
+      "StorageFeePaid": "Storage fee paid",
+      "ShipperReturned": "Laundry delivered to locker",
+      "Returned": "Laundry collected by customer",
+      "Completed": "Order completed",
+      "Cancelled": "Order cancelled",
+      "CancelledGoodsReturned": "Cancelled order belongings returned",
+      "AccessCodesRevealed": "Delivery support codes viewed",
+      "OrderNote": "Order activity recorded",
+      "Storage_Assign": "Storage delivery assigned",
+      "Storage_collect": "Collected for shop storage",
+      "Storage_handover": "Handed over at the shop",
+      "Storage_depart": "Dispatched from the shop",
+      "Storage_place": "Returned to the locker",
+      "Storage_RequestReturn": "Return to locker requested",
+      "Storage_cancel-return": "Return request cancelled",
+      "Storage_cancel-assignment": "Storage assignment cancelled",
+      "Storage_exception": "Storage delivery exception",
+      "Storage_verify-legacy": "Existing shop storage verified",
+      "Storage_LegacyMoved": "Storage recorded",
+      "Storage_SystemUnpaidAtShop": "Overdue unpaid laundry stored at shop",
+      "Unknown": "Order activity recorded"
+    },
+    "descriptions": {
+      "OrderCreated": "The order was created and is waiting for drop-off.",
+      "MerchantAssigned": "A laundry shop has been assigned to handle the order.",
+      "ShipperAssigned": "A shipper has been assigned to this delivery task.",
+      "ShipperReassigned": "The delivery task has been reassigned to another shipper.",
+      "Deposited": "The customer has dropped off their laundry at the locker.",
+      "ShipperCollected": "The shipper collected the laundry for delivery to the shop.",
+      "ActualWeightConfirmed": "The shop confirmed the actual weight and updated the order price.",
+      "StatusChanged": "Processing progress was updated to the status below.",
+      "LaundryPaid": "The laundry payment has been confirmed.",
+      "CancellationFeePaid": "The cancellation fee payment has been confirmed.",
+      "StorageFeePaid": "The overdue or storage fee payment has been confirmed.",
+      "ShipperReturned": "The shipper placed the laundry in the locker for collection.",
+      "Returned": "Customer collection has been confirmed.",
+      "Completed": "The order processing and delivery workflow is complete.",
+      "Cancelled": "The order was cancelled; fees and return of belongings are tracked separately.",
+      "CancelledGoodsReturned": "The customer collected the belongings from the cancelled order.",
+      "AccessCodesRevealed": "An administrator viewed the delivery support codes.",
+      "OrderNote": "An order activity has been recorded.",
+      "Storage_Assign": "A shipper was assigned; handover at the shop has not yet been confirmed.",
+      "Storage_collect": "The laundry was collected from the locker and is travelling to the shop.",
+      "Storage_handover": "The shop accepted the laundry for storage; the system issues the storage reference.",
+      "Storage_depart": "The laundry left the storage shop for return to the locker.",
+      "Storage_place": "The laundry was placed in the locker for customer collection.",
+      "Storage_RequestReturn": "The customer requested delivery from storage back to a locker.",
+      "Storage_cancel-return": "The return-to-locker request has been cancelled.",
+      "Storage_cancel-assignment": "The storage delivery assignment has been cancelled.",
+      "Storage_exception": "A storage delivery exception has been recorded for follow-up.",
+      "Storage_verify-legacy": "Current shop storage was verified; the reference is issued at verification time.",
+      "Storage_LegacyMoved": "A storage operation was recorded in the order history.",
+      "Storage_SystemUnpaidAtShop": "Laundry already at the shop has entered storage after the payment deadline.",
+      "Unknown": ""
+    },
+    "merchantName": "Assigned laundry shop",
+    "shipperName": "Assigned shipper",
+    "tasks": {
+      "1": "Collection to shop",
+      "2": "Return to locker",
+      "3": "Transfer to shop storage",
+      "4": "Return from storage to locker",
+      "unknown": "Delivery task"
+    },
+    "notification": "Order #{{orderCode}}: {{title}}."
+  },
+  "notificationDelivery": {
+    "title": "Notification delivery",
+    "pending": "Pending",
+    "sending": "Sending",
+    "deadLetter": "Failed deliveries requiring attention",
+    "oldestPendingAt": "Earliest pending delivery",
+    "serverNow": "Server time",
+    "dueAt": "Due at",
+    "detectedAt": "Overdue detected at"
+  },
+  "notificationNewOrder": {
+    "title": "New order",
+    "lockerBox": "Order {{orderCode}} was created at {{lockerName}}, compartment {{boxNumber}}. Awaiting customer drop-off.",
+    "locker": "Order {{orderCode}} was created at {{lockerName}}. Awaiting customer drop-off.",
+    "box": "Order {{orderCode}} was created, compartment {{boxNumber}}. Awaiting customer drop-off.",
+    "order": "Order {{orderCode}} was just created. Awaiting customer drop-off."
+  },
+  "categories": {
+    "title": "Category management",
+    "description": "Manage service categories and the availability of related services.",
+    "category": "Category",
+    "choose": "Choose category",
+    "processingType": "Processing type",
+    "unavailable": "Unavailable",
+    "create": "Add category",
+    "edit": "Edit category",
+    "detail": "Category details",
+    "status": "Update status",
+    "delete": "Delete category",
+    "lock": "Lock",
+    "activate": "Unlock",
+    "save": "Save category",
+    "apply": "Confirm",
+    "search": "Search category code or name…",
+    "active": "Active",
+    "inactive": "Locked",
+    "sort": "Sort by",
+    "direction": "Direction",
+    "ascending": "Ascending",
+    "descending": "Descending",
+    "statusLabel": "Status",
+    "dependenciesLabel": "Services / Proposals",
+    "actionsLabel": "Actions",
+    "dependencies": "{{services}} services · {{proposals}} pending proposals",
+    "empty": "No matching categories.",
+    "selectPage": "Select categories on this page",
+    "select": "Select {{name}}",
+    "selected": "{{count}} categories selected on this page",
+    "inUse": "This category has services or pending proposals. Move services or review proposals before deleting.",
+    "notAllowed": "This action is unavailable with the current permissions or data.",
+    "changed": "The category changed. Close and reload it before continuing.",
+    "invalidField": "Invalid value or exceeded limit.",
+    "invalidResponse": "Invalid category response. Please retry.",
+    "lockHint": "Locking the category stops new bookings for its services. Existing orders continue normally.",
+    "activateHint": "Unlocking a category does not activate individually locked or unapproved services.",
+    "deleteHint": "Only categories without services or pending proposals can be deleted. Order history is preserved.",
+    "confirm": "I have reviewed the selected categories and their impact.",
+    "results": "Results by category",
+    "unknown": "The result is not fully known. Check or resume the original operation; do not start a new one.",
+    "recover": "Recover category operation",
+    "resume": "Resume original operation",
+    "categoryBlocked": "Service unavailable because its category is locked",
+    "fields": {
+      "code": "Category code",
+      "name": "Category name",
+      "description": "Description",
+      "sortOrder": "Display order",
+      "reason": "Reason (optional)"
+    },
+    "found": "categories found",
+    "stats": {
+      "total": "Total categories",
+      "active": "Active categories",
+      "inactive": "Locked categories"
+    },
+    "rowActions": "Actions for {{name}}",
+    "bulk": "Bulk actions",
+    "clearSelection": "Clear selection",
+    "searchLabel": "Search",
+    "bulkCount": "{{count}} selected categories; results are reported for each category.",
+    "bulkActions": {
+      "pause": "Lock selected",
+      "activate": "Activate selected",
+      "delete": "Delete selected"
+    },
+    "placeholders": {
+      "code": "E.g. DRY_CLEANING",
+      "name": "Enter category name",
+      "sortOrder": "Enter display order from 0 to 100000",
+      "description": "Enter category description (optional)",
+      "reason": "Enter reason for change (optional)"
+    },
+    "activateTitle": "Activate category",
+    "lockTitle": "Lock category",
+    "servicesLabel": "Related services",
+    "proposalsLabel": "Pending proposals",
+    "noDescription": "No description has been added for this category.",
+    "impactTitle": "What this action changes",
+    "modalDescriptions": {
+      "detail": "Category information and related services.",
+      "status": "Review the category and the impact before confirming this update.",
+      "delete": "Review category dependencies before confirming deletion."
+    }
   }
 }

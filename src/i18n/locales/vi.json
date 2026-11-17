@@ -1,4 +1,150 @@
 {
+  "orderProgress": {
+    "descriptions": {
+      "1": "Đơn hàng đã được tạo. Vui lòng mang đồ đến locker và xác nhận gửi đồ trong thời hạn quy định.",
+      "2": "Đồ đã được gửi vào locker, sẵn sàng để shipper đến thu gom.",
+      "3": "Shipper đã thu gom đồ để tiệm giặt tiếp nhận và chuẩn bị xử lý.",
+      "4": "Đồ đang được giặt sạch theo dịch vụ bạn đã chọn.",
+      "5": "Đồ đang được sấy khô, chuẩn bị cho công đoạn tiếp theo.",
+      "6": "Đồ đang được ủi phẳng để trang phục gọn gàng, tươm tất hơn.",
+      "7": "Đồ đang được gấp gọn và chuẩn bị cho bước thanh toán, giao trả.",
+      "8": "Quá trình xử lý đã hoàn tất. Vui lòng kiểm tra và thanh toán để tiếp tục giao trả đồ.",
+      "9": "Thanh toán đã được ghi nhận. Đồ đang chờ sắp xếp giao trả về locker.",
+      "10": "Đồ đã sẵn sàng tại locker. Vui lòng đến nhận trong thời hạn quy định.",
+      "11": "Đã ghi nhận nhận đồ từ locker.",
+      "12": "Đơn hàng đã hoàn tất. Cảm ơn bạn đã tin tưởng sử dụng WashGo!",
+      "13": "Đồ đã được chuyển sang lưu giữ tại tiệm giặt, chờ sắp xếp nhận hoặc giao lại.",
+      "14": "Đồ đang được vận chuyển về tiệm giặt để lưu giữ.",
+      "15": "Đồ đang được giao lại từ tiệm giặt về locker theo yêu cầu.",
+      "99": "Đơn hàng đã được hủy. Vui lòng kiểm tra các khoản phí và hướng dẫn nhận lại đồ nếu có."
+    }
+  },
+  "adminOrderTime": {
+    "title": "Theo dõi thời hạn đơn hàng",
+    "deposit": "Hạn gửi đồ",
+    "payment": "Hạn thanh toán tiền giặt",
+    "pickup": "Hạn nhận đồ tại locker",
+    "overdue": "Đã quá hạn",
+    "active": "Đang áp dụng",
+    "inactive": "Mốc đã kết thúc hoặc không còn áp dụng",
+    "missing": "Chưa có mốc thời gian",
+    "remaining": "Còn {{duration}}",
+    "lateBy": "Quá hạn {{duration}}",
+    "depositHint": "Khách đã hết thời gian gửi đồ. Kiểm tra phí và quyền hủy đơn trước khi xử lý.",
+    "paymentHint": "Tiền giặt chưa thanh toán đúng hạn. Theo dõi trạng thái lưu giữ tại tiệm và đối soát trước khi thao tác.",
+    "pickupHint": "Khách chưa nhận đồ đúng hạn. Kiểm tra phí quá hạn và luồng chuyển về tiệm lưu giữ.",
+    "note": "Thời gian được đối chiếu theo giờ BE; Cập nhật để lấy trạng thái mới nhất. Đây là thời hạn nghiệp vụ của đơn, không phải hạn 15 phút của phiên VNPay. Thiếu giờ BE thì chỉ hiển thị mốc và trạng thái được cung cấp."
+  },
+  "loyalty": {
+    "switchApplied": "Đang dùng {{points}} xu cho đơn hàng này.",
+    "title": "Điểm thưởng WashGo",
+    "availablePoints": "Điểm khả dụng",
+    "heldPoints": "Điểm đang giữ",
+    "totalPoints": "Tổng điểm",
+    "debtPoints": "Điểm cần bù",
+    "policy": "1 điểm = 1đ. Tích {{earn}}% tiền giặt thực trả qua cổng; dùng tối đa {{maximum}}% tiền giặt sau voucher. Không áp dụng cho phí hủy, lưu kho hoặc quá hạn.",
+    "debtHint": "Điểm thưởng đã dùng cần được bù sau hoàn tiền. Điểm kiếm được sau này sẽ bù phần này; bạn vẫn có thể thanh toán đơn mới bằng tiền.",
+    "history": "Lịch sử điểm",
+    "empty": "Chưa có giao dịch điểm.",
+    "date": "Thời gian",
+    "activity": "Hoạt động",
+    "change": "Thay đổi điểm",
+    "heldChange": "Thay đổi điểm giữ",
+    "balanceAfter": "Số dư sau giao dịch",
+    "heldAfter": "Điểm giữ sau giao dịch",
+    "order": "Đơn hàng",
+    "usePoints": "Dùng điểm thưởng",
+    "quoteLimit": "Khả dụng {{available}} điểm · Đơn này dùng tối đa {{maximum}} điểm.",
+    "gatewayAmount": "Tiền thanh toán qua cổng",
+    "laundryAmount": "Giá trị tiền giặt sau voucher",
+    "expectedEarnedPoints": "Điểm thưởng dự kiến",
+    "pointsToRedeem": "Số điểm muốn dùng",
+    "cashOnly": "Không dùng điểm",
+    "applyFirst": "Nhấn Áp dụng để kiểm tra lại báo giá điểm trước khi thanh toán.",
+    "invalidPoints": "Nhập số điểm nguyên không âm trong giới hạn cho phép.",
+    "invalidResponse": "Chưa đọc được thông tin điểm hợp lệ. Vui lòng tải lại.",
+    "estimateHint": "Báo giá chưa giữ điểm. Hệ thống kiểm tra lại khi tạo phiên; điểm chỉ được trừ và cộng thưởng sau khi xác nhận thanh toán. Không đổi số điểm khi đã có phiên thanh toán.",
+    "refundPoints": "Điểm được hoàn",
+    "refundPointsValue": "Hoàn {{points}} điểm",
+    "rewardReversedValue": "Thu hồi {{points}} điểm thưởng",
+    "redeemedPoints": "Điểm đã sử dụng",
+    "pointsOnlyHint": "Yêu cầu này chỉ hoàn điểm, không chuyển tiền ngân hàng 0đ. Xác nhận sau khi kiểm tra đúng giao dịch và ghi mã biên nhận thao tác điểm.",
+    "receiptReference": "Mã biên nhận hoàn điểm",
+    "confirmPointsRefund": "Tôi đã kiểm tra và xác nhận hoàn điểm cho yêu cầu này.",
+    "pointsFunding": "WashGo tài trợ bằng điểm",
+    "netCash": "Tiền cổng thuần của dòng đối soát",
+    "netGatewayCash": "Tiền thực thu qua cổng sau hoàn",
+    "platformCommissionAfterPoints": "Hoa hồng nền tảng sau tài trợ điểm",
+    "fundingHint": "Điểm do WashGo tài trợ được tách khỏi tiền qua cổng. Giá trị đối soát Merchant gồm phần tài trợ điểm; số tiền kỳ đã chốt giữ theo bản chụp.",
+    "merchantFundingHint": "Doanh thu dịch vụ và cơ sở đối soát có gồm phần điểm do WashGo tài trợ, khác với số tiền thực thu qua cổng.",
+    "kinds": {
+      "Opening": "Số dư đầu kỳ",
+      "Hold": "Giữ điểm thanh toán",
+      "Release": "Giải phóng điểm giữ",
+      "Redeem": "Dùng điểm",
+      "Earn": "Cộng điểm thưởng",
+      "RefundPoints": "Hoàn điểm",
+      "ReverseReward": "Thu hồi điểm thưởng"
+    },
+    "apply": "Áp dụng điểm"
+  },
+  "paymentLimits": {
+    "invalid": "Chưa có số tiền thanh toán hợp lệ.",
+    "vnpayMinimum": "WashGo áp dụng từ 10.000đ để tránh lỗi hạn mức ngân hàng với khoản nhỏ.",
+    "momoMinimum": "Ví MoMo hỗ trợ từ 1.000đ.",
+    "momoMaximum": "MoMo hỗ trợ tối đa 50.000.000đ mỗi giao dịch.",
+    "recommendWallet": "Gợi ý: dùng ví MoMo cho khoản dưới 10.000đ. Chọn thanh toán bằng ví trên cổng MoMo; thẻ ATM/tín dụng yêu cầu từ 10.000đ.",
+    "bankLimits": "Hạn mức thực tế còn phụ thuộc ngân hàng, tài khoản và cấu hình cổng thanh toán.",
+    "recommendBank": "Số tiền vượt hạn mức MoMo. Bạn có thể chọn VNPay và kiểm tra hạn mức giao dịch của tài khoản ngân hàng.",
+    "unavailable": "Chưa có phương thức trực tuyến phù hợp với số tiền này. Nếu đang dùng điểm, hãy giảm điểm và áp dụng lại; với khoản phí, vui lòng liên hệ WashGo. Phí không được tự tăng để đạt hạn mức.",
+    "existingSession": "Phiên hiện tại không phù hợp với hạn mức này. Vui lòng liên hệ WashGo để xác minh và đóng phiên trước khi đổi phương thức; không tạo thêm phiên thanh toán."
+  },
+  "paymentSession": {
+    "feeMethodLocked": "Phí hủy đang dùng {{method}}. Vui lòng tiếp tục bằng phương thức này cho phiên hiện tại.",
+    "initializing": "Phiên đang khởi tạo. Vui lòng chờ vài giây rồi thử lại cùng phương thức và số điểm; không mở phiên khác.",
+    "retrySame": "Thử lại cùng phiên",
+    "PaymentVerificationRequired": "Phiên thanh toán cần xác minh. Không tạo giao dịch mới; hãy cập nhật trạng thái đơn hoặc liên hệ WashGo.",
+    "LegacyPaymentsRequireReview": "Đơn có giao dịch cũ cần đối soát. Vui lòng liên hệ WashGo trước khi thanh toán tiếp.",
+    "PaymentMethodConflict": "Đã có phiên dùng phương thức khác. Tiếp tục phiên hiện tại hoặc chờ WashGo xác minh; không mở thêm cổng thanh toán.",
+    "PaymentPointsConflict": "Đã có phiên dùng số điểm khác. Tiếp tục phiên hiện tại hoặc chờ xác minh; không đổi điểm cho phiên này.",
+    "PaymentAmountChanged": "Số tiền đã thay đổi. Phiên trước cần được xác minh trước khi thanh toán lại.",
+    "PaymentStateChanged": "Đơn đã thay đổi khi tạo phiên. Vui lòng cập nhật đơn và chờ xác minh phiên hiện tại.",
+    "InsufficientPoints": "Điểm khả dụng vừa thay đổi. Báo giá đang được tải lại; vui lòng chọn và áp dụng lại số điểm.",
+    "completedFee": "Phiên đã được ghi nhận. Vui lòng cập nhật chi tiết đơn để xem số phí còn lại."
+  },
+  "paymentReview": {
+    "originalPayment": "Giao dịch thanh toán gốc",
+    "title": "Đối soát thanh toán",
+    "includeResolved": "Bao gồm khoản thu dư đã xử lý",
+    "hint": "Danh sách chỉ để đối chiếu. Phiên chưa rõ kết quả cần xác minh với cổng; không xác nhận đã thu hoặc tự đóng phiên tại đây. Khoản thu dư xử lý qua yêu cầu hoàn tiền đúng nguồn.",
+    "reference": "Tham chiếu / Mã cổng",
+    "purpose": "Khoản thanh toán",
+    "transactionStatus": "Trạng thái giao dịch",
+    "session": "Trạng thái phiên",
+    "verifiedAt": "Cổng xác minh lúc",
+    "reconciledAt": "Đối soát xong lúc",
+    "refund": "Xem yêu cầu hoàn",
+    "excess": "Khoản thu dư cần hoàn riêng; không tính vào doanh thu hoặc hoa hồng tiền giặt.",
+    "purposes": {
+      "1": "Tiền giặt",
+      "2": "Phí lưu kho / quá hạn",
+      "3": "Phí hủy"
+    },
+    "statuses": {
+      "1": "Đang chờ",
+      "2": "Đã thu",
+      "3": "Thất bại đã xác nhận",
+      "4": "Đã hoàn",
+      "5": "Cần đối soát"
+    },
+    "sessions": {
+      "0": "Phiên cũ",
+      "1": "Đang khởi tạo",
+      "2": "Đã có URL",
+      "3": "Chưa rõ kết quả",
+      "4": "Đã đóng"
+    }
+  },
   "customerFeedbackActions": {
     "viewAll": "Xem tất cả đánh giá",
     "allTitle": "Tất cả đánh giá"
@@ -282,8 +428,8 @@
     "storage": {
       "customer": {
         "private": {
-          "title": "Cập nhật lưu giữ đơn hàng",
-          "content": "Đồ của bạn đang được WashGo lưu giữ. Vui lòng xem đơn hàng để kiểm tra thanh toán, phí lưu kho và yêu cầu giao lại locker."
+          "title": "Thông báo lưu giữ",
+          "content": "Đồ của bạn đang được WashGo lưu giữ. Vui lòng xem đơn hàng để kiểm tra thanh toán, phí lưu giữ và yêu cầu giao lại locker."
         }
       }
     }
@@ -1005,8 +1151,8 @@
       "returnBox": "Ô trả đồ",
       "weight": "Khối lượng thực tế",
       "eta": "Dự kiến giặt xong",
-      "storageLocation": "Vị trí kho",
-      "storageReference": "Mã lưu kho",
+      "storageLocation": "Địa chỉ tiệm lưu giữ",
+      "storageReference": "Mã lưu giữ",
       "actions": "Thao tác đơn hàng",
       "totalAmount": "Tiền dịch vụ",
       "discountAmount": "Giảm giá",
@@ -1180,7 +1326,8 @@
       "settings": "Cài đặt hệ thống",
       "profile": "Hồ sơ cá nhân",
       "notifications": "Thông báo",
-      "storage": "Lưu giữ và giao lại đồ"
+      "storage": "Lưu giữ và giao lại đồ",
+      "categories": "Quản lý danh mục"
     },
     "revenue": "Tổng thu sau hoàn tiền",
     "orders": "Đơn được tạo trong kỳ",
@@ -1456,7 +1603,8 @@
         "revenue": "Tổng quan thu – hoàn",
         "commissions": "Hoa hồng Merchant",
         "settlements": "Kỳ đối soát",
-        "refunds": "Yêu cầu hoàn tiền"
+        "refunds": "Yêu cầu hoàn tiền",
+        "paymentReview": "Đối soát thanh toán"
       },
       "period": "Khoảng thời gian",
       "status": "Trạng thái",
@@ -1560,12 +1708,14 @@
       "groups": {
         "sla": "Thời gian & SLA",
         "commission": "Hoa hồng mặc định",
-        "penalty": "Phí & bồi thường"
+        "penalty": "Phí & bồi thường",
+        "loyalty": "Điểm tích lũy"
       },
       "hints": {
         "sla": "Thiết lập thời gian gửi, thu gom, trả đồ và khoảng nhận đồ miễn phí.",
         "commission": "Áp dụng khi tạo Merchant mới không nhập tỷ lệ riêng. Không thay thế tỷ lệ đã thiết lập của Merchant hiện có.",
-        "penalty": "Cấu hình phí quá hạn, lưu kho, hủy đơn và mức bồi thường theo giá trị đồ."
+        "penalty": "Cấu hình phí quá hạn, lưu kho, hủy đơn và mức bồi thường theo giá trị đồ.",
+        "loyalty": "Cấu hình tỷ lệ tích điểm và giới hạn dùng điểm cho tiền giặt. Chỉ áp dụng cho phiên thanh toán mới."
       },
       "sections": {
         "fees": "Phí quá hạn & lưu kho",
@@ -1593,7 +1743,9 @@
         "compensationLightPercent": "Hư hỏng nhẹ",
         "compensationMediumPercent": "Hư hỏng vừa",
         "compensationSeverePercent": "Hư hỏng nặng",
-        "compensationLostPercent": "Mất đồ"
+        "compensationLostPercent": "Mất đồ",
+        "earnPercent": "Tỷ lệ tích điểm",
+        "maxUsePercent": "Giới hạn sử dụng điểm"
       },
       "fieldHints": {
         "depositWindowMinutes": "5–1.440 phút để khách gửi đồ vào ô tủ đang giữ.",
@@ -1611,7 +1763,9 @@
         "compensationLightPercent": "0–500% giá trị đồ; không lớn hơn mức hư hỏng vừa.",
         "compensationMediumPercent": "0–500% giá trị đồ; không thấp hơn mức nhẹ.",
         "compensationSeverePercent": "0–500% giá trị đồ; không thấp hơn mức vừa.",
-        "compensationLostPercent": "0–500% giá trị đồ; không thấp hơn mức nặng."
+        "compensationLostPercent": "0–500% giá trị đồ; không thấp hơn mức nặng.",
+        "earnPercent": "0–100%, tối đa 2 chữ số thập phân. Tính theo tiền giặt thực trả qua cổng.",
+        "maxUsePercent": "0–99%, tối đa 2 chữ số thập phân. Tính sau voucher; luôn cần trả một phần bằng tiền."
       },
       "units": {
         "minutes": "phút",
@@ -1720,7 +1874,7 @@
       "dropoff": "Gửi đồ",
       "pickup": "Nhận đồ",
       "lockerAddress": "Địa chỉ trạm",
-      "storageReference": "Mã lưu kho",
+      "storageReference": "Mã lưu giữ",
       "shipperInfo": "Thông tin Shipper"
     },
     "reportSync": {
@@ -2272,7 +2426,7 @@
       "returnBox": "Ô trả đồ",
       "eta": "Dự kiến hoàn thành",
       "noEta": "Chưa có dự kiến",
-      "storage": "Vị trí lưu kho",
+      "storage": "Tiệm lưu giữ",
       "history": "Lịch sử xử lý",
       "processing": "Xử lý đơn hàng",
       "payment": "Tóm tắt thanh toán",
@@ -2283,7 +2437,7 @@
       "weighNote": "Giá và thời gian dự kiến sẽ được hệ thống tính lại theo khối lượng đã xác nhận.",
       "weightInput": "Khối lượng thực tế (kg)",
       "process": "Cập nhật xử lý",
-      "processNote": "Chọn bước tiếp theo phù hợp với tiến độ thực tế của đơn.",
+      "processNote": "Xác nhận từng bước theo thứ tự: giặt → sấy → ủi → gấp đồ → chờ thanh toán.",
       "nextStatus": "Trạng thái tiếp theo",
       "assign": "Phân công Shipper",
       "assignNote": "Chỉ hiển thị Shipper thuộc cửa hàng và đủ điều kiện nhận chuyến.",
@@ -2446,7 +2600,7 @@
         "compensationSeverePercent": "Tỷ lệ bồi thường hư hại nặng: <strong>{{value}}</strong>%.",
         "compensationLostPercent": "Tỷ lệ bồi thường mất đồ: <strong>{{value}}</strong>%."
       },
-      "depositExpired": "Đơn đã hết hạn gửi đồ. Vui lòng kiểm tra phí hủy và tạo đơn mới nếu cần.",
+      "depositExpired": "Đơn đã hết hạn gửi đồ. Vui lòng kiểm tra phí hủy và hủy đơn để tạo đơn mới nếu cần.",
       "depositRemaining": "Còn {{time}} để gửi đồ. Hạn gửi: {{date}}.",
       "depositWindow": "Thời hạn được áp dụng cho đơn này: {{minutes}} phút.",
       "prediction": {
@@ -2588,7 +2742,8 @@
         "44": "Khách hàng đã nhận đồ",
         "45": "Tổng hợp cảnh báo quá hạn",
         "46": "Đề xuất dịch vụ mới",
-        "47": "Yêu cầu cập nhật hồ sơ Merchant"
+        "47": "Yêu cầu cập nhật hồ sơ Merchant",
+        "50": "Hoạt động đơn hàng"
       },
       "editIncident": "Chỉnh sửa khiếu nại",
       "withdrawIncident": "Rút khiếu nại",
@@ -2681,7 +2836,8 @@
       "empty": "Không có thông báo trong danh sách này.",
       "live": "Đang cập nhật trực tiếp",
       "offline": "Đang kết nối lại. Bạn có thể bấm cập nhật để xem thông báo mới.",
-      "invalidResponse": "Không thể tải thông báo. Vui lòng thử lại."
+      "invalidResponse": "Không thể tải thông báo. Vui lòng thử lại.",
+      "loadMore": "Tải thêm thông báo"
     },
     "imageUpload": {
       "viewAll": "Xem {{count}} ảnh",
@@ -2890,7 +3046,9 @@
       "depositPin": "Mã PIN gửi đồ",
       "showPin": "Hiện mã PIN gửi đồ",
       "hidePin": "Ẩn mã PIN gửi đồ",
-      "successNote": "Ô tủ của bạn đã được đặt. Hãy lưu mã đơn và mã PIN, mang đồ đến locker đã chọn để gửi. Giữ mã PIN riêng tư. Bước tạo đơn chưa thực hiện mở tủ hoặc xác nhận đã gửi đồ."
+      "successNote": "Ô tủ của bạn đã được đặt. Hãy lưu mã đơn và mã PIN, mang đồ đến locker đã chọn để gửi. Giữ mã PIN riêng tư. Bước tạo đơn chưa thực hiện mở tủ hoặc xác nhận đã gửi đồ.",
+      "chooseChoice": "Chọn",
+      "choiceSelected": "Đã chọn"
     },
     "addressMap": {
       "open": "Chọn trên bản đồ",
@@ -3279,7 +3437,10 @@
         "notAllowed": "Đơn hàng không còn đủ điều kiện hủy.",
         "confirm": "Xác nhận hủy đơn",
         "submitting": "Đang hủy đơn…",
-        "unknownOutcome": "Chưa xác định được kết quả hủy đơn. Đóng cửa sổ và cập nhật đơn hàng để kiểm tra trước khi thao tác lại."
+        "unknownOutcome": "Chưa xác định được kết quả hủy đơn. Đóng cửa sổ và cập nhật đơn hàng để kiểm tra trước khi thao tác lại.",
+        "confirmAndPay": "Hủy đơn và thanh toán phí",
+        "payHint": "Xác nhận hủy và chuyển đến cổng thanh toán đã chọn. Đơn vẫn được hủy nếu bạn chưa hoàn tất thanh toán.",
+        "cancelledPayPending": "Đơn đã hủy. Vui lòng thanh toán phí hủy bên dưới; bạn không cần hủy lại đơn."
       }
     },
     "payment": {
@@ -3614,6 +3775,201 @@
     "historyHint": "Các vòng lưu giữ và giao lại của đơn hàng.",
     "returnStation": "Locker nhận lại · Thông tin trạm hiện tại",
     "frozenLockerFee": "Phí locker đã chốt của vòng này",
-    "frozenWarehouseFee": "Phí lưu giữ đã chốt của vòng này"
+    "frozenWarehouseFee": "Phí lưu giữ đã chốt của vòng này",
+    "receiptOptional": "Biên nhận bàn giao (không bắt buộc)",
+    "storageReference": "Mã lưu giữ",
+    "merchantName": "Tiệm lưu giữ",
+    "referenceIssuedAt": "Thời điểm cấp mã",
+    "historicalSnapshot": "Thông tin lưu giữ của vòng này, không phải vị trí hiện tại.",
+    "verifiedExisting": "Mã được cấp khi xác minh lưu giữ hiện tại.",
+    "currentLocationLabel": "Vị trí hiện tại",
+    "locations": {
+      "AtShop": "Đang lưu giữ tại tiệm",
+      "InTransit": "Đang vận chuyển",
+      "OutsideShop": "Đã rời nơi lưu giữ",
+      "Unknown": "Chưa xác định vị trí"
+    }
+  },
+  "orderEvents": {
+    "labels": {
+      "OrderCreated": "Đã tạo đơn hàng",
+      "MerchantAssigned": "Đã phân công tiệm giặt",
+      "ShipperAssigned": "Đã phân công Shipper",
+      "ShipperReassigned": "Đã đổi phân công Shipper",
+      "Deposited": "Khách đã gửi đồ",
+      "ShipperCollected": "Shipper đã lấy đồ",
+      "ActualWeightConfirmed": "Đã cân và chốt giá",
+      "StatusChanged": "Đã cập nhật trạng thái",
+      "LaundryPaid": "Đã thanh toán tiền giặt",
+      "CancellationFeePaid": "Đã thanh toán phí hủy",
+      "StorageFeePaid": "Đã thanh toán phí lưu giữ",
+      "ShipperReturned": "Shipper đã trả đồ vào locker",
+      "Returned": "Khách đã nhận đồ",
+      "Completed": "Đơn hàng đã hoàn tất",
+      "Cancelled": "Đã hủy đơn hàng",
+      "CancelledGoodsReturned": "Đã nhận lại đồ của đơn hủy",
+      "AccessCodesRevealed": "Đã xem mã hỗ trợ giao nhận",
+      "OrderNote": "Đã ghi nhận xử lý",
+      "Storage_Assign": "Đã phân công giao nhận lưu giữ",
+      "Storage_collect": "Đã lấy đồ khỏi locker",
+      "Storage_handover": "Đã bàn giao lưu giữ tại tiệm",
+      "Storage_depart": "Đồ đã xuất tiệm",
+      "Storage_place": "Đã giao lại vào locker",
+      "Storage_RequestReturn": "Đã yêu cầu giao lại locker",
+      "Storage_cancel-return": "Đã hủy yêu cầu giao lại",
+      "Storage_cancel-assignment": "Đã hủy phân công lưu giữ",
+      "Storage_exception": "Sự cố giao nhận lưu giữ",
+      "Storage_verify-legacy": "Đã đối chiếu lưu giữ tại tiệm",
+      "Storage_LegacyMoved": "Đã ghi nhận lưu giữ",
+      "Storage_SystemUnpaidAtShop": "Đồ quá hạn thanh toán đang lưu tại tiệm",
+      "Unknown": "Đã ghi nhận hoạt động đơn hàng"
+    },
+    "descriptions": {
+      "OrderCreated": "Đơn hàng đã được tạo và đang chờ khách gửi đồ.",
+      "MerchantAssigned": "Đơn hàng đã được phân công cho tiệm giặt phụ trách.",
+      "ShipperAssigned": "Shipper đã được phân công thực hiện chuyến giao nhận.",
+      "ShipperReassigned": "Chuyến giao nhận đã được chuyển sang Shipper khác.",
+      "Deposited": "Khách hàng đã gửi đồ vào locker thành công.",
+      "ShipperCollected": "Shipper đã lấy đồ từ locker để đưa về tiệm giặt.",
+      "ActualWeightConfirmed": "Tiệm giặt đã xác nhận khối lượng thực tế và cập nhật giá đơn.",
+      "StatusChanged": "Tiến độ xử lý đã được cập nhật theo trạng thái bên dưới.",
+      "LaundryPaid": "Hệ thống đã xác nhận thanh toán tiền giặt.",
+      "CancellationFeePaid": "Hệ thống đã xác nhận thanh toán phí hủy đơn.",
+      "StorageFeePaid": "Hệ thống đã xác nhận thanh toán phí quá hạn hoặc lưu giữ.",
+      "ShipperReturned": "Shipper đã đặt đồ vào locker để khách đến nhận.",
+      "Returned": "Việc nhận đồ của khách hàng đã được xác nhận.",
+      "Completed": "Đơn hàng đã hoàn tất quy trình giao nhận và xử lý.",
+      "Cancelled": "Đơn hàng đã được hủy; các khoản phí và việc trả đồ được theo dõi riêng.",
+      "CancelledGoodsReturned": "Khách hàng đã nhận lại đồ của đơn hàng bị hủy.",
+      "AccessCodesRevealed": "Quản trị viên đã xem mã hỗ trợ giao nhận cho đơn hàng.",
+      "OrderNote": "Một hoạt động xử lý đơn hàng đã được ghi nhận.",
+      "Storage_Assign": "Shipper được phân công giao nhận lưu giữ; chưa xác nhận bàn giao tại tiệm.",
+      "Storage_collect": "Đồ đã được lấy khỏi locker và đang chuyển về tiệm lưu giữ.",
+      "Storage_handover": "Đồ đã được tiếp nhận lưu giữ tại tiệm; mã lưu giữ do hệ thống cấp.",
+      "Storage_depart": "Đồ đã rời tiệm lưu giữ để giao lại locker.",
+      "Storage_place": "Đồ đã được đặt lại vào locker để khách hàng nhận.",
+      "Storage_RequestReturn": "Khách hàng đã yêu cầu giao đồ từ nơi lưu giữ về locker.",
+      "Storage_cancel-return": "Yêu cầu giao lại locker đã được hủy.",
+      "Storage_cancel-assignment": "Phân công giao nhận lưu giữ đã được hủy.",
+      "Storage_exception": "Một sự cố giao nhận lưu giữ đã được ghi nhận để xử lý.",
+      "Storage_verify-legacy": "Việc lưu giữ hiện tại đã được xác minh; mã được cấp tại thời điểm đối chiếu.",
+      "Storage_LegacyMoved": "Thao tác lưu giữ đã được ghi nhận trong lịch sử đơn hàng.",
+      "Storage_SystemUnpaidAtShop": "Đồ đang ở tiệm và được chuyển sang lưu giữ do quá hạn thanh toán.",
+      "Unknown": ""
+    },
+    "merchantName": "Tiệm giặt được phân công",
+    "shipperName": "Shipper được phân công",
+    "tasks": {
+      "1": "Chuyến lấy đồ về tiệm",
+      "2": "Chuyến trả đồ vào locker",
+      "3": "Chuyến chuyển đồ về tiệm lưu giữ",
+      "4": "Chuyến giao lại locker từ nơi lưu giữ",
+      "unknown": "Chuyến giao nhận"
+    },
+    "notification": "Đơn #{{orderCode}}: {{title}}."
+  },
+  "notificationDelivery": {
+    "title": "Tình trạng gửi thông báo",
+    "pending": "Đang chờ gửi",
+    "sending": "Đang gửi",
+    "deadLetter": "Gửi thất bại cần kiểm tra",
+    "oldestPendingAt": "Mốc chờ gửi sớm nhất",
+    "serverNow": "Cập nhật theo máy chủ",
+    "dueAt": "Thời hạn",
+    "detectedAt": "Ghi nhận quá hạn"
+  },
+  "notificationNewOrder": {
+    "title": "Đơn hàng mới",
+    "lockerBox": "Đơn {{orderCode}} được tạo tại {{lockerName}}, ô số {{boxNumber}}. Chờ khách hàng gửi đồ.",
+    "locker": "Đơn {{orderCode}} được tạo tại {{lockerName}}. Chờ khách hàng gửi đồ.",
+    "box": "Đơn {{orderCode}} đã được tạo, ô số {{boxNumber}}. Chờ khách hàng gửi đồ.",
+    "order": "Đơn {{orderCode}} vừa được tạo. Chờ khách hàng gửi đồ."
+  },
+  "categories": {
+    "title": "Quản lý danh mục",
+    "description": "Quản lý danh mục dịch vụ và hiệu lực bán của các dịch vụ liên quan.",
+    "category": "Danh mục",
+    "choose": "Chọn danh mục",
+    "processingType": "Loại xử lý",
+    "unavailable": "Không khả dụng",
+    "create": "Thêm danh mục",
+    "edit": "Sửa danh mục",
+    "detail": "Chi tiết danh mục",
+    "status": "Cập nhật trạng thái",
+    "delete": "Xóa danh mục",
+    "lock": "Khóa",
+    "activate": "Mở khóa",
+    "save": "Lưu danh mục",
+    "apply": "Xác nhận",
+    "search": "Tìm theo mã hoặc tên danh mục…",
+    "active": "Đang hoạt động",
+    "inactive": "Đã khóa",
+    "sort": "Sắp xếp theo",
+    "direction": "Thứ tự",
+    "ascending": "Tăng dần",
+    "descending": "Giảm dần",
+    "statusLabel": "Trạng thái",
+    "dependenciesLabel": "Dịch vụ / Đề xuất",
+    "actionsLabel": "Thao tác",
+    "dependencies": "{{services}} dịch vụ · {{proposals}} đề xuất chờ duyệt",
+    "empty": "Chưa có danh mục phù hợp.",
+    "selectPage": "Chọn danh mục trên trang",
+    "select": "Chọn {{name}}",
+    "selected": "Đã chọn {{count}} danh mục trên trang này",
+    "inUse": "Danh mục đang có dịch vụ hoặc đề xuất chờ duyệt. Chuyển dịch vụ hoặc xử lý đề xuất trước khi xóa.",
+    "notAllowed": "Không thể thực hiện thao tác này theo quyền hoặc dữ liệu hiện tại.",
+    "changed": "Danh mục đã thay đổi. Đóng và tải lại để kiểm tra trước khi thao tác.",
+    "invalidField": "Giá trị không hợp lệ hoặc vượt giới hạn cho phép.",
+    "invalidResponse": "Dữ liệu danh mục không hợp lệ. Vui lòng thử lại.",
+    "lockHint": "Khóa danh mục sẽ ngừng bán mới các dịch vụ liên quan. Các đơn đã tạo vẫn được xử lý.",
+    "activateHint": "Mở khóa danh mục không tự mở các dịch vụ bị khóa riêng hoặc chưa được duyệt.",
+    "deleteHint": "Chỉ xóa danh mục không còn dịch vụ và đề xuất đang chờ. Không xóa dữ liệu đơn hàng hoặc lịch sử.",
+    "confirm": "Tôi đã kiểm tra các danh mục và ảnh hưởng bên trên.",
+    "results": "Kết quả từng danh mục",
+    "unknown": "Chưa xác định đầy đủ kết quả. Kiểm tra kết quả hoặc tiếp tục đúng thao tác đã gửi; không tạo thao tác mới.",
+    "recover": "Khôi phục thao tác danh mục",
+    "resume": "Tiếp tục thao tác cũ",
+    "categoryBlocked": "Dịch vụ đang bị khóa theo danh mục",
+    "fields": {
+      "code": "Mã danh mục",
+      "name": "Tên danh mục",
+      "description": "Mô tả",
+      "sortOrder": "Thứ tự hiển thị",
+      "reason": "Lý do (không bắt buộc)"
+    },
+    "found": "danh mục tìm thấy",
+    "stats": {
+      "total": "Tổng danh mục",
+      "active": "Đang hoạt động",
+      "inactive": "Đã khóa"
+    },
+    "rowActions": "Thao tác cho {{name}}",
+    "bulk": "Thao tác hàng loạt",
+    "clearSelection": "Bỏ chọn tất cả",
+    "searchLabel": "Tìm kiếm",
+    "bulkCount": "{{count}} danh mục đã chọn; kết quả được trả riêng cho từng danh mục.",
+    "bulkActions": {
+      "pause": "Khóa đã chọn",
+      "activate": "Mở đã chọn",
+      "delete": "Xóa đã chọn"
+    },
+    "placeholders": {
+      "code": "Ví dụ: GIAT_KHO",
+      "name": "Nhập tên danh mục",
+      "sortOrder": "Nhập thứ tự từ 0 đến 100000",
+      "description": "Nhập mô tả danh mục (không bắt buộc)",
+      "reason": "Nhập lý do thay đổi (không bắt buộc)"
+    },
+    "activateTitle": "Mở danh mục",
+    "lockTitle": "Khóa danh mục",
+    "servicesLabel": "Dịch vụ liên quan",
+    "proposalsLabel": "Đề xuất chờ duyệt",
+    "noDescription": "Chưa có mô tả cho danh mục này.",
+    "impactTitle": "Ảnh hưởng của thao tác",
+    "modalDescriptions": {
+      "detail": "Thông tin danh mục và các dịch vụ liên quan.",
+      "status": "Kiểm tra danh mục và ảnh hưởng trước khi xác nhận cập nhật.",
+      "delete": "Kiểm tra các liên kết trước khi xác nhận xóa danh mục."
+    }
   }
 }
