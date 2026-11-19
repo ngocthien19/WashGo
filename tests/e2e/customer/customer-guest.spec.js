@@ -52,11 +52,85 @@ async function setup(page, denied = false) {
   return requests
 }
 
+test.describe('Customer touch appearance controls', () => {
+  test.use({ hasTouch: true, isMobile: true })
+
+  test('mobile menu labels preferences, changes theme before the next frame and has larger guest actions', async ({ page }) => {
+    await setup(page)
+    await page.emulateMedia({ colorScheme: 'light' })
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Open navigation menu', exact: true }).click()
+    const drawer = page.getByRole('dialog', { name: 'Mobile navigation', exact: true })
+    await expect(drawer.getByText('Language:', { exact: true })).toBeVisible()
+    await expect(drawer.getByText('Appearance:', { exact: true })).toBeVisible()
+    for (const dark of [true, false]) {
+      const toggle = drawer.getByRole('button', { name: dark ? 'Switch to dark mode' : 'Switch to light mode', exact: true })
+      await toggle.evaluate(element => element.addEventListener('click', () => {
+        window.customerThemePaint = new Promise(resolve => requestAnimationFrame(() => resolve({
+          dark: document.documentElement.classList.contains('dark'),
+          scheme: document.documentElement.style.colorScheme,
+          background: getComputedStyle(element).backgroundColor,
+          drawerBackground: getComputedStyle(element.closest('[role="dialog"]')).backgroundColor,
+          transition: getComputedStyle(element).transitionProperty
+        })))
+      }, { once: true }))
+      await toggle.tap()
+      const paint = await page.evaluate(() => window.customerThemePaint)
+      expect(paint).toMatchObject({ dark, scheme: dark ? 'dark' : 'light', transition: 'none' })
+      expect(paint.background).toBe(paint.drawerBackground)
+      await expect(drawer).toBeVisible()
+    }
+    for (const name of ['Sign in', 'Register']) {
+      const action = drawer.getByRole('button', { name, exact: true })
+      expect((await action.boundingBox()).height).toBeGreaterThanOrEqual(48)
+      await expect(action).toBeInViewport()
+    }
+    const menuBounds = await drawer.boundingBox()
+    expect(menuBounds.width).toBe(272)
+    expect(menuBounds.height).toBe(844)
+    await page.setViewportSize({ width: 390, height: 480 })
+    await expect(drawer.getByRole('button', { name: 'Register', exact: true })).toBeInViewport()
+    expect((await drawer.boundingBox()).height).toBeLessThanOrEqual(480)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  })
+})
+
+test('Customer header scroll progress follows the page in both themes and resets on navigation', async ({ page }) => {
+  await setup(page)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Guest laundry', exact: true })).toBeVisible()
+  const track = page.locator('[data-customer-scroll-progress]')
+  const fill = track.locator('div')
+  const progress = () => fill.evaluate(el => new DOMMatrixReadOnly(getComputedStyle(el).transform).a)
+  const colors = []
+  for (const dark of [false, true]) {
+    await page.evaluate(value => document.documentElement.classList.toggle('dark', value), dark)
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+    await expect.poll(progress).toBeLessThan(0.01)
+    await page.evaluate(() => window.scrollTo({ top: (document.documentElement.scrollHeight - innerHeight) / 2, behavior: 'instant' }))
+    await expect.poll(progress).toBeGreaterThan(0.45)
+    await expect.poll(progress).toBeLessThan(0.55)
+    const header = await page.locator('header').boundingBox()
+    const bar = await track.boundingBox()
+    expect(bar.y).toBeCloseTo(header.y, 0)
+    colors.push(await fill.evaluate(el => getComputedStyle(el).backgroundColor))
+    await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }))
+    await expect.poll(progress).toBeGreaterThan(0.99)
+  }
+  expect(colors[0]).not.toBe(colors[1])
+  await page.goto('/services')
+  await expect(page.locator('#services article')).toBeVisible()
+  await expect.poll(progress).toBeLessThan(0.01)
+})
+
 test('guests land on Home and can search, filter and read catalog without private requests', async ({ page }) => {
   const requests = await setup(page)
   await page.goto('/')
   await expect(page).toHaveURL('/')
-  await expect(page.getByRole('heading', { name: 'Guest laundry', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Guest laundry', exact: true })).toBeVisible({ timeout: 20000 })
   await expect(page.locator('header').getByRole('button', { name: 'Sign in', exact: true })).toBeVisible()
   await expect(page.locator('header').getByRole('button', { name: 'Register', exact: true })).toBeVisible()
   await expect(page.locator('main').getByRole('button', { name: 'Register', exact: true })).toHaveCount(0)
@@ -84,9 +158,17 @@ test('guests land on Home and can search, filter and read catalog without privat
   await page.keyboard.press('Escape')
   expect(requests.some(r => /auth\/me|notification|chatbot|policy\/customer/.test(r.path))).toBe(false)
   await page.setViewportSize({ width: 390, height: 844 })
+  const mobileHeader = page.locator('header').first()
+  await expect(mobileHeader.getByRole('button', { name: 'Change language', exact: true })).toBeHidden()
+  await expect(mobileHeader.getByRole('button', { name: /Switch to .* mode/ })).toBeHidden()
+  const menuPosition = await mobileHeader.getByRole('button', { name: 'Open navigation menu', exact: true }).boundingBox()
+  const logoPosition = await mobileHeader.getByRole('link', { name: 'WashGo - Home', exact: true }).boundingBox()
+  expect(menuPosition.x + menuPosition.width).toBeLessThanOrEqual(logoPosition.x)
   await page.getByRole('button', { name: 'Open navigation menu', exact: true }).click()
   const drawer = page.getByRole('dialog', { name: 'Mobile navigation', exact: true })
   await expect(drawer.getByRole('button', { name: 'Register', exact: true })).toBeVisible()
+  await expect(drawer.getByRole('button', { name: 'Change language', exact: true })).toBeVisible()
+  await expect(drawer.getByRole('button', { name: /Switch to .* mode/ })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
 })
 
@@ -142,6 +224,34 @@ test('old customer URLs resolve to clean URLs and auth logos lead to the root Ho
   }
 })
 
+test('Home hero automatically cycles seven decoded photos without controls and respects reduced motion', async ({ page }) => {
+  await setup(page)
+  await page.clock.install()
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  const nextPhotos = ['hero-pickup', 'hero-courier', 'hero-riding', 'hero-handoff', 'hero-sorting', 'hero-folding', 'locker-community-hero']
+  const loaded = nextPhotos.map(name => page.waitForResponse(response => {
+    const url = new URL(response.url())
+    return url.pathname.endsWith(`/${name}.png`) && !url.searchParams.has('import')
+  }).then(response => response.finished()))
+  await page.goto('/')
+  const hero = page.locator('section[aria-labelledby="home-hero-heading"]')
+  const active = hero.locator('[data-hero-active-photo]')
+  await expect(active).toHaveAttribute('data-hero-active-photo', '0')
+  for (const [index, ready] of loaded.entries()) {
+    await ready
+    await page.clock.fastForward(4100)
+    await expect(active).toHaveAttribute('data-hero-active-photo', String((index + 1) % 7))
+    expect(await active.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true)
+    if (index === 6) {
+      expect(await active.evaluate(image => Number(getComputedStyle(image.parentElement).opacity))).toBeLessThan(1)
+    }
+  }
+  await expect(hero.getByRole('button')).toHaveCount(2)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.clock.fastForward(18000)
+  await expect(active).toHaveAttribute('data-hero-active-photo', '0')
+})
+
 test('Home layers readable content over its image and services are visible before scrolling', async ({ page }) => {
   await setup(page)
   await page.route('**/api/customer/services/filter', route => route.fulfill({ json: {
@@ -156,8 +266,8 @@ test('Home layers readable content over its image and services are visible befor
   const explore = hero.getByRole('button', { name: 'Explore services', exact: true })
   await explore.hover()
   await expect(explore).toHaveCSS('transform', 'none')
-  await expect(hero.locator('img')).toHaveAttribute('alt', '')
-  await expect.poll(() => hero.locator('img').evaluate(image => image.naturalWidth)).toBeGreaterThan(0)
+  await expect(hero.locator('[data-hero-active-photo]')).toHaveAttribute('alt', '')
+  await expect.poll(() => hero.locator('[data-hero-active-photo]').evaluate(image => image.naturalWidth)).toBeGreaterThan(0)
   const cards = page.locator('#services article')
   await expect(cards).toHaveCount(4)
   for (const card of await cards.all()) {
@@ -177,6 +287,12 @@ test('Home layers readable content over its image and services are visible befor
     await page.setViewportSize({ width, height: 844 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
     await expect(hero.getByRole('button', { name: 'Explore services', exact: true })).toBeVisible()
+    const image = await hero.locator('[data-hero-active-photo]').boundingBox()
+    const heading = await hero.getByRole('heading', { level: 1 }).boundingBox()
+    expect(image.width).toBeCloseTo(width, 0)
+    expect(heading.y).toBeLessThan(image.y + image.height)
+    expect(heading.y + heading.height).toBeGreaterThan(image.y)
+    await expect(hero.locator('[data-hero-active-photo]')).toHaveCSS('object-fit', 'contain')
   }
   if (process.env.HOME_HERO_QA) {
     await page.screenshot({ path: 'test-results/home-hero-mobile.png', animations: 'disabled' })
@@ -200,6 +316,14 @@ test('Home layers readable content over its image and services are visible befor
     await steps.screenshot({ path: 'test-results/home-steps-dark.png' })
     await page.getByRole('button', { name: 'Switch to light mode', exact: true }).click()
     await steps.screenshot({ path: 'test-results/home-steps-light.png' })
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Change language', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Tiếng Việt', exact: true }).click()
+    await page.evaluate(() => document.fonts.ready)
+    await expect(page.locator('#home-hero-heading')).toHaveCSS('font-family', '"Lora Hero", serif')
+    await page.screenshot({ path: 'test-results/home-hero-vietnamese-desktop.png', animations: 'disabled' })
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.screenshot({ path: 'test-results/home-hero-vietnamese-mobile.png', animations: 'disabled' })
   }
 })
 
