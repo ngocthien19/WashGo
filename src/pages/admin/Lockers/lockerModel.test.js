@@ -11,17 +11,23 @@ it('keeps Admin filters in the URL and sends resource IDs with server paging', (
 it('preserves legacy district and service area while omitting code and box configuration on update', () => {
   const locker = { id, code: 'LK01', name: 'Station', address: 'Street', ward: 'Ward', city: 'City', latitude: 10, longitude: 106, district: 'legacy', serviceAreaId: id, status: 1 }
   const body = lockerPayload(lockerDefaults(locker), locker, null, [])
-  expect(body).toMatchObject({ id, district: 'legacy', serviceAreaId: id, merchantIds: null, imageUrls: [] })
+  expect(body).toMatchObject({ id, ward: 'Ward', district: 'legacy', serviceAreaId: id, merchantIds: null, imageUrls: [] })
   for (const key of ['code', 'boxes', 'boxCount', 'defaultBoxSize']) {
     expect(body).not.toHaveProperty(key)
   }
   const create = lockerPayload(lockerDefaults(), null, [id], [])
-  expect(create).toMatchObject({ code: '', boxCount: 10, defaultBoxSize: 2 })
+  expect(create).toMatchObject({ boxCount: 10, defaultBoxSize: 2 })
+  expect(create).not.toHaveProperty('code')
   expect(create).not.toHaveProperty('status')
+  expect(create).not.toHaveProperty('ward')
+  expect(create).not.toHaveProperty('district')
 })
 it('rejects unsupported box counts and a zero map point; follows the database name limit', async () => {
-  const values = { ...lockerDefaults(), name: 'Station', address: 'Street', city: 'City', latitude: 10, longitude: 106 }
+  const values = { ...lockerDefaults(), code: 'LK01', name: 'Station', address: 'Street', city: 'City', latitude: 10, longitude: 106 }
   expect(await lockerSchema.isValid(values)).toBe(true)
+  expect(await lockerSchema.validate(values)).not.toHaveProperty('code')
+  expect(await lockerSchema.isValid({ ...values, code: '' })).toBe(true)
+  await expect(lockerSchema.validate({ ...values, latitude: 0, longitude: 0 })).rejects.toMatchObject({ path: 'latitude' })
   for (const patch of [{ boxCount: 201 }, { boxCount: 0 }, { boxCount: 1.5 }, { latitude: 0, longitude: 0 }, { name: 'x'.repeat(101) }]) {
     expect(await lockerSchema.isValid({ ...values, ...patch })).toBe(false)
   }

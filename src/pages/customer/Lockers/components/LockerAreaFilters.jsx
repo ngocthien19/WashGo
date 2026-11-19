@@ -10,20 +10,20 @@ export default function LockerAreaFilters({ city, hasFilters, onApply, onReset, 
   const cities = [...new Set([...(data || []).map((area) => area.city), selectedCity].filter(Boolean))]
   return (
     <div className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
-      <div className="grid items-center gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid items-end gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         {search}
         <form
           aria-label={t('customer.filterLockersByArea')}
-          className="grid items-center gap-2 sm:grid-cols-[minmax(10rem,1fr)_auto_auto]"
+          className="grid items-end gap-2 sm:grid-cols-[minmax(10rem,1fr)_auto_auto]"
           onSubmit={(event) => {
             event.preventDefault()
             onApply({ city: selectedCity })
           }}
         >
-          <div className="relative min-w-0 max-sm:col-span-2">
+          <div className="grid min-w-0 gap-2 max-sm:col-span-2">
             <label
               htmlFor="locker-city"
-              className="absolute -top-2 left-3 z-10 bg-card px-1 text-xs text-muted-foreground"
+              className="text-sm font-medium text-muted-foreground"
             >
               {t('customer.provinceCity')}
             </label>

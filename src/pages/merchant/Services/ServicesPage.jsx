@@ -137,21 +137,23 @@ export default function ServicesPage() {
                 formClassName="h-11 rounded-xl p-1 pl-3 [&_input]:h-8 [&_button]:size-8"
               />
             </div>
+            {!catalog && (
             <div className="grid gap-2">
               <label
                 htmlFor="service-type-filter"
                 className="text-sm text-muted-foreground"
               >
-                {t(catalog ? 'categories.processingType' : 'merchant.services.requestType')}
+                {t('merchant.services.requestType')}
               </label>
               <SelectField
                 id="service-type-filter"
-                label={t(catalog ? 'categories.processingType' : 'merchant.services.requestType')}
+                label={t('merchant.services.requestType')}
                 value={query.type}
                 onValueChange={(type) => update({ type })}
-                options={[{ value: '', label: t('common.all') }, ...(catalog ? SERVICE_TYPES.filter((item) => item.value).map((item) => ({ value: item.value, label: t(item.label) })) : [1, 2].map((value) => ({ value: String(value), label: t(`merchant.services.requestTypes.${value}`) })))]}
+                options={[{ value: '', label: t('common.all') }, ...[1, 2].map((value) => ({ value: String(value), label: t(`merchant.services.requestTypes.${value}`) }))]}
               />
             </div>
+            )}
             <div className="grid gap-2">
               <label
                 htmlFor="service-state-filter"
@@ -185,6 +187,8 @@ export default function ServicesPage() {
               <div className="flex flex-wrap items-center gap-3">
                 {catalog && (
                   <SelectField
+                    showLabel
+                    labelPosition="left"
                     label={t('merchant.serviceSync.sortLabel')}
                     className="workspace-filters w-52 font-medium"
                     value={query.sort}
@@ -284,7 +288,7 @@ export default function ServicesPage() {
                             </TableCell>
                           )}
                           <TableCell>
-                            <span className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold ${catalog ? (row.effectiveIsActive ?? row.isActive) ? approvalClass(2) : 'bg-muted text-muted-foreground' : approvalClass(row.status)}`}>
+                            <span className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold ${catalog ? (row.effectiveIsActive ?? row.isActive) ? approvalClass(2) : 'badge-inactive' : approvalClass(row.status)}`}>
                               {t(`merchant.services.${catalog ? 'activity' : 'approval'}.${catalog ? (row.effectiveIsActive ?? row.isActive) : row.status}`)}
                               {row.categoryIsActive === false && (
                                 <span className="ml-2 text-xs">

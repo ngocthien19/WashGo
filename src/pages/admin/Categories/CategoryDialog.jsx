@@ -11,7 +11,9 @@ import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminCategoryApi } from '~/apis/admin/adminCategoryApi'
 import { getApiError } from '~/utils/http/apiError'
-import { categoryDefaults, categorySchema } from './categoryModel'
+import { notify } from '~/utils/notifications/notifications'
+import FormError from '~/components/ui/FormError'
+import { categoryDefaults, categorySchema, categoryReasonSchema } from './categoryModel'
 
 export default function CategoryDialog({ modal, onClose, onSaved, onPending }) {
   const { t } = useTranslation()
@@ -25,7 +27,7 @@ export default function CategoryDialog({ modal, onClose, onSaved, onPending }) {
       onOpenChange={open => !open && !lockRef.current && onClose()}
     >
       <DialogContent
-        className="flex max-w-2xl flex-col overflow-hidden p-0 sm:p-0 [&_button]:text-base"
+        className="flex max-w-2xl flex-col overflow-clip p-0 sm:p-0 [&_button]:text-base"
         closeLabel="common.close"
       >
         <DialogHeader
@@ -69,7 +71,7 @@ function CategoryDialogBody({ modal, rows, lockRef, onClose, onSaved, onPending 
   const deleting = modal.kind === 'delete' || modal.kind === 'bulk' && action === 'delete'
   const targetActive = modal.kind === 'bulk' ? action === 'activate' : modal.isActive
   const [confirmed, setConfirmed] = useState(false)
-  const { register, control, handleSubmit, getValues, formState: { errors } } = useForm({ resolver: editing ? yupResolver(categorySchema) : undefined, defaultValues: modal.intent?.batch === false ? { ...modal.intent.body } : categoryDefaults(row) })
+  const { register, control, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(editing ? categorySchema : categoryReasonSchema), defaultValues: modal.intent?.batch === false ? { ...modal.intent.body } : categoryDefaults(row) })
   const permission = detail || modal.kind === 'create' || rows.every(item => modal.kind === 'edit' ? item.canEdit === true : deleting ? item.canDelete === true || item.deleteReasonCode === 'CategoryInUse' : item.canChangeStatus === true)
   const run = async (values, recovery) => {
     if (lockRef.current || blocked && !recovery || !recovery && !editing && !confirmed) {
@@ -92,7 +94,7 @@ function CategoryDialogBody({ modal, rows, lockRef, onClose, onSaved, onPending 
         const next = { key: batch ? 'batch' : row?.id || 'new', kind: modal.kind, rows, batch, id: row?.id,
           action: deleting ? 'delete' : 'status',
           body: batch ? { operationId: crypto.randomUUID(), items: rows.map(item => ({ id: item.id, expectedVersion: item.version })), isActive: deleting ? false : targetActive, reason: values.reason?.trim() || '' }
-            : { ...values, code: values.code.trim().toUpperCase(), expectedVersion: row?.version, operationId: crypto.randomUUID() } }
+            : { ...values, expectedVersion: row?.version, operationId: crypto.randomUUID() } }
         setIntent(next)
         response = await adminCategoryApi.execute(next)
       }
@@ -100,7 +102,11 @@ function CategoryDialogBody({ modal, rows, lockRef, onClose, onSaved, onPending 
         setResult(response); setError('categories.unknown'); onPending(); return
       }
       setResult(response); setIntent(null); onSaved()
-      if (editing) {
+      const failed = response.items?.filter(item => !item.succeeded).length || 0
+      if (failed) {
+        notify.error('categories.partialResult', { succeeded: response.items.length - failed, failed })
+      } else {
+        notify.success(`categories.success.${editing ? row ? 'edit' : 'create' : deleting ? 'delete' : targetActive ? 'activate' : 'lock'}`)
         onClose()
       }
     } catch (failure) {
@@ -120,14 +126,10 @@ function CategoryDialogBody({ modal, rows, lockRef, onClose, onSaved, onPending 
   const finished = result?.state === 'Completed'
   return (
     <form
-      className="flex min-h-0 flex-1 flex-col overflow-hidden"
+      className="flex min-h-0 flex-1 flex-col overflow-clip"
       noValidate
       onSubmit={event => {
-        if (editing) {
-          handleSubmit(values => run(values))(event)
-        } else {
-          event.preventDefault(); run(getValues())
-        }
+        handleSubmit(values => run(values))(event)
       }}
     >
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-6">
@@ -139,11 +141,11 @@ function CategoryDialogBody({ modal, rows, lockRef, onClose, onSaved, onPending 
             {['code', 'name', 'sortOrder', 'description', 'reason'].map(key => (
               <label
                 key={key}
-                className={`grid gap-2 ${['description', 'reason'].includes(key) ? 'sm:col-span-2' : ''}`}
+                className={`grid gap-2 ${['description', 'reason'].includes(key) ? 'sm:col-span-2' : ''} ${key === 'code' ? 'cursor-default select-none' : ''}`}
               >
                 <span className="text-sm font-medium">
                   {t(`categories.fields.${key}`)}
-                  {['code', 'name', 'sortOrder'].includes(key) && (
+                  {['name', 'sortOrder'].includes(key) && (
                     <span
                       aria-hidden="true"
                       className="ml-1 text-destructive"
@@ -154,18 +156,23 @@ function CategoryDialogBody({ modal, rows, lockRef, onClose, onSaved, onPending 
                 </span>
                 <Input
                   {...register(key)}
-                  placeholder={t(`categories.placeholders.${key}`)}
-                  aria-required={['code', 'name', 'sortOrder'].includes(key)}
-                  readOnly={key === 'code' && !!row}
+                  aria-label={t(`categories.fields.${key}`)}
+                  placeholder={t(key === 'code' ? 'common.systemGeneratedCode' : `categories.placeholders.${key}`)}
+                  aria-required={['name', 'sortOrder'].includes(key)}
+                  disabled={key === 'code'}
+                  tabIndex={key === 'code' ? -1 : undefined}
                   type={key === 'sortOrder' ? 'number' : 'text'}
                   maxLength={key === 'code' ? 30 : key === 'name' ? 100 : 500}
                   className="h-11 text-base md:text-base"
+                  aria-invalid={!!errors[key]}
+                  aria-describedby={errors[key] ? `category-${key}-error` : undefined}
                 />
-                {errors[key] && (
-                  <span className="text-sm text-destructive">
-                    {t('categories.invalidField')}
-                  </span>
-                )}
+                <FormError
+                  inline
+                  id={`category-${key}-error`}
+                >
+                  {errors[key]?.message}
+                </FormError>
               </label>
             ))}
             <label className="flex min-h-11 items-center gap-3 text-base font-medium">
@@ -228,7 +235,7 @@ function CategoryDialogBody({ modal, rows, lockRef, onClose, onSaved, onPending 
                         {item.name}
                       </h3>
                     </div>
-                    <span className={`col-span-2 inline-flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium sm:ml-auto ${item.isActive ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+                    <span className={`col-span-2 inline-flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium sm:ml-auto ${item.isActive ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'badge-inactive'}`}>
                       {item.isActive ? <CircleCheck size={16} /> : <LockKeyhole size={16} />}
                       {t(item.isActive ? 'categories.active' : 'categories.inactive')}
                     </span>
@@ -312,12 +319,21 @@ function CategoryDialogBody({ modal, rows, lockRef, onClose, onSaved, onPending 
                     {t('categories.fields.reason')}
                   </span>
                   <Input
+                    aria-label={t('categories.fields.reason')}
                     {...register('reason')}
                     placeholder={t('categories.placeholders.reason')}
                     className="h-11 text-base md:text-base"
                     maxLength={500}
                     disabled={busy || pending || finished}
+                    aria-invalid={!!errors.reason}
+                    aria-describedby={errors.reason ? 'category-reason-error' : undefined}
                   />
+                  <FormError
+                    inline
+                    id="category-reason-error"
+                  >
+                    {errors.reason?.message}
+                  </FormError>
                 </label>
                 <label className="flex items-start gap-3 rounded-xl border border-primary/15 bg-primary/5 p-4 text-base leading-6">
                   <Checkbox

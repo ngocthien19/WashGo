@@ -3,15 +3,23 @@ import { useTranslation } from 'react-i18next'
 import { Banknote, Clock, Tags, Scale, Shirt } from 'lucide-react'
 import { formatCurrency } from '~/utils/format/formats'
 import { SERVICE_TYPES } from '~/utils/config/constants'
+import { approvalClass } from '../serviceModel'
 
-export default function ServiceInfo({ value }) {
+export default function ServiceInfo({ value, showActivity = false }) {
   const { t } = useTranslation()
   const category = SERVICE_TYPES.find((item) => Number(item.value) === value.serviceType)?.label
   return (
     <div className="grid gap-4">
-      <h3 className="break-words text-xl font-bold">
-        {value.name}
-      </h3>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="min-w-0 flex-1 break-words text-xl font-bold">
+          {value.name}
+        </h3>
+        {showActivity && (
+          <span className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold ${value.isActive ? approvalClass(2) : 'badge-inactive'}`}>
+            {t(`merchant.services.activity.${value.isActive}`)}
+          </span>
+        )}
+      </div>
       <ResourceGallery
         urls={value.imageUrls}
         imageLabel="merchant.services.image"

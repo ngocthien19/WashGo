@@ -9,7 +9,7 @@ const boxStates = [
   { key: 'availableBoxes', status: 1, Icon: DoorOpen, color: 'text-emerald-600 dark:text-emerald-400', background: 'bg-emerald-500/10' },
   { key: 'occupiedBoxes', status: 2, Icon: Package, color: 'text-red-600 dark:text-red-400', background: 'bg-red-500/10' },
   { key: 'reservedBoxes', status: 3, Icon: Clock, color: 'text-amber-600 dark:text-amber-400', background: 'bg-amber-500/10' },
-  { key: 'maintenanceBoxes', status: 4, Icon: Wrench, color: 'text-slate-500 dark:text-slate-400', background: 'bg-slate-500/10' }
+  { key: 'maintenanceBoxes', status: 4, Icon: Wrench, color: 'text-amber-800 dark:text-amber-300', background: 'bg-amber-500/15' }
 ]
 
 const cards = [

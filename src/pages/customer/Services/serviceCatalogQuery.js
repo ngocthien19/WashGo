@@ -38,8 +38,8 @@ export const readServiceQuery = (params) => {
   }
   return {
     keyword: params.get('keyword')?.trim() || '',
-    categoryIds: [...new Set(params.getAll('categoryId'))].filter(value => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)).slice(0, 100),
-    serviceTypes,
+    categoryIds: [...new Set([...params.getAll('categoryId'), ...serviceTypes.map(type => `ca000000-0000-0000-0000-${String(type).padStart(12, '0')}`)])].filter(value => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)).slice(0, 100),
+    serviceTypes: [],
     priceRanges,
     sort: SERVICE_SORT_OPTIONS.some((option) => option.value === sort) ? sort : initialServiceQuery.sort,
     minPrice: invalidRange || legacyPreset ? '' : minPrice,
@@ -56,7 +56,6 @@ export const writeServiceQuery = (query) => {
     }
   }
   ;(query.categoryIds || []).forEach(value => params.append('categoryId', value))
-  query.serviceTypes.forEach((value) => params.append('serviceType', value))
   query.priceRanges.forEach((value) => params.append('priceRange', value))
   if (query.sort !== initialServiceQuery.sort) {
     params.set('sort', query.sort)
@@ -72,7 +71,6 @@ export const buildServiceFilter = (query) => ({
   take: CUSTOMER_CATALOG.PAGE_SIZE,
   keyword: query.keyword || undefined,
   ...(query.categoryIds?.length ? { categoryIds: query.categoryIds } : {}),
-  serviceTypes: query.serviceTypes.map(Number),
   priceRanges: [
     ...query.priceRanges.map((value) => SERVICE_PRICE_RANGES.find((range) => range.value === value)),
     ...(query.minPrice || query.maxPrice ? [query] : [])

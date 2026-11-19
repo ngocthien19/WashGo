@@ -13,7 +13,8 @@ it('rejects over-limit and invalid proposal data', async () => {
   await expect(proposalSchema.validate({ ...draft, unit: ' ' })).rejects.toThrow()
 })
 it('keeps inactive catalog filters and keeps proposal search fields', () => {
-  expect(serviceFilter(readServiceQuery(new URLSearchParams('state=false&type=5&page=2')))).toMatchObject({ isActive: false, serviceType: 5, page: 2 })
+  expect(serviceFilter(readServiceQuery(new URLSearchParams('state=false&type=5&page=2')))).not.toHaveProperty('serviceType')
+  expect(serviceFilter(readServiceQuery(new URLSearchParams('state=false&type=5&page=2')))).toMatchObject({ isActive: false, page: 2 })
   expect(serviceFilter(readServiceQuery(new URLSearchParams('tab=proposals&state=3&type=2&keyword=hidden')))).toMatchObject({ status: 3, requestType: 2, keyword: 'hidden', page: 1, take: 12 })
   expect(readServiceQuery(new URLSearchParams('tab=bad&state=99&page=-1'))).toMatchObject({ tab: 'catalog', state: '', page: 1 })
 })
@@ -25,4 +26,11 @@ it('enforces the same maximum and decimal precision on every optional price', as
 it('normalizes sorting and only passes a valid service ID for proposal filtering', () => {
   expect(serviceFilter(readServiceQuery(new URLSearchParams('sort=priceDesc')))).toMatchObject({ sortBy: [{ field: 'UnitPrice', isDescending: true }] })
   expect(readServiceQuery(new URLSearchParams('tab=proposals&serviceId=invalid&sort=invalid'))).toMatchObject({ serviceId: '', sort: 'name' })
+})
+
+it('supports dynamic categories with no legacy service type and strips a stale type', async () => {
+  const dynamic = { ...draft, categoryId: 'ca000000-0000-0000-0000-000000000006', serviceType: null }
+  expect(await proposalSchema.validate(dynamic)).not.toHaveProperty('serviceType')
+  const categoryOnly = { ...draft }; delete categoryOnly.serviceType
+  expect(await proposalSchema.isValid(categoryOnly)).toBe(true)
 })

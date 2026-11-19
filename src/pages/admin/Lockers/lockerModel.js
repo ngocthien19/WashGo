@@ -9,19 +9,33 @@ export const readAdminLockerQuery = params => ({ ...readLockerQuery(params), cit
 export const adminLockerFilter = query => ({ ...lockerFilter(query), city: query.city || undefined, merchantId: query.merchantId || undefined })
 export const writeAdminLockerQuery = query => Object.fromEntries(Object.entries(query).filter(([key, value]) => value !== '' && !(key === 'page' && value === 1) && !(key === 'sort' && value === 'code')).map(([key, value]) => [key, String(value)]))
 export const unknownLockerWrite = error => Boolean(error.uncertain || !error.response || error.response.status >= 500 || error.response.status === 408)
+export const lockerFieldErrors = failure => {
+  const fields = failure.response?.data?.errors
+  if (!fields || Array.isArray(fields) || typeof fields !== 'object') {
+    return []
+  }
+  const allowed = ['name', 'address', 'city', 'ward', 'district', 'description', 'latitude', 'longitude', 'lockerType', 'status', 'merchantIds', 'serviceAreaId', 'boxCount', 'defaultBoxSize']
+  return Object.entries(fields).flatMap(([name, messages]) => {
+    const field = name.charAt(0).toLowerCase() + name.slice(1)
+    const message = Array.isArray(messages) ? messages.find(value => typeof value === 'string' && value.trim()) : typeof messages === 'string' ? messages : null
+    return allowed.includes(field) && message ? [[field, message]] : []
+  })
+}
 export const lockerSnapshot = locker => JSON.stringify([
   ...['version', 'id', 'code', 'name', 'address', 'ward', 'district', 'city', 'latitude', 'longitude', 'lockerType', 'status', 'description', 'serviceAreaId'].map(key => locker[key] ?? null),
   locker.imageUrls || [], [...(locker.merchants || [])].sort((a, b) => a.priority - b.priority).map(m => [m.merchantId, m.priority]),
   [...(locker.boxes || [])].sort((a, b) => a.id.localeCompare(b.id)).map(b => [b.id, b.boxNumber, b.size, b.status])
 ])
 export const lockerSchema = yup.object({
-  code: yup.string().trim().max(50), name: yup.string().trim().required().max(100),
+  code: yup.mixed().strip(), name: yup.string().trim().required().max(100),
   address: yup.string().trim().required().max(500), city: yup.string().trim().required().max(100), ward: yup.string().trim().max(100),
   latitude: yup.number().required().min(-90).max(90), longitude: yup.number().required().min(-180).max(180),
   lockerType: yup.number().required().oneOf([1, 2]), status: yup.number().required().oneOf([1, 2, 3]),
   description: yup.string().trim().max(2000), boxCount: yup.number().integer().min(1).max(200).required(),
   defaultBoxSize: yup.number().required().oneOf([1, 2, 3])
-}).test('coordinates', '', value => value.latitude !== 0 || value.longitude !== 0)
+}).test('coordinates', '', function (value) {
+  return value.latitude !== 0 || value.longitude !== 0 || this.createError({ path: 'latitude', message: 'forms.invalidValue' })
+})
 
 export const lockerDefaults = locker => ({
   code: locker?.code || '', name: locker?.name || '', address: locker?.address || '', ward: locker?.ward || '', city: locker?.city || '',
@@ -29,11 +43,11 @@ export const lockerDefaults = locker => ({
   status: locker?.status || 1, description: locker?.description || '', boxCount: locker?.boxes?.length || 10, defaultBoxSize: 2
 })
 export const lockerPayload = (values, locker, merchantIds, imageUrls) => {
-  const body = Object.fromEntries(['name', 'address', 'ward', 'city', 'description'].map(key => [key, values[key].trim()]))
+  const body = Object.fromEntries(['name', 'address', 'city', 'description'].map(key => [key, values[key].trim()]))
   Object.assign(body, { latitude: Number(values.latitude), longitude: Number(values.longitude), lockerType: Number(values.lockerType), imageUrls,
-    merchantIds, district: locker?.district || '', serviceAreaId: locker?.serviceAreaId || null })
+    merchantIds, serviceAreaId: locker?.serviceAreaId || null })
   if (locker) {
-    return { ...body, id: locker.id, expectedVersion: locker.version, status: Number(values.status) }
+    return { ...body, ward: values.ward.trim(), district: locker.district || '', id: locker.id, expectedVersion: locker.version, status: Number(values.status) }
   }
-  return { ...body, code: values.code.trim(), boxCount: Number(values.boxCount), defaultBoxSize: Number(values.defaultBoxSize) }
+  return { ...body, boxCount: Number(values.boxCount), defaultBoxSize: Number(values.defaultBoxSize) }
 }

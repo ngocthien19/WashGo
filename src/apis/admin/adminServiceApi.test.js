@@ -13,7 +13,9 @@ it('preserves false availability and whitelists catalog filters', async () => {
 it('does not submit owned image references without approval or identity fields when editing', async () => {
   authorizedAxios.put.mockResolvedValue({ data: { succeeded: true, data: service } })
   await adminServiceApi.update({ id, expectedVersion: 'v1', code: 'SVC1', name: 'Wash', isActive: true, imageUrls: ['bad'], approvalStatus: 3, approvedBy: id })
-  expect(authorizedAxios.put).toHaveBeenCalledWith('/wash-service', expect.objectContaining({ id, code: 'SVC1', name: 'Wash', isActive: true, imageUrls: ['bad'], expectedVersion: 'v1', operationId: expect.any(String) }))
+  expect(authorizedAxios.put).toHaveBeenCalledWith('/wash-service', expect.objectContaining({ id, name: 'Wash', isActive: true, imageUrls: ['bad'], expectedVersion: 'v1', operationId: expect.any(String) }))
+  expect(authorizedAxios.put.mock.calls[0][1]).not.toHaveProperty('code')
+  expect(authorizedAxios.put.mock.calls[0][1]).not.toHaveProperty('serviceType')
 })
 it('availability changes preserve approval and malformed writes are uncertain', async () => {
   authorizedAxios.put.mockResolvedValue({ data: { succeeded: true, data: { ...service, isActive: false } } })

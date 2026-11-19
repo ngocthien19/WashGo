@@ -118,7 +118,7 @@ describe('create order flow', () => {
     expect(customerOrderApi.create).toHaveBeenCalledWith({ lockerId: 'locker', boxId: 'box', returnLockerId: 'locker', paymentMethod: 1, customerNote: 'Handle carefully', promotionCode: null, items: [{ serviceId: 'service', quantity: 1 }] })
     result.resolve({ id: 'order', orderCode: 'WG123', lockerName: locker.name, boxNumber: 1, finalAmount: 29000, depositPinCode: '123456' })
     expect(await screen.findByRole('heading', { name: 'Tạo đơn thành công!' })).toBeVisible()
-    expect(notify.success).not.toHaveBeenCalled()
+    expect(notify.success).toHaveBeenCalledExactlyOnceWith('forms.created')
     expect(screen.getByText('WG123')).toBeVisible()
     expect(screen.queryByText('123456')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Hiện mã PIN gửi đồ' }))

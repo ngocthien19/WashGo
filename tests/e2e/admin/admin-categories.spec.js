@@ -46,7 +46,7 @@ async function setup(page, options = {}) {
     }
     if (path === '/admin/service-categories' && req.method() === 'POST') {
       state.writes.push({ path, body })
-      const row = { ...body, id: id(100), version: 'v1', serviceCount: 0, pendingProposalCount: 0, canEdit: true, canDelete: true, canChangeStatus: true }
+      const row = { ...body, code: 'DM1234', id: id(100), version: 'v1', serviceCount: 0, pendingProposalCount: 0, canEdit: true, canDelete: true, canChangeStatus: true }
       state.rows.push(row); return ok(row)
     }
     const row = state.rows.find(row => path === `/admin/service-categories/${row.id}`)
@@ -69,14 +69,15 @@ test('Admin category table shows the server total and supports create, edit and 
   await expect(page.getByRole('status').filter({ hasText: 'categories found' })).toHaveText('23categories found')
   await page.getByRole('button', { name: 'Add category', exact: true }).click()
   let dialog = page.getByRole('dialog')
-  await dialog.getByRole('textbox', { name: 'Category code', exact: true }).fill('SPECIAL_CARE')
+  await expect(dialog.getByRole('textbox', { name: 'Category code', exact: true })).toBeDisabled()
   await dialog.getByRole('textbox', { name: 'Category name', exact: true }).fill('Special care')
   await dialog.getByRole('button', { name: 'Save category', exact: true }).click()
   await expect(dialog).not.toBeVisible()
-  expect(state.writes[0].body).toMatchObject({ code: 'SPECIAL_CARE', name: 'Special care', operationId: expect.any(String) })
+  expect(state.writes[0].body).toMatchObject({ name: 'Special care', operationId: expect.any(String) })
+  expect(state.writes[0].body).not.toHaveProperty('code')
   await rowAction(page, 'Category 02', 'Edit category')
   dialog = page.getByRole('dialog')
-  await expect(dialog.getByRole('textbox', { name: 'Category code', exact: true })).toHaveAttribute('readonly')
+  await expect(dialog.getByRole('textbox', { name: 'Category code', exact: true })).toBeDisabled()
   await dialog.getByRole('textbox', { name: 'Category name', exact: true }).fill('Renamed category')
   await dialog.getByRole('button', { name: 'Save category', exact: true }).click()
   await expect(dialog).not.toBeVisible()
@@ -86,7 +87,8 @@ test('Admin category table shows the server total and supports create, edit and 
   await expect(dialog).toContainText('3 services')
   await dialog.getByRole('checkbox').check()
   await dialog.getByRole('button', { name: 'Confirm', exact: true }).click()
-  await expect(dialog.getByRole('heading', { name: 'Results by category', exact: true })).toBeVisible()
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByText('Selected categories locked.', { exact: true })).toBeVisible()
   expect(state.writes[2].body).toMatchObject({ isActive: false, items: [{ id: id(1), expectedVersion: 'v1' }] })
 })
 
@@ -122,7 +124,8 @@ test('unknown category batch can be reopened and resumes the exact operation aft
   await dialog.getByRole('button', { name: 'Check result', exact: true }).click()
   expect(state.writes).toHaveLength(1)
   await dialog.getByRole('button', { name: 'Resume original operation', exact: true }).click()
-  await expect(dialog.getByRole('heading', { name: 'Results by category', exact: true })).toBeVisible()
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByText('Selected categories locked.', { exact: true })).toBeVisible()
   expect(state.writes).toHaveLength(2)
   expect(state.writes[1].body).toEqual(state.writes[0].body)
 })
@@ -131,6 +134,50 @@ async function rowAction(page, name, action) {
   await page.getByRole('button', { name: `Actions for ${name}`, exact: true }).click()
   await page.getByRole('menuitem', { name: action, exact: true }).click()
 }
+
+test('category validation marks the exact fields and clears them before a successful save', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto('/admin/categories')
+  await page.getByRole('button', { name: 'Add category', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  const code = dialog.getByRole('textbox', { name: 'Category code', exact: true })
+  const name = dialog.getByRole('textbox', { name: 'Category name', exact: true })
+  const sort = dialog.getByRole('spinbutton', { name: 'Display order', exact: true })
+  await expect(code).toBeDisabled()
+  await sort.fill('-1')
+  await dialog.getByRole('button', { name: 'Save category', exact: true }).click()
+  for (const field of [name, sort]) {
+    await expect(field).toHaveAttribute('aria-invalid', 'true')
+    const messageId = await field.getAttribute('aria-describedby')
+    await expect(dialog.locator(`[id="${messageId}"]`)).toBeVisible()
+    await expect(dialog.locator(`[id="${messageId}"]`)).not.toHaveClass(/bg-destructive/)
+  }
+  expect(state.writes).toHaveLength(0)
+  await name.fill('Valid category')
+  await sort.fill('4')
+  await dialog.getByRole('button', { name: 'Save category', exact: true }).click()
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByText('Category created.', { exact: true })).toBeVisible()
+  expect(state.writes[0].body).not.toHaveProperty('code')
+  expect(state.writes).toHaveLength(1)
+})
+
+test('locking unlocking and deleting categories close the modal with a success toast', async ({ page }) => {
+  const state = await setup(page, { dark: true })
+  await page.goto('/admin/categories')
+  for (const [action, message] of [['Lock', 'Selected categories locked.'], ['Unlock', 'Selected categories activated.'], ['Delete category', 'Selected categories deleted.']]) {
+    await rowAction(page, 'Category 02', action)
+    const dialog = page.getByRole('dialog')
+    await dialog.getByRole('checkbox').check()
+    await dialog.getByRole('button', { name: 'Confirm', exact: true }).click()
+    await expect(dialog).not.toBeVisible()
+    await expect(page.getByText(message, { exact: true })).toBeVisible()
+    if (action === 'Lock') {
+      await expect(page.getByRole('row').filter({ hasText: 'Category 02' }).getByText('Locked', { exact: true })).toHaveClass(/badge-inactive/)
+    }
+  }
+  expect(state.rows.some(row => row.id === id(2))).toBe(false)
+})
 
 test('category statistics stay global while filters and paging use the server, and stale edits are blocked', async ({ page }) => {
   const state = await setup(page)
@@ -226,9 +273,9 @@ for (const dark of [false, true]) {
     }
     await dialog.getByRole('checkbox').check()
     await dialog.getByRole('button', { name: 'Confirm', exact: true }).click()
-    await expect(dialog.getByRole('heading', { name: 'Results by category', exact: true })).toBeVisible()
+    await expect(dialog).not.toBeVisible()
+    await expect(page.getByText('Selected categories locked.', { exact: true })).toBeVisible()
     expect(state.rows[0].isActive).toBe(false)
-    await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
     await rowAction(page, 'Category 01', 'Unlock')
     dialog = page.getByRole('dialog')
     await expect(dialog.getByRole('heading', { name: 'Activate category', exact: true })).toBeVisible()
@@ -241,7 +288,8 @@ for (const dark of [false, true]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await dialog.getByRole('checkbox').check()
     await dialog.getByRole('button', { name: 'Confirm', exact: true }).click()
-    await expect(dialog.getByRole('heading', { name: 'Results by category', exact: true })).toBeVisible()
+    await expect(dialog).not.toBeVisible()
+    await expect(page.getByText('Selected categories activated.', { exact: true })).toBeVisible()
     expect(state.rows[0].isActive).toBe(true)
   })
 }

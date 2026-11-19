@@ -14,6 +14,7 @@ import { customerOrderApi } from '~/apis/customer/customerOrderApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { CUSTOMER_ROUTES, ORDER_PAYMENT_METHODS } from '~/utils/config/constants'
 import { getApiError } from '~/utils/http/apiError'
+import { notify } from '~/utils/notifications/notifications'
 import { orderDetailsSchema, toCreateOrder, toOrderItems, validOrderItems } from './orderModel'
 import OrderStepper from './components/OrderStepper'
 import OrderServices from './components/OrderServices'
@@ -133,6 +134,7 @@ export default function CreateOrderPage() {
         throw new Error('customer.order.unknownOutcome')
       }
       if (active.current) {
+        notify.success('forms.created')
         setOrder(result)
         form.reset()
       }

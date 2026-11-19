@@ -86,7 +86,7 @@ export default function CategoriesPage() {
               label={t(`categories.stats.${key}`)}
               value={summary.data?.[key]}
               className={color === 'primary' ? 'border-l-primary' : color === 'emerald' ? 'border-l-emerald-500' : 'border-l-slate-400'}
-              iconClassName={color === 'primary' ? 'bg-primary/10 text-primary' : color === 'emerald' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}
+              iconClassName={color === 'primary' ? 'bg-primary/10 text-primary' : color === 'emerald' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'badge-inactive'}
             />
           ))}
         </div>
@@ -173,9 +173,9 @@ export default function CategoriesPage() {
             </strong>
             {t('categories.found')}
           </p>
-          <div className="workspace-filters grid w-full gap-3 sm:w-auto sm:grid-cols-2">
-            <div className="grid gap-2">
-              <span className="text-sm font-medium">
+          <div className="workspace-filters flex w-full flex-wrap items-center gap-3 sm:w-auto">
+            <div className="flex items-center gap-2">
+              <span className="shrink-0 text-sm font-medium">
                 {t('categories.sort')}
               </span>
               <SelectField
@@ -186,8 +186,8 @@ export default function CategoriesPage() {
                 options={['sortOrder', 'name', 'code'].map(key => ({ value: key, label: t(`categories.fields.${key}`) }))}
               />
             </div>
-            <div className="grid gap-2">
-              <span className="text-sm font-medium">
+            <div className="flex items-center gap-2">
+              <span className="shrink-0 text-sm font-medium">
                 {t('categories.direction')}
               </span>
               <SelectField
@@ -291,7 +291,7 @@ function CategoryTable({ rows, selected, resource, setSelection, toggle, setModa
                 {row.sortOrder}
               </TableCell>
               <TableCell>
-                <span className={`whitespace-nowrap rounded-full px-3 py-1 text-sm font-medium ${row.isActive ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+                <span className={`whitespace-nowrap rounded-full px-3 py-1 text-sm font-medium ${row.isActive ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'badge-inactive'}`}>
                   {t(row.isActive ? 'categories.active' : 'categories.inactive')}
                 </span>
               </TableCell>

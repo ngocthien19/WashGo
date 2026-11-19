@@ -23,7 +23,7 @@ function FilterOptions({ id, title, icon: Icon, options, values, onChange }) {
           aria-controls={`${id}-options`}
           onClick={() => setExpanded((current) => !current)}
         >
-          <span className="flex text-base items-center gap-2">
+          <span className="flex items-center gap-2 text-lg">
             <Icon className="size-4 text-muted-foreground" />
             {title}
           </span>
@@ -42,7 +42,7 @@ function FilterOptions({ id, title, icon: Icon, options, values, onChange }) {
           {options.map((option) => (
             <label
               key={option.value}
-              className={cn('flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-sm hover:bg-muted', UI_TRANSITIONS.BUTTON,
+              className={cn('flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-base hover:bg-muted', UI_TRANSITIONS.BUTTON,
                 (option.value ? values.includes(option.value) : !values.length) ? 'bg-primary/8 font-normal text-primary hover:bg-primary/12' : 'text-foreground/90')}
             >
               <Checkbox

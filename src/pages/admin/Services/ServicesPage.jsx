@@ -17,7 +17,6 @@ import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import Reveal from '~/components/motion/Reveal'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminServiceApi } from '~/apis/admin/adminServiceApi'
-import { SERVICE_TYPES } from '~/utils/config/constants'
 import { formatCurrency, formatDateTime } from '~/utils/format/formats'
 import { notify } from '~/utils/notifications/notifications'
 import { getApiError } from '~/utils/http/apiError'
@@ -77,7 +76,7 @@ export default function ServicesPage() {
     document.title = `${t('admin.nav.services')} | WashGo`
   }, [t])
   const options = [
-    { key: 'type', label: catalog ? 'categories.processingType' : 'merchant.services.requestType', values: catalog ? SERVICE_TYPES.filter(item => item.value !== '').map(item => ({ value: String(item.value), label: t(item.label) })) : [1, 2].map(value => ({ value: String(value), label: t(`merchant.services.requestTypes.${value}`) })) },
+    ...(!catalog ? [{ key: 'type', label: 'merchant.services.requestType', values: [1, 2].map(value => ({ value: String(value), label: t(`merchant.services.requestTypes.${value}`) })) }] : []),
     { key: 'state', label: catalog ? 'merchant.services.activityLabel' : 'merchant.services.approvalLabel', values: (catalog ? ['true', 'false'] : ['1', '2', '3']).map(value => ({ value, label: t(catalog ? `merchant.services.activity.${value}` : `merchant.services.approval.${value}`) })) }
   ]
   const merchantOptions = merchants.data || []
@@ -268,6 +267,8 @@ export default function ServicesPage() {
           </p>
           {catalog && (
             <SelectField
+              showLabel
+              labelPosition="left"
               label={t('merchant.serviceSync.sortLabel')}
               value={query.sort}
               onValueChange={sort => update({ sort })}
@@ -402,7 +403,7 @@ export default function ServicesPage() {
                       </TableCell>
                       {catalog && (
                         <TableCell>
-                          <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium ${(row.effectiveIsActive ?? row.isActive) ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+                          <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium ${(row.effectiveIsActive ?? row.isActive) ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'badge-inactive'}`}>
                             {t(`merchant.services.activity.${row.effectiveIsActive ?? row.isActive}`)}
                           </span>
                         </TableCell>

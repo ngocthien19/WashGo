@@ -7,6 +7,30 @@ const menu = async (page, action) => {
 }
 const save = dialog => dialog.getByRole('button', { name: 'Save locker', exact: true }).click()
 
+test('Locker server validation opens the matching tab and marks the actual input', async ({ page }) => {
+  const state = await setup(page)
+  let rejected = false
+  await page.route('**/api/locker', async route => {
+    if (route.request().method() !== 'PUT' || rejected) {
+      return route.fallback()
+    }
+    rejected = true
+    return route.fulfill({ status: 400, json: { succeeded: false, message: 'Check the station name.', errors: { name: ['Station name is already used.'] }, meta: { code: 'ValidationFailed', fields: ['name'] } } })
+  })
+  await page.goto('/admin/lockers')
+  await menu(page, 'Edit locker')
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('tab', { name: 'Responsible merchants', exact: true }).click()
+  await save(dialog)
+  await expect(dialog.getByRole('tab', { name: 'Station details', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(dialog.getByLabel('Locker station name', { exact: true })).toHaveAttribute('aria-invalid', 'true')
+  await expect(dialog.getByText('Station name is already used.', { exact: true })).toBeVisible()
+  await dialog.getByLabel('Locker station name', { exact: true }).fill('Unique station')
+  await save(dialog)
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes).toHaveLength(1)
+})
+
 test('backend sync: partial Locker batch returns one aggregate result without individual mutations', async ({ page }) => {
   const state = await setup(page)
   state.lockers[0].canDelete = false
@@ -107,19 +131,72 @@ test('Admin detail shares photo and box layout, keeps Merchant priorities and li
   expect(state.writes).toHaveLength(0)
 })
 
+for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 720 }]) {
+  test(`Locker image selection keeps header and footer fixed at ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport)
+    const state = await setup(page)
+    await page.goto('/admin/lockers')
+    await menu(page, 'Edit locker')
+    const dialog = page.getByRole('dialog')
+    const assertLayout = async () => {
+      await expect.poll(() => dialog.evaluate(element => {
+        const rect = element.getBoundingClientRect()
+        const header = element.querySelector('[data-dialog-header]').getBoundingClientRect()
+        const footer = element.querySelector('[data-dialog-footer]').getBoundingClientRect()
+        return Math.abs(header.top - rect.top) <= 2 && Math.abs(footer.bottom - rect.bottom) <= 2 && element.scrollTop === 0
+      })).toBe(true)
+    }
+    await assertLayout()
+    await expect(dialog.getByLabel('Add photos', { exact: true })).not.toHaveAttribute('multiple')
+    await expect(dialog.getByText('1 / 1', { exact: true })).toBeVisible()
+    await dialog.getByRole('button', { name: 'Remove photo 1', exact: true }).click()
+    const choose = dialog.locator('button').filter({ hasText: /^Add photos$/ })
+    await choose.scrollIntoViewIfNeeded()
+    await expect(choose).toHaveCSS('border-style', 'dashed')
+    const idleColor = await choose.evaluate(element => getComputedStyle(element).backgroundColor)
+    await choose.hover()
+    await expect.poll(() => choose.evaluate(element => getComputedStyle(element).backgroundColor)).not.toBe(idleColor)
+    const chooserPromise = page.waitForEvent('filechooser')
+    await choose.click()
+    const chooser = await chooserPromise
+    await chooser.setFiles({ name: 'station.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aCGsAAAAASUVORK5CYII=', 'base64') })
+    await expect(dialog.getByRole('img', { name: 'Station photos' })).toHaveCount(1)
+    await expect(choose).toBeDisabled()
+    await assertLayout()
+    await dialog.locator('[data-dialog-body]').evaluate(element => {
+      element.scrollTop = 0
+    })
+    await assertLayout()
+    await dialog.locator('[data-dialog-body]').evaluate(element => {
+      element.scrollTop = element.scrollHeight
+    })
+    await assertLayout()
+    await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+    await expect(dialog).toHaveCount(0)
+    expect(state.writes).toHaveLength(0)
+    expect(state.uploads).toBe(0)
+  })
+}
+
 test('editing preserves legacy geography and Merchant links and uploads station photos', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/admin/lockers')
   await menu(page, 'Edit locker')
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByLabel('Locker code', { exact: true })).not.toBeEditable()
+  const code = dialog.getByLabel('Locker code', { exact: true })
+  await code.evaluate(element => element.focus())
+  await expect(code).not.toBeFocused()
+  await expect(code).toHaveCSS('caret-color', 'rgba(0, 0, 0, 0)')
+  await expect(code.locator('..')).toHaveCSS('cursor', 'default')
   await dialog.getByLabel('Locker station name', { exact: true }).fill('Renamed Station')
+  await dialog.getByRole('button', { name: 'Remove photo 1', exact: true }).click()
   await dialog.getByLabel('Add photos', { exact: true }).setInputFiles({ name: 'station.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aCGsAAAAASUVORK5CYII=', 'base64') })
   await save(dialog)
   await expect(dialog).toHaveCount(0)
   await expect(page.getByRole('table')).toContainText('Renamed Station')
   expect(state.uploads).toBe(1)
-  expect(state.writes[0].body).toMatchObject({ id: lockerId, merchantIds: null, district: 'Legacy district', serviceAreaId: '70000000-0000-4000-8000-000000000001', imageUrls: ['/uploads/mock/locker.svg', '/uploads/mock/new.png'] })
+  expect(state.writes[0].body).toMatchObject({ id: lockerId, merchantIds: null, district: 'Legacy district', serviceAreaId: '70000000-0000-4000-8000-000000000001', imageUrls: ['/uploads/mock/new.png'] })
   for (const key of ['code', 'boxes', 'boxCount', 'actorId', 'role']) {
     expect(state.writes[0].body).not.toHaveProperty(key)
   }
@@ -230,7 +307,11 @@ test('create selects a map point and active Merchant then sends supported box co
   await page.goto('/admin/lockers')
   await page.getByRole('button', { name: 'Add locker', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Add locker', exact: true })
+  await expect(dialog.getByLabel('Ward / Commune', { exact: true })).toHaveCount(0)
+  await expect(dialog.getByLabel('District', { exact: true })).toHaveCount(0)
   await save(dialog)
+  await expect(dialog.getByLabel('Locker code', { exact: true })).toBeDisabled()
+  await expect(dialog.getByLabel('Locker code', { exact: true })).toHaveAttribute('placeholder', 'Generated automatically when saved')
   expect(state.writes).toHaveLength(0)
   await dialog.getByLabel('Locker station name', { exact: true }).fill('New Station')
   await dialog.getByRole('button', { name: 'Choose on map', exact: true }).click()
@@ -246,7 +327,10 @@ test('create selects a map point and active Merchant then sends supported box co
   await dialog.getByLabel('Total compartments', { exact: true }).fill('8')
   await save(dialog)
   await expect(dialog).toHaveCount(0)
-  expect(state.writes[0].body).toMatchObject({ name: 'New Station', merchantIds: [merchantId], boxCount: 8, defaultBoxSize: 2, district: '', code: '' })
+  expect(state.writes[0].body).toMatchObject({ name: 'New Station', merchantIds: [merchantId], boxCount: 8, defaultBoxSize: 2 })
+  expect(state.writes[0].body).not.toHaveProperty('code')
+  expect(state.writes[0].body).not.toHaveProperty('ward')
+  expect(state.writes[0].body).not.toHaveProperty('district')
   expect(Number.isFinite(state.writes[0].body.latitude)).toBe(true)
 })
 

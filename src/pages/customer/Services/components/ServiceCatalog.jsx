@@ -38,8 +38,6 @@ export default function ServiceCatalog() {
     ...query.priceRanges.map((value) => ({ id: `range:${value}`, label: t(SERVICE_PRICE_RANGES.find((range) => range.value === value).label) })),
     (query.minPrice || query.maxPrice) && { id: 'price', label: priceLabel }
   ].filter(Boolean)
-  const firstResult = services.length ? (data.currentPage - 1) * (data.pageSize || CUSTOMER_CATALOG.PAGE_SIZE) + 1 : 0
-  const lastResult = services.length ? firstResult + services.length - 1 : 0
 
   const setQuery = (update) => {
     const next = typeof update === 'function' ? update(query) : update
@@ -58,7 +56,7 @@ export default function ServiceCatalog() {
       >
         {t('customer.allServices')}
       </h1>
-      <div className="grid items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)] xl:gap-8">
+      <div className="grid items-start gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:gap-8">
         <ServiceFilters
           categories={categories.data || []}
           categoryResource={categories}
@@ -104,8 +102,6 @@ export default function ServiceCatalog() {
                     onChange={(sort) => setQuery((current) => ({ ...current, sort, page: CUSTOMER_CATALOG.INITIAL_PAGE }))}
                   />
                 )}
-                range={!loading && !error && services.length > 0
-                  ? t('customer.showing', { firstResult, lastResult, total: data.total }) : undefined}
                 filters={filters}
                 onRemoveFilter={(id) => setQuery((current) => ({
                   ...current,
