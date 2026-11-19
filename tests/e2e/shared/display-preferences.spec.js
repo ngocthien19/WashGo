@@ -136,10 +136,10 @@ test('password reset requires a verified token and sends it instead of the OTP',
   })
   await page.goto('/forgot-password')
   await chooseEnglish(page)
-  await expect(page.getByRole('region', { name: 'Account verification', exact: true }).getByRole('link', { name: 'WashGo - Home', exact: true })).toBeVisible()
+  await expect(page.locator('main header').getByRole('link', { name: 'WashGo - Home', exact: true })).toBeVisible()
   await page.getByLabel('Your email', { exact: true }).fill(user.email)
   await page.getByRole('button', { name: 'Send OTP', exact: true }).click()
-  await expect(page.getByRole('region', { name: 'Account verification', exact: true }).getByRole('link', { name: 'WashGo - Home', exact: true })).toBeVisible()
+  await expect(page.locator('main header').getByRole('link', { name: 'WashGo - Home', exact: true })).toBeVisible()
   for (let digit = 1; digit <= 6; digit += 1) {
     await page.getByLabel(`OTP digit ${digit}`, { exact: true }).fill(String(digit))
   }
@@ -151,7 +151,7 @@ test('password reset requires a verified token and sends it instead of the OTP',
   await expect(page).toHaveURL('/verify-otp')
   await page.getByRole('button', { name: 'Continue', exact: true }).click()
   await expect(page).toHaveURL('/reset-password')
-  await expect(page.getByRole('region', { name: 'Account verification', exact: true }).getByRole('link', { name: 'WashGo - Home', exact: true })).toBeVisible()
+  await expect(page.locator('main header').getByRole('link', { name: 'WashGo - Home', exact: true })).toBeVisible()
   await page.getByLabel('New password', { exact: true }).fill('TestPassword123')
   await page.getByLabel('Confirm new password', { exact: true }).fill('TestPassword123')
   await page.getByRole('button', { name: 'Save new password', exact: true }).click()
@@ -250,6 +250,29 @@ test('language selection preserves form values, persists and shows the active la
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Sign in', exact: true })).toBeVisible()
   await expect(trigger).toHaveText('EN')
+})
+
+test('Auth header keeps the logo and display controls at the same top position above a solid separator on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 })
+  await page.goto('/login')
+  await chooseEnglish(page)
+  for (const path of ['/login', '/register', '/forgot-password']) {
+    await page.goto(path)
+    const header = page.locator('main header')
+    await expect(header).toHaveCSS('border-bottom-style', 'solid')
+    await expect(header.getByRole('link', { name: 'WashGo - Home', exact: true })).toBeVisible()
+    await expect(header.getByRole('button', { name: 'Change language', exact: true })).toBeVisible()
+    await expect(header.getByRole('button', { name: /Switch to .* mode/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Change language', exact: true })).toHaveCount(1)
+    const bounds = await header.boundingBox()
+    expect(bounds.y).toBe(32)
+    for (const control of await header.locator('a, button').all()) {
+      const rect = await control.boundingBox()
+      expect(rect.y + rect.height).toBeLessThan(bounds.y + bounds.height)
+      expect(rect.x + rect.width).toBeLessThanOrEqual(320)
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  }
 })
 
 test('auth forms use readable 16px fields and descriptions without breaking responsive scrolling', async ({ page }) => {

@@ -2,11 +2,13 @@ import { useLayoutEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { motion, useScroll } from 'framer-motion'
 import { Store, UserRound, Menu, ChevronDown, LogOut, Bell, ChevronLeft } from 'lucide-react'
 import Brand from '~/components/Brand/Brand'
 import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import LanguageSwitcher from '~/components/LanguageSwitcher/LanguageSwitcher'
 import ThemeToggle from '~/components/ThemeToggle/ThemeToggle'
+import DisplayControls from '~/components/DisplayControls/DisplayControls'
 import NotificationProvider from '~/components/notifications/NotificationProvider'
 import NotificationBell from '~/components/notifications/NotificationBell'
 import { Button } from '~/components/ui/button'
@@ -17,6 +19,7 @@ import { authApi } from '~/apis/auth/authApi'
 import { clearSession } from '~/redux/auth/authSlice'
 import { notify } from '~/utils/notifications/notifications'
 import { getApiError } from '~/utils/http/apiError'
+import { OrderRoleContext } from '~/components/orders/orderPresentation'
 
 export default function WorkspaceLayout({ navigation, homeHref, profileHref, notificationsHref, resolveNotificationHref, context, prefix = 'merchant', admin = false }) {
   const navHref = (key) => navigation.find((item) => item[0] === key)?.[2]
@@ -24,6 +27,7 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
   const { user, refreshToken } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
   const { pathname } = useLocation()
+  const { scrollYProgress } = useScroll({ trackContentSize: true })
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [pending, setPending] = useState(false)
@@ -135,13 +139,15 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
                 wordmarkClassName="hidden sm:inline"
               />
             </div>
-            <span className="hidden rounded-lg border border-primary/20 bg-primary/10 px-3 py-1.5 text-sm font-bold text-primary sm:inline-flex">
+            <span className="hidden rounded-lg border border-primary/20 bg-primary/10 px-3 py-1.5 text-sm font-bold text-primary lg:inline-flex">
               {t(`${prefix}.workspace`)}
             </span>
             <div className="ml-auto flex items-center gap-1 sm:gap-2">
               <NotificationBell />
-              <LanguageSwitcher />
-              <ThemeToggle inline />
+              <div className="hidden items-center gap-2 lg:flex">
+                <LanguageSwitcher />
+                <ThemeToggle inline />
+              </div>
               <DropdownMenu>
                 <DropdownMenuTrigger render={(
                   <Button
@@ -155,7 +161,7 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
                     avatar={user?.avatar}
                     fullName={user?.fullName}
                   />
-                  <span className="hidden max-w-40 truncate text-base font-semibold sm:inline">
+                  <span className="hidden max-w-40 truncate text-base font-semibold lg:inline">
                     {user?.fullName || t('common.account')}
                   </span>
                   <ChevronDown size={14} />
@@ -189,6 +195,16 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
               </DropdownMenu>
             </div>
           </div>
+          <div
+            aria-hidden="true"
+            data-workspace-scroll-progress
+            className="pointer-events-none absolute inset-x-0 top-0 h-1 overflow-hidden bg-[var(--scrollbar-thumb)]/10"
+          >
+            <motion.div
+              className="h-full origin-left bg-[var(--scrollbar-thumb)]"
+              style={{ scaleX: scrollYProgress }}
+            />
+          </div>
         </header>
         <MobileSidebar
           open={mobileOpen}
@@ -196,7 +212,12 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
           title={t(`${prefix}.navigation`)}
           homeHref={homeHref}
           id="workspace-mobile-navigation"
-          footer={logoutButton()}
+          footer={(
+            <>
+              <DisplayControls variant="menu" />
+              {logoutButton()}
+            </>
+          )}
         >
           {nav(true)}
         </MobileSidebar>
@@ -242,7 +263,9 @@ export default function WorkspaceLayout({ navigation, homeHref, profileHref, not
           </div>
         </aside>
         <main className={`min-w-0 p-4 transition-none lg:transition-[margin-left] duration-300 ease-in-out motion-reduce:transition-none sm:p-6 lg:p-8 ${collapsed ? 'lg:ml-20' : admin ? 'lg:ml-72' : 'lg:ml-64'}`}>
-          <Outlet context={{ ...context, logout, logoutPending: pending }} />
+          <OrderRoleContext.Provider value={user?.role || (admin ? 'Admin' : prefix === 'shipper' ? 'Shipper' : 'Merchant')}>
+            <Outlet context={{ ...context, logout, logoutPending: pending }} />
+          </OrderRoleContext.Provider>
         </main>
       </div>
     </NotificationProvider>

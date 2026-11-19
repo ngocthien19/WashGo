@@ -6,6 +6,7 @@ import AuthStory from './components/AuthStory'
 import { AUTH_ROUTES } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 import AuthBrand from '~/pages/auth/components/AuthBrand'
+import DisplayControls from '~/components/DisplayControls/DisplayControls'
 
 const pageTitles = {
   [AUTH_ROUTES.LOGIN]: 'auth.signIn',
@@ -37,7 +38,7 @@ export default function AuthLayout() {
       <main className={cn(
         isSplitLayout
           ? 'grid min-h-dvh w-full grid-cols-1 bg-background md:h-dvh md:min-h-0 md:grid-cols-2 md:overflow-hidden'
-          : 'mx-auto flex min-h-dvh w-full flex-col items-center justify-center px-5 py-10 sm:px-8'
+          : 'mx-auto flex min-h-dvh w-full flex-col items-center justify-start px-6 py-8 sm:px-10 md:justify-center md:px-8 md:py-10'
       )}
       >
         {isSplitLayout && <AuthStory />}
@@ -49,6 +50,12 @@ export default function AuthLayout() {
           )}
           data-testid={isSplitLayout ? 'auth-form-panel' : undefined}
         >
+          <header className={cn('mb-7 flex w-full shrink-0 items-center justify-between gap-3 border-b border-border pb-5', isSplitLayout && 'max-w-[420px] md:justify-end')}>
+            <div className={isSplitLayout ? 'md:hidden' : undefined}>
+              <AuthBrand />
+            </div>
+            <DisplayControls variant="inline" />
+          </header>
           <motion.section
             key={pathname}
             className={cn(
@@ -60,11 +67,6 @@ export default function AuthLayout() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22, ease: 'easeOut' }}
           >
-            {!isSplitLayout && (
-              <div className="mb-8 flex justify-center">
-                <AuthBrand />
-              </div>
-            )}
             <Outlet context={{ flow, setFlow }} />
           </motion.section>
         </div>

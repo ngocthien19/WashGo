@@ -4,11 +4,12 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link, useLocation } from 'react-router-dom'
 import { Bell, ChevronDown, ClipboardList, LogOut, Menu, MessageSquareWarning, UserRound } from 'lucide-react'
 import { notify } from '~/utils/notifications/notifications'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, useScroll } from 'framer-motion'
 import { Button } from '~/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '~/components/ui/dropdown-menu'
 import ThemeToggle from '~/components/ThemeToggle/ThemeToggle'
 import LanguageSwitcher from '~/components/LanguageSwitcher/LanguageSwitcher'
+import DisplayControls from '~/components/DisplayControls/DisplayControls'
 import { authApi } from '~/apis/auth/authApi'
 import { clearSession } from '~/redux/auth/authSlice'
 import { AUTH_ROUTES, CUSTOMER_NAVIGATION, CUSTOMER_ROUTES, UI_TRANSITIONS, UI_MOTION } from '~/utils/config/constants'
@@ -25,6 +26,7 @@ export default function CustomerHeader() {
   const dispatch = useDispatch()
   const { pathname } = useLocation()
   const reduceMotion = useReducedMotion()
+  const { scrollYProgress } = useScroll({ trackContentSize: true })
   const [mobileOpen, setMobileOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const isActive = (href) => pathname === href || (href === CUSTOMER_ROUTES.ORDERS
@@ -99,20 +101,36 @@ export default function CustomerHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur-md print:hidden">
       <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-        <Brand
-          to={CUSTOMER_ROUTES.HOME}
-          label={t('customer.washgoHome')}
-          wordmarkClassName="hidden min-[400px]:inline"
-          onClick={() => {
-            setMobileOpen(false)
-            window.scrollTo({ top: 0, behavior: 'instant' })
-          }}
-        />
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-9 lg:hidden"
+            aria-label={t('customer.openNavigationMenu')}
+            aria-expanded={mobileOpen}
+            aria-haspopup="dialog"
+            aria-controls="customer-mobile-navigation"
+            onClick={() => setMobileOpen((value) => !value)}
+          >
+            <Menu size={20} />
+          </Button>
+          <Brand
+            to={CUSTOMER_ROUTES.HOME}
+            label={t('customer.washgoHome')}
+            wordmarkClassName="hidden sm:inline"
+            onClick={() => {
+              setMobileOpen(false)
+              window.scrollTo({ top: 0, behavior: 'instant' })
+            }}
+          />
+        </div>
         {navigation()}
         <div className="flex items-center gap-1 sm:gap-2">
           {accessToken && <NotificationBell />}
-          <LanguageSwitcher />
-          <ThemeToggle inline />
+          <div className="hidden items-center gap-2 lg:flex">
+            <LanguageSwitcher />
+            <ThemeToggle inline />
+          </div>
           {accessToken ? (
             <DropdownMenu>
               <DropdownMenuTrigger
@@ -191,18 +209,6 @@ export default function CustomerHeader() {
               </Button>
             </div>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-9 lg:hidden"
-            aria-label={t('customer.openNavigationMenu')}
-            aria-expanded={mobileOpen}
-            aria-haspopup="dialog"
-            aria-controls="customer-mobile-navigation"
-            onClick={() => setMobileOpen((value) => !value)}
-          >
-            <Menu size={20} />
-          </Button>
         </div>
       </div>
       <MobileSidebar
@@ -212,41 +218,57 @@ export default function CustomerHeader() {
         homeHref={CUSTOMER_ROUTES.HOME}
         id="customer-mobile-navigation"
         footer={(
-          accessToken ? (
-            <Button
-              variant="ghost"
-              className="h-12 w-full justify-start gap-3 rounded-xl px-4 text-base text-destructive hover:bg-destructive/10 hover:text-destructive"
-              disabled={pending}
-              onClick={logout}
-            >
-              <LogOut size={19} />
-              {t(pending ? 'common.signingOut' : 'common.signOut')}
-            </Button>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
+          <>
+            <DisplayControls
+              variant="menu"
+              immediateTheme
+            />
+            {accessToken ? (
               <Button
-                render={<Link to={AUTH_ROUTES.LOGIN} />}
-                nativeButton={false}
-                variant="outline"
-                onClick={() => setMobileOpen(false)}
-                className="text-base"
+                variant="ghost"
+                className="h-12 w-full justify-start gap-3 rounded-xl px-4 text-base text-destructive hover:bg-destructive/10 hover:text-destructive"
+                disabled={pending}
+                onClick={logout}
               >
-                {t('auth.signIn')}
+                <LogOut size={19} />
+                {t(pending ? 'common.signingOut' : 'common.signOut')}
               </Button>
-              <Button
-                render={<Link to={AUTH_ROUTES.REGISTER} />}
-                nativeButton={false}
-                onClick={() => setMobileOpen(false)}
-                className="text-base"
-              >
-                {t('auth.register')}
-              </Button>
-            </div>
-          )
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  render={<Link to={AUTH_ROUTES.LOGIN} />}
+                  nativeButton={false}
+                  variant="outline"
+                  onClick={() => setMobileOpen(false)}
+                  className="h-12 px-4 text-base font-semibold"
+                >
+                  {t('auth.signIn')}
+                </Button>
+                <Button
+                  render={<Link to={AUTH_ROUTES.REGISTER} />}
+                  nativeButton={false}
+                  onClick={() => setMobileOpen(false)}
+                  className="h-12 px-4 text-base font-semibold"
+                >
+                  {t('auth.register')}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       >
         {navigation(true)}
       </MobileSidebar>
+      <div
+        aria-hidden="true"
+        data-customer-scroll-progress
+        className="pointer-events-none absolute inset-x-0 top-0 h-1 overflow-hidden bg-[var(--scrollbar-thumb)]/10"
+      >
+        <motion.div
+          className="h-full origin-left bg-[var(--scrollbar-thumb)]"
+          style={{ scaleX: scrollYProgress }}
+        />
+      </div>
     </header>
   )
 }

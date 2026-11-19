@@ -28,9 +28,9 @@ export default function ProfilePage() {
   const authUser = useSelector(state => state.auth.user)
   const user = profile.data
   return (
-    <Reveal className="mx-auto max-w-[1400px] space-y-6">
+    <Reveal className="mx-auto min-w-0 max-w-[1400px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <h1 className="font-bold text-[30px]">
             {t('admin.nav.profile')}
           </h1>
@@ -67,8 +67,8 @@ export default function ProfilePage() {
           loadingText="admin.loading"
         />
       ) : (
-        <div className="grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[400px_minmax(0,1fr)]">
-          <aside className="space-y-5">
+        <div className="grid min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] xl:grid-cols-[400px_minmax(0,1fr)]">
+          <aside className="min-w-0 space-y-5">
             <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
               <div className="h-24 bg-gradient-to-br from-primary/80 to-indigo-500/80" />
               <div className="px-5 pb-6 text-center">
@@ -97,13 +97,13 @@ export default function ProfilePage() {
                 {[['joined', CalendarDays], ['status', ShieldCheck]].map(([key, Icon]) => (
                   <div
                     key={key}
-                    className={key === 'status' ? 'flex flex-col items-end text-right' : ''}
+                    className={`min-w-0 ${key === 'status' ? 'flex flex-col min-[440px]:items-end min-[440px]:text-right' : ''}`}
                   >
                     <dt className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Icon size={14} />
                       {t(`admin.profile.${key}`)}
                     </dt>
-                    <dd className="mt-2 whitespace-nowrap font-semibold">
+                    <dd className="mt-2 break-words font-semibold">
                       {key === 'joined' ? formatDateTime(user.joinedAt) : (
                         <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${user.accountStatus === 'Active' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/10 text-rose-700 dark:text-rose-300'}`}>
                           {t(`admin.workspaceSync.accountStatuses.${user.accountStatus}`)}

@@ -32,7 +32,7 @@ export default function MobileSidebar({ open, onOpenChange, title, homeHref, id,
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/45 transition-opacity duration-250 data-starting-style:opacity-0 data-ending-style:opacity-0 motion-reduce:transition-none lg:hidden print:hidden" />
         <Dialog.Popup
           id={id}
-          className="fixed inset-y-0 left-0 z-50 flex h-dvh w-[min(20rem,calc(100vw-3rem))] flex-col border-r border-border bg-card text-foreground shadow-2xl outline-none transition-transform duration-250 ease-out data-starting-style:-translate-x-full data-ending-style:-translate-x-full motion-reduce:transition-none lg:hidden print:hidden"
+          className="fixed inset-y-0 left-0 z-50 flex h-dvh w-[min(17rem,calc(100vw-3rem))] flex-col border-r border-border bg-card text-foreground shadow-2xl outline-none transition-transform duration-250 ease-out data-starting-style:-translate-x-full data-ending-style:-translate-x-full motion-reduce:transition-none lg:hidden print:hidden"
         >
           <Dialog.Title className="sr-only">
             {title}

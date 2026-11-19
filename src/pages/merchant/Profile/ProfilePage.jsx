@@ -1,3 +1,4 @@
+import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
 import PartnerReviews from './components/PartnerReviews'
 import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
@@ -8,7 +9,7 @@ import AnimatedNumber from '~/components/motion/AnimatedNumber'
 import { displayOpeningHours, formatJoinedDate } from './profileModel'
 import EditProfileDialog from './components/EditProfileDialog'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import { getImageUrl, formatCurrency } from '~/utils/format/formats'
+import { formatCurrency } from '~/utils/format/formats'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantInsightsApi } from '~/apis/merchant/merchantInsightsApi'
 import PrivateDocumentCard from '~/components/documents/PrivateDocumentCard'
@@ -140,19 +141,12 @@ export default function ProfilePage() {
           </div>
           <div className="grid items-start gap-5 md:grid-cols-[230px_minmax(0,1fr)]">
             <section className="overflow-hidden rounded-2xl border border-primary/15 bg-gradient-to-b from-primary/5 via-card to-card p-6 text-center shadow-sm">
-              <div className="relative mx-auto grid size-28 place-items-center overflow-hidden rounded-2xl border border-border bg-primary/5 text-primary">
-                <Store size={44} />
-                {shop.imageUrls?.[0] && (
-                  <img
-                    src={getImageUrl(shop.imageUrls[0])}
-                    alt={shop.businessName}
-                    className="absolute inset-0 size-full object-cover"
-                    onError={(event) => {
-                      event.currentTarget.hidden = true
-                    }}
-                  />
-                )}
-              </div>
+              <ResourceThumbnail
+                urls={shop.imageUrls}
+                name={shop.businessName}
+                icon={Store}
+                className="mx-auto size-28 rounded-2xl"
+              />
               {!shop.imageUrls?.length && (
                 <p className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <ImagePlus size={16} />

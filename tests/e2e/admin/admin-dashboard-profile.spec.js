@@ -49,6 +49,16 @@ test('new backend: session pages retain the current logical session outside the 
   expect(state.revokes).toBe(0)
 })
 
+test('BE dispatch queues distinguish preparation, shipper assignment and actual customer pickup', async ({ page }) => {
+  const state = await setup(page)
+  state.dispatchQueues = { waitingCollectAssignment: 1, waitingCollection: 2, waitingReturnPreparation: 3, waitingReturnAssignment: 4, waitingReturnDelivery: 5, awaitingCustomerPickup: 6 }
+  state.currentByStatus = { MerchantAssigned: 1, CollectionShipperAssigned: 2, Paid: 3, ReadyForReturnDispatch: 4, ReturnShipperAssigned: 5, ReadyToReturn: 6 }
+  await page.goto('/admin')
+  for (const [index, label] of ['Awaiting collection assignment', 'Awaiting shipper collection', 'Awaiting shop packing', 'Awaiting return assignment', 'Awaiting delivery to locker', 'Awaiting customer pickup'].entries()) {
+    await expect(page.getByRole('heading', { name: label, exact: true }).locator('..')).toContainText(String(index + 1))
+  }
+})
+
 test('admin dashboard uses real scoped aggregates and a distinct shared workspace', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/admin')
@@ -94,6 +104,35 @@ test('finance failure can retry without hiding other dashboard data', async ({ p
   await expect(page.getByText('Ben Thanh Laundry', { exact: true })).toBeVisible()
   await expect(page.getByRole('alert')).toHaveCount(0)
 })
+for (const dark of [false, true]) {
+  test(`Admin profile and compact header fit mobile and tablet in ${dark ? 'dark' : 'light'} mode`, async ({ page }) => {
+    const state = await setup(page, { dark })
+    state.profile.fullName = 'Administrator with a long display name for responsive layout'
+    state.profile.email = 'administrator.with.a.very.long.email.address@example.test'
+    await page.goto('/admin/profile')
+    await expect(page.getByRole('heading', { name: 'Personal profile', exact: true })).toBeVisible({ timeout: 20000 })
+    await expect(page.getByRole('heading', { name: state.profile.fullName, exact: true })).toBeVisible()
+    for (const width of [320, 390, 768]) {
+      await page.setViewportSize({ width, height: 844 })
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+      const header = page.locator('header').first()
+      await expect(header.getByRole('button', { name: 'Change language', exact: true })).toBeHidden()
+      await expect(header.getByRole('button', { name: /Switch to .* mode/ })).toBeHidden()
+      await expect(header.getByRole('button', { name: 'Open account menu', exact: true })).toBeVisible()
+      await expect(header.getByRole('button', { name: 'Notifications', exact: true })).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Edit information', exact: true })).toBeInViewport()
+    }
+    await page.getByRole('button', { name: 'Open navigation', exact: true }).click()
+    const drawer = page.getByRole('dialog', { name: 'Admin navigation', exact: true })
+    await expect(drawer.getByRole('button', { name: 'Change language', exact: true })).toBeVisible()
+    await expect(drawer.getByRole('button', { name: /Switch to .* mode/ })).toBeVisible()
+    await page.keyboard.press('Escape')
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await expect(page.locator('header').first().getByRole('button', { name: 'Change language', exact: true })).toBeVisible()
+    expect(state.saves).toBe(0)
+  })
+}
+
 test('mobile dark profile uses Admin data and keeps editable controls responsive', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
   const state = await setup(page, { dark: true })

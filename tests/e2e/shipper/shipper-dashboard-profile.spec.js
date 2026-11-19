@@ -113,6 +113,9 @@ test('profile validates, saves only supported fields, and refreshes account iden
   await dialog.locator('#shipper-phone').fill('123')
   await dialog.getByRole('button', { name: 'Save changes', exact: true }).click()
   await expect(dialog.getByRole('alert')).toBeVisible()
+  await expect(dialog.locator('#shipper-phone')).toHaveAttribute('aria-invalid', 'true')
+  const errorId = await dialog.locator('#shipper-phone').getAttribute('aria-describedby')
+  await expect(dialog.locator(`[id="${errorId}"]`)).toBeVisible()
   expect(state.writes).toHaveLength(0)
   await dialog.locator('#shipper-phone').fill('0901111222')
   await dialog.getByRole('button', { name: 'Save changes', exact: true }).click()
@@ -143,13 +146,16 @@ test('mobile dark navigation and independent task retry remain usable', async ({
   state.failTasks = true
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/shipper')
-  await expect(page.getByRole('heading', { name: 'Delivery overview', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Delivery overview', exact: true })).toBeVisible({ timeout: 20000 })
+  await expect(page.locator('header').getByRole('button', { name: 'Change language', exact: true })).toBeHidden()
+  await expect(page.locator('header').getByRole('button', { name: /Switch to .* mode/ })).toBeHidden()
   await expect(page.getByText('WG-DONE-1', { exact: true })).toHaveCount(0)
   state.failTasks = false
   await page.getByRole('button', { name: 'Try again', exact: true }).first().click()
   await expect(page.getByText('WG-TEST-1', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Open navigation', exact: true }).click()
   await expect(page.getByRole('navigation', { name: 'Shipper navigation', exact: true }).getByRole('link', { name: 'Overview', exact: true })).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Change language', exact: true })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
 

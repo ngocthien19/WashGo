@@ -323,9 +323,11 @@ export default function App() {
 }
 
 function StandaloneThemeLayout({ children }) {
+  const { pathname } = useLocation()
+  const hasAuthHeader = pathname !== AUTH_ROUTES.ROOT && Object.values(AUTH_ROUTES).includes(pathname)
   return (
     <>
-      <DisplayControls />
+      {!hasAuthHeader && <DisplayControls />}
       {children || <Outlet />}
     </>
   )
