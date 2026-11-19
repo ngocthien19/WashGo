@@ -277,6 +277,32 @@ label:has([data-slot="checkbox"][data-disabled]) {
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Shared dialog heading surface; action tones only change the icon and accent. */
+[data-dialog-header] {
+  --dialog-accent: color-mix(in srgb, var(--primary) 60%, transparent);
+  position: relative;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--card);
+  background-image: linear-gradient(to bottom right, color-mix(in srgb, var(--primary) 8%, var(--card)), var(--card));
+}
+[data-dialog-header][data-tone="danger"] { --dialog-accent: var(--color-red-400); }
+[data-dialog-header][data-tone="warning"] { --dialog-accent: var(--color-amber-400); }
+[data-dialog-header][data-tone="success"] { --dialog-accent: var(--color-emerald-400); }
+[data-dialog-header]::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 1.5rem;
+  width: 3rem;
+  height: 2px;
+  border-radius: 999px;
+  background-color: var(--dialog-accent);
+}
+@media (min-width: 640px) {
+  [data-dialog-header]::before { left: 2rem; }
+}
+
 /* Dialogs share one bounded layout; form footers stay inside their native form. */
 [data-dialog-fixed] {
   display: flex;

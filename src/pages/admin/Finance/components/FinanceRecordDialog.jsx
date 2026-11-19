@@ -64,6 +64,125 @@ export default function FinanceRecordDialog({ kind, value: original, period, onC
   const pointsOnly = refund && value?.amount === 0 && value.pointsAmount > 0
   const title = detail ? 'admin.finance.detail' : `admin.finance.${kind}`
   const reference = ['pay', 'confirmRefund'].includes(kind), Icon = kind === 'reject' ? X : refund ? Undo2 : Wallet
+  const summary = value && (
+    <>
+
+      {!refund && !commission && detail && (
+        <SettlementLines
+          id={value.id}
+          initial={value.sourceLines}
+        />
+      )}
+      {refund ? (
+        <section className="space-y-4 rounded-2xl border border-border p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Link
+              to={`${ADMIN_ROUTES.ORDERS}/${value.orderId}`}
+              className="font-semibold text-primary"
+            >
+              {value.orderCode || original.orderCode || t('customer.incidents.relatedOrder')}
+            </Link>
+            <span className={`rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(value.status)}`}>
+              {t(`admin.finance.refundStatuses.${value.status}`)}
+            </span>
+          </div>
+          <p className="font-semibold">
+            {value.customerName || original.customerName || '—'}
+          </p>
+          <p className="text-2xl font-bold text-primary">
+            {formatCurrency(value.amount)}
+          </p>
+          {value.pointsAmount > 0 && (
+            <p className="font-semibold text-primary">
+              {t('loyalty.refundPointsValue', { points: formatNumber(value.pointsAmount) })}
+            </p>
+          )}
+          {Number.isSafeInteger(value.rewardPointsReversed) && (
+            <p className="text-sm text-muted-foreground">
+              {t('loyalty.rewardReversedValue', { points: formatNumber(value.rewardPointsReversed) })}
+            </p>
+          )}
+          {value.isExcessPayment && (
+            <p className="rounded-xl bg-amber-500/10 p-3 text-sm">
+              {t('paymentReview.excess')}
+            </p>
+          )}
+          <p className="whitespace-pre-wrap break-words">
+            {value.reason}
+          </p>
+          <dl className="grid gap-4 text-sm sm:grid-cols-2">
+            {value.originalPaymentTransactionId && (
+              <div className="sm:col-span-2">
+                <dt className="text-muted-foreground">
+                  {t('paymentReview.originalPayment')}
+                </dt>
+                <dd className="mt-2 break-all font-semibold">
+                  {value.originalPaymentTransactionId}
+                </dd>
+              </div>
+            )}
+            {[['reviewNote', value.reviewNote || '—'], ['refundReference', value.refundReference || '—'], ['reviewedAt', formatDateTime(value.reviewedAt)], ['refundedAt', formatDateTime(value.refundedAt)]].map(([key, text]) => (
+              <div key={key}>
+                <dt className="text-muted-foreground">
+                  {t(`admin.finance.${key}`)}
+                </dt>
+                <dd className="mt-2 whitespace-pre-wrap break-words font-medium">
+                  {text}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ) : (
+        <>
+          {!commission && (
+            <>
+              <p className="text-sm text-muted-foreground">
+                {formatDateTime(value.periodFrom, 'Asia/Ho_Chi_Minh')}
+                {' '}
+                →
+                {' '}
+                {formatDateTime(value.periodTo, 'Asia/Ho_Chi_Minh')}
+              </p>
+              <span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(value.status)}`}>
+                {t(`admin.finance.settlementStatuses.${value.status}`)}
+              </span>
+            </>
+          )}
+          <FinanceBreakdown
+            value={value}
+            settlement={!commission}
+          />
+          {kind === 'pay' && (
+            <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
+              {t('admin.finance.commissionHint')}
+            </p>
+          )}
+          {!commission && (
+            <dl className="grid gap-4 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-muted-foreground">
+                  {t('admin.finance.reference')}
+                </dt>
+                <dd className="mt-2 break-words font-semibold">
+                  {value.paymentReference || '—'}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">
+                  {t('admin.finance.paidAt')}
+                </dt>
+                <dd className="mt-2 font-semibold">
+                  {formatDateTime(value.paidAt)}
+                </dd>
+              </div>
+            </dl>
+          )}
+        </>
+      )}
+
+    </>
+  )
   return (
     <Dialog
       open
@@ -100,121 +219,11 @@ export default function FinanceRecordDialog({ kind, value: original, period, onC
             className="mt-5 space-y-5"
             data-dialog-layout
           >
-            <div data-dialog-body>
-              {!refund && !commission && detail && (
-                <SettlementLines
-                  id={value.id}
-                  initial={value.sourceLines}
-                />
-              )}
-              {refund ? (
-                <section className="space-y-4 rounded-2xl border border-border p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <Link
-                      to={`${ADMIN_ROUTES.ORDERS}/${value.orderId}`}
-                      className="font-semibold text-primary"
-                    >
-                      {value.orderCode || original.orderCode || t('customer.incidents.relatedOrder')}
-                    </Link>
-                    <span className={`rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(value.status)}`}>
-                      {t(`admin.finance.refundStatuses.${value.status}`)}
-                    </span>
-                  </div>
-                  <p className="font-semibold">
-                    {value.customerName || original.customerName || '—'}
-                  </p>
-                  <p className="text-2xl font-bold text-primary">
-                    {formatCurrency(value.amount)}
-                  </p>
-                  {value.pointsAmount > 0 && (
-                    <p className="font-semibold text-primary">
-                      {t('loyalty.refundPointsValue', { points: formatNumber(value.pointsAmount) })}
-                    </p>
-                  )}
-                  {Number.isSafeInteger(value.rewardPointsReversed) && (
-                    <p className="text-sm text-muted-foreground">
-                      {t('loyalty.rewardReversedValue', { points: formatNumber(value.rewardPointsReversed) })}
-                    </p>
-                  )}
-                  {value.isExcessPayment && (
-                    <p className="rounded-xl bg-amber-500/10 p-3 text-sm">
-                      {t('paymentReview.excess')}
-                    </p>
-                  )}
-                  <p className="whitespace-pre-wrap break-words">
-                    {value.reason}
-                  </p>
-                  <dl className="grid gap-4 text-sm sm:grid-cols-2">
-                    {value.originalPaymentTransactionId && (
-                      <div className="sm:col-span-2">
-                        <dt className="text-muted-foreground">
-                          {t('paymentReview.originalPayment')}
-                        </dt>
-                        <dd className="mt-2 break-all font-semibold">
-                          {value.originalPaymentTransactionId}
-                        </dd>
-                      </div>
-                    )}
-                    {[['reviewNote', value.reviewNote || '—'], ['refundReference', value.refundReference || '—'], ['reviewedAt', formatDateTime(value.reviewedAt)], ['refundedAt', formatDateTime(value.refundedAt)]].map(([key, text]) => (
-                      <div key={key}>
-                        <dt className="text-muted-foreground">
-                          {t(`admin.finance.${key}`)}
-                        </dt>
-                        <dd className="mt-2 whitespace-pre-wrap break-words font-medium">
-                          {text}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                </section>
-              ) : (
-                <>
-                  {!commission && (
-                    <>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDateTime(value.periodFrom, 'Asia/Ho_Chi_Minh')}
-                        {' '}
-                        →
-                        {' '}
-                        {formatDateTime(value.periodTo, 'Asia/Ho_Chi_Minh')}
-                      </p>
-                      <span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-medium ${statusClass(value.status)}`}>
-                        {t(`admin.finance.settlementStatuses.${value.status}`)}
-                      </span>
-                    </>
-                  )}
-                  <FinanceBreakdown
-                    value={value}
-                    settlement={!commission}
-                  />
-                  {kind === 'pay' && (
-                    <p className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
-                      {t('admin.finance.commissionHint')}
-                    </p>
-                  )}
-                  {!commission && (
-                    <dl className="grid gap-4 text-sm sm:grid-cols-2">
-                      <div>
-                        <dt className="text-muted-foreground">
-                          {t('admin.finance.reference')}
-                        </dt>
-                        <dd className="mt-2 break-words font-semibold">
-                          {value.paymentReference || '—'}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-muted-foreground">
-                          {t('admin.finance.paidAt')}
-                        </dt>
-                        <dd className="mt-2 font-semibold">
-                          {formatDateTime(value.paidAt)}
-                        </dd>
-                      </div>
-                    </dl>
-                  )}
-                </>
-              )}
-            </div>
+            {detail && (
+              <div data-dialog-body>
+                {summary}
+              </div>
+            )}
             {!detail && (
               <form
                 noValidate
@@ -223,6 +232,7 @@ export default function FinanceRecordDialog({ kind, value: original, period, onC
                 data-dialog-layout
               >
                 <div data-dialog-body>
+                  {summary}
                   {!actionAllowed(kind, value) && (
                     <p
                       role="alert"

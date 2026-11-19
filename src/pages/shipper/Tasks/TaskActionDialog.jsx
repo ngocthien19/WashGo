@@ -99,19 +99,6 @@ function NormalTaskActionDialog({ order, shipperId, onClose, onSaved, onUnknown 
             {t('shipper.tasks.credentialHelp')}
           </DialogDescription>
         </DialogHeader>
-        <div data-dialog-body>
-          <div className="my-5 rounded-xl border border-border p-4">
-            <p className="font-bold text-primary">
-              {order.orderCode}
-            </p>
-            <div className="mt-3">
-              <DeliveryLocker
-                {...taskLocker(order)}
-                autoBox={type === 2}
-              />
-            </div>
-          </div>
-        </div>
         <form
           noValidate
           className="space-y-5"
@@ -119,6 +106,18 @@ function NormalTaskActionDialog({ order, shipperId, onClose, onSaved, onUnknown 
           data-dialog-layout
         >
           <div data-dialog-body>
+            <div className="my-5 rounded-xl border border-border p-4">
+              <p className="font-bold text-primary">
+                {order.orderCode}
+              </p>
+              <div className="mt-3">
+                <DeliveryLocker
+                  {...taskLocker(order)}
+                  autoBox={type === 2}
+                />
+              </div>
+            </div>
+
             <FormError>
               {error}
             </FormError>

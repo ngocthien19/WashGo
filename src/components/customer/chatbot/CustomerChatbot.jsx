@@ -156,7 +156,10 @@ export default function CustomerChatbot({ onOpenTerms }) {
           closeLabel="chatbot.close"
           className="left-auto right-5 top-auto bottom-[calc(max(1.25rem,env(safe-area-inset-bottom))+4.25rem)] flex h-[min(640px,calc(100dvh-max(1.25rem,env(safe-area-inset-bottom))-6.75rem))] max-h-none w-[calc(100%-2.5rem)] max-w-[520px] translate-x-0 translate-y-0 flex-col overflow-clip rounded-3xl p-0 print:hidden sm:right-24 sm:w-[calc(100%-7.75rem)] sm:p-0"
         >
-          <header className="flex items-center gap-3 border-b border-primary/15 bg-primary/5 px-5 py-4 pr-14">
+          <header
+            data-dialog-header
+            className="flex items-center gap-3 border-b border-primary/15 bg-primary/5 px-5 py-4 pr-14"
+          >
             <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
               <Bot className="size-6" />
             </span>

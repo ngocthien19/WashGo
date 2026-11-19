@@ -72,7 +72,7 @@ export default function CustomerImageStack({ urls: sourceUrls = [] }) {
                 </DialogDescription>
               </div>
               <div data-dialog-body>
-                <div className="min-h-0 overflow-y-auto p-5">
+                <div className="min-w-0">
                   <CustomerImageGallery urls={urls} />
                 </div>
               </div>

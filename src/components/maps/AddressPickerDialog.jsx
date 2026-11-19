@@ -74,7 +74,10 @@ export default function AddressPickerDialog({ initialCenter, onApply, onClose })
         closeLabel="customer.addressMap.close"
         className="flex max-w-3xl flex-col overflow-clip rounded-3xl p-0 sm:p-0"
       >
-        <div className="flex shrink-0 items-center gap-3 border-b border-primary/15 bg-gradient-to-br from-primary/15 to-card p-5 pr-14 sm:px-6">
+        <div
+          data-dialog-header
+          className="flex shrink-0 items-center gap-3 border-b border-primary/15 bg-gradient-to-br from-primary/15 to-card p-5 pr-14 sm:px-6"
+        >
           <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground">
             <MapPinned size={23} />
           </span>
