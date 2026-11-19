@@ -32,6 +32,7 @@ export default function PartnerReviews() {
         <div className="workspace-filters space-y-4 rounded-xl border border-border p-4">
           <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
             <CatalogToolbar
+              showLabel
               suggestionSource={merchantReviewApi.list}
               suggestionFilter={{ ...dateRangeFilter(query), stars: query.stars ? Number(query.stars) : undefined, take: 5 }}
               embedded
@@ -42,6 +43,7 @@ export default function PartnerReviews() {
               placeholder={t('merchant.reviewSync.search')}
             />
             <SelectField
+              showLabel
               value={query.stars}
               label={t('admin.reviews.stars')}
               onValueChange={stars => update({ stars })}

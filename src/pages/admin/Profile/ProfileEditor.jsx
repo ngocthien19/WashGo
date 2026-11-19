@@ -98,13 +98,18 @@ export default function ProfileEditor({ user, onClose, onSaved }) {
                 >
                   {t(`admin.profile.${key}`)}
                   <Input
+                    aria-invalid={!!errors[key]}
+                    aria-describedby={errors[key] ? `profileeditor-${key}-error` : undefined}
                     {...register(key)}
                     aria-label={t(`admin.profile.${key}`)}
                     disabled={!user.editableFields.includes(key)}
                     maxLength={key === 'fullName' ? 100 : 10}
                     className="h-12 text-base"
                   />
-                  <FormError>
+                  <FormError
+                    id={`profileeditor-${key}-error`}
+                    inline
+                  >
                     {errors[key]?.message}
                   </FormError>
                 </label>

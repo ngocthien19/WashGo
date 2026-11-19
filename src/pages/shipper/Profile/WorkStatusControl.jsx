@@ -10,6 +10,7 @@ import FormError from '~/components/ui/FormError'
 import ActionConfirmationDialog from '~/components/ActionConfirmationDialog'
 import { shipperWorkspaceApi } from '~/apis/shipper/shipperWorkspaceApi'
 import { getApiError } from '~/utils/http/apiError'
+import { notify } from '~/utils/notifications/notifications'
 
 const schema = yup.object({ confirmed: yup.boolean().oneOf([true], 'storage.confirmRequired') })
 export default function WorkStatusControl({ profile, onUpdated }) {
@@ -35,7 +36,7 @@ export default function WorkStatusControl({ profile, onUpdated }) {
         }
         await shipperWorkspaceApi.updateWorkStatus({ id: profile.id, status, expectedRevision: profile.revision, operationId: crypto.randomUUID() })
       }
-      setOpen(false); setUnknown(false); onUpdated()
+      notify.success('forms.saved'); setOpen(false); setUnknown(false); onUpdated()
     } catch (failure) {
       const pending = shipperWorkspaceApi.hasPendingProfile(profile.id)
       setUnknown(pending); setBlocked(!pending); setError(pending ? 'shipper.unknown' : getApiError(failure))
@@ -83,6 +84,8 @@ export default function WorkStatusControl({ profile, onUpdated }) {
                   name="confirmed"
                   render={({ field }) => (
                     <Checkbox
+                      aria-invalid={!!form.formState.errors['confirmed']}
+                      aria-describedby={form.formState.errors['confirmed'] ? `workstatuscontrol-${'confirmed'}-error` : undefined}
                       checked={field.value}
                       onCheckedChange={field.onChange}
                       disabled={busy || blocked}
@@ -91,7 +94,10 @@ export default function WorkStatusControl({ profile, onUpdated }) {
                 />
                 {t('storage.confirmed')}
               </label>
-              <FormError>
+              <FormError
+                id={`workstatuscontrol-${'confirmed'}-error`}
+                inline
+              >
                 {form.formState.errors.confirmed?.message}
               </FormError>
             </>

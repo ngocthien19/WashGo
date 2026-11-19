@@ -12,7 +12,6 @@ import AuthSwitchLink from '../components/AuthSwitchLink'
 import { loginSchema } from '../authSchemas'
 import { useCallback, useEffect } from 'react'
 import GoogleSignInButton from './components/GoogleSignInButton'
-import AuthBrand from '../components/AuthBrand'
 import { getRoleHome } from '~/utils/auth/roles'
 
 const fields = [
@@ -73,9 +72,6 @@ export default function LoginPage() {
 
   return (
     <>
-      <div className="mb-7 md:hidden">
-        <AuthBrand />
-      </div>
       <AuthHeading
         title={t('auth.signIn')}
         className="text-center"

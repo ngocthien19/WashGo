@@ -7,7 +7,6 @@ import AuthForm from '../components/AuthForm'
 import AuthHeading from '../components/AuthHeading'
 import AuthSwitchLink from '../components/AuthSwitchLink'
 import { registerSchema } from '../authSchemas'
-import AuthBrand from '../components/AuthBrand'
 
 const fields = [
   {
@@ -67,9 +66,6 @@ export default function RegisterPage() {
 
   return (
     <>
-      <div className="mb-7 md:hidden">
-        <AuthBrand />
-      </div>
       <AuthHeading
         title={t('auth.createAnAccount')}
         className="text-center"

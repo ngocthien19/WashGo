@@ -1,3 +1,4 @@
+import ResourceImage from '~/components/ResourceThumbnail/ResourceImage'
 import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { merchantDashboardApi } from '~/apis/merchant/merchantDashboardApi'
@@ -31,8 +32,8 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
 
   const [mapOpen, setMapOpen] = useState(false)
   const [mapCenter, setMapCenter] = useState(hasCoordinates(shop) && (shop.latitude !== 0 || shop.longitude !== 0) ? { latitude: shop.latitude, longitude: shop.longitude } : null)
-  const [existing, setExisting] = useState(shop.imageUrls || [])
-  const images = useImages(5 - existing.length)
+  const [existing, setExisting] = useState((shop.imageUrls || []).slice(0, 1))
+  const images = useImages(1 - existing.length)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [uncertain, setUncertain] = useState(false)
@@ -134,10 +135,11 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
                         {key !== 'openingHours' && <span className="ml-1 text-destructive">*</span>}
                       </span>
                       <Input
+                        aria-invalid={!!errors[key]}
                         {...register(key)}
                         value={values[key]}
                         aria-label={t(`merchant.shop.${key}`)}
-                        aria-describedby={key === 'city' ? 'merchant-profile-city-note' : undefined}
+                        aria-describedby={[errors[key] ? `editprofiledialog-${key}-error` : '', key === 'city' ? 'merchant-profile-city-note' : ''].filter(Boolean).join(' ') || undefined}
                         onChange={(event) => {
                           setValue(key, event.target.value, { shouldDirty: true })
                           if (['address', 'city'].includes(key)) {
@@ -153,6 +155,7 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
                       />
                       {errors[key] && (
                         <span
+                          id={`editprofiledialog-${key}-error`}
                           role="alert"
                           className="text-sm text-destructive"
                         >
@@ -247,7 +250,7 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
                       key={image.url}
                       className="relative size-20 overflow-hidden rounded-xl border border-border"
                     >
-                      <img
+                      <ResourceImage
                         src={image.url}
                         alt={t('merchant.shop.images')}
                         className="size-full object-cover"
@@ -270,10 +273,9 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
                   {t('merchant.shop.addImages')}
                   <input
                     type="file"
-                    multiple
                     accept="image/jpeg,image/png,image/webp"
                     className="sr-only"
-                    disabled={pending || uncertain || existing.length + images.images.length >= 5}
+                    disabled={pending || uncertain || existing.length + images.images.length >= 1}
                     onChange={(event) => {
                       images.addFiles(Array.from(event.target.files || [])); event.target.value = ''
                     }}
@@ -321,30 +323,28 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
             </Button>
           </div>
         </form>
-        <div data-dialog-body>
-          {mapOpen && (
-            <Suspense fallback={(
-              <p
-                role="status"
-                className="mt-4 text-sm text-muted-foreground"
-              >
-                {t('customer.addressMap.loading')}
-              </p>
-            )}
+        {mapOpen && (
+          <Suspense fallback={(
+            <p
+              role="status"
+              className="mt-4 text-sm text-muted-foreground"
             >
-              <AddressPickerDialog
-                initialCenter={mapCenter}
-                onClose={() => setMapOpen(false)}
-                onApply={(selected) => {
-                  setValue('address', selected.address || ''); setValue('city', selected.city || '')
-                  setMapCenter(selected.position)
-                  setError('')
-                  setMapOpen(false)
-                }}
-              />
-            </Suspense>
+              {t('customer.addressMap.loading')}
+            </p>
           )}
-        </div>
+          >
+            <AddressPickerDialog
+              initialCenter={mapCenter}
+              onClose={() => setMapOpen(false)}
+              onApply={(selected) => {
+                setValue('address', selected.address || ''); setValue('city', selected.city || '')
+                setMapCenter(selected.position)
+                setError('')
+                setMapOpen(false)
+              }}
+            />
+          </Suspense>
+        )}
       </DialogContent>
     </Dialog>
   )

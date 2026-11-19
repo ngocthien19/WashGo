@@ -96,6 +96,7 @@ export default function ProfileEditor({ profile, onClose, onSaved }) {
           </DialogDescription>
         </DialogHeader>
         <form
+          noValidate
           onSubmit={(event) => handleSubmit(submit)(event)}
           className="mt-5 space-y-5"
           data-dialog-layout
@@ -186,6 +187,8 @@ export default function ProfileEditor({ profile, onClose, onSaved }) {
                     control={control}
                     render={({ field }) => (
                       <SelectField
+                        aria-describedby={errors.vehicleType ? 'profileeditor-vehicleType-error' : undefined}
+                        aria-invalid={!!errors['vehicleType']}
                         id="shipper-vehicle"
                         label={t('merchant.shippers.vehicleType')}
                         value={field.value}
@@ -196,6 +199,12 @@ export default function ProfileEditor({ profile, onClose, onSaved }) {
                       />
                     )}
                   />
+                  <FormError
+                    inline
+                    id="profileeditor-vehicleType-error"
+                  >
+                    {errors.vehicleType?.message || (errors.vehicleType ? 'forms.invalidValue' : '')}
+                  </FormError>
                 </div>
               </div>
               <div>
