@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Images, ImageOff, ExternalLink } from 'lucide-react'
 import { getImageUrl } from '~/utils/format/formats'
+import { getUniqueImageUrls } from '~/utils/media/images'
 
 function GalleryPhoto({ url, alt, compact, thumbnails }) {
   const { t } = useTranslation()
@@ -35,7 +36,7 @@ function GalleryPhoto({ url, alt, compact, thumbnails }) {
 
 export default function ResourceGallery({ urls = [], imageLabel, compact = false, thumbnails = false }) {
   const { t } = useTranslation()
-  const images = Array.isArray(urls) ? [...new Set(urls.filter((url) => typeof url === 'string' && url.trim()))] : []
+  const images = getUniqueImageUrls(urls).slice(0, 1)
   return (
     <section
       className={compact ? 'max-h-48 w-24 shrink-0 overflow-y-auto rounded-xl sm:w-40' : 'grid gap-3 rounded-2xl border border-primary/15 bg-primary/3 p-4'}
@@ -56,7 +57,7 @@ export default function ResourceGallery({ urls = [], imageLabel, compact = false
             <GalleryPhoto
               key={url}
               url={url}
-              alt={t(imageLabel, { number: index + 1 })}
+              alt={t(imageLabel || 'catalogUi.photo', { number: index + 1 })}
               compact={compact}
               thumbnails={thumbnails}
             />

@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, it } from 'vitest'
 import CustomerImageStack from './CustomerImageStack'
@@ -22,4 +22,16 @@ it('keeps a single image accessible without a surplus badge and handles missing 
   expect(screen.getByRole('button', { name: 'Xem 1 ảnh', exact: true })).not.toHaveTextContent('+')
   view.rerender(<CustomerImageStack urls={[]} />)
   expect(screen.queryByRole('button')).not.toBeInTheDocument()
+})
+
+it('keeps the existing modal accessible after a stacked preview fails to load', async () => {
+  const user = userEvent.setup()
+  render(<CustomerImageStack urls={['/one.png', '/two.png', '/one.png', '', null]} />)
+  const button = screen.getByRole('button', { name: 'Xem 2 ảnh', exact: true })
+  fireEvent.error(button.querySelector('img'))
+  expect(within(button).getByTitle('Không tải được ảnh')).toBeInTheDocument()
+  await user.click(button)
+  const dialog = await screen.findByRole('dialog')
+  expect(within(dialog).getAllByRole('link')).toHaveLength(2)
+  expect(within(dialog).getAllByRole('link')[0]).toHaveAttribute('target', '_blank')
 })

@@ -1,3 +1,4 @@
+import ResourceImage from '~/components/ResourceThumbnail/ResourceImage'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ImageOff } from 'lucide-react'
@@ -38,7 +39,7 @@ export default function FeedbackImage({ reviewId, path, index }) {
         onClick={() => setOpen(true)}
       >
         {source ? (
-          <img
+          <ResourceImage
             src={source}
             alt={label}
             className="size-full object-cover"
@@ -57,7 +58,7 @@ export default function FeedbackImage({ reviewId, path, index }) {
             <DialogTitle>
               {label}
             </DialogTitle>
-            <img
+            <ResourceImage
               src={source}
               alt={label}
               className="mt-4 max-h-[70dvh] w-full object-contain"
