@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { chooseMobileDisplay } from '../helpers/customerDisplay'
 
 const id = '11111111-1111-4111-8111-111111111111'
 const initialOrder = {
@@ -856,7 +857,7 @@ test('rating validates photos and stays usable on mobile in both languages and d
   state.order = { ...initialOrder, status: 12 }
   await page.setViewportSize({ width: 375, height: 844 })
   await page.goto(`/orders/${id}`)
-  await page.getByRole('button', { name: 'Switch to dark mode', exact: true }).click()
+  await chooseMobileDisplay(page, { dark: true })
   await page.getByRole('button', { name: 'Rate service', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByLabel('Add photos', { exact: true }).setInputFiles({ name: 'wrong.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg/>') })
@@ -866,8 +867,7 @@ test('rating validates photos and stays usable on mobile in both languages and d
   await expect(dialog.getByRole('alert')).toContainText('up to 5 photos')
   expect(state.uploadCalls).toBe(0)
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
-  await page.getByRole('button', { name: 'Change language', exact: true }).click()
-  await page.getByRole('menuitem', { name: 'Tiếng Việt', exact: true }).click()
+  await chooseMobileDisplay(page, { vietnamese: true })
   await page.getByRole('button', { name: 'Đánh giá dịch vụ', exact: true }).click()
   await expect(dialog.getByRole('heading', { name: 'Đánh giá dịch vụ', exact: true })).toBeVisible()
   await dialog.getByRole('button', { name: 'Gửi đánh giá', exact: true }).scrollIntoViewIfNeeded()
@@ -1000,7 +1000,7 @@ test('customer incident modal supports mobile, languages and expiration without 
   state.order = completedForIncident()
   await page.reload()
   await page.setViewportSize({ width: 320, height: 667 })
-  await page.getByRole('button', { name: 'Switch to dark mode', exact: true }).click()
+  await chooseMobileDisplay(page, { dark: true })
   await page.getByRole('button', { name: 'Report an issue', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByRole('button', { name: 'Submit report', exact: true })).toBeInViewport()
@@ -1010,8 +1010,7 @@ test('customer incident modal supports mobile, languages and expiration without 
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
   state.order = { ...completedForIncident(), timeline: [{ status: 12, timestamp: Math.floor(Date.now() / 1000) - 4 * 86400 }] }
   await page.reload()
-  await page.getByRole('button', { name: 'Change language', exact: true }).click()
-  await page.getByRole('menuitem', { name: 'Tiếng Việt', exact: true }).click()
+  await chooseMobileDisplay(page, { vietnamese: true })
   await expect(page.getByRole('button', { name: 'Báo cáo sự cố', exact: true })).toBeDisabled()
   await expect(page.getByText('Đơn hàng đã quá thời hạn báo cáo 3 ngày kể từ khi nhận đồ.', { exact: true })).toBeVisible()
   expect(state.incidentCalls).toHaveLength(0)
@@ -1041,9 +1040,7 @@ test('customer complaint rejected outcomes stay readable on mobile in both langu
   await page.getByRole('button', { name: 'Complaint actions', exact: true }).click()
   await page.getByRole('menuitem', { name: 'View details', exact: true }).click()
   await expect(page.getByText('Supporting photo does not match the reported item.', { exact: true })).toBeVisible()
-  await page.getByRole('button', { name: 'Switch to dark mode', exact: true }).click()
-  await page.getByRole('button', { name: 'Change language', exact: true }).click()
-  await page.getByRole('menuitem', { name: 'Tiếng Việt', exact: true }).click()
+  await chooseMobileDisplay(page, { dark: true, vietnamese: true })
   await expect(page.getByRole('heading', { name: 'Chi tiết khiếu nại', exact: true })).toBeVisible()
   await expect(page.getByText('Đã từ chối', { exact: true })).toBeVisible()
   await expect(page).toHaveTitle(`Chi tiết khiếu nại - ${initialOrder.orderCode} | WashGo`)
@@ -1114,9 +1111,7 @@ test('result counts are prominent and hot toasts keep localized text, theme and 
   await toaster.getByRole('button', { name: 'Close notification', exact: true }).click()
   await expect(english).toHaveCount(0)
   await page.setViewportSize({ width: 375, height: 844 })
-  await page.getByRole('button', { name: 'Switch to dark mode', exact: true }).click()
-  await page.getByRole('button', { name: 'Change language', exact: true }).click()
-  await page.getByRole('menuitem', { name: 'Tiếng Việt', exact: true }).click()
+  await chooseMobileDisplay(page, { dark: true, vietnamese: true })
   await page.locator('footer').getByRole('button', { name: 'Quyền riêng tư', exact: true }).click()
   const vietnamese = toaster.getByText('Nội dung này đang được cập nhật.', { exact: true })
   await expect(vietnamese).toBeVisible()

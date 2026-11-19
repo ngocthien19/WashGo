@@ -10,7 +10,7 @@ export const serviceId = '55555555-5555-4555-8555-555555555555'
 export async function setupAdminOrders(page, options = {}) {
   await merchantSession(page, { role: 'Admin', dark: options.dark })
   await page.route('**/mock/*.png', route => route.fulfill({ contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aCGsAAAAASUVORK5CYII=', 'base64') }))
-  const make = i => ({ id: i === 0 ? orderId : `11111111-1111-4111-8111-${String(i + 1).padStart(12, '0')}`, orderCode: `WG-ADMIN-${String(i + 1).padStart(2, '0')}`, revision: 1, status: options.status || 2, paymentStatus: 1, merchantId: options.merchant ? merchantId : null, merchantName: options.merchant ? 'Test Laundry' : null, customerName: 'Test Customer', customerPhoneNumber: '0901234567', lockerId, lockerName: 'Test Locker', lockerAddress: '123 Test Street', boxNumber: '3', serviceNames: ['Wash'], items: [{ id: 'item', serviceName: 'Wash', quantity: 1, unitPrice: 50000, subTotal: 50000 }], actualWeightKg: 5, totalAmount: 50000, finalAmount: 50000, discountAmount: 0, weightSurchargeAmount: 0, createdOn: 1794070800, depositedAt: '2026-11-08T00:00:00Z', serverNow: '2026-11-08T10:00:00Z', pickupDeadline: '2026-11-01T00:00:00Z', timeline: [{ id: 'timeline', status: 2, timestamp: 1794070800, note: 'Deposited', actorName: 'Test Customer' }], depositPinCode: 'SECRET_DEPOSIT', pickupPinCode: 'SECRET_PICKUP' })
+  const make = i => ({ id: i === 0 ? orderId : `11111111-1111-4111-8111-${String(i + 1).padStart(12, '0')}`, orderCode: `WG-ADMIN-${String(i + 1).padStart(2, '0')}`, revision: 1, status: options.status || (options.merchant ? 16 : 2), paymentStatus: 1, merchantId: options.merchant ? merchantId : null, merchantName: options.merchant ? 'Test Laundry' : null, customerName: 'Test Customer', customerPhoneNumber: '0901234567', lockerId, lockerName: 'Test Locker', lockerAddress: '123 Test Street', boxNumber: '3', serviceNames: ['Wash'], items: [{ id: 'item', serviceName: 'Wash', quantity: 1, unitPrice: 50000, subTotal: 50000 }], actualWeightKg: 5, totalAmount: 50000, finalAmount: 50000, discountAmount: 0, weightSurchargeAmount: 0, createdOn: 1794070800, depositedAt: '2026-11-08T00:00:00Z', serverNow: '2026-11-08T10:00:00Z', pickupDeadline: '2026-11-01T00:00:00Z', timeline: [{ id: 'timeline', status: 2, timestamp: 1794070800, note: 'Deposited', actorName: 'Test Customer' }], depositPinCode: 'SECRET_DEPOSIT', pickupPinCode: 'SECRET_PICKUP' })
   const state = { orders: Array.from({ length: 13 }, (_, i) => make(i)), calls: [], writes: [], conflict: false, unknown: false, stale: false, reads: 0, listError: false, noCandidates: false, batchMissing: false, operations: new Map() }
   const candidate = { merchantId, businessName: 'Test Laundry', rating: 5, commissionRate: 20, currentLoad: 2, maxCapacity: 50, distanceKm: 1.2, priority: 1, score: 90 }
   const waitingRow = order => ({ ...order, services: ['Wash'], waitingMinutes: 1501, isOverdue: true })
@@ -81,7 +81,7 @@ export async function setupAdminOrders(page, options = {}) {
       }
       const pairs = body.assignments || [{ orderId: path.split('/')[2], merchantId: body.merchantId }]
       for (const pair of pairs) {
-        Object.assign(state.orders.find(row => row.id === pair.orderId), { merchantId: pair.merchantId, merchantName: 'Test Laundry' })
+        Object.assign(state.orders.find(row => row.id === pair.orderId), { merchantId: pair.merchantId, merchantName: 'Test Laundry', status: 16 })
       }
       const results = pairs.map(pair => ({ ...pair, merchantName: 'Test Laundry', commissionRateApplied: 20 }))
       return ok(body.assignments ? results : results[0])
@@ -110,7 +110,7 @@ export async function setupAdminOrders(page, options = {}) {
         return fail()
       }
       const order = state.orders.find(row => row.id === body.orderId)
-      Object.assign(order, path.endsWith('/status') ? { status: body.newStatus } : { shipperId: body.shipperId, shipperName: 'Test Driver' })
+      Object.assign(order, path.endsWith('/status') ? { status: body.newStatus } : { shipperId: body.shipperId, shipperName: 'Test Driver', status: [16, 17].includes(order.status) ? 17 : 19 })
       order.revision++
       return ok(order)
     }
@@ -123,7 +123,7 @@ export async function setupAdminOrders(page, options = {}) {
       if (state.stale && state.reads > 1) {
         order.revision++
       }
-      return ok({ ...order, allowedActions: { ...mockOrderActions(order), canAssignShipper: !!order.merchantId && [2, 9].includes(order.status), canUpdateWeight: false, canMoveToStorage: order.status === 10, canCancelExpiredDeposit: order.status === 1 && order.isDepositExpired === true } })
+      return ok({ ...order, allowedActions: { ...mockOrderActions(order), canAssignShipper: !!order.merchantId && [16, 17, 18, 19].includes(order.status), canUpdateWeight: false, canMoveToStorage: order.status === 10, canCancelExpiredDeposit: order.status === 1 && order.isDepositExpired === true } })
     }
     throw new Error(`Unexpected Admin order API: ${req.method()} ${path}`)
   })

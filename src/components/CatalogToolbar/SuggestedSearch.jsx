@@ -90,7 +90,7 @@ export default function SuggestedSearch({ id, keyword, onSearch, label, placehol
       <Container
         ref={anchor}
         role="search"
-        aria-label={hideLabel ? undefined : label}
+        aria-label={label}
         className={className}
         onSubmit={(event) => {
           event.preventDefault()
