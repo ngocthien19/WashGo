@@ -5,8 +5,63 @@ import { merchantSession } from '../helpers/merchantSession'
 const id = '11111111-1111-4111-8111-111111111111'
 const shipperId = '22222222-2222-4222-8222-222222222222'
 
+test('return readiness requires confirmation and advances Paid before return assignment', async ({ page }) => {
+  const state = await setup(page, { status: 9, paymentStatus: 2 })
+  await page.goto(`/merchant/orders/${id}`)
+  await expect(page.getByRole('button', { name: 'Assign return delivery', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Confirm ready for dispatch', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
+  expect(state.writes).toHaveLength(0)
+  await dialog.getByRole('checkbox').check()
+  await dialog.getByRole('button', { name: 'Confirm update', exact: true }).dblclick()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes).toHaveLength(1)
+  expect(state.writes[0]).toMatchObject({ path: `/wash-order/${id}/confirm-return-ready`, body: { expectedRevision: 1, expectedStatus: 9, operationId: expect.any(String) } })
+  await expect(page.getByRole('button', { name: 'Assign return delivery', exact: true })).toBeVisible()
+})
+
+test('unassignment cancels the task and returns a return order to the dispatch queue', async ({ page }) => {
+  const state = await setup(page, { status: 19, paymentStatus: 2 })
+  Object.assign(state.order, { shipperId, shipperName: 'Test Driver', assignedTaskType: 2 })
+  await page.goto(`/merchant/orders/${id}`)
+  await page.getByRole('button', { name: 'Unassign shipper', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('checkbox').check()
+  await dialog.getByLabel('Note (up to 500 characters)', { exact: true }).fill('Driver unavailable')
+  await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes[0]).toMatchObject({ path: `/wash-order/${id}/unassign-shipper`, body: { reason: 'Driver unavailable', expectedStatus: 19 } })
+  expect(state.order.status).toBe(18)
+  await expect(page.getByRole('button', { name: 'Unassign shipper', exact: true })).toHaveCount(0)
+})
+
+test('a stale readiness capability blocks POST and a lost response is recovered by operation lookup', async ({ page }) => {
+  const state = await setup(page, { status: 9, paymentStatus: 2 })
+  await page.goto(`/merchant/orders/${id}`)
+  await page.getByRole('button', { name: 'Confirm ready for dispatch', exact: true }).click()
+  let dialog = page.getByRole('dialog')
+  await dialog.getByRole('checkbox').check()
+  state.allowedActions = { canConfirmReturnReady: false }
+  await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toBeVisible()
+  expect(state.writes).toHaveLength(0)
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  state.allowedActions = null
+  await page.reload()
+  await page.getByRole('button', { name: 'Confirm ready for dispatch', exact: true }).click()
+  dialog = page.getByRole('dialog')
+  await dialog.getByRole('checkbox').check()
+  state.commitThenFail = true
+  await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
+  await dialog.getByRole('button', { name: 'Check operation result', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes).toHaveLength(1)
+  expect(state.lookups).toBe(1)
+})
+
 test('Merchant list shows service thumbnails and opens collection assignment from its menu', async ({ page }) => {
-  const state = await setup(page, { status: 2 })
+  const state = await setup(page, { status: 16 })
   state.order.services = [{ serviceId: 'service-1', serviceName: 'Everyday wash', serviceThumbnailUrl: '/service-test.svg' }]
   await page.route('**/service-test.svg', route => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="blue"/></svg>' }))
   await page.goto('/merchant/orders')
@@ -18,7 +73,7 @@ test('Merchant list shows service thumbnails and opens collection assignment fro
 })
 
 test('Merchant list checks current permissions before opening collection assignment', async ({ page }) => {
-  const state = await setup(page, { status: 2 })
+  const state = await setup(page, { status: 16 })
   state.allowedActions = { canAssignShipper: false, allowedNextStatuses: [], statusOptions: [] }
   await page.goto('/merchant/orders')
   await page.getByRole('button', { name: 'View order WG-ORDER-123' }).click()
@@ -103,9 +158,9 @@ async function setup(page, options = {}) {
       return ok({ ...state.order, allowedActions: state.allowedActions || mockOrderActions(state.order) })
     }
     if (path === `/wash-order/${id}/available-shippers`) {
-      return ok(state.shippers ? [{ id: shipperId, fullName: 'Test Driver', email: 'driver@example.test', phone: '0901234567', vehicleType: 1, taskType: options.status === 9 ? 2 : 1, vehiclePlate: '59-ABC' }] : [])
+      return ok(state.shippers ? [{ id: shipperId, fullName: 'Test Driver', email: 'driver@example.test', phone: '0901234567', vehicleType: 1, taskType: [18, 19].includes(options.status) ? 2 : 1, vehiclePlate: '59-ABC' }] : [])
     }
-    if (req.method() === 'PUT' && [`/wash-order/${id}/actual-weight`, '/wash-order/status', '/wash-order/assign-shipper'].includes(path)) {
+    if (['PUT', 'POST'].includes(req.method()) && [`/wash-order/${id}/actual-weight`, '/wash-order/status', '/wash-order/assign-shipper', `/wash-order/${id}/confirm-return-ready`, `/wash-order/${id}/unassign-shipper`].includes(path)) {
       const body = req.postDataJSON()
       state.writes.push({ path, body })
       if (state.conflict || body.expectedRevision !== state.order.revision) {
@@ -121,10 +176,16 @@ async function setup(page, options = {}) {
         Object.assign(state.order, { status: body.newStatus })
       }
       if (path.endsWith('assign-shipper')) {
-        Object.assign(state.order, { shipperId: body.shipperId, shipperName: 'Test Driver', assignedTaskType: options.status === 9 ? 2 : 1 })
+        Object.assign(state.order, { shipperId: body.shipperId, shipperName: 'Test Driver', assignedTaskType: [18, 19].includes(state.order.status) ? 2 : 1, status: [18, 19].includes(state.order.status) ? 19 : 17 })
+      }
+      if (path.endsWith('/confirm-return-ready')) {
+        Object.assign(state.order, { status: 18 })
+      }
+      if (path.endsWith('/unassign-shipper')) {
+        Object.assign(state.order, { status: state.order.status === 17 ? 16 : 18, shipperId: null, shipperName: null, assignedTaskType: null })
       }
       state.order.revision++
-      operations.set(body.operationId, { operationId: body.operationId, orderId: id, operation: path.endsWith('actual-weight') ? 'UpdateWeight' : path.endsWith('/status') ? 'UpdateStatus' : 'AssignShipper', resultRevision: state.order.revision, resultStatus: state.order.status })
+      operations.set(body.operationId, { operationId: body.operationId, orderId: id, operation: path.endsWith('/confirm-return-ready') ? 'ConfirmReturnReady' : path.endsWith('/unassign-shipper') ? 'UnassignShipper' : path.endsWith('actual-weight') ? 'UpdateWeight' : path.endsWith('/status') ? 'UpdateStatus' : 'AssignShipper', resultRevision: state.order.revision, resultStatus: state.order.status })
       if (state.commitThenFail) {
         return route.fulfill({ status: 500, json: { succeeded: false } })
       }
@@ -198,7 +259,7 @@ test('processing confirms each stage in order even when the server allows skippi
 })
 
 test('assignment loads eligible shippers and submits collection or return without spoofing actor or status', async ({ page }) => {
-  const state = await setup(page, { status: 9, paymentStatus: 2 })
+  const state = await setup(page, { status: 18, paymentStatus: 2 })
   await page.goto(`/merchant/orders/${id}`)
   await page.getByRole('button', { name: 'Assign return delivery', exact: true }).click()
   const dialog = page.getByRole('dialog')
@@ -206,7 +267,7 @@ test('assignment loads eligible shippers and submits collection or return withou
   await dialog.getByLabel('Note (up to 500 characters)', { exact: true }).fill('Please return today')
   await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
   await expect(dialog).toHaveCount(0)
-  expect(state.writes[0].body).toMatchObject({ orderId: id, shipperId, shipperName: 'Test Driver', note: 'Please return today', expectedRevision: 1, expectedStatus: 9, operationId: expect.any(String) })
+  expect(state.writes[0].body).toMatchObject({ orderId: id, shipperId, shipperName: 'Test Driver', note: 'Please return today', expectedRevision: 1, expectedStatus: 18, operationId: expect.any(String) })
   await expect(page.getByText('Test Driver', { exact: true })).toBeVisible()
 })
 
@@ -238,7 +299,7 @@ test('unknown write results lock retry, stale orders do not write, and denied re
 
 test('mobile dark detail and empty shipper list keep controls usable without inventing candidates', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
-  const state = await setup(page, { status: 2, dark: true })
+  const state = await setup(page, { status: 16, dark: true })
   state.shippers = false
   await page.goto(`/merchant/orders/${id}`)
   await page.getByRole('button', { name: 'Assign collection', exact: true }).click()
@@ -365,7 +426,7 @@ test('server permissions and overdue metadata drive the detail view', async ({ p
 })
 
 test('Merchant detail mirrors the layout with contacts, drop-off/pickup and highlighted assignment code', async ({ page }) => {
-  const state = await setup(page, { status: 2 })
+  const state = await setup(page, { status: 16 })
   Object.assign(state.order, { shipperId, shipperName: 'Test Driver', shipperEmail: 'driver@example.test', shipperPhone: '0901234567', shipperVehicleType: 1, shipperVehiclePlate: '59-ABC', lockerId: '33333333-3333-4333-8333-333333333333', lockerAddress: '123 Test Street' })
   state.order.items[0].serviceId = '44444444-4444-4444-8444-444444444444'
   await page.goto(`/merchant/orders/${id}`)
@@ -400,9 +461,9 @@ test('Merchant uses enriched order images and actual finances without catalog or
   await expect(page.getByRole('img', { name: 'Ben Thanh Locker', exact: true })).toHaveAttribute('src', /order-deposit.svg$/)
   await page.getByRole('link', { name: 'WG-ORDER-123', exact: true }).click()
   await expect(page.getByText('assigned@example.test', { exact: true })).toBeVisible()
-  await expect(page.locator('dd').filter({ hasText: 'assigned@example.test' })).toHaveCSS('font-size', '16px')
-  await expect(page.getByText('Your order is created. Bring your laundry to the locker and confirm drop-off before the deadline.', { exact: true })).toBeVisible()
-  await expect(page.getByText('Your laundry is in the locker, ready for the shipper to collect.', { exact: true })).toBeVisible()
+  await expect(page.locator('dd').filter({ hasText: 'assigned@example.test' })).toHaveCSS('font-size', '14px')
+  await expect(page.getByText('The customer is preparing to deposit laundry. Shop intake and processing have not started.', { exact: true })).toBeVisible()
+  await expect(page.getByText('The customer deposited laundry. WashGo is assigning the responsible shop.', { exact: true })).toBeVisible()
   const actor = page.getByText('Collection staff', { exact: true })
   await expect(actor).toHaveCSS('font-weight', '700')
   await expect(actor.locator('svg')).toHaveCount(0)

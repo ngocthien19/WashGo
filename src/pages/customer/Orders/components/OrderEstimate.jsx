@@ -8,7 +8,7 @@ export default function OrderEstimate({ order, compact = false, loading = false,
   const { t } = useTranslation()
   const validDate = (value) => typeof value === 'string' && Number.isFinite(Date.parse(value))
   const fallback = validDate(order.estimatedFinishAt) ? order.estimatedFinishAt : Number.isFinite(order.expectedDeliveryTime) && order.expectedDeliveryTime > 0 ? new Date(order.expectedDeliveryTime * 1000).toISOString() : null
-  const status = order.predictionStatus || (fallback && order.status >= 1 && order.status <= 7 ? 'rule' : null)
+  const status = order.predictionStatus || (fallback && [1, 2, 16, 17, 3, 4, 5, 6, 7].includes(order.status) ? 'rule' : null)
   const date = validDate(order.predictedFinishAt) ? order.predictedFinishAt : status === 'rule' ? fallback : null
   return (
     <div className={compact ? 'mt-1 grid gap-1' : 'grid gap-2'}>

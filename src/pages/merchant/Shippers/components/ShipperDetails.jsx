@@ -1,3 +1,4 @@
+import ResourceImage from '~/components/ResourceThumbnail/ResourceImage'
 import ShipperHistory from './ShipperHistory'
 import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -86,7 +87,7 @@ export default function ShipperDetails({ id, onClose, onEdit, editImmediately = 
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <span className={`rounded-full px-3 py-1.5 text-sm font-semibold ${shipper.isActive ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+                  <span className={`rounded-full px-3 py-1.5 text-sm font-semibold ${shipper.isActive ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'badge-inactive'}`}>
                     {t(`merchant.shippers.active.${shipper.isActive}`)}
                   </span>
                   <span className="rounded-full bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary">
@@ -159,7 +160,7 @@ export default function ShipperDetails({ id, onClose, onEdit, editImmediately = 
                         target="_blank"
                         rel="noreferrer"
                       >
-                        <img
+                        <ResourceImage
                           src={getImageUrl(url)}
                           alt={shipper.identityImageSides === 'FrontBack' ? t(`merchant.shippers.${index === 0 ? 'front' : 'back'}`) : t('merchant.shippers.photo', { number: index + 1 })}
                           className="h-32 w-44 rounded-xl border border-border bg-background p-2 object-contain transition-colors hover:border-primary"

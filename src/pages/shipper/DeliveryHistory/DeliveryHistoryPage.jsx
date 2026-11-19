@@ -82,6 +82,7 @@ export default function DeliveryHistoryPage() {
       />
       <section className="workspace-filters space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
         <CatalogToolbar
+          showLabel
           suggestionSource={shipperDeliveryApi.list}
           suggestionKind="delivery"
           suggestionFilter={historyFilter(query)}
@@ -109,6 +110,7 @@ export default function DeliveryHistoryPage() {
             />
           </div>
           <SelectField
+            showLabel
             label={t('shipper.deliveryHistory.locker')}
             value={query.lockerId}
             onValueChange={lockerId => update({ lockerId })}
@@ -116,12 +118,15 @@ export default function DeliveryHistoryPage() {
             options={[{ value: '', label: t('common.all') }, ...(lockers.data || []).map(row => ({ value: row.id, label: row.name }))]}
           />
           <SelectField
+            showLabel
             label={t('shipper.sync.cancelledReturn')}
             value={query.cancelledReturn}
             onValueChange={cancelledReturn => update({ cancelledReturn })}
             options={[{ value: '', label: t('common.all') }, { value: 'true', label: t('shipper.sync.cancelledOnly') }, { value: 'false', label: t('shipper.sync.normalOnly') }]}
           />
           <SelectField
+            showLabel
+            labelPosition="left"
             label={t('shipper.sync.sort')}
             value={query.sort}
             onValueChange={sort => update({ sort })}

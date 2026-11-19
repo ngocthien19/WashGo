@@ -21,7 +21,7 @@ export default function PaymentDialog({ orderId, onClose, pendingRequests: pendi
       }}
     >
       <DialogContent
-        className="flex max-w-3xl flex-col overflow-hidden p-0 sm:p-0"
+        className="flex max-w-3xl flex-col overflow-clip p-0 sm:p-0"
         closeLabel="common.close"
       >
         {resource.loading || resource.error ? (

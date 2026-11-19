@@ -1,3 +1,4 @@
+import OrderStatusDescription from '~/components/orders/OrderStatusDescription'
 import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useOutletContext, useParams } from 'react-router-dom'
@@ -103,6 +104,11 @@ function Details({ id }) {
           )}
         </div>
       </header>
+      {order && (
+        <p className="text-sm leading-6 text-muted-foreground">
+          <OrderStatusDescription status={order.status} />
+        </p>
+      )}
       {result && (
         <p
           role="status"

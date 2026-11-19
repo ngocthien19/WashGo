@@ -57,12 +57,13 @@ export default function OrdersPage() {
             {t('common.createAnOrder')}
           </Button>
         </div>
-        <div className="grid items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-[minmax(12rem,1.5fr)_minmax(9rem,1fr)_minmax(9rem,1fr)_auto]">
+        <div className="grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-[minmax(12rem,1.5fr)_minmax(9rem,1fr)_minmax(9rem,1fr)_auto]">
           <CatalogToolbar
+            showLabel
             suggestionType="order"
             suggestionFilter={buildOrdersFilter(query)}
             embedded
-            className="pt-2 sm:col-span-2 lg:col-span-1"
+            className="sm:col-span-2 lg:col-span-1"
             keyword={query.keyword}
             label={t('customer.orders.search')}
             placeholder={t('customer.orders.searchPlaceholder')}
@@ -71,11 +72,11 @@ export default function OrdersPage() {
           {[{ id: 'status', label: 'customer.orders.orderStatus', options: statusOptions }, { id: 'paymentStatus', label: 'customer.orders.paymentLabel', options: paymentOptions }].map((field) => (
             <div
               key={field.id}
-              className="relative pt-2"
+              className="grid gap-2"
             >
               <label
                 htmlFor={`orders-${field.id}`}
-                className="absolute -top-1 left-3 z-10 bg-card px-1 text-xs font-medium text-muted-foreground"
+                className="text-sm font-medium text-muted-foreground"
               >
                 {t(field.label)}
               </label>

@@ -14,9 +14,9 @@ const guardFields = ({ expectedRevision, expectedStatus, operationId } = {}) => 
   }
   return { expectedRevision, expectedStatus, operationId }
 }
-const mutate = async (path, body, id, verify, guard) => {
+const mutate = async (path, body, id, verify, guard, method = 'put') => {
   const fields = guardFields(guard)
-  const { data } = await authorizedAxios.put(path, { ...body, ...fields })
+  const { data } = await authorizedAxios[method](path, { ...body, ...fields })
   try {
     const order = detail(data, id)
     const replayed = data.meta?.replayed === true && data.meta?.operationId === fields.operationId
@@ -73,5 +73,7 @@ export const orderManagementApi = {
   },
   weigh: (id, weightKg, guard) => mutate(`/wash-order/${encodeURIComponent(id)}/actual-weight`, { weightKg }, id, (order) => order.actualWeightKg === weightKg, guard),
   status: (id, newStatus, note, guard) => mutate('/wash-order/status', { orderId: id, newStatus, note }, id, (order) => order.status === newStatus, guard),
-  assign: (id, shipper, note, guard) => mutate('/wash-order/assign-shipper', { orderId: id, shipperId: shipper.id, shipperName: shipper.fullName, note }, id, (order) => order.shipperId === shipper.id, guard)
+  assign: (id, shipper, note, guard) => mutate('/wash-order/assign-shipper', { orderId: id, shipperId: shipper.id, shipperName: shipper.fullName, note }, id, (order) => order.shipperId === shipper.id && order.status === ({ 16: 17, 18: 19 }[guard.expectedStatus] ?? guard.expectedStatus), guard),
+  returnReady: (id, note, guard) => mutate(`/wash-order/${encodeURIComponent(id)}/confirm-return-ready`, { note }, id, order => order.status === 18, guard, 'post'),
+  unassign: (id, reason, guard) => mutate(`/wash-order/${encodeURIComponent(id)}/unassign-shipper`, { reason }, id, order => order.status === ({ 17: 16, 19: 18 }[guard.expectedStatus]) && !order.shipperId, guard, 'post')
 }

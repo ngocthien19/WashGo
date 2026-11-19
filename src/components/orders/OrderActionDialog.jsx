@@ -5,6 +5,7 @@ import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+import FormError from '~/components/ui/FormError'
 import { SelectField } from '~/components/ui/select'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
@@ -93,14 +94,18 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
   const [next, setNext] = useState(String(processingSteps(order)[0] || ''))
   const [shipper, setShipper] = useState(null)
   const [note, setNote] = useState('')
+  const [confirmed, setConfirmed] = useState(false)
+  const needsConfirmation = ['returnReady', 'unassign'].includes(action)
+  const canAct = value => action === 'returnReady' ? value.allowedActions?.canConfirmReturnReady === true : action === 'unassign' ? value.allowedActions?.canUnassignShipper === true : true
   const [pending, setPending] = useState(false)
   const [uncertain, setUncertain] = useState(false)
   const [canRetry, setCanRetry] = useState(false)
   const [canCheck, setCanCheck] = useState(false)
   const [error, setError] = useState('')
+  const [validation, setValidation] = useState({})
   const lock = useRef(false)
   const intent = useRef(null)
-  const operation = { weigh: 'UpdateWeight', process: 'UpdateStatus', assign: 'AssignShipper' }[action]
+  const operation = { weigh: 'UpdateWeight', process: 'UpdateStatus', assign: 'AssignShipper', returnReady: 'ConfirmReturnReady', unassign: 'UnassignShipper' }[action]
   const complete = () => {
     notify.success('merchant.orders.saved'); onSaved()
   }
@@ -126,7 +131,14 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
     if (lock.current || uncertain && !canRetry) {
       return
     }
-    if (!intent.current && ((action === 'weigh' && (!canWeigh(order) || !validWeight(weight))) || (action === 'process' && !processingSteps(order).includes(Number(next))) || (action === 'assign' && (!assignmentTask(order) || !shipper)) || note.trim().length > 500)) {
+    if (!intent.current) {
+      const fields = { weight: action === 'weigh' && !validWeight(weight), next: action === 'process' && !processingSteps(order).includes(Number(next)), shipper: action === 'assign' && !shipper, note: note.trim().length > 500, confirmed: needsConfirmation && !confirmed }
+      setValidation(fields)
+      if (Object.values(fields).some(Boolean)) {
+        return
+      }
+    }
+    if (!intent.current && (!canAct(order) || (action === 'weigh' && !canWeigh(order)) || (action === 'assign' && !assignmentTask(order)))) {
       setError('merchant.orders.invalidAction'); return
     }
     lock.current = true
@@ -139,7 +151,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
         if (!sameOrderState(order, latest)) {
           setUncertain(true); setError('merchant.orders.changed'); return
         }
-        if ((action === 'weigh' && !canWeigh(latest)) || (action === 'process' && !processingSteps(latest).includes(Number(next))) || (action === 'assign' && !assignmentTask(latest))) {
+        if (!canAct(latest) || (action === 'weigh' && !canWeigh(latest)) || (action === 'process' && !processingSteps(latest).includes(Number(next))) || (action === 'assign' && !assignmentTask(latest))) {
           setUncertain(true); setError('merchant.orders.changed'); return
         }
         intent.current = { weight: Number(weight), next: Number(next), shipper, note: note.trim() || null, guard: { expectedRevision: order.revision, expectedStatus: order.status, operationId: crypto.randomUUID() } }
@@ -155,6 +167,9 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
       }
       if (action === 'assign') {
         await merchantOrderApi.assign(order.id, request.shipper, request.note, request.guard)
+      }
+      if (needsConfirmation) {
+        await merchantOrderApi[action](order.id, request.note, request.guard)
       }
       complete()
     } catch (failure) {
@@ -238,6 +253,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
           )}
         </div>
         <form
+          noValidate
           onSubmit={submit}
           className="mt-5 space-y-5"
           data-dialog-layout
@@ -259,28 +275,72 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
                     step="0.01"
                     required
                     value={weight}
-                    onChange={(event) => setWeight(event.target.value)}
+                    onChange={(event) => {
+                      setWeight(event.target.value); setValidation(current => ({ ...current, weight: false }))
+                    }}
+                    aria-invalid={!!validation.weight}
+                    aria-describedby={validation.weight ? 'order-weight-error' : undefined}
                     className="h-12 text-base"
                   />
+                  <FormError
+                    inline
+                    id="order-weight-error"
+                  >
+                    {validation.weight ? 'forms.weight' : ''}
+                  </FormError>
                 </label>
               )}
               {action === 'process' && (
                 <SelectField
+                  showLabel
+                  aria-invalid={!!validation.next}
+                  aria-describedby={validation.next ? 'order-next-error' : undefined}
                   label={t('merchant.orders.nextStatus')}
                   value={next}
-                  onValueChange={setNext}
+                  onValueChange={value => {
+                    setNext(value); setValidation(current => ({ ...current, next: false }))
+                  }}
                   disabled={pending || uncertain}
                   options={processingSteps(order).map((value) => ({ value: String(value), label: t(statusLabel(value)) }))}
                 />
               )}
+              <FormError
+                inline
+                id="order-next-error"
+              >
+                {validation.next ? 'forms.invalidValue' : ''}
+              </FormError>
               {action === 'assign' && (
                 <ShipperSelection
                   id={order.id}
                   value={shipper}
-                  onChange={setShipper}
+                  onChange={value => {
+                    setShipper(value); setValidation(current => ({ ...current, shipper: false }))
+                  }}
                   disabled={pending || uncertain}
                 />
               )}
+              <FormError inline>
+                {validation.shipper ? 'forms.invalidValue' : ''}
+              </FormError>
+              {needsConfirmation && (
+                <label className="flex items-start gap-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={confirmed}
+                    onChange={event => {
+                      setConfirmed(event.target.checked); setValidation(current => ({ ...current, confirmed: false }))
+                    }}
+                    aria-invalid={!!validation.confirmed}
+                  />
+                  <span>
+                    {t(`merchant.orders.${action}Confirmation`)}
+                  </span>
+                </label>
+              )}
+              <FormError inline>
+                {validation.confirmed ? 'forms.confirmRequired' : ''}
+              </FormError>
               {action !== 'weigh' && (
                 <label className="block space-y-2 text-base">
                   <span>
@@ -288,11 +348,21 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
                   </span>
                   <textarea
                     value={note}
+                    aria-invalid={!!validation.note}
+                    aria-describedby={validation.note ? 'order-note-error' : undefined}
                     maxLength={500}
-                    onChange={(event) => setNote(event.target.value)}
+                    onChange={(event) => {
+                      setNote(event.target.value); setValidation(current => ({ ...current, note: false }))
+                    }}
                     rows={3}
                     className="w-full rounded-xl border border-input bg-background px-3 py-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   />
+                  <FormError
+                    inline
+                    id="order-note-error"
+                  >
+                    {validation.note ? 'forms.invalidValue' : ''}
+                  </FormError>
                 </label>
               )}
             </fieldset>

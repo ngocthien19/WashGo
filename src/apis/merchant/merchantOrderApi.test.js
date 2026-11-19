@@ -62,3 +62,22 @@ it('rejects summary fields that would invent zeros or disagree with the total', 
   authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, data: { total: 0, statusCounts: {} } } })
   await expect(merchantOrderApi.summary({})).rejects.toThrow('merchant.invalidResponse')
 })
+
+it('posts guarded return readiness and unassignment, verifying the resulting business state', async () => {
+  const dto = { id: 'order', orderCode: 'WG', items: [], status: 18, shipperId: null }
+  authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, data: dto } })
+  await expect(merchantOrderApi.returnReady('order', 'Packed', { ...guard, expectedStatus: 9 })).resolves.toEqual(dto)
+  expect(authorizedAxios.post).toHaveBeenLastCalledWith('/wash-order/order/confirm-return-ready', { note: 'Packed', ...guard, expectedStatus: 9 })
+  await expect(merchantOrderApi.unassign('order', 'Unavailable', { ...guard, expectedStatus: 19 })).resolves.toEqual(dto)
+  expect(authorizedAxios.post).toHaveBeenLastCalledWith('/wash-order/order/unassign-shipper', { reason: 'Unavailable', ...guard, expectedStatus: 19 })
+  authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, data: { ...dto, shipperId: 'old-driver' } } })
+  await expect(merchantOrderApi.unassign('order', null, { ...guard, expectedStatus: 19 })).rejects.toMatchObject({ uncertain: true })
+})
+
+it.each([[16, 17], [18, 19], [17, 17], [19, 19]])('verifies assignment transition %s → %s', async (before, after) => {
+  const dto = { id: 'order', orderCode: 'WG', items: [], shipperId: 'driver', status: after }
+  authorizedAxios.put.mockResolvedValue({ data: { succeeded: true, data: dto } })
+  await expect(merchantOrderApi.assign('order', { id: 'driver', fullName: 'Driver' }, null, { ...guard, expectedStatus: before })).resolves.toEqual(dto)
+  authorizedAxios.put.mockResolvedValue({ data: { succeeded: true, data: { ...dto, status: 9 } } })
+  await expect(merchantOrderApi.assign('order', { id: 'driver' }, null, { ...guard, expectedStatus: before })).rejects.toMatchObject({ uncertain: true })
+})

@@ -1,3 +1,4 @@
+import { ORDER_COUNT_FIELDS } from '~/utils/orders/orderGroups'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -78,8 +79,8 @@ export default function HomePage() {
   const revenue = useCatalogResource(useCallback((signal) => adminDashboardApi.revenue(filter, signal), [filter]), revision)
   const snapshot = useCatalogResource(useCallback(signal => adminWorkspaceApi.dashboard(filter, signal), [filter]), revision)
   const live = snapshot.data
-  const statusNames = ['pending', 'deposited', 'collected', 'washing', 'drying', 'ironing', 'folding', 'awaitingPayment', 'paid', 'readyToReturn', 'returned', 'completed', 'movedToStorage', 'cancelled']
-  const counts = Object.fromEntries(statusNames.map((key, i) => [i === 13 ? 99 : i + 1, live?.orders.currentByStatus[String(i === 13 ? 99 : i + 1)] ?? Object.entries(live?.orders.currentByStatus || {}).find(([name]) => name.toLowerCase() === key.toLowerCase())?.[1] ?? 0]))
+  const counts = Object.fromEntries(Object.entries(ORDER_COUNT_FIELDS).map(([key, status]) => [status,
+    live?.orders.currentByStatus[String(status)] ?? Object.entries(live?.orders.currentByStatus || {}).find(([name]) => name.toLowerCase() === key.toLowerCase())?.[1] ?? 0]))
   const orders = { ...snapshot, data: live ? { total: live.orders.created.current, counts } : null }
   const merchants = { ...snapshot, data: live ? { total: live.merchants.active } : null }
   const lockers = { ...snapshot, data: live ? { totalLockers: live.lockers.total, activeLockers: live.lockers.active, maintenanceLockers: live.lockers.maintenance, availableBoxes: live.lockers.availableBoxes } : null }
@@ -172,6 +173,21 @@ export default function HomePage() {
           iconClassName="bg-rose-500/10 text-rose-600 dark:text-rose-300"
         />
       </div>
+      {live && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {['waitingCollectAssignment', 'waitingCollection', 'waitingReturnPreparation', 'waitingReturnAssignment', 'waitingReturnDelivery', 'awaitingCustomerPickup'].filter(key => Number.isInteger(live.orders[key])).map(key => (
+            <Metric
+              key={key}
+              icon={Package}
+              label={t(`admin.dispatchQueues.${key}`)}
+              value={live.orders[key]}
+              resource={snapshot}
+              className="border-l-primary"
+              iconClassName="bg-primary/10 text-primary"
+            />
+          ))}
+        </div>
+      )}
       {live && (
         <div className="grid gap-4 sm:grid-cols-3">
           {[['completedPeriod', live.orders.completed], ['cancelledPeriod', live.orders.cancelled], ['newCustomers', live.customers.new]].map(([key, metric]) => (

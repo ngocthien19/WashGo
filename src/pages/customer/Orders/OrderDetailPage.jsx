@@ -368,7 +368,7 @@ export default function OrderDetailPage() {
                   key={`incident-${order.id}`}
                   order={order}
                 />
-                {!expiredDeposit && [ORDER_STATUSES.PENDING, ORDER_STATUSES.DEPOSITED, ORDER_STATUSES.COLLECTED].includes(order.status) && (
+                {!expiredDeposit && [ORDER_STATUSES.PENDING, ORDER_STATUSES.DEPOSITED, ORDER_STATUSES.MERCHANT_ASSIGNED, ORDER_STATUSES.COLLECTION_SHIPPER_ASSIGNED, ORDER_STATUSES.COLLECTED].includes(order.status) && (
                   <Button
                     variant="destructive"
                     className="h-11 w-full"

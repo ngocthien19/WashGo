@@ -207,6 +207,7 @@ test('row edit loads fresh data and bulk selection is limited to current page', 
   await expect(page.getByRole('menuitem', { name: 'Delete Test Driver', exact: true })).toBeEnabled()
   await expect(page.getByRole('menuitem', { name: 'Lock account Test Driver', exact: true })).toBeEnabled()
   await expect(page.getByRole('menuitem', { name: 'Unlock account Test Driver', exact: true })).toHaveAttribute('aria-disabled', 'true')
+  await expect(page.getByRole('menuitem', { name: 'Unlock account Test Driver', exact: true })).toHaveCSS('opacity', '0.5')
   await page.keyboard.press('Escape')
   await page.getByRole('checkbox', { name: 'Select Test Driver', exact: true }).check()
   const bar = page.getByRole('region', { name: 'Bulk actions', exact: true })
@@ -227,7 +228,7 @@ test('row edit loads fresh data and bulk selection is limited to current page', 
 test('assignment reuses eligible shippers and verifies the order before submitting', async ({ page }) => {
   await setup(page)
   const orderId = '33333333-3333-4333-8333-333333333333'
-  const order = { id: orderId, revision: 1, orderCode: 'WG-ASSIGN', status: 2, paymentStatus: 1, items: [], shipperId: null, lockerName: 'Test Locker' }
+  const order = { id: orderId, revision: 1, orderCode: 'WG-ASSIGN', status: 16, paymentStatus: 1, items: [], shipperId: null, lockerName: 'Test Locker' }
   const writes = []
   await page.route('**/api/wash-order/**', async (route) => {
     const req = route.request()
@@ -241,18 +242,21 @@ test('assignment reuses eligible shippers and verifies the order before submitti
     }
     if (path.endsWith('/assign-shipper')) {
       writes.push(req.postDataJSON())
-      return ok({ ...order, shipperId: id })
+      return ok({ ...order, status: 17, shipperId: id })
     }
     return ok({ ...order, allowedActions: mockOrderActions(order) })
   })
   await page.goto('/merchant/shippers')
   await page.getByRole('button', { name: 'Assign orders', exact: true }).click()
+  for (const title of ['Search orders', 'Task type']) {
+    await expect(page.getByRole('dialog').locator('label').filter({ hasText: title })).toHaveCSS('font-size', '14px')
+  }
   await page.getByRole('button', { name: /WG-ASSIGN/ }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('radio', { name: 'Test Driver', exact: true }).check()
   await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
   await expect(dialog).toHaveCount(0)
-  expect(writes).toEqual([{ orderId, shipperId: id, shipperName: 'Test Driver', note: null, expectedRevision: 1, expectedStatus: 2, operationId: expect.any(String) }])
+  expect(writes).toEqual([{ orderId, shipperId: id, shipperName: 'Test Driver', note: null, expectedRevision: 1, expectedStatus: 16, operationId: expect.any(String) }])
 })
 
 
@@ -289,6 +293,11 @@ test('account lock and unlock preserve work availability and enforce task guard'
   await expect(dialog).toHaveCount(0)
   expect(state.rows[0].accountActive).toBe(false)
   expect(state.rows[0].isActive).toBe(true)
+  await page.getByRole('button', { name: 'Actions for Test Driver', exact: true }).click()
+  await expect(page.getByRole('menuitem', { name: 'Lock account Test Driver', exact: true })).toHaveAttribute('aria-disabled', 'true')
+  await expect(page.getByRole('menuitem', { name: 'Lock account Test Driver', exact: true })).toHaveCSS('opacity', '0.5')
+  await expect(page.getByRole('menuitem', { name: 'Unlock account Test Driver', exact: true })).toBeEnabled()
+  await page.keyboard.press('Escape')
   await rowAction(page, 'Unlock account Test Driver')
   await page.getByRole('dialog').getByRole('button', { name: 'Confirm update', exact: true }).click()
   await expect(page.getByRole('dialog')).toHaveCount(0)
@@ -331,6 +340,9 @@ test('shipper ratings are removed while detail keeps operational metrics and sco
   await expect(dialog.getByText('Deliveries completed', { exact: true })).toBeVisible()
   await expect(dialog.getByText('Active tasks', { exact: true })).toBeVisible()
   await dialog.locator('summary').filter({ hasText: 'Task history' }).click()
+  for (const title of ['Task type', 'Task status']) {
+    await expect(dialog.locator('label').filter({ hasText: title })).toHaveCSS('font-size', '14px')
+  }
   await expect(dialog.getByRole('link', { name: 'WG-HISTORY' })).toHaveAttribute('href', `/merchant/orders/${id}`)
   await dialog.locator('summary').filter({ hasText: 'Administration history' }).click()
   await expect(dialog).toContainText('Security review')

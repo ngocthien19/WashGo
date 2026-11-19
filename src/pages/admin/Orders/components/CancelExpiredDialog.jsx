@@ -73,6 +73,7 @@ export default function CancelExpiredDialog({ id, onClose, onSaved }) {
           </div>
         ) : (
           <form
+            noValidate
             onSubmit={event => handleSubmit(submit)(event)}
             className="mt-5 space-y-5"
             data-dialog-layout
@@ -123,23 +124,34 @@ export default function CancelExpiredDialog({ id, onClose, onSaved }) {
                 <label className="grid gap-2">
                   {t('admin.sync.cancelReason')}
                   <Input
+                    aria-label={t('admin.sync.cancelReason')}
+                    aria-invalid={!!errors['reason']}
+                    aria-describedby={errors['reason'] ? `cancelexpireddialog-${'reason'}-error` : undefined}
                     {...register('reason')}
                     maxLength={500}
                     className="h-12 text-base"
                   />
-                  <FormError>
+                  <FormError
+                    id={`cancelexpireddialog-${'reason'}-error`}
+                    inline
+                  >
                     {errors.reason?.message}
                   </FormError>
                 </label>
                 <label className="flex items-start gap-3">
                   <input
+                    aria-invalid={!!errors['confirmed']}
+                    aria-describedby={errors['confirmed'] ? `cancelexpireddialog-${'confirmed'}-error` : undefined}
                     type="checkbox"
                     {...register('confirmed')}
                     className="mt-1 size-5"
                   />
                   {t('admin.sync.cancelConfirm')}
                 </label>
-                <FormError>
+                <FormError
+                  id={`cancelexpireddialog-${'confirmed'}-error`}
+                  inline
+                >
                   {errors.confirmed?.message}
                 </FormError>
               </fieldset>

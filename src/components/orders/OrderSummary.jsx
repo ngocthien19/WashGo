@@ -6,9 +6,12 @@ import { groupOrders } from '~/utils/orders/orderGroups'
 
 const styles = {
   total: [Package, 'border-l-primary', 'bg-primary/10 text-primary'],
+  pending: [Package, 'border-l-slate-500', 'bg-slate-500/10 text-slate-700 dark:text-slate-300'],
   incoming: [Truck, 'border-l-blue-500', 'bg-blue-500/10 text-blue-600 dark:text-blue-300'],
   processing: [WashingMachine, 'border-l-violet-500', 'bg-violet-500/10 text-violet-600 dark:text-violet-300'],
   payment: [Wallet, 'border-l-amber-500', 'bg-amber-500/10 text-amber-700 dark:text-amber-300'],
+  returnPreparation: [Package, 'border-l-lime-500', 'bg-lime-500/10 text-lime-700 dark:text-lime-300'],
+  returnDispatch: [Truck, 'border-l-teal-500', 'bg-teal-500/10 text-teal-700 dark:text-teal-300'],
   pickup: [DoorOpen, 'border-l-cyan-500', 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300'],
   completed: [CircleCheck, 'border-l-emerald-500', 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'],
   storage: [Warehouse, 'border-l-orange-500', 'bg-orange-500/10 text-orange-700 dark:text-orange-300'],

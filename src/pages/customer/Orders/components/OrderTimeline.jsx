@@ -23,23 +23,35 @@ export default function OrderTimeline({ order }) {
     }
   }
   // This is a workflow summary, not the audit log. Match BE's first-reached milestone.
-  const rows = steps.map((step) => {
+  const rows = steps.flatMap((step) => {
     const recorded = events.find((event) => event.status === Number(step.value))
     const milestone = workflow.find(item => item.status === Number(step.value))
     const event = milestone?.timestamp != null ? { ...recorded, timestamp: milestone.timestamp } : recorded
-    return {
+    const row = {
       step,
       event,
       current: Number(step.value) === currentStatus,
       key: step.value
     }
+    if (Number(step.value) === 10) {
+      // Status10 starts waiting for pickup when the goods enter the locker.
+      // Show its delivery milestone first without inventing another BE status or time.
+      return [{
+        step: { value: 'lockerDelivered', label: 'orderProgress.lockerDeliveredTitle', iconStatus: 2 },
+        event: event || (row.current ? {} : undefined),
+        current: false,
+        key: 'lockerDelivered',
+        description: 'orderProgress.lockerDeliveredDescription'
+      }, { ...row, event: event ? {} : undefined }]
+    }
+    return [row]
   })
   return (
     <ol
       aria-label={t('customer.orders.timeline')}
       className="ml-3"
     >
-      {rows.map(({ step, event, current, key }, index) => {
+      {rows.map(({ step, event, current, key, description }, index) => {
         const next = rows[index + 1]
         const connected = (event || current) && (next?.event || next?.current)
         return (
@@ -52,7 +64,7 @@ export default function OrderTimeline({ order }) {
               (event || current) && 'border-primary bg-primary text-primary-foreground', current && 'ring-primary/15')}
             >
               <OrderStatusIcon
-                status={Number(step.value)}
+                status={step.iconStatus || Number(step.value)}
                 size={14}
               />
             </span>
@@ -72,8 +84,13 @@ export default function OrderTimeline({ order }) {
               )}
             </div>
             <p className="mt-2 whitespace-pre-wrap break-words text-xs leading-6 text-muted-foreground">
-              {event || current ? <OrderStatusDescription status={Number(step.value)} /> : t('customer.orders.noStepRecord')}
+              {description ? t(description) : <OrderStatusDescription status={Number(step.value)} />}
             </p>
+            {!event && !current && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t('customer.orders.noStepRecord')}
+              </p>
+            )}
             {event?.note && (
               <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-6 text-muted-foreground">
                 {event.note}

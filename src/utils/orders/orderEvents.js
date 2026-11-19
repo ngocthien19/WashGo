@@ -1,5 +1,5 @@
 export const eventKeys = [
-  'OrderCreated', 'MerchantAssigned', 'ShipperAssigned', 'ShipperReassigned', 'Deposited',
+  'OrderCreated', 'MerchantAssigned', 'ShipperAssigned', 'ShipperReassigned', 'ShipperUnassigned', 'ReturnReadyConfirmed', 'Deposited',
   'ShipperCollected', 'ActualWeightConfirmed', 'StatusChanged', 'LaundryPaid', 'CancellationFeePaid',
   'StorageFeePaid', 'ShipperReturned', 'Returned', 'Completed', 'Cancelled', 'CancelledGoodsReturned',
   'AccessCodesRevealed', 'OrderNote', 'Storage.Assign', 'Storage.collect', 'Storage.handover',

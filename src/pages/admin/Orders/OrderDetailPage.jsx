@@ -1,3 +1,4 @@
+import OrderStatusDescription from '~/components/orders/OrderStatusDescription'
 import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
 import OrderDeadlines from './components/OrderDeadlines.jsx'
 import OrderCommission from '~/components/orders/OrderCommission'
@@ -140,6 +141,16 @@ export default function OrderDetailPage() {
                   {t('merchant.orders.process')}
                 </Button>
               )}
+              {['returnReady', 'unassign'].filter(action => order.allowedActions?.[action === 'returnReady' ? 'canConfirmReturnReady' : 'canUnassignShipper'] === true).map(action => (
+                <Button
+                  key={action}
+                  variant="outline"
+                  className="h-11 px-4 text-base"
+                  onClick={() => setAction(action)}
+                >
+                  {t(`merchant.orders.${action}`)}
+                </Button>
+              ))}
               {assignmentTask(order) && (
                 <Button
                   variant="outline"
@@ -163,6 +174,9 @@ export default function OrderDetailPage() {
               <OrderReceiptAction order={order} />
             </div>
           </header>
+          <p className="text-sm leading-6 text-muted-foreground">
+            <OrderStatusDescription status={order.status} />
+          </p>
           <OrderDeadlines order={order} />
           {([10, 13, 14, 15].includes(order.status) || order.storageWorkflowVersion >= 1 && [11, 12, 99].includes(order.status)) && (
             <StorageOrderPanel
@@ -235,11 +249,11 @@ export default function OrderDetailPage() {
                     <p className="text-sm text-muted-foreground">
                       {t('admin.orderManagement.shipper')}
                     </p>
-                    <p className="mt-1 break-words text-base font-semibold">
+                    <p className="mt-1 break-words text-sm font-semibold">
                       {order.shipperName || t('admin.orderManagement.unassigned')}
                     </p>
                     {order.shipperId && (
-                      <p className="mt-1 text-base">
+                      <p className="mt-1 text-sm">
                         {order.shipperPhone || '—'}
                       </p>
                     )}
@@ -306,7 +320,9 @@ export default function OrderDetailPage() {
                 title={t('merchant.orders.history')}
                 icon={History}
               >
-                <OrderEventHistory entries={order.timeline} />
+                <OrderEventHistory
+                  entries={order.timeline}
+                />
               </Panel>
             </div>
             <div className="min-w-0 space-y-6">
@@ -404,7 +420,7 @@ export default function OrderDetailPage() {
               onSaved={done}
             />
           )}
-          {['process', 'assign'].includes(action) && (
+          {['process', 'assign', 'unassign', 'returnReady'].includes(action) && (
             <OrderActionDialog
               action={action}
               order={order}

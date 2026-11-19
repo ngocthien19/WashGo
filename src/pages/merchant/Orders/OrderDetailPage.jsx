@@ -1,3 +1,4 @@
+import OrderStatusDescription from '~/components/orders/OrderStatusDescription'
 import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
 import Reveal from '~/components/motion/Reveal'
 import { useCallback, useEffect, useState } from 'react'
@@ -111,6 +112,16 @@ export default function OrderDetailPage() {
                   {t('merchant.orders.process')}
                 </Button>
               )}
+              {['returnReady', 'unassign'].filter(action => order.allowedActions?.[action === 'returnReady' ? 'canConfirmReturnReady' : 'canUnassignShipper'] === true).map(action => (
+                <Button
+                  key={action}
+                  variant="outline"
+                  className="h-11 px-4 text-base"
+                  onClick={() => setAction(action)}
+                >
+                  {t(`merchant.orders.${action}`)}
+                </Button>
+              ))}
               {assignmentTask(order) && (
                 <Button
                   variant="outline"
@@ -123,6 +134,9 @@ export default function OrderDetailPage() {
               )}
             </div>
           </header>
+          <p className="text-sm leading-6 text-muted-foreground">
+            <OrderStatusDescription status={order.status} />
+          </p>
           <div className="space-y-3">
             {' '}
             {order.allowedActions?.statusOptions?.some((option) => option.reasonCode === 'WeightRequired') && (
@@ -130,7 +144,7 @@ export default function OrderDetailPage() {
                 {t('merchant.orders.weightRequired')}
               </p>
             )}
-            {!canWeigh(order) && !processingSteps(order).length && !assignmentTask(order) && (
+            {!canWeigh(order) && !processingSteps(order).length && !assignmentTask(order) && !order.allowedActions?.canConfirmReturnReady && !order.allowedActions?.canUnassignShipper && (
               <p className="text-base leading-relaxed text-muted-foreground">
                 {t('merchant.orders.noActions')}
               </p>
@@ -178,7 +192,9 @@ export default function OrderDetailPage() {
                 icon={History}
                 title={t('merchant.orders.history')}
               >
-                <OrderEventHistory entries={order.timeline} />
+                <OrderEventHistory
+                  entries={order.timeline}
+                />
               </Panel>
             </div>
             <div className="min-w-0 space-y-6">

@@ -43,7 +43,7 @@ export default function OrderReceiptDialog({ orderId, onClose }) {
       }}
     >
       <DialogContent
-        className="max-w-4xl overflow-hidden p-0 sm:p-0"
+        className="max-w-4xl overflow-clip p-0 sm:p-0"
         closeLabel="common.close"
       >
         <div className="flex max-h-[85dvh] flex-col" >

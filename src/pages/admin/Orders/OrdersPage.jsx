@@ -272,6 +272,8 @@ export default function OrdersPage() {
           </p>
           {!waiting && (
             <SelectField
+              showLabel
+              labelPosition="left"
               label={t('customer.orders.sort')}
               value={query.sort}
               options={ORDER_SORT_OPTIONS.map(item => ({ value: item.value, label: t(item.label) }))}

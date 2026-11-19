@@ -55,7 +55,7 @@ export const MERCHANT_ROUTES = { HOME: '/merchant', STORAGE: '/merchant/storage'
 export const SHIPPER_ROUTES = { HOME: '/shipper', PROFILE: '/shipper/profile', NOTIFICATIONS: '/shipper/notifications', HISTORY: '/shipper/history', TASKS: '/shipper/tasks', TASK_DETAIL: '/shipper/tasks/:orderId' }
 export const ADMIN_ROUTES = { HOME: '/admin', STORAGE: '/admin/storage', PROFILE: '/admin/profile', NOTIFICATIONS: '/admin/notifications', MERCHANTS: '/admin/merchants', ORDERS: '/admin/orders', LOCKERS: '/admin/lockers', SERVICES: '/admin/services', CATEGORIES: '/admin/categories', PROMOTIONS: '/admin/promotions', REVIEWS: '/admin/reviews', COMPLAINTS: '/admin/complaints', FINANCE: '/admin/finance', SETTINGS: '/admin/settings' }
 export const MERCHANT_API = { PROFILE: '/merchant-profile', ORDERS: '/wash-order/filter', SETTLEMENTS: '/finance/settlements/filter' }
-export const MERCHANT_DASHBOARD = { RECENT_TAKE: 5, SETTLEMENT_TAKE: 4, STATUSES: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 99] }
+export const MERCHANT_DASHBOARD = { RECENT_TAKE: 5, SETTLEMENT_TAKE: 4, STATUSES: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 99] }
 
 export const CUSTOMER_NAVIGATION = [
   { label: 'common.home', href: CUSTOMER_ROUTES.HOME },
@@ -89,15 +89,26 @@ export const INCIDENT_STATUS_COLORS = { 1: 'amber', 2: 'emerald', 3: 'red', 4: '
 export const ORDER_PAYMENT_METHODS = { CASH: 1, VNPAY: 2, MOMO: 3 }
 export const ORDER_STATUSES = {
   PENDING: 1, DEPOSITED: 2, COLLECTED: 3, WASHING: 4, DRYING: 5, IRONING: 6, FOLDING: 7,
-  AWAITING_PAYMENT: 8, PAID: 9, READY_TO_RETURN: 10, RETURNED: 11, COMPLETED: 12, MOVED_TO_STORAGE: 13, TRANSFERRING_TO_STORAGE: 14, RETURNING_FROM_STORAGE: 15, CANCELLED: 99
+  AWAITING_PAYMENT: 8, PAID: 9, READY_TO_RETURN: 10, RETURNED: 11, COMPLETED: 12, MOVED_TO_STORAGE: 13, TRANSFERRING_TO_STORAGE: 14, RETURNING_FROM_STORAGE: 15, MERCHANT_ASSIGNED: 16, COLLECTION_SHIPPER_ASSIGNED: 17, READY_FOR_RETURN_DISPATCH: 18, RETURN_SHIPPER_ASSIGNED: 19, CANCELLED: 99
 }
 export const ORDER_STATUS_OPTIONS = [
-  ['PENDING', 'slate'], ['DEPOSITED', 'sky'], ['COLLECTED', 'cyan'], ['WASHING', 'blue'],
-  ['DRYING', 'blue'], ['IRONING', 'blue'], ['FOLDING', 'blue'], ['AWAITING_PAYMENT', 'amber'],
-  ['PAID', 'emerald'], ['READY_TO_RETURN', 'violet'], ['RETURNED', 'teal'], ['COMPLETED', 'emerald'],
-  ['MOVED_TO_STORAGE', 'amber'], ['TRANSFERRING_TO_STORAGE', 'amber'], ['RETURNING_FROM_STORAGE', 'violet'], ['CANCELLED', 'red']
+  ['PENDING', 'slate'], ['DEPOSITED', 'sky'], ['MERCHANT_ASSIGNED', 'indigo'], ['COLLECTION_SHIPPER_ASSIGNED', 'yellow'], ['COLLECTED', 'cyan'], ['WASHING', 'blue'],
+  ['DRYING', 'orange'], ['IRONING', 'violet'], ['FOLDING', 'fuchsia'], ['AWAITING_PAYMENT', 'amber'],
+  ['PAID', 'teal'], ['READY_FOR_RETURN_DISPATCH', 'lime'], ['RETURN_SHIPPER_ASSIGNED', 'purple'], ['READY_TO_RETURN', 'green'], ['RETURNED', 'stone'], ['COMPLETED', 'emerald'],
+  ['MOVED_TO_STORAGE', 'rose'], ['TRANSFERRING_TO_STORAGE', 'pink'], ['RETURNING_FROM_STORAGE', 'zinc'], ['CANCELLED', 'red']
 ].map(([name, color]) => ({ value: String(ORDER_STATUSES[name]), label: `customer.orders.status.${name}`, color }))
 export const ORDER_STATUS_COLORS = {
+  indigo: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300',
+  yellow: 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-300',
+  orange: 'bg-orange-500/10 text-orange-700 dark:text-orange-300',
+  fuchsia: 'bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300',
+  lime: 'bg-lime-500/10 text-lime-700 dark:text-lime-300',
+  purple: 'bg-purple-500/10 text-purple-700 dark:text-purple-300',
+  green: 'bg-green-500/10 text-green-700 dark:text-green-300',
+  stone: 'bg-stone-500/10 text-stone-700 dark:text-stone-300',
+  rose: 'bg-rose-500/10 text-rose-700 dark:text-rose-300',
+  pink: 'bg-pink-500/10 text-pink-700 dark:text-pink-300',
+  zinc: 'bg-zinc-500/10 text-zinc-700 dark:text-zinc-300',
   slate: 'bg-slate-500/10 text-slate-700 dark:text-slate-300',
   sky: 'bg-sky-500/10 text-sky-700 dark:text-sky-300',
   cyan: 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300',
@@ -108,8 +119,19 @@ export const ORDER_STATUS_COLORS = {
   teal: 'bg-teal-500/10 text-teal-700 dark:text-teal-300',
   red: 'bg-red-500/10 text-red-700 dark:text-red-300'
 }
-export const ORDER_WORKFLOW = ORDER_STATUS_OPTIONS.filter((option) => Number(option.value) <= ORDER_STATUSES.COMPLETED)
+export const ORDER_WORKFLOW = ORDER_STATUS_OPTIONS.filter((option) => ![13, 14, 15, 99].includes(Number(option.value)))
 export const ORDER_STATUS_BORDER_COLORS = {
+  indigo: 'border-indigo-700 dark:border-indigo-300',
+  yellow: 'border-yellow-700 dark:border-yellow-300',
+  orange: 'border-orange-700 dark:border-orange-300',
+  fuchsia: 'border-fuchsia-700 dark:border-fuchsia-300',
+  lime: 'border-lime-700 dark:border-lime-300',
+  purple: 'border-purple-700 dark:border-purple-300',
+  green: 'border-green-700 dark:border-green-300',
+  stone: 'border-stone-700 dark:border-stone-300',
+  rose: 'border-rose-700 dark:border-rose-300',
+  pink: 'border-pink-700 dark:border-pink-300',
+  zinc: 'border-zinc-700 dark:border-zinc-300',
   slate: 'border-slate-700 dark:border-slate-300',
   sky: 'border-sky-700 dark:border-sky-300',
   cyan: 'border-cyan-700 dark:border-cyan-300',

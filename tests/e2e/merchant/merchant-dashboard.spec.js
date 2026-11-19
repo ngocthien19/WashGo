@@ -192,12 +192,12 @@ test('mobile header, theme, language and notifications remain within Merchant ro
   await page.setViewportSize({ width: 375, height: 812 })
   await setup(page, { dark: true })
   await page.goto('/merchant')
-  await expect(page.getByRole('button', { name: 'Switch to light mode', exact: true })).toHaveCount(1)
+  await expect(page.locator('header').getByRole('button', { name: 'Switch to light mode', exact: true })).toBeHidden()
   await page.getByRole('button', { name: 'Open Merchant navigation', exact: true }).click()
   await expect(page.getByRole('navigation', { name: 'Merchant navigation' })).toBeVisible()
-  await page.getByRole('link', { name: 'Overview', exact: true }).click()
   await page.getByRole('button', { name: 'Change language', exact: true }).click()
   await page.getByRole('menuitem', { name: 'Tiếng Việt', exact: true }).click()
+  await page.keyboard.press('Escape')
   await expect(page.getByRole('heading', { name: 'Tổng quan cửa hàng', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Thông báo', exact: true }).click()
   const popup = page.getByRole('dialog', { name: 'Thông báo', exact: true })
@@ -262,6 +262,16 @@ test('full-height sidebar collapses, expands and signs out from its bottom actio
   expect((await logout.boundingBox()).y).toBeGreaterThan(900)
   await logout.click()
   await expect(page).toHaveURL('/')
+})
+
+test('store profile shows a single cover photo without a gallery for legacy image arrays', async ({ page }) => {
+  const state = await setup(page, { profile: { imageUrls: ['/uploads/mock/one.png', '/uploads/mock/two.png'] } })
+  await page.route('**/api/uploads/mock/*.png', route => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"/>' }))
+  await page.goto('/merchant/profile')
+  await expect(page.getByRole('img', { name: 'WashGo Ben Thanh', exact: true })).toBeVisible({ timeout: 20000 })
+  await expect(page.getByRole('region', { name: 'Photos', exact: true })).toHaveCount(0)
+  await expect(page.locator('main').getByText('+1', { exact: true })).toHaveCount(0)
+  expect(state.updates).toBe(0)
 })
 
 test('profile includes optional backend fields and fits narrow screens', async ({ page }) => {
