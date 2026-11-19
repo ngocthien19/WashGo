@@ -1,0 +1,7 @@
+@font-face {
+  font-family: 'Lora Hero';
+  src: url('../../../assets/fonts/lora/lora-italic-variable.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+}

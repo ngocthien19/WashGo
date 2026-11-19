@@ -9,7 +9,8 @@ import HowItWorks from './components/HowItWorks'
 import NearbyLockers from './components/NearbyLockers'
 import CustomerFeedback from './components/CustomerFeedback'
 import SectionGlow from '~/components/customer/SectionGlow/SectionGlow'
-import hero from '~/assets/customer/locker-hero.jpg'
+import HeroSlideshow from './components/HeroSlideshow'
+import './hero-font.css'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { CUSTOMER_CATALOG, HERO_MOTION, UI_MOTION } from '~/utils/config/constants'
@@ -54,20 +55,13 @@ export default function HomePage() {
       >
         <motion.div
           aria-hidden="true"
-          className="pointer-events-none absolute -inset-y-20 inset-x-0 -z-10"
+          className="pointer-events-none absolute inset-0 -z-10 max-sm:transform-none! sm:-inset-y-20"
           style={reduceMotion ? undefined : { y: backgroundY }}
           initial={reduceMotion ? false : { scale: 1.06 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.8, ease: UI_MOTION.EASE }}
         >
-          <img
-            src={hero}
-            alt=""
-            className="size-full object-cover object-[58%_58%] opacity-55 sm:object-[center_58%] dark:opacity-35"
-            width={1024}
-            height={1024}
-            fetchPriority="high"
-          />
+          <HeroSlideshow />
         </motion.div>
         <div
           aria-hidden="true"
@@ -78,7 +72,7 @@ export default function HomePage() {
           className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-32 bg-linear-to-t from-background to-transparent"
         />
         <SectionGlow side="left" />
-        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+        <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
           <div className="max-w-3xl">
             <motion.div
               initial={reduceMotion ? false : { opacity: 0, y: HERO_MOTION.OFFSET / 2 }}
@@ -87,7 +81,7 @@ export default function HomePage() {
             >
               <h1
                 id="home-hero-heading"
-                className="text-4xl font-bold leading-[1.12] tracking-tight sm:text-6xl lg:text-7xl"
+                className="font-['Lora_Hero',serif] text-4xl font-bold italic leading-[1.12] tracking-tight sm:text-6xl lg:text-7xl"
               >
                 {t('customer.smartLaundry')}
                 <br />
