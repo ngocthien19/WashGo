@@ -1,3 +1,4 @@
+import FormError from '~/components/ui/FormError'
 import useImages from '~/hooks/useImages'
 import ImagePicker from '~/components/ImagePicker'
 import { useCallback, useRef, useState } from 'react'
@@ -166,6 +167,7 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
                   </span>
                   {kind === 'pay' ? (
                     <Input
+                      aria-describedby={errors['reference'] ? `complaintactiondialog-${'reference'}-error` : undefined}
                       {...register('reference')}
                       aria-label={t('customer.incidents.reference')}
                       aria-invalid={!!errors.reference}
@@ -175,6 +177,7 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
                     />
                   ) : (
                     <textarea
+                      aria-describedby={errors['note'] ? `complaintactiondialog-${'note'}-error` : undefined}
                       {...register('note')}
                       aria-label={t(kind === 'reject' ? 'admin.complaints.rejectReason' : 'customer.incidents.resolution')}
                       aria-invalid={!!errors.note}
@@ -185,6 +188,7 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
                   )}
                   {(errors.reference || errors.note) && (
                     <span
+                      id={`complaintactiondialog-${'reference'}-error`}
                       role="alert"
                       className="text-sm text-destructive"
                     >
@@ -203,6 +207,8 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
                         control={control}
                         render={({ field }) => (
                           <SelectField
+                            aria-describedby={errors.responsibleParty ? 'complaintactiondialog-responsibleParty-error' : undefined}
+                            aria-invalid={!!errors['responsibleParty']}
                             label={t('customer.incidents.responsibleParty')}
                             {...field}
                             onValueChange={field.onChange}
@@ -210,6 +216,12 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
                           />
                         )}
                       />
+                      <FormError
+                        inline
+                        id="complaintactiondialog-responsibleParty-error"
+                      >
+                        {errors.responsibleParty?.message || (errors.responsibleParty ? 'forms.invalidValue' : '')}
+                      </FormError>
                     </label>
                     {settings.error && <ResourceFeedback {...settings} />}
                     <label className="grid gap-3 text-sm font-medium">
@@ -221,6 +233,8 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
                         control={control}
                         render={({ field }) => (
                           <SelectField
+                            aria-describedby={errors.compensationLevel ? 'complaintactiondialog-compensationLevel-error' : undefined}
+                            aria-invalid={!!errors['compensationLevel']}
                             label={t('admin.complaints.level')}
                             value={String(field.value)}
                             onValueChange={next => field.onChange(Number(next))}
@@ -228,6 +242,12 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
                           />
                         )}
                       />
+                      <FormError
+                        inline
+                        id="complaintactiondialog-compensationLevel-error"
+                      >
+                        {errors.compensationLevel?.message || (errors.compensationLevel ? 'forms.invalidValue' : '')}
+                      </FormError>
                     </label>
                     {level > 0 && (
                       <>
@@ -236,6 +256,7 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
                             {t('customer.incidents.itemValue')}
                           </span>
                           <Input
+                            aria-describedby={errors['itemValue'] ? `complaintactiondialog-${'itemValue'}-error` : undefined}
                             {...register('itemValue')}
                             aria-label={t('customer.incidents.itemValue')}
                             aria-invalid={!!errors.itemValue}
@@ -248,6 +269,7 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
                           />
                           {errors.itemValue && (
                             <span
+                              id={`complaintactiondialog-${'itemValue'}-error`}
                               role="alert"
                               className="text-sm text-destructive"
                             >

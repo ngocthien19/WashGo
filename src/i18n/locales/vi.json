@@ -1,5 +1,80 @@
 {
+  "orderRoleDescriptions": {
+    "Admin": {
+      "1": "Khách đã tạo đơn, đang chờ gửi đồ vào locker trước hạn.",
+      "2": "Đồ đã ở locker gửi. Kiểm tra và phân công tiệm giặt đủ điều kiện.",
+      "3": "Shipper đã thu gom; tiệm tiếp nhận, cân và chốt giá nếu dịch vụ yêu cầu.",
+      "4": "Tiệm đang giặt đồ. Theo dõi tiến độ và thời hạn xử lý.",
+      "5": "Tiệm đang sấy đồ sau công đoạn giặt.",
+      "6": "Tiệm đang ủi đồ sau công đoạn sấy.",
+      "7": "Tiệm đang gấp và hoàn thiện đồ trước bước thanh toán.",
+      "8": "Tiệm đã xử lý xong, đang chờ xác nhận thanh toán tiền giặt từ khách.",
+      "9": "Đã ghi nhận thanh toán; chờ Merchant xác nhận đóng gói xong tại tiệm.",
+      "10": "Shipper đã đặt đồ vào locker trả; đang chờ khách nhận trong hạn.",
+      "11": "Đã ghi nhận khách nhận đồ; đơn đang hoàn tất các bước kết thúc.",
+      "12": "Đơn đã hoàn tất. Có thể đối chiếu lịch sử giao nhận và thanh toán.",
+      "13": "Đồ đang được lưu giữ tại tiệm; theo dõi phí và yêu cầu giao lại locker.",
+      "14": "Shipper đang chuyển đồ từ locker về tiệm lưu giữ; chưa xác nhận bàn giao.",
+      "15": "Đồ đang được giao từ nơi lưu giữ về locker theo yêu cầu của khách.",
+      "16": "Đã phân công tiệm phụ trách; chờ Merchant phân công Shipper lấy đồ.",
+      "17": "Đã phân công Shipper thu gom; đồ vẫn ở locker gửi đến khi xác nhận lấy thành công.",
+      "18": "Merchant đã xác nhận đóng gói xong; đơn chờ phân công Shipper trả đồ.",
+      "19": "Đã phân công Shipper trả đồ; chưa bắt đầu hạn nhận của khách khi đồ chưa vào locker.",
+      "99": "Đơn đã hủy; theo dõi riêng phí hủy, hoàn tiền và việc trả đồ còn lại."
+    },
+    "Merchant": {
+      "1": "Khách đang chuẩn bị gửi đồ; chưa bắt đầu tiếp nhận hoặc xử lý tại tiệm.",
+      "2": "Khách đã gửi đồ vào locker; hệ thống đang điều phối tiệm phụ trách.",
+      "3": "Đã thu gom đồ. Tiếp nhận và xác nhận khối lượng thực tế nếu đơn yêu cầu trước khi giặt.",
+      "4": "Đồ đang được giặt. Chỉ chuyển sang sấy khi hoàn thành công đoạn này.",
+      "5": "Đồ đang được sấy. Chỉ chuyển sang ủi khi hoàn thành công đoạn này.",
+      "6": "Đồ đang được ủi. Chỉ chuyển sang gấp đồ khi hoàn thành công đoạn này.",
+      "7": "Đồ đang được gấp. Hoàn tất công đoạn để chuyển đơn sang chờ thanh toán.",
+      "8": "Đang chờ hệ thống ghi nhận thanh toán của khách; chưa phân công trả đồ.",
+      "9": "Đã thanh toán. Đóng gói đồ và xác nhận sẵn sàng trả trước khi phân công Shipper.",
+      "10": "Đồ đã được đặt vào locker trả; đang chờ khách đến nhận trong thời hạn.",
+      "11": "Khách đã nhận đồ từ locker. Theo dõi việc hoàn tất đơn theo hệ thống.",
+      "12": "Đơn đã hoàn tất. Kiểm tra lịch sử và đối soát theo kỳ khi cần.",
+      "13": "Đồ đang lưu giữ tại tiệm. Xử lý yêu cầu giao lại qua quy trình lưu giữ.",
+      "14": "Đồ đang được chuyển về tiệm lưu giữ; tiếp nhận theo đúng bước bàn giao.",
+      "15": "Shipper đang giao lại đồ từ nơi lưu giữ về locker được yêu cầu.",
+      "16": "Tiệm đã nhận phân công. Chọn Shipper đủ điều kiện để lấy đồ từ locker.",
+      "17": "Shipper đã được phân công lấy đồ. Chờ xác nhận thu gom trước khi cân hoặc giặt.",
+      "18": "Đã xác nhận đồ đóng gói xong. Chọn Shipper đủ điều kiện để trả về locker.",
+      "19": "Đã phân công trả đồ. Chờ Shipper xác nhận đặt đồ vào ô locker thành công.",
+      "99": "Đơn đã hủy. Theo dõi phí và xử lý giao trả đồ theo quyền được hệ thống cấp."
+    },
+    "Shipper": {
+      "1": "Khách chưa gửi đồ; chưa có chuyến thu gom được phép thực hiện.",
+      "2": "Đồ đang ở locker gửi; chỉ nhận nhiệm vụ sau khi được phân công hợp lệ.",
+      "3": "Đã xác nhận lấy đồ. Bàn giao đồ cho tiệm theo nhiệm vụ đã được phân công.",
+      "4": "Tiệm đang giặt đồ; chưa có nhiệm vụ trả đồ cho công đoạn này.",
+      "5": "Tiệm đang sấy đồ; chờ nhiệm vụ giao nhận được hệ thống phân công.",
+      "6": "Tiệm đang ủi đồ; chờ nhiệm vụ giao nhận được hệ thống phân công.",
+      "7": "Tiệm đang gấp đồ; chưa xác nhận đồ đã sẵn sàng giao trả.",
+      "8": "Đơn đang chờ khách thanh toán; chưa thực hiện chuyến trả đồ thông thường.",
+      "9": "Đã thanh toán, còn chờ tiệm đóng gói và phân công chuyến trả đồ.",
+      "10": "Đã đặt đồ vào locker trả. Khách đang chờ nhận; chuyến trả đồ đã được ghi nhận.",
+      "11": "Khách đã nhận đồ từ locker; không dùng lại mã nhiệm vụ đã hoàn thành.",
+      "12": "Đơn đã hoàn tất. Có thể xem lại nhiệm vụ trong lịch sử giao nhận.",
+      "13": "Đồ đang được lưu giữ tại tiệm. Chỉ thực hiện nhiệm vụ lưu giữ được phân công.",
+      "14": "Thực hiện lấy đồ khỏi locker và bàn giao lưu giữ theo các bước của nhiệm vụ.",
+      "15": "Thực hiện xuất tiệm và đặt đồ vào locker theo nhiệm vụ giao lại.",
+      "16": "Đã có tiệm phụ trách; chờ Merchant phân công chuyến lấy đồ cho Shipper.",
+      "17": "Đã phân công lấy đồ. Đối chiếu đúng locker, ô tủ và mã nhiệm vụ trước khi xác nhận.",
+      "18": "Tiệm đã chuẩn bị xong đồ; chờ phân công Shipper thực hiện chuyến trả.",
+      "19": "Đã phân công trả đồ. Mang đồ về locker và xác nhận bằng mã nhiệm vụ hợp lệ.",
+      "99": "Đơn đã hủy. Chỉ giao trả đồ khi còn nhiệm vụ hợp lệ được hệ thống cấp."
+    }
+  },
+  "businessCodes": {
+    "CodeSpaceExhausted": "Đã hết mã khả dụng cho loại dữ liệu này. Vui lòng liên hệ quản trị viên.",
+    "CodeAllocationBusy": "Hệ thống đang bận cấp mã. Chưa tạo dữ liệu; vui lòng thử lại sau.",
+    "CodeImmutable": "Mã do hệ thống cấp không thể thay đổi. Vui lòng tải lại dữ liệu."
+  },
   "orderProgress": {
+    "lockerDeliveredTitle": "Đã trả về locker",
+    "lockerDeliveredDescription": "Shipper đặt đồ vào locker trả thành công; từ đây bắt đầu thời hạn khách đến nhận.",
     "descriptions": {
       "1": "Đơn hàng đã được tạo. Vui lòng mang đồ đến locker và xác nhận gửi đồ trong thời hạn quy định.",
       "2": "Đồ đã được gửi vào locker, sẵn sàng để shipper đến thu gom.",
@@ -16,6 +91,10 @@
       "13": "Đồ đã được chuyển sang lưu giữ tại tiệm giặt, chờ sắp xếp nhận hoặc giao lại.",
       "14": "Đồ đang được vận chuyển về tiệm giặt để lưu giữ.",
       "15": "Đồ đang được giao lại từ tiệm giặt về locker theo yêu cầu.",
+      "16": "WashGo đã phân công tiệm giặt phụ trách đơn hàng của bạn.",
+      "17": "Shipper đã được phân công lấy đồ từ locker để đưa về tiệm giặt.",
+      "18": "Đồ đã được chuẩn bị xong, đang chờ phân công Shipper giao lại locker.",
+      "19": "Shipper đã được phân công giao đồ về locker. WashGo sẽ thông báo khi bạn có thể đến nhận.",
       "99": "Đơn hàng đã được hủy. Vui lòng kiểm tra các khoản phí và hướng dẫn nhận lại đồ nếu có."
     }
   },
@@ -277,6 +356,31 @@
     "historical": "Thông tin ở thời điểm trả lời. Hãy hỏi lại để kiểm tra dữ liệu mới nhất."
   },
   "notificationMessages": {
+    "merchantAssigned": {
+      "customer": { "title": "Đã phân công tiệm giặt", "content": "WashGo đã phân công tiệm giặt phụ trách đơn {{orderCode}} của bạn." },
+      "merchant": { "title": "Đơn hàng mới được phân công", "content": "Bạn được phân công đơn {{orderCode}}. Vui lòng phân công Shipper lấy đồ." }
+    },
+    "shipperAssigned": {
+      "collect": {
+        "customer": { "title": "Đã phân công lấy đồ", "content": "Shipper đã được phân công lấy đồ đơn {{orderCode}} từ locker để đưa về tiệm giặt." },
+        "shipper": { "title": "Nhiệm vụ lấy đồ mới", "content": "Bạn được phân công lấy đồ đơn {{orderCode}} tại {{lockerName}}, ô {{boxNumber}}." }
+      },
+      "return": {
+        "customer": { "title": "Đã phân công trả đồ", "content": "Shipper đã được phân công mang đồ đơn {{orderCode}} về locker. WashGo sẽ thông báo khi bạn có thể đến nhận." },
+        "shipper": { "title": "Nhiệm vụ trả đồ mới", "content": "Bạn được phân công trả đồ đơn {{orderCode}} về locker." }
+      }
+    },
+    "returnReadyConfirmed": {
+      "customer": { "title": "Tiệm đã chuẩn bị xong đồ", "content": "Đồ của đơn {{orderCode}} đã được đóng gói, đang chờ phân công Shipper giao lại locker." }
+    },
+    "shipperReassigned": {
+      "collect": { "previousShipper": { "title": "Nhiệm vụ đã được chuyển", "content": "Nhiệm vụ lấy đồ đơn {{orderCode}} đã chuyển cho Shipper khác. Mã nhiệm vụ cũ không còn hiệu lực." } },
+      "return": { "previousShipper": { "title": "Nhiệm vụ đã được chuyển", "content": "Nhiệm vụ trả đồ đơn {{orderCode}} đã chuyển cho Shipper khác. Mã nhiệm vụ cũ không còn hiệu lực." } }
+    },
+    "shipperUnassigned": {
+      "collect": { "shipper": { "title": "Đã hủy phân công nhiệm vụ", "content": "Phân công lấy đồ đơn {{orderCode}} đã bị hủy. Mã nhiệm vụ cũ không còn hiệu lực." } },
+      "return": { "shipper": { "title": "Đã hủy phân công nhiệm vụ", "content": "Phân công trả đồ đơn {{orderCode}} đã bị hủy. Mã nhiệm vụ cũ không còn hiệu lực." } }
+    },
     "orderCreated": {
       "customer": {
         "title": "Đơn hàng đã được tạo",
@@ -488,7 +592,10 @@
     }
   },
   "common": {
+    "systemGeneratedCode": "Tự động sinh khi lưu",
     "confirm": "Xác nhận",
+    "languageLabel": "Ngôn ngữ",
+    "appearanceLabel": "Giao diện",
     "photos": "Hình ảnh",
     "noPhotos": "Chưa có ảnh hiển thị",
     "photoUnavailable": "Không tải được ảnh",
@@ -665,6 +772,14 @@
     "forgotPasswordTitle": "Quên mật khẩu?"
   },
   "admin": {
+    "dispatchQueues": {
+      "waitingCollectAssignment": "Chờ phân công lấy đồ",
+      "waitingCollection": "Chờ Shipper thu gom",
+      "waitingReturnPreparation": "Chờ tiệm chuẩn bị trả đồ",
+      "waitingReturnAssignment": "Chờ phân công trả đồ",
+      "waitingReturnDelivery": "Chờ Shipper trả vào locker",
+      "awaitingCustomerPickup": "Chờ khách nhận đồ"
+    },
     "reconcile": {
       "confirm": "Tôi đã kiểm tra căn cứ và xác nhận tỷ lệ lịch sử này.",
       "title": "Đối chiếu hoa hồng",
@@ -1080,7 +1195,7 @@
         "description": "Mô tả"
       },
       "placeholders": {
-        "code": "Để trống để tạo mã tự động",
+        "code": "Nhập mã locker (tối đa 50 ký tự)",
         "name": "VD: Trạm Locker Bến Thành",
         "address": "Số nhà, tên đường, phường/xã…",
         "ward": "VD: Phường Bến Thành",
@@ -2441,6 +2556,12 @@
       "nextStatus": "Trạng thái tiếp theo",
       "assign": "Phân công Shipper",
       "assignNote": "Chỉ hiển thị Shipper thuộc cửa hàng và đủ điều kiện nhận chuyến.",
+      "returnReady": "Xác nhận sẵn sàng trả đồ",
+      "returnReadyNote": "Xác nhận đồ đã được đóng gói tại tiệm để chuyển sang bước phân công giao lại locker.",
+      "returnReadyConfirmation": "Tôi xác nhận đồ đã đóng gói xong và sẵn sàng bàn giao cho Shipper.",
+      "unassign": "Hủy phân công Shipper",
+      "unassignNote": "Nhiệm vụ và mã giao nhận của Shipper hiện tại sẽ bị thu hồi. Đơn trở về bước chờ phân công.",
+      "unassignConfirmation": "Tôi xác nhận hủy nhiệm vụ của Shipper đang được phân công.",
       "assignCollect": "Phân công lấy đồ",
       "assignReturn": "Phân công trả đồ",
       "chooseShipper": "Chọn Shipper",
@@ -2485,7 +2606,7 @@
       "images": "Ảnh cửa hàng",
       "addImages": "Thêm ảnh",
       "removeImage": "Xóa ảnh cửa hàng",
-      "imagesHint": "Tối đa 5 ảnh JPG, PNG hoặc WEBP, mỗi ảnh tối đa 5 MB.",
+      "imagesHint": "Một ảnh JPG, PNG hoặc WEBP, tối đa 5 MB. Xóa ảnh hiện tại trước khi chọn ảnh mới.",
       "edit": "Chỉnh sửa hồ sơ",
       "approvalNote": "Thay đổi chỉ được áp dụng sau khi Admin phê duyệt. Thông tin hiện tại vẫn được giữ trong thời gian chờ duyệt.",
       "pending": "Hồ sơ đang chờ Admin phê duyệt. Bạn có thể gửi yêu cầu mới sau khi yêu cầu này được xử lý.",
@@ -2528,11 +2649,14 @@
     "orderComposition": "Phân bố đơn hàng",
     "emptyChart": "Chưa có đơn hàng để hiển thị biểu đồ.",
     "groups": {
-      "incoming": "Chờ gửi / thu gom",
+      "pending": "Chờ gửi đồ",
+      "incoming": "Chờ thu gom",
+      "returnPreparation": "Chờ tiệm chuẩn bị trả đồ",
+      "returnDispatch": "Phân công / giao trả đồ",
       "processing": "Đang xử lý",
       "payment": "Thanh toán",
-      "pickup": "Trả / nhận đồ",
-      "completed": "Hoàn thành",
+      "pickup": "Chờ khách nhận đồ",
+      "completed": "Đã nhận / hoàn tất",
       "storage": "Lưu kho",
       "cancelled": "Đã hủy"
     },
@@ -2615,6 +2739,10 @@
       "cardEstimatedAt": "Dự kiến: {{date}}",
       "cardDepositExpired": "Đã quá hạn gửi đồ",
       "cardStatus": {
+        "16": { "title": "Đã phân công tiệm giặt", "fallback": "Chờ phân công lấy đồ" },
+        "17": { "title": "Đã phân công lấy đồ", "fallback": "Chờ Shipper thu gom" },
+        "18": { "title": "Tiệm đã chuẩn bị xong đồ", "fallback": "Chờ phân công trả đồ" },
+        "19": { "title": "Đã phân công trả đồ", "fallback": "Chờ giao lại locker" },
         "1": {
           "title": "Hạn gửi đồ",
           "fallback": "Vui lòng gửi đồ vào tủ"
@@ -2840,6 +2968,7 @@
       "loadMore": "Tải thêm thông báo"
     },
     "imageUpload": {
+      "singleLimit": "Chỉ được chọn 1 ảnh. Xóa ảnh hiện tại trước khi chọn ảnh mới.",
       "viewAll": "Xem {{count}} ảnh",
       "galleryTitle": "Ảnh đính kèm",
       "add": "Thêm ảnh",
@@ -3415,8 +3544,12 @@
         "FOLDING": "Đang gấp đồ",
         "AWAITING_PAYMENT": "Chờ thanh toán",
         "PAID": "Đã thanh toán",
-        "READY_TO_RETURN": "Sẵn sàng trả đồ",
-        "RETURNED": "Đã trả về locker",
+        "MERCHANT_ASSIGNED": "Đã phân công tiệm giặt",
+        "COLLECTION_SHIPPER_ASSIGNED": "Đã phân công lấy đồ",
+        "READY_FOR_RETURN_DISPATCH": "Chờ phân công trả đồ",
+        "RETURN_SHIPPER_ASSIGNED": "Đã phân công trả đồ",
+        "READY_TO_RETURN": "Chờ khách nhận đồ",
+        "RETURNED": "Khách đã nhận đồ",
         "COMPLETED": "Hoàn thành",
         "MOVED_TO_STORAGE": "Đã chuyển lưu kho",
         "CANCELLED": "Đã hủy",
@@ -3796,6 +3929,8 @@
       "MerchantAssigned": "Đã phân công tiệm giặt",
       "ShipperAssigned": "Đã phân công Shipper",
       "ShipperReassigned": "Đã đổi phân công Shipper",
+      "ShipperUnassigned": "Đã hủy phân công Shipper",
+      "ReturnReadyConfirmed": "Đã chuẩn bị xong đồ để giao trả",
       "Deposited": "Khách đã gửi đồ",
       "ShipperCollected": "Shipper đã lấy đồ",
       "ActualWeightConfirmed": "Đã cân và chốt giá",
@@ -3829,6 +3964,8 @@
       "MerchantAssigned": "Đơn hàng đã được phân công cho tiệm giặt phụ trách.",
       "ShipperAssigned": "Shipper đã được phân công thực hiện chuyến giao nhận.",
       "ShipperReassigned": "Chuyến giao nhận đã được chuyển sang Shipper khác.",
+      "ShipperUnassigned": "Phân công cũ đã được thu hồi; đơn đang chờ Shipper mới.",
+      "ReturnReadyConfirmed": "Tiệm đã đóng gói xong, chờ phân công Shipper giao lại locker.",
       "Deposited": "Khách hàng đã gửi đồ vào locker thành công.",
       "ShipperCollected": "Shipper đã lấy đồ từ locker để đưa về tiệm giặt.",
       "ActualWeightConfirmed": "Tiệm giặt đã xác nhận khối lượng thực tế và cập nhật giá đơn.",
@@ -3970,6 +4107,29 @@
       "detail": "Thông tin danh mục và các dịch vụ liên quan.",
       "status": "Kiểm tra danh mục và ảnh hưởng trước khi xác nhận cập nhật.",
       "delete": "Kiểm tra các liên kết trước khi xác nhận xóa danh mục."
+    },
+    "success": {
+      "create": "Đã thêm danh mục.",
+      "edit": "Đã cập nhật danh mục.",
+      "lock": "Đã khóa danh mục đã chọn.",
+      "activate": "Đã mở khóa danh mục đã chọn.",
+      "delete": "Đã xóa danh mục đã chọn."
+    },
+    "partialResult": "Thành công {{succeeded}}, thất bại {{failed}}. Vui lòng kiểm tra kết quả từng danh mục.",
+    "validation": {
+      "code": "Mã gồm 2–30 chữ cái, chữ số, dấu gạch ngang hoặc gạch dưới.",
+      "name": "Nhập tên danh mục tối đa 100 ký tự, không chứa < hoặc >.",
+      "sortOrder": "Thứ tự hiển thị phải là số nguyên từ 0 đến 100.000.",
+      "description": "Mô tả tối đa 500 ký tự, không chứa < hoặc >.",
+      "reason": "Lý do không được vượt quá 500 ký tự."
     }
+  },
+  "forms": {
+    "invalidValue": "Giá trị không hợp lệ. Vui lòng kiểm tra lại.",
+    "saved": "Đã cập nhật thành công.",
+    "weight": "Nhập khối lượng hợp lệ từ 0,01 đến 1.000 kg.",
+    "reason": "Nhập lý do từ 1 đến 1.000 ký tự.",
+    "cancelled": "Đã hủy đơn hàng.",
+    "created": "Đã tạo đơn hàng thành công."
   }
 }

@@ -232,6 +232,16 @@ label:has([data-slot="checkbox"][data-disabled]) {
   .deposit-expired-clock { animation: none; }
 }
 
+.badge-inactive {
+  @apply bg-red-500/10 text-red-700 dark:text-red-300;
+}
+:is(input, textarea, [role="combobox"], [role="checkbox"])[aria-invalid="true"] {
+  border-color: var(--destructive);
+}
+.badge-maintenance {
+  @apply bg-amber-500/15 text-amber-800 dark:text-amber-300;
+}
+
 .dark {
   --background: #1c1c1f;
   --foreground: #f1f1f3;
@@ -271,7 +281,8 @@ label:has([data-slot="checkbox"][data-disabled]) {
 [data-dialog-fixed] {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* Unlike hidden, clip prevents focus from scrolling the entire popup. */
+  overflow: clip;
   padding: 0;
 }
 [data-dialog-fixed] [data-dialog-layout] {
@@ -279,7 +290,7 @@ label:has([data-slot="checkbox"][data-disabled]) {
   min-height: 0;
   flex: 1 1 auto;
   flex-direction: column;
-  overflow: hidden;
+  overflow: clip;
   margin: 0;
   padding: 0;
   gap: 0;

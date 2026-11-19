@@ -241,6 +241,8 @@ export default function FinanceRecordDialog({ kind, value: original, period, onC
                       </span>
                       {reference ? (
                         <Input
+                          aria-invalid={!!errors['text']}
+                          aria-describedby={errors['text'] ? `financerecorddialog-${'text'}-error` : undefined}
                           {...register('text')}
                           maxLength={120}
                           aria-label={t(pointsOnly ? 'loyalty.receiptReference' : 'admin.finance.reference')}
@@ -249,6 +251,8 @@ export default function FinanceRecordDialog({ kind, value: original, period, onC
                         />
                       ) : (
                         <textarea
+                          aria-invalid={!!errors['text']}
+                          aria-describedby={errors['text'] ? `financerecorddialog-${'text'}-error` : undefined}
                           {...register('text')}
                           aria-label={t('admin.finance.reviewNote')}
                           maxLength={1000}
@@ -258,6 +262,7 @@ export default function FinanceRecordDialog({ kind, value: original, period, onC
                       )}
                       {errors.text && (
                         <span
+                          id={`financerecorddialog-${'text'}-error`}
                           role="alert"
                           className="text-sm text-destructive"
                         >

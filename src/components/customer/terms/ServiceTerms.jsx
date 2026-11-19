@@ -66,7 +66,7 @@ export default function ServiceTerms({ children, guest = false }) {
         <DialogContent
           closeLabel="common.close"
           showClose={canClose && !busy}
-          className="flex max-w-3xl flex-col overflow-hidden p-0 sm:p-0"
+          className="flex max-w-3xl flex-col overflow-clip p-0 sm:p-0"
         >
           <div className="shrink-0 border-b border-border bg-primary/5 p-6 pr-14">
             <DialogTitle className="flex items-center gap-3 text-xl font-bold">

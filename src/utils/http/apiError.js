@@ -1,4 +1,8 @@
 export const getApiError = (error) => {
+  const code = error.response?.data?.meta?.code
+  if (['CodeSpaceExhausted', 'CodeAllocationBusy', 'CodeImmutable'].includes(code)) {
+    return `businessCodes.${code}`
+  }
   if (error.response?.status === 429) {
     return 'common.tooManyRequestsPleaseWaitAMomentAndTry'
   }

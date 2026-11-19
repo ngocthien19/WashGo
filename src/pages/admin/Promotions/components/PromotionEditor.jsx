@@ -1,3 +1,4 @@
+import FormError from '~/components/ui/FormError'
 import { useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -94,6 +95,8 @@ export default function PromotionEditor({ value, onClose, onSaved }) {
                       control={control}
                       render={({ field }) => (
                         <SelectField
+                          aria-describedby={errors.discountType ? 'promotioneditor-discountType-error' : undefined}
+                          aria-invalid={!!errors['discountType']}
                           label={t('admin.promotions.fields.discountType')}
                           value={String(field.value)}
                           onValueChange={next => field.onChange(Number(next))}
@@ -103,6 +106,7 @@ export default function PromotionEditor({ value, onClose, onSaved }) {
                     />
                   ) : (
                     <Input
+                      aria-describedby={errors[key] ? `promotioneditor-${key}-error` : undefined}
                       {...register(key)}
                       aria-label={t(`admin.promotions.fields.${key}`)}
                       aria-invalid={!!errors[key]}
@@ -116,6 +120,7 @@ export default function PromotionEditor({ value, onClose, onSaved }) {
                   )}
                   {errors[key] && (
                     <span
+                      id={`promotioneditor-${key}-error`}
                       role="alert"
                       className="text-sm font-normal text-destructive"
                     >
@@ -131,11 +136,19 @@ export default function PromotionEditor({ value, onClose, onSaved }) {
                     control={control}
                     render={({ field }) => (
                       <Checkbox
+                        aria-describedby={errors.isActive ? 'promotioneditor-isActive-error' : undefined}
+                        aria-invalid={!!errors['isActive']}
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
                     )}
                   />
+                  <FormError
+                    inline
+                    id="promotioneditor-isActive-error"
+                  >
+                    {errors.isActive?.message || (errors.isActive ? 'forms.invalidValue' : '')}
+                  </FormError>
                   {t('admin.promotions.fields.isActive')}
                 </label>
               )}

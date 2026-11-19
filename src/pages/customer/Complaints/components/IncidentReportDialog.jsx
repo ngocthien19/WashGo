@@ -91,7 +91,7 @@ export default function IncidentReportDialog({ order, onClose, eligibility, init
       }}
     >
       <DialogContent
-        className="max-w-2xl overflow-hidden p-0 sm:p-0"
+        className="max-w-2xl overflow-clip p-0 sm:p-0"
         closeLabel="common.close"
       >
         <form
@@ -141,6 +141,8 @@ export default function IncidentReportDialog({ order, onClose, eligibility, init
                       control={control}
                       render={({ field }) => (
                         <SelectField
+                          aria-invalid={!!errors[name]}
+                          aria-describedby={errors[name] ? `incidentreportdialog-${name}-error` : undefined}
                           id={`incident-${name}`}
                           label={t(`customer.incidents.${name}`)}
                           value={String(field.value)}
@@ -150,7 +152,10 @@ export default function IncidentReportDialog({ order, onClose, eligibility, init
                         />
                       )}
                     />
-                    <FormError>
+                    <FormError
+                      id={`incidentreportdialog-${name}-error`}
+                      inline
+                    >
                       {errors[name]?.message}
                     </FormError>
                   </div>
@@ -164,6 +169,7 @@ export default function IncidentReportDialog({ order, onClose, eligibility, init
                   {t('customer.incidents.descriptionLabel')}
                 </label>
                 <textarea
+                  aria-describedby={errors['description'] ? `incidentreportdialog-${'description'}-error` : undefined}
                   id="incident-description"
                   {...register('description')}
                   maxLength={INCIDENT_CONFIG.DESCRIPTION_MAX}
@@ -178,7 +184,10 @@ export default function IncidentReportDialog({ order, onClose, eligibility, init
                   {' '}
                   {INCIDENT_CONFIG.DESCRIPTION_MAX}
                 </p>
-                <FormError>
+                <FormError
+                  id={`incidentreportdialog-${'description'}-error`}
+                  inline
+                >
                   {errors.description?.message}
                 </FormError>
               </div>

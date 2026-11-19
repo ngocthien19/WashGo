@@ -27,8 +27,8 @@ export default function NotificationFilters({ params, change, types = CUSTOMER_N
             formClassName="h-11 py-0.5"
           />
         </div>
-        <label className="grid gap-2 text-sm font-medium">
-          <span>
+        <label className="flex items-center gap-2 text-sm font-medium">
+          <span className="shrink-0">
             {t('customer.sync.sort')}
           </span>
           <SelectField

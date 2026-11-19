@@ -99,6 +99,8 @@ export default function SettlementEditor({ merchants, defaultMerchant, onClose, 
                   control={control}
                   render={({ field }) => (
                     <SelectField
+                      aria-invalid={!!errors['merchantId']}
+                      aria-describedby={errors['merchantId'] ? `settlementeditor-${'merchantId'}-error` : undefined}
                       label={t('admin.complaints.merchant')}
                       className="h-12 text-base font-normal"
                       value={field.value}
@@ -109,6 +111,7 @@ export default function SettlementEditor({ merchants, defaultMerchant, onClose, 
                 />
                 {errors.merchantId && (
                   <span
+                    id={`settlementeditor-${'merchantId'}-error`}
                     role="alert"
                     className="text-destructive"
                   >
@@ -125,6 +128,8 @@ export default function SettlementEditor({ merchants, defaultMerchant, onClose, 
                     {t(`merchant.orders.${key}Day`)}
                   </span>
                   <Input
+                    aria-invalid={!!errors[key]}
+                    aria-describedby={errors[key] ? `settlement-${key}-error` : undefined}
                     {...register(key)}
                     type="date"
                     aria-label={t(`merchant.orders.${key}Day`)}
@@ -132,16 +137,17 @@ export default function SettlementEditor({ merchants, defaultMerchant, onClose, 
                     max={yesterday}
                     className="h-11 rounded-xl text-base font-normal [color-scheme:light] dark:[color-scheme:dark]"
                   />
+                  {errors[key] && (
+                    <p
+                      id={`settlement-${key}-error`}
+                      role="alert"
+                      className="text-xs text-destructive"
+                    >
+                      {t('admin.finance.closedRange')}
+                    </p>
+                  )}
                 </label>
               ))}
-              {(errors.from || errors.to) && (
-                <p
-                  role="alert"
-                  className="text-sm text-destructive sm:col-span-2"
-                >
-                  {t('admin.finance.closedRange')}
-                </p>
-              )}
             </fieldset>
             {preview && (
               <>

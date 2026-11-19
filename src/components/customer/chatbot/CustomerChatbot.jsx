@@ -154,7 +154,7 @@ export default function CustomerChatbot({ onOpenTerms }) {
       >
         <DialogContent
           closeLabel="chatbot.close"
-          className="left-auto right-5 top-auto bottom-[calc(max(1.25rem,env(safe-area-inset-bottom))+4.25rem)] flex h-[min(640px,calc(100dvh-max(1.25rem,env(safe-area-inset-bottom))-6.75rem))] max-h-none w-[calc(100%-2.5rem)] max-w-[520px] translate-x-0 translate-y-0 flex-col overflow-hidden rounded-3xl p-0 print:hidden sm:right-24 sm:w-[calc(100%-7.75rem)] sm:p-0"
+          className="left-auto right-5 top-auto bottom-[calc(max(1.25rem,env(safe-area-inset-bottom))+4.25rem)] flex h-[min(640px,calc(100dvh-max(1.25rem,env(safe-area-inset-bottom))-6.75rem))] max-h-none w-[calc(100%-2.5rem)] max-w-[520px] translate-x-0 translate-y-0 flex-col overflow-clip rounded-3xl p-0 print:hidden sm:right-24 sm:w-[calc(100%-7.75rem)] sm:p-0"
         >
           <header className="flex items-center gap-3 border-b border-primary/15 bg-primary/5 px-5 py-4 pr-14">
             <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
@@ -425,7 +425,10 @@ export default function CustomerChatbot({ onOpenTerms }) {
                     {t(geo.locationError)}
                   </p>
                 )}
-                <form onSubmit={(event) => handleSubmit(submit)(event)}>
+                <form
+                  noValidate
+                  onSubmit={(event) => handleSubmit(submit)(event)}
+                >
                   <label
                     className="sr-only"
                     htmlFor="customer-chat-message"
@@ -454,6 +457,8 @@ export default function CustomerChatbot({ onOpenTerms }) {
                       {geo.locating ? <Spinner decorative /> : <MapPin />}
                     </Button>
                     <textarea
+                      aria-invalid={!!errors['message']}
+                      aria-describedby={errors['message'] ? `customerchatbot-${'message'}-error` : undefined}
                       {...register('message')}
                       id="customer-chat-message"
                       rows={1}
@@ -479,6 +484,7 @@ export default function CustomerChatbot({ onOpenTerms }) {
                   </div>
                   {errors.message && (
                     <p
+                      id={`customerchatbot-${'message'}-error`}
                       role="alert"
                       className="mt-2 text-xs text-destructive"
                     >

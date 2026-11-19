@@ -50,6 +50,7 @@ export default function AllFeedbackDialog({ onClose }) {
                 {reviews.data ? t('customerReviews.found', { count: reviews.data.total }) : t('customerFeedbackActions.allTitle')}
               </p>
               <SelectField
+                showLabel
                 label={t('customerReviews.filter')}
                 value={query.stars}
                 onValueChange={stars => setQuery({ page: 1, stars: stars || '' })}

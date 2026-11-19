@@ -144,6 +144,7 @@ export default function ReviewActionDialog({ rows, bulk = false, initialOperatio
             <label className="grid gap-2 text-base font-medium">
               {t('admin.reviews.reason')}
               <textarea
+                aria-describedby={form.formState.errors['reason'] ? `reviewactiondialog-${'reason'}-error` : undefined}
                 aria-label={t('admin.reviews.reason')}
                 aria-invalid={!!form.formState.errors.reason}
                 {...form.register('reason')}
@@ -152,7 +153,10 @@ export default function ReviewActionDialog({ rows, bulk = false, initialOperatio
                 className="min-h-28 w-full rounded-xl border border-input bg-background p-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
                 placeholder={t('admin.reviews.reasonHint')}
               />
-              <FormError>
+              <FormError
+                id={`reviewactiondialog-${'reason'}-error`}
+                inline
+              >
                 {form.formState.errors.reason?.message}
               </FormError>
             </label>
@@ -163,6 +167,8 @@ export default function ReviewActionDialog({ rows, bulk = false, initialOperatio
               control={form.control}
               render={({ field }) => (
                 <Checkbox
+                  aria-invalid={!!form.formState.errors['confirmed']}
+                  aria-describedby={form.formState.errors['confirmed'] ? `reviewactiondialog-${'confirmed'}-error` : undefined}
                   checked={field.value}
                   onCheckedChange={field.onChange}
                   disabled={busy || blocked}
@@ -172,7 +178,10 @@ export default function ReviewActionDialog({ rows, bulk = false, initialOperatio
             />
             {t(publicPublishing ? 'admin.reviews.publicConfirm' : 'admin.reviews.confirm')}
           </label>
-          <FormError>
+          <FormError
+            id={`reviewactiondialog-${'confirmed'}-error`}
+            inline
+          >
             {form.formState.errors.confirmed?.message}
           </FormError>
         </>
