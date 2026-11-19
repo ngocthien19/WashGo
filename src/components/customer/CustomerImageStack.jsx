@@ -1,3 +1,4 @@
+import ResourceImage from '~/components/ResourceThumbnail/ResourceImage'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Images } from 'lucide-react'
@@ -5,9 +6,11 @@ import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '~/components/ui/dialog'
 import CustomerImageGallery from './CustomerImageGallery'
 import { getImageUrl } from '~/utils/format/formats'
+import { getUniqueImageUrls } from '~/utils/media/images'
 
-export default function CustomerImageStack({ urls = [] }) {
+export default function CustomerImageStack({ urls: sourceUrls = [] }) {
   const { t } = useTranslation()
+  const urls = getUniqueImageUrls(sourceUrls)
   const [open, setOpen] = useState(false)
   if (!urls.length) {
     return <span className="text-muted-foreground">—</span>
@@ -23,7 +26,7 @@ export default function CustomerImageStack({ urls = [] }) {
       >
         <span className="flex -space-x-3">
           {urls.slice(0, 2).map((url) => (
-            <img
+            <ResourceImage
               key={url}
               src={getImageUrl(url)}
               alt=""
@@ -48,7 +51,7 @@ export default function CustomerImageStack({ urls = [] }) {
           }}
         >
           <DialogContent
-            className="max-w-2xl overflow-hidden p-0 sm:p-0"
+            className="max-w-2xl overflow-clip p-0 sm:p-0"
             closeLabel="common.close"
             data-dialog-fixed
           >

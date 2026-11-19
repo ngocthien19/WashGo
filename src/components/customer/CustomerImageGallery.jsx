@@ -1,8 +1,11 @@
+import ResourceImage from '~/components/ResourceThumbnail/ResourceImage'
 import { useTranslation } from 'react-i18next'
 import { getImageUrl } from '~/utils/format/formats'
+import { getUniqueImageUrls } from '~/utils/media/images'
 
-export default function CustomerImageGallery({ urls = [] }) {
+export default function CustomerImageGallery({ urls: sourceUrls = [] }) {
   const { t } = useTranslation()
+  const urls = getUniqueImageUrls(sourceUrls)
   return (
     <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
       {urls.map((url, index) => (
@@ -13,7 +16,7 @@ export default function CustomerImageGallery({ urls = [] }) {
           rel="noopener noreferrer"
           className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
-          <img
+          <ResourceImage
             src={getImageUrl(url)}
             alt={t('customer.imageUpload.alt', { count: index + 1 })}
             className="aspect-square w-full rounded-xl border border-border object-cover transition-opacity delay-0 duration-200 ease-out hover:opacity-85"

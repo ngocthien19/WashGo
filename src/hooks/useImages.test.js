@@ -36,3 +36,18 @@ it('reuses successful upload URLs when a later upload fails and the user retries
   expect(await result.current.upload()).toEqual(['/uploads/a.png', '/uploads/b.png'])
   expect(imageApi.upload.mock.calls.map(([file]) => file)).toEqual([first, second, second])
 })
+
+it('accepts only one catalog photo and requires removal before replacement', async () => {
+  const { result } = renderHook(() => useImages(1, ['/existing.png', '/legacy-second.png']))
+  expect(result.current.images.map(item => item.url)).toEqual(['/existing.png'])
+  act(() => result.current.addFiles([image('replacement.png')]))
+  expect(result.current.error).toBe('customer.imageUpload.singleLimit')
+  expect(result.current.images).toHaveLength(1)
+  act(() => result.current.removeImage(result.current.images[0]))
+  act(() => result.current.addFiles([image('one.png'), image('two.png')]))
+  expect(result.current.error).toBe('customer.imageUpload.singleLimit')
+  expect(result.current.images).toHaveLength(0)
+  act(() => result.current.addFiles([image('replacement.png')]))
+  imageApi.upload.mockResolvedValueOnce({ url: '/uploads/replacement.png' })
+  expect(await result.current.upload()).toEqual(['/uploads/replacement.png'])
+})

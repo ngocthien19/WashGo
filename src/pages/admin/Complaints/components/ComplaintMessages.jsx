@@ -137,6 +137,7 @@ export default function ComplaintMessages({ incident, onChanged }) {
               {t('customer.sync.messageContent')}
             </span>
             <textarea
+              aria-describedby={errors['content'] ? `complaintmessages-${'content'}-error` : undefined}
               {...register('content')}
               aria-label={t('customer.sync.messageContent')}
               aria-invalid={!!errors.content}
@@ -146,6 +147,7 @@ export default function ComplaintMessages({ incident, onChanged }) {
             />
             {errors.content && (
               <span
+                id={`complaintmessages-${'content'}-error`}
                 role="alert"
                 className="text-sm text-destructive"
               >
