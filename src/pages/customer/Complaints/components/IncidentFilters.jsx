@@ -13,6 +13,7 @@ export default function IncidentFilters({ params, change }) {
     <section className="grid gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm">
       <div className="grid items-center gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,3fr)]">
         <CatalogToolbar
+          showLabel
           suggestionType="incident"
           suggestionFilter={incidentListFilter(params)}
           resetKey={resetVersion}
@@ -24,18 +25,22 @@ export default function IncidentFilters({ params, change }) {
         />
         <div className="grid gap-4 sm:grid-cols-3">
           <SelectField
+            showLabel
             label={t('customer.incidents.statusLabel')}
             value={params.get('status') || ''}
             onValueChange={(status) => change({ status })}
             options={[{ value: '', label: t('common.all') }, ...[1, 2, 3, 4].map((value) => ({ value: String(value), label: t(value === 4 ? 'customer.sync.withdrawn' : `customer.incidents.status.${value}`) }))]}
           />
           <SelectField
+            showLabel
             label={t('customer.incidents.type')}
             value={params.get('type') || ''}
             onValueChange={(type) => change({ type })}
             options={[{ value: '', label: t('common.all') }, ...[1, 2, 3].map((value) => ({ value: String(value), label: t(`customer.incidents.types.${value}`) }))]}
           />
           <SelectField
+            showLabel
+            labelPosition="left"
             label={t('customer.sync.sort')}
             value={params.get('sort') || 'newest'}
             onValueChange={(sort) => change({ sort })}

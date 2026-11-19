@@ -14,6 +14,7 @@ import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Checkbox } from '~/components/ui/checkbox'
 import FormError from '~/components/ui/FormError'
+import { notify } from '~/utils/notifications/notifications'
 import { newOperationId, adminOperation } from '~/apis/admin/adminWrite'
 import { formatCurrency } from '~/utils/format/formats'
 import { getApiError } from '~/utils/http/apiError'
@@ -44,7 +45,7 @@ function ReconcileDialog({ row, onClose, onSaved }) {
       if (response.data?.succeeded !== true || response.data.data?.orderId !== row.orderId) {
         throw Object.assign(new Error('admin.invalidResponse'), { uncertain: true })
       }
-      onSaved()
+      notify.success('forms.saved'); onSaved()
     } catch (failure) {
       const unresolved = sent && (lookup || failure.uncertain || !failure.response || failure.response.status >= 500)
       setUnknown(unresolved); if (failure.response?.status === 409) {
@@ -87,6 +88,9 @@ function ReconcileDialog({ row, onClose, onSaved }) {
         <label className="grid gap-2">
           {t('admin.reconcile.rate')}
           <Input
+            aria-label={t('admin.reconcile.rate')}
+            aria-invalid={!!form.formState.errors['rate']}
+            aria-describedby={form.formState.errors['rate'] ? `commissionreview-${'rate'}-error` : undefined}
             type="number"
             min="0"
             max="100"
@@ -94,19 +98,28 @@ function ReconcileDialog({ row, onClose, onSaved }) {
             {...form.register('rate')}
             className="h-11 text-base"
           />
-          <FormError>
+          <FormError
+            id={`commissionreview-${'rate'}-error`}
+            inline
+          >
             {form.formState.errors.rate?.message}
           </FormError>
         </label>
         <label className="grid gap-2">
           {t('admin.reconcile.evidence')}
           <textarea
+            aria-label={t('admin.reconcile.evidence')}
+            aria-invalid={!!form.formState.errors['evidence']}
+            aria-describedby={form.formState.errors['evidence'] ? `commissionreview-${'evidence'}-error` : undefined}
             {...form.register('evidence')}
             maxLength={1000}
             rows={4}
             className="w-full rounded-xl border border-input bg-background p-3 text-base"
           />
-          <FormError>
+          <FormError
+            id={`commissionreview-${'evidence'}-error`}
+            inline
+          >
             {form.formState.errors.evidence?.message}
           </FormError>
         </label>
@@ -116,6 +129,8 @@ function ReconcileDialog({ row, onClose, onSaved }) {
             control={form.control}
             render={({ field }) => (
               <Checkbox
+                aria-invalid={!!form.formState.errors['confirmed']}
+                aria-describedby={form.formState.errors['confirmed'] ? `commissionreview-${'confirmed'}-error` : undefined}
                 checked={field.value}
                 onCheckedChange={field.onChange}
                 className="mt-1"
@@ -124,7 +139,10 @@ function ReconcileDialog({ row, onClose, onSaved }) {
           />
           {t('admin.reconcile.confirm')}
         </label>
-        <FormError>
+        <FormError
+          id={`commissionreview-${'confirmed'}-error`}
+          inline
+        >
           {form.formState.errors.confirmed?.message}
         </FormError>
       </fieldset>

@@ -31,7 +31,7 @@ export default function LocationMapDialog({ location, loading = false, error, on
     >
       <DialogContent
         ready={!loading}
-        className="flex max-h-[90dvh] max-w-4xl flex-col overflow-hidden [&_button]:text-base"
+        className="flex max-h-[90dvh] max-w-4xl flex-col overflow-clip [&_button]:text-base"
         closeLabel="common.close"
       >
         <DialogHeader className="shrink-0">

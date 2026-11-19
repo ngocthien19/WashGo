@@ -8,6 +8,7 @@ import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
 import FormError from '~/components/ui/FormError'
+import { notify } from '~/utils/notifications/notifications'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { storageApi } from '~/apis/storage/storageApi'
@@ -62,7 +63,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
         }
         await storageApi.execute(order.id, action, cycle?.orderRevision ?? order.revision, body)
       }
-      setUnknown(false); onSaved()
+      notify.success('forms.saved'); setUnknown(false); onSaved()
     } catch (failure) {
       const metadata = failure.response?.data?.meta || {}
       setAttempts({ remaining: metadata.remainingAttempts, until: metadata.lockoutUntil })
@@ -94,6 +95,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
           </DialogDescription>
         </DialogHeader>
         <form
+          noValidate
           className="mt-5 space-y-4"
           onSubmit={event => handleSubmit(values => execute(values))(event)}
           data-dialog-layout
@@ -125,31 +127,58 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
                 <>
                   {shippers.loading || shippers.error ? <ResourceFeedback {...shippers} /> : (
                     <SelectField
+                      showLabel
+                      aria-invalid={!!errors.shipperId}
+                      aria-describedby={errors.shipperId ? 'storage-shipper-error' : undefined}
                       value={shipperId}
                       label={t('storage.shipper')}
                       options={[{ value: '', label: t('storage.chooseShipper') }, ...(shippers.data || []).map(row => ({ value: row.id, label: `${row.fullName} · ${row.phone || row.email || '—'}` }))]}
                       onValueChange={value => setValue('shipperId', value, { shouldValidate: true })}
                     />
                   )}
+                  <FormError
+                    inline
+                    id="storage-shipper-error"
+                  >
+                    {errors.shipperId?.message}
+                  </FormError>
                 </>
               )}
               {(role === 'Admin' || action === 'exception') && (
                 <label className="grid gap-2">
                   {t('storage.reason')}
                   <textarea
+                    aria-label={t('storage.reason')}
+                    aria-invalid={!!errors['reason']}
+                    aria-describedby={errors.reason ? 'storage-reason-error' : undefined}
                     className="min-h-24 rounded-xl border border-input bg-background p-3"
                     maxLength={500}
                     {...register('reason')}
                   />
+                  <FormError
+                    inline
+                    id="storage-reason-error"
+                  >
+                    {errors.reason?.message}
+                  </FormError>
                 </label>
               )}
               {['handover', 'verify-legacy'].includes(action) && (
                 <label className="grid gap-2">
                   {t(action === 'handover' ? 'storage.receiptOptional' : 'storage.proof')}
                   <Input
+                    aria-label={t(action === 'handover' ? 'storage.receiptOptional' : 'storage.proof')}
+                    aria-invalid={!!errors[action === 'handover' ? 'receiptReference' : 'verificationReference']}
+                    aria-describedby={errors[action === 'handover' ? 'receiptReference' : 'verificationReference'] ? 'storage-reference-error' : undefined}
                     maxLength={120}
                     {...register(action === 'handover' ? 'receiptReference' : 'verificationReference')}
                   />
+                  <FormError
+                    inline
+                    id="storage-reference-error"
+                  >
+                    {errors[action === 'handover' ? 'receiptReference' : 'verificationReference']?.message}
+                  </FormError>
                 </label>
               )}
               {credential && (
@@ -164,6 +193,8 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
                   />
                   {mode === 'pin' ? (
                     <Input
+                      aria-invalid={!!errors['pinCode']}
+                      aria-describedby={errors.pinCode ? 'storage-credential-error' : undefined}
                       type="password"
                       inputMode="numeric"
                       autoComplete="off"
@@ -174,6 +205,8 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
                   ) : (
                     <>
                       <Input
+                        aria-invalid={!!errors['qrCode']}
+                        aria-describedby={errors.qrCode ? 'storage-credential-error' : undefined}
                         aria-label="QR"
                         autoComplete="off"
                         maxLength={500}
@@ -185,10 +218,18 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
                       />
                     </>
                   )}
+                  <FormError
+                    inline
+                    id="storage-credential-error"
+                  >
+                    {errors[mode === 'pin' ? 'pinCode' : 'qrCode']?.message}
+                  </FormError>
                 </>
               )}
               <label className="flex items-start gap-3">
                 <input
+                  aria-invalid={!!errors['confirmed']}
+                  aria-describedby={errors.confirmed ? 'storage-confirmed-error' : undefined}
                   type="checkbox"
                   className="mt-1 size-5"
                   {...register('confirmed')}
@@ -197,11 +238,12 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
                   {t('storage.confirmed')}
                 </span>
               </label>
-              {Object.values(errors).map((error, index) => (
-                <FormError key={index}>
-                  {error.message}
-                </FormError>
-              ))}
+              <FormError
+                inline
+                id="storage-confirmed-error"
+              >
+                {errors.confirmed?.message}
+              </FormError>
             </fieldset>
           </div>
           <footer

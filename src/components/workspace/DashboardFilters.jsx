@@ -16,36 +16,41 @@ export default function DashboardFilters({ range, onChange, showClear = true }) 
       open={custom}
       onOpenChange={setCustom}
     >
-      <div
-        className="flex flex-wrap gap-1 rounded-xl border border-border bg-card p-1"
-        aria-label={t('merchant.sync.dashboardPeriod')}
-      >
-        {['day', 'week', 'month', 'custom'].map((mode) => {
-          const label = t(`merchant.reports.periods.${mode}`)
-          const button = (
-            <Button
-              key={mode}
-              variant={mode === range.mode ? 'default' : 'ghost'}
-              className="h-9 rounded-lg px-3 text-sm font-semibold"
-              aria-pressed={mode === range.mode}
-              onClick={() => {
-                setError(false); if (mode !== 'custom') {
-                  setCustom(false); onChange({ mode })
-                }
-              }}
-            >
-              {label}
-            </Button>
-          )
-          return mode === 'custom' ? (
-            <Popover.Trigger
-              key={mode}
-              render={button}
-            >
-              {label}
-            </Popover.Trigger>
-          ) : button
-        })}
+      <div className="grid gap-2">
+        <p className="text-sm font-medium">
+          {t('merchant.sync.dashboardPeriod')}
+        </p>
+        <div
+          className="flex flex-wrap gap-1 rounded-xl border border-border bg-card p-1"
+          aria-label={t('merchant.sync.dashboardPeriod')}
+        >
+          {['day', 'week', 'month', 'custom'].map((mode) => {
+            const label = t(`merchant.reports.periods.${mode}`)
+            const button = (
+              <Button
+                key={mode}
+                variant={mode === range.mode ? 'default' : 'ghost'}
+                className="h-9 rounded-lg px-3 text-sm font-semibold"
+                aria-pressed={mode === range.mode}
+                onClick={() => {
+                  setError(false); if (mode !== 'custom') {
+                    setCustom(false); onChange({ mode })
+                  }
+                }}
+              >
+                {label}
+              </Button>
+            )
+            return mode === 'custom' ? (
+              <Popover.Trigger
+                key={mode}
+                render={button}
+              >
+                {label}
+              </Popover.Trigger>
+            ) : button
+          })}
+        </div>
       </div>
       <ClearFiltersButton
         active={showClear && range.mode !== 'month'}

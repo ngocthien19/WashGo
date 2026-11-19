@@ -89,7 +89,7 @@ export default function ReportsPage() {
       </header>
       <section className="workspace-filters grid gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <p className="flex items-center gap-2 text-base font-semibold">
+          <p className="flex items-center gap-2 text-sm font-semibold">
             <CalendarDays
               size={19}
               className="text-primary"

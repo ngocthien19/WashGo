@@ -1,10 +1,13 @@
 import { Select as SelectPrimitive } from '@base-ui/react/select'
+import { useId } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '~/lib/utils'
 import { CHOICE_ITEM_STYLES, UI_TRANSITIONS } from '~/utils/config/constants'
 
-export function SelectField({ id, label, value, onValueChange, options, disabled, className }) {
-  return (
+export function SelectField({ id, label, value, onValueChange, options, disabled, className, showLabel = false, labelPosition = 'top', ...props }) {
+  const generatedId = useId()
+  const fieldId = id || generatedId
+  const control = (
     <SelectPrimitive.Root
       items={options}
       value={value}
@@ -12,9 +15,10 @@ export function SelectField({ id, label, value, onValueChange, options, disabled
       disabled={disabled}
     >
       <SelectPrimitive.Trigger
-        id={id}
+        id={fieldId}
         aria-label={label}
         className={cn('group flex h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-3 rounded-xl border border-input bg-background px-3 text-left text-sm shadow-xs outline-none hover:border-primary/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50', UI_TRANSITIONS.INPUT, className)}
+        {...props}
       >
         <SelectPrimitive.Value className="truncate" />
         <SelectPrimitive.Icon>
@@ -49,4 +53,15 @@ export function SelectField({ id, label, value, onValueChange, options, disabled
       </SelectPrimitive.Portal>
     </SelectPrimitive.Root>
   )
+  return showLabel ? (
+    <div className={cn('min-w-0 gap-2', labelPosition === 'left' ? 'flex items-center' : 'grid content-start')}>
+      <label
+        htmlFor={fieldId}
+        className="shrink-0 text-sm font-medium"
+      >
+        {label}
+      </label>
+      {control}
+    </div>
+  ) : control
 }

@@ -1,4 +1,9 @@
 {
+  "businessCodes": {
+    "CodeSpaceExhausted": "No codes remain for this resource type. Please contact an administrator.",
+    "CodeAllocationBusy": "Code allocation is busy. Nothing was created; please try again later.",
+    "CodeImmutable": "System-generated codes cannot be changed. Please reload the resource."
+  },
   "orderProgress": {
     "descriptions": {
       "1": "Your order is created. Bring your laundry to the locker and confirm drop-off before the deadline.",
@@ -16,8 +21,14 @@
       "13": "Your laundry is stored at the laundry shop, awaiting collection or redelivery arrangements.",
       "14": "Your laundry is being transported to the laundry shop for storage.",
       "15": "Your laundry is being delivered from the laundry shop back to the locker as requested.",
-      "99": "Your order has been cancelled. Please review any applicable fees and instructions for collecting your laundry."
-    }
+      "99": "Your order has been cancelled. Please review any applicable fees and instructions for collecting your laundry.",
+      "16": "WashGo has assigned a laundry shop to your order.",
+      "17": "A shipper has been assigned to collect your laundry from the locker.",
+      "18": "Your laundry is packed and awaiting a return shipper.",
+      "19": "A shipper has been assigned to return your laundry. WashGo will notify you when it is ready for pickup."
+    },
+    "lockerDeliveredTitle": "Returned to locker",
+    "lockerDeliveredDescription": "The shipper confirms placement in the return locker. The customer pickup deadline starts at this milestone."
   },
   "adminOrderTime": {
     "title": "Order deadlines",
@@ -432,6 +443,72 @@
           "content": "WashGo is storing your laundry. View your order to check payment, storage fees and request redelivery to a locker."
         }
       }
+    },
+    "merchantAssigned": {
+      "customer": {
+        "title": "Laundry shop assigned",
+        "content": "WashGo has assigned a laundry shop to order {{orderCode}}."
+      },
+      "merchant": {
+        "title": "New order assigned",
+        "content": "Order {{orderCode}} has been assigned to your shop. Please assign a collection shipper."
+      }
+    },
+    "shipperAssigned": {
+      "collect": {
+        "customer": {
+          "title": "Collect shipper assigned",
+          "content": "A shipper has been assigned to collect laundry for order {{orderCode}}. WashGo will notify you when the laundry is available for pickup."
+        },
+        "shipper": {
+          "title": "New collect task",
+          "content": "You have been assigned to collect laundry for order {{orderCode}} at {{lockerName}}, box {{boxNumber}}."
+        }
+      },
+      "return": {
+        "customer": {
+          "title": "Return shipper assigned",
+          "content": "A shipper has been assigned to return laundry for order {{orderCode}}. WashGo will notify you when the laundry is available for pickup."
+        },
+        "shipper": {
+          "title": "New return task",
+          "content": "You have been assigned to return laundry for order {{orderCode}}."
+        }
+      }
+    },
+    "shipperReassigned": {
+      "collect": {
+        "previousShipper": {
+          "title": "Task reassigned",
+          "content": "The collect task for order {{orderCode}} has been reassigned. Your previous credentials are no longer valid."
+        }
+      },
+      "return": {
+        "previousShipper": {
+          "title": "Task reassigned",
+          "content": "The return task for order {{orderCode}} has been reassigned. Your previous credentials are no longer valid."
+        }
+      }
+    },
+    "shipperUnassigned": {
+      "collect": {
+        "shipper": {
+          "title": "Task assignment cancelled",
+          "content": "The collect task for order {{orderCode}} has been unassigned. Your previous credentials are no longer valid."
+        }
+      },
+      "return": {
+        "shipper": {
+          "title": "Task assignment cancelled",
+          "content": "The return task for order {{orderCode}} has been unassigned. Your previous credentials are no longer valid."
+        }
+      }
+    },
+    "returnReadyConfirmed": {
+      "customer": {
+        "title": "Laundry packed for return",
+        "content": "Laundry for order {{orderCode}} is packed and awaiting a return shipper."
+      }
     }
   },
   "notification": {
@@ -488,7 +565,10 @@
     }
   },
   "common": {
+    "systemGeneratedCode": "Generated automatically when saved",
     "confirm": "Confirm",
+    "languageLabel": "Language",
+    "appearanceLabel": "Appearance",
     "photos": "Photos",
     "noPhotos": "No photos available",
     "photoUnavailable": "Unable to load photo",
@@ -1080,7 +1160,7 @@
         "description": "Description"
       },
       "placeholders": {
-        "code": "Leave blank to generate a code",
+        "code": "Enter a locker code (up to 50 characters)",
         "name": "e.g. Ben Thanh Locker Station",
         "address": "Street number, street name, ward/commune…",
         "ward": "e.g. Ben Thanh Ward",
@@ -1798,6 +1878,14 @@
       "discardTitle": "Discard unsaved changes?",
       "discardHint": "Your draft values will be discarded. Saved system settings will remain unchanged.",
       "discard": "Discard changes"
+    },
+    "dispatchQueues": {
+      "waitingCollectAssignment": "Awaiting collection assignment",
+      "waitingCollection": "Awaiting shipper collection",
+      "waitingReturnPreparation": "Awaiting shop packing",
+      "waitingReturnAssignment": "Awaiting return assignment",
+      "waitingReturnDelivery": "Awaiting delivery to locker",
+      "awaitingCustomerPickup": "Awaiting customer pickup"
     }
   },
   "merchant": {
@@ -2441,6 +2529,12 @@
       "nextStatus": "Next status",
       "assign": "Assign shipper",
       "assignNote": "Only eligible shippers belonging to your store are listed.",
+      "returnReady": "Confirm ready for dispatch",
+      "returnReadyNote": "Confirm that the laundry is packed at the shop before assigning its return to the locker.",
+      "returnReadyConfirmation": "I confirm the laundry is packed and ready to hand over to the shipper.",
+      "unassign": "Unassign shipper",
+      "unassignNote": "The current task and delivery credentials will be revoked. The order will await a new assignment.",
+      "unassignConfirmation": "I confirm cancelling the current shipper assignment.",
       "assignCollect": "Assign collection",
       "assignReturn": "Assign return delivery",
       "chooseShipper": "Choose a shipper",
@@ -2485,7 +2579,7 @@
       "images": "Store photos",
       "addImages": "Add photos",
       "removeImage": "Remove store photo",
-      "imagesHint": "Up to 5 JPG, PNG or WEBP photos, at most 5 MB each.",
+      "imagesHint": "One JPG, PNG or WEBP photo, at most 5 MB. Remove the current photo before choosing another.",
       "edit": "Edit store profile",
       "approvalNote": "Changes take effect after Admin approval. Your current information stays in place while the request is reviewed.",
       "pending": "Your profile update is awaiting Admin approval. You can submit another request after it has been reviewed.",
@@ -2528,13 +2622,16 @@
     "orderComposition": "Order composition",
     "emptyChart": "No orders are available for this chart yet.",
     "groups": {
-      "incoming": "Drop-off / collection",
+      "incoming": "Awaiting collection",
       "processing": "Processing",
       "payment": "Payment",
-      "pickup": "Return / pickup",
-      "completed": "Completed",
+      "pickup": "Awaiting customer pickup",
+      "completed": "Collected / completed",
       "storage": "Storage",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "pending": "Awaiting deposit",
+      "returnPreparation": "Preparing return",
+      "returnDispatch": "Return assignment / delivery"
     },
     "recentOrders": "Latest orders",
     "noOrders": "No orders have been assigned to your store yet.",
@@ -2663,6 +2760,22 @@
         },
         "99": {
           "title": "Cancellation reason"
+        },
+        "16": {
+          "title": "Laundry shop assigned",
+          "fallback": "Awaiting collection assignment"
+        },
+        "17": {
+          "title": "Collection shipper assigned",
+          "fallback": "Awaiting collection"
+        },
+        "18": {
+          "title": "Laundry packed",
+          "fallback": "Awaiting return assignment"
+        },
+        "19": {
+          "title": "Return shipper assigned",
+          "fallback": "Awaiting delivery to the locker"
         }
       },
       "estimateLabels": {
@@ -2840,6 +2953,7 @@
       "loadMore": "Load more notifications"
     },
     "imageUpload": {
+      "singleLimit": "Only one photo is allowed. Remove the current photo before choosing another.",
       "viewAll": "View {{count}} photos",
       "galleryTitle": "Attached photos",
       "add": "Add photos",
@@ -3415,8 +3529,12 @@
         "FOLDING": "Folding",
         "AWAITING_PAYMENT": "Awaiting payment",
         "PAID": "Payment received",
-        "READY_TO_RETURN": "Ready to return",
-        "RETURNED": "Returned to locker",
+        "MERCHANT_ASSIGNED": "Laundry shop assigned",
+        "COLLECTION_SHIPPER_ASSIGNED": "Collection shipper assigned",
+        "READY_FOR_RETURN_DISPATCH": "Awaiting return assignment",
+        "RETURN_SHIPPER_ASSIGNED": "Return shipper assigned",
+        "READY_TO_RETURN": "Awaiting customer pickup",
+        "RETURNED": "Customer collected laundry",
         "COMPLETED": "Completed",
         "MOVED_TO_STORAGE": "Moved to storage",
         "CANCELLED": "Cancelled",
@@ -3822,7 +3940,9 @@
       "Storage_verify-legacy": "Existing shop storage verified",
       "Storage_LegacyMoved": "Storage recorded",
       "Storage_SystemUnpaidAtShop": "Overdue unpaid laundry stored at shop",
-      "Unknown": "Order activity recorded"
+      "Unknown": "Order activity recorded",
+      "ShipperUnassigned": "Shipper unassigned",
+      "ReturnReadyConfirmed": "Laundry ready for dispatch"
     },
     "descriptions": {
       "OrderCreated": "The order was created and is waiting for drop-off.",
@@ -3855,7 +3975,9 @@
       "Storage_verify-legacy": "Current shop storage was verified; the reference is issued at verification time.",
       "Storage_LegacyMoved": "A storage operation was recorded in the order history.",
       "Storage_SystemUnpaidAtShop": "Laundry already at the shop has entered storage after the payment deadline.",
-      "Unknown": ""
+      "Unknown": "",
+      "ShipperUnassigned": "The previous assignment has been revoked. The order awaits a new shipper.",
+      "ReturnReadyConfirmed": "The laundry shop has packed the items for their return to the locker."
     },
     "merchantName": "Assigned laundry shop",
     "shipperName": "Assigned shipper",
@@ -3970,6 +4092,97 @@
       "detail": "Category information and related services.",
       "status": "Review the category and the impact before confirming this update.",
       "delete": "Review category dependencies before confirming deletion."
+    },
+    "success": {
+      "create": "Category created.",
+      "edit": "Category updated.",
+      "lock": "Selected categories locked.",
+      "activate": "Selected categories activated.",
+      "delete": "Selected categories deleted."
+    },
+    "partialResult": "Succeeded: {{succeeded}}. Failed: {{failed}}. Review the results for each category.",
+    "validation": {
+      "code": "Use 2?30 letters, digits, hyphens or underscores.",
+      "name": "Enter a category name of up to 100 characters without < or >.",
+      "sortOrder": "Display order must be an integer from 0 to 100,000.",
+      "description": "Use up to 500 characters without < or >.",
+      "reason": "The reason must not exceed 500 characters."
+    }
+  },
+  "forms": {
+    "invalidValue": "Invalid value. Please check this field.",
+    "saved": "Updated successfully.",
+    "weight": "Enter a valid weight from 0.01 to 1,000 kg.",
+    "reason": "Enter a reason between 1 and 1,000 characters.",
+    "cancelled": "Order cancelled.",
+    "created": "Order created successfully."
+  },
+  "orderRoleDescriptions": {
+    "Admin": {
+      "1": "The customer created the order and must deposit the laundry before the deadline.",
+      "2": "Laundry is in the deposit locker. Review and assign an eligible laundry shop.",
+      "3": "The shipper collected the laundry. The shop receives it and confirms weight and pricing when required.",
+      "4": "The shop is washing the laundry. Monitor processing progress and deadlines.",
+      "5": "The shop is drying the laundry after washing.",
+      "6": "The shop is ironing the laundry after drying.",
+      "7": "The shop is folding and finishing the laundry before payment.",
+      "8": "Processing is finished. Await confirmed customer payment for laundry charges.",
+      "9": "Payment is confirmed. Await the merchant confirming that packing is finished.",
+      "10": "The shipper placed the laundry in the return locker. Await customer pickup before the deadline.",
+      "11": "Customer pickup has been recorded. The order is completing its closing steps.",
+      "12": "The order is complete. Review delivery and payment history when necessary.",
+      "13": "Laundry is stored at the shop. Monitor storage charges and requests for return to a locker.",
+      "14": "The shipper is transferring laundry from the locker to storage. Handover is not yet confirmed.",
+      "15": "Laundry is being returned from storage to the requested locker.",
+      "16": "A laundry shop is assigned. Await its merchant assigning a collection shipper.",
+      "17": "A collection shipper is assigned. Laundry remains in the deposit locker until collection is confirmed.",
+      "18": "The merchant confirmed packing. The order awaits return shipper assignment.",
+      "19": "A return shipper is assigned. The customer pickup deadline starts only after delivery to the locker.",
+      "99": "The order is cancelled. Track cancellation fees, refunds and remaining goods separately."
+    },
+    "Merchant": {
+      "1": "The customer is preparing to deposit laundry. Shop intake and processing have not started.",
+      "2": "The customer deposited laundry. WashGo is assigning the responsible shop.",
+      "3": "Laundry has been collected. Receive it and confirm actual weight when required before washing.",
+      "4": "Laundry is being washed. Move to drying only after this step is complete.",
+      "5": "Laundry is being dried. Move to ironing only after this step is complete.",
+      "6": "Laundry is being ironed. Move to folding only after this step is complete.",
+      "7": "Laundry is being folded. Finish this step before requesting payment.",
+      "8": "Await confirmed customer payment. Return delivery cannot be assigned yet.",
+      "9": "Payment is confirmed. Pack the laundry and confirm readiness before assigning a return shipper.",
+      "10": "Laundry is in the return locker. Await customer pickup before the deadline.",
+      "11": "The customer collected the laundry. Follow the order closing status from WashGo.",
+      "12": "The order is complete. Review its history and settlement period when necessary.",
+      "13": "Laundry is stored at the shop. Handle redelivery requests through the storage workflow.",
+      "14": "Laundry is being transferred to shop storage. Receive it through the handover steps.",
+      "15": "The shipper is returning stored laundry to the requested locker.",
+      "16": "The shop is assigned. Select an eligible shipper to collect laundry from the locker.",
+      "17": "A collection shipper is assigned. Await collection confirmation before weighing or washing.",
+      "18": "Packing is confirmed. Select an eligible shipper to return laundry to the locker.",
+      "19": "A return shipper is assigned. Await confirmed placement in a locker compartment.",
+      "99": "The order is cancelled. Handle fees and return delivery only through permitted actions."
+    },
+    "Shipper": {
+      "1": "The customer has not deposited laundry. No collection task can be performed yet.",
+      "2": "Laundry is in the deposit locker. Act only after receiving a valid assignment.",
+      "3": "Collection is confirmed. Hand the laundry to the shop according to your assigned task.",
+      "4": "The shop is washing the laundry. This stage does not authorize a return task.",
+      "5": "The shop is drying the laundry. Await an assigned delivery task.",
+      "6": "The shop is ironing the laundry. Await an assigned delivery task.",
+      "7": "The shop is folding the laundry. Readiness for return is not yet confirmed.",
+      "8": "The order awaits customer payment. Do not perform a normal return delivery yet.",
+      "9": "Payment is confirmed. Await packing and assignment of a return delivery task.",
+      "10": "Laundry has been placed in the return locker. The delivery is recorded and the customer can collect it.",
+      "11": "The customer collected the laundry. Do not reuse completed task credentials.",
+      "12": "The order is complete. Review the task in your delivery history when needed.",
+      "13": "Laundry is stored at the shop. Perform only your assigned storage task.",
+      "14": "Follow the assigned steps to collect laundry from the locker and hand it over for storage.",
+      "15": "Follow the assigned steps to depart the shop and place the stored laundry in the locker.",
+      "16": "A shop is responsible. Await its merchant assigning a collection task to a shipper.",
+      "17": "A collection task is assigned. Check the locker, compartment and task credentials before confirming.",
+      "18": "The shop packed the laundry. Await assignment of a return delivery task.",
+      "19": "A return task is assigned. Deliver the laundry to the locker and confirm with valid task credentials.",
+      "99": "The order is cancelled. Return goods only while you hold a valid assigned task."
     }
   }
 }

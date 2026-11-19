@@ -166,13 +166,14 @@ export default function AuditPanel({ personal = false, settings = false, resourc
             {t('customer.filters')}
           </h3>
           <form
+            noValidate
             onSubmit={event => handleSubmit(values => setQuery(current => ({ ...current, keyword: values.keyword, page: 1 })))(event)}
             className={`grid gap-4 sm:grid-cols-2 ${settings ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}
           >
             {fields.filter(key => !(settings && ['module', 'resourceType', 'resourceId'].includes(key)) && !(resourceId && ['resourceType', 'resourceId'].includes(key))).map(key => (
               <label
                 key={key}
-                className="grid content-start gap-2 text-base font-medium"
+                className="grid content-start gap-2 text-sm font-medium"
               >
                 {t(`admin.workspaceSync.auditFields.${key}`)}
                 {key === 'keyword' ? (
@@ -204,6 +205,8 @@ export default function AuditPanel({ personal = false, settings = false, resourc
                     control={control}
                     render={({ field }) => (
                       <SelectField
+                        aria-invalid={!!errors[key]}
+                        aria-describedby={errors[key] ? `auditpanel-${key}-error` : undefined}
                         label={t(`admin.workspaceSync.auditFields.${key}`)}
                         value={field.value}
                         onValueChange={value => {
@@ -216,17 +219,23 @@ export default function AuditPanel({ personal = false, settings = false, resourc
                   />
                 ) : (
                   <Input
+                    aria-label={t(`admin.workspaceSync.auditFields.${key}`)}
+                    aria-invalid={!!errors[key]}
+                    aria-describedby={errors[key] ? `auditpanel-${key}-error` : undefined}
                     {...register(key)}
                     maxLength={200}
                     className="h-11 text-base font-normal"
                   />
                 )}
-                <FormError>
+                <FormError
+                  id={`auditpanel-${key}-error`}
+                  inline
+                >
                   {errors[key]?.message}
                 </FormError>
               </label>
             ))}
-            <label className="grid content-start gap-2 text-base font-medium">
+            <label className="grid content-start gap-2 text-sm font-medium">
               {t('admin.workspaceSync.result')}
               <SelectField
                 label={t('admin.workspaceSync.result')}

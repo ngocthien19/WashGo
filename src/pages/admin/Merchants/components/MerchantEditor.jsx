@@ -1,3 +1,4 @@
+import ResourceImage from '~/components/ResourceThumbnail/ResourceImage'
 import BusinessLicenseField from '~/components/documents/BusinessLicenseField'
 import { lazy, Suspense, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -31,7 +32,7 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
   const [pending, setPending] = useState(false), [uncertain, setUncertain] = useState(false), [error, setError] = useState('')
   const [documents, setDocuments] = useState({}), [documentBusy, setDocumentBusy] = useState(false)
   const locked = useRef(false)
-  const images = useImages(5, merchant?.imageUrls || [])
+  const images = useImages(1, merchant?.imageUrls || [])
   const { register, handleSubmit, getValues, setValue, formState: { errors } } = useForm({ resolver: yupResolver(merchantSchema), defaultValues: merchantDefaults(merchant) })
   const submit = async (values) => {
     if (locked.current || uncertain || documentBusy) {
@@ -138,6 +139,7 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
                     {required.includes(key) && <span className="ml-1 text-destructive">*</span>}
                   </span>
                   <Input
+                    aria-describedby={errors[key] ? `merchanteditor-${key}-error` : undefined}
                     {...register(key)}
                     aria-label={t(`admin.merchants.fields.${key}`)}
                     placeholder={t(`admin.merchants.placeholders.${key}`)}
@@ -149,7 +151,10 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
                     className="h-11 min-w-0 rounded-xl bg-background text-base font-normal placeholder:font-normal"
                   />
                   {errors[key] && (
-                    <span className="text-xs font-normal text-destructive">
+                    <span
+                      id={`merchanteditor-${key}-error`}
+                      className="text-xs font-normal text-destructive"
+                    >
                       {t('admin.merchants.invalidField')}
                     </span>
                   )}
@@ -169,7 +174,7 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
                         key={image.url}
                         className="relative size-20"
                       >
-                        <img
+                        <ResourceImage
                           src={getImageUrl(image.url)}
                           alt={t('merchant.shop.images')}
                           className="size-full rounded-lg border border-border object-cover"
@@ -192,10 +197,9 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
                     {t('merchant.shop.addImages')}
                     <input
                       type="file"
-                      multiple
                       accept="image/jpeg,image/png,image/webp"
                       className="sr-only"
-                      disabled={images.images.length >= 5}
+                      disabled={images.images.length >= 1}
                       onChange={(event) => {
                         images.addFiles(Array.from(event.target.files || [])); event.target.value = ''
                       }}
@@ -280,28 +284,26 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
             </Button>
           </div>
         </form>
-        <div data-dialog-body>
-          {mapOpen && (
-            <Suspense fallback={(
-              <p role="status">
-                {t('customer.addressMap.loading')}
-              </p>
-            )}
-            >
-              <AddressPicker
-                initialCenter={Number.isFinite(Number(getValues('latitude'))) && Number.isFinite(Number(getValues('longitude'))) && (Number(getValues('latitude')) !== 0 || Number(getValues('longitude')) !== 0) ? { latitude: Number(getValues('latitude')), longitude: Number(getValues('longitude')) } : null}
-                onClose={() => setMapOpen(false)}
-                onApply={(value) => {
-                  for (const key of ['address', 'city']) {
-                    if (value[key]) {
-                      setValue(key, value[key], { shouldDirty: true, shouldValidate: true })
-                    }
-                  } setValue('latitude', value.position.latitude, { shouldDirty: true }); setValue('longitude', value.position.longitude, { shouldDirty: true }); setMapOpen(false)
-                }}
-              />
-            </Suspense>
+        {mapOpen && (
+          <Suspense fallback={(
+            <p role="status">
+              {t('customer.addressMap.loading')}
+            </p>
           )}
-        </div>
+          >
+            <AddressPicker
+              initialCenter={Number.isFinite(Number(getValues('latitude'))) && Number.isFinite(Number(getValues('longitude'))) && (Number(getValues('latitude')) !== 0 || Number(getValues('longitude')) !== 0) ? { latitude: Number(getValues('latitude')), longitude: Number(getValues('longitude')) } : null}
+              onClose={() => setMapOpen(false)}
+              onApply={(value) => {
+                for (const key of ['address', 'city']) {
+                  if (value[key]) {
+                    setValue(key, value[key], { shouldDirty: true, shouldValidate: true })
+                  }
+                } setValue('latitude', value.position.latitude, { shouldDirty: true }); setValue('longitude', value.position.longitude, { shouldDirty: true }); setMapOpen(false)
+              }}
+            />
+          </Suspense>
+        )}
       </DialogContent>
     </Dialog>
   )

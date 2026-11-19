@@ -14,11 +14,12 @@ import { getApiError } from '~/utils/http/apiError'
 import { notify } from '~/utils/notifications/notifications'
 import { merchantSnapshot, displayJsonText, contractDay, safeDocumentUrl, unknownWrite } from '../merchantModel'
 import MerchantEditor from './MerchantEditor'
+import FormError from '~/components/ui/FormError'
 import MerchantDialogHeader from './MerchantDialogHeader'
 
 export function MerchantStatus({ status }) {
   const { t } = useTranslation()
-  const color = { 1: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300', 2: 'bg-slate-500/10 text-slate-600 dark:text-slate-300', 3: 'bg-rose-500/10 text-rose-700 dark:text-rose-300' }[status] || 'bg-muted text-muted-foreground'
+  const color = { 1: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300', 2: 'badge-inactive', 3: 'badge-inactive' }[status] || 'bg-muted text-muted-foreground'
   return (
     <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold ${color}`}>
       {t(`admin.merchants.statuses.${status}`)}
@@ -164,10 +165,12 @@ function Detail({ merchant, onClose }) {
 function StatusDialog({ merchant, onClose, onSaved }) {
   const { t } = useTranslation()
   const locking = merchant.status === 1
+  const [reasonTouched, setReasonTouched] = useState(false)
   const [reason, setReason] = useState(''), [confirmed, setConfirmed] = useState(false), [pending, setPending] = useState(false), [blocked, setBlocked] = useState(false), [error, setError] = useState('')
   const lock = useRef(false)
   const submit = async (event) => {
     event.preventDefault()
+    setReasonTouched(true)
     if (lock.current || blocked || locking && (!reason.trim() || reason.trim().length > 1000 || merchant.unfinishedOrders > 0 && !confirmed)) {
       return
     }
@@ -232,6 +235,7 @@ function StatusDialog({ merchant, onClose, onSaved }) {
           </div>
         </div>
         <form
+          noValidate
           onSubmit={submit}
           className="mt-5 space-y-5"
           data-dialog-layout
@@ -250,6 +254,9 @@ function StatusDialog({ merchant, onClose, onSaved }) {
                       <span className="text-destructive">*</span>
                     </span>
                     <textarea
+                      aria-invalid={reasonTouched && (!reason.trim() || reason.trim().length > 1000)}
+                      aria-describedby={reasonTouched && (!reason.trim() || reason.trim().length > 1000) ? 'merchant-lock-reason-error' : undefined}
+                      onBlur={() => setReasonTouched(true)}
                       required
                       maxLength={1000}
                       value={reason}
@@ -257,6 +264,12 @@ function StatusDialog({ merchant, onClose, onSaved }) {
                       onChange={(event) => setReason(event.target.value)}
                       className="min-h-28 w-full rounded-xl border border-input bg-background p-3 text-base font-normal outline-none focus:ring-2 focus:ring-primary/30"
                     />
+                    <FormError
+                      inline
+                      id="merchant-lock-reason-error"
+                    >
+                      {reasonTouched && (!reason.trim() || reason.trim().length > 1000) ? 'forms.reason' : ''}
+                    </FormError>
                   </label>
                   {merchant.unfinishedOrders > 0 && (
                     <label className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 dark:border-amber-900 dark:bg-amber-950/20">

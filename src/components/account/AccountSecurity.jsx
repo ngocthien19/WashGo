@@ -60,6 +60,7 @@ function PasswordDialog({ onClose, onSaved }) {
           </DialogDescription>
         </DialogHeader>
         <form
+          noValidate
           className="mt-5 space-y-4"
           onSubmit={event => handleSubmit(submit)(event)}
           data-dialog-layout
@@ -79,6 +80,8 @@ function PasswordDialog({ onClose, onSaved }) {
                 >
                   {t(`admin.workspaceSync.${key}`)}
                   <Input
+                    aria-invalid={!!errors[key]}
+                    aria-describedby={errors[key] ? `accountsecurity-${key}-error` : undefined}
                     {...register(key)}
                     aria-label={t(`admin.workspaceSync.${key}`)}
                     type="password"
@@ -86,13 +89,17 @@ function PasswordDialog({ onClose, onSaved }) {
                     autoComplete={key === 'currentPassword' ? 'current-password' : 'new-password'}
                     className="h-12 text-base"
                   />
-                  <FormError>
+                  <FormError
+                    id={`accountsecurity-${key}-error`}
+                    inline
+                  >
                     {errors[key]?.message}
                   </FormError>
                 </label>
               ))}
               <label className="flex items-start gap-3">
                 <input
+                  aria-invalid={!!errors['revokeOtherSessions']}
                   type="checkbox"
                   {...register('revokeOtherSessions')}
                   className="mt-1 size-5"
