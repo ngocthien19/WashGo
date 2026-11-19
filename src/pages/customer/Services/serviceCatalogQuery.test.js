@@ -14,17 +14,17 @@ describe('service catalog query', () => {
   })
 
   it('shares multiple types and disjoint ranges while keeping keyword, sort and page', () => {
-    const query = { ...initialServiceQuery, keyword: 'silk', serviceTypes: ['2', '3'], priceRanges: ['under-30000', 'over-100000'], sort: 'price-desc', page: 3 }
+    const query = { ...initialServiceQuery, keyword: 'silk', categoryIds: ['ca000000-0000-0000-0000-000000000002', 'ca000000-0000-0000-0000-000000000003'], priceRanges: ['under-30000', 'over-100000'], sort: 'price-desc', page: 3 }
     expect(readServiceQuery(writeServiceQuery(query))).toEqual(query)
     expect(buildServiceFilter(query)).toEqual({
-      keyword: 'silk', serviceTypes: [2, 3], priceRanges: [{ minPrice: undefined, maxPrice: 29999.99 }, { minPrice: 100000.01, maxPrice: undefined }],
+      keyword: 'silk', categoryIds: ['ca000000-0000-0000-0000-000000000002', 'ca000000-0000-0000-0000-000000000003'], priceRanges: [{ minPrice: undefined, maxPrice: 29999.99 }, { minPrice: 100000.01, maxPrice: undefined }],
       page: 3, take: 6, sortBy: [{ field: 'UnitPrice', isDescending: true }, { field: 'Name', isDescending: false }]
     })
   })
 
   it('migrates legacy links and removes duplicate or unsupported choices', () => {
     const query = readServiceQuery(new URLSearchParams('serviceType=2&serviceType=2&serviceType=99&priceRange=invalid&minPrice=30000&maxPrice=50000'))
-    expect(query).toEqual({ ...initialServiceQuery, serviceTypes: ['2'], priceRanges: ['30000-50000'] })
+    expect(query).toEqual({ ...initialServiceQuery, categoryIds: ['ca000000-0000-0000-0000-000000000002'], priceRanges: ['30000-50000'] })
     const custom = readServiceQuery(new URLSearchParams('minPrice=0&maxPrice=80000'))
     expect(buildServiceFilter(custom).priceRanges).toEqual([{ minPrice: 0, maxPrice: 80000 }])
     expect(readServiceQuery(writeServiceQuery(custom))).toEqual(custom)
@@ -39,7 +39,7 @@ describe('service catalog query', () => {
     expect(readServiceQuery(new URLSearchParams('page=-2&serviceType=99&sort=Code&minPrice=200&maxPrice=100'))).toEqual(initialServiceQuery)
     expect(writeServiceQuery(initialServiceQuery).toString()).toBe('')
     const filter = buildServiceFilter(initialServiceQuery)
-    expect(filter).toMatchObject({ serviceTypes: [], priceRanges: [] })
+    expect(filter).toMatchObject({ priceRanges: [] })
     for (const key of ['serviceType', 'minPrice', 'maxPrice']) {
       expect(filter).not.toHaveProperty(key)
     }
@@ -52,6 +52,6 @@ it('round-trips dynamic UUID categories without interpreting them as processing 
   const query = readServiceQuery(new URLSearchParams(`categoryId=${id}&categoryId=${id}&categoryId=6`))
   expect(query.categoryIds).toEqual([id])
   expect(buildServiceFilter(query).categoryIds).toEqual([id])
-  expect(buildServiceFilter(query).serviceTypes).toEqual([])
+  expect(buildServiceFilter(query)).not.toHaveProperty('serviceTypes')
   expect(readServiceQuery(writeServiceQuery(query))).toEqual(query)
 })

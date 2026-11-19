@@ -1,3 +1,4 @@
+import ResourceImage from '~/components/ResourceThumbnail/ResourceImage'
 import CategorySelect from '~/components/categories/CategorySelect'
 import { useRef, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
@@ -7,9 +8,7 @@ import { Send, FilePenLine, ImagePlus, X } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { SelectField } from '~/components/ui/select'
 import useImages from '~/hooks/useImages'
-import { SERVICE_TYPES } from '~/utils/config/constants'
 import { merchantServiceApi } from '~/apis/merchant/merchantServiceApi'
 import { notify } from '~/utils/notifications/notifications'
 import { getApiError } from '~/utils/http/apiError'
@@ -21,8 +20,8 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
   const { t } = useTranslation()
   const [categoryReady, setCategoryReady] = useState(false)
   const edit = Boolean(service)
-  const { register, control, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(proposalSchema), defaultValues: { categoryId: service?.categoryId || '', name: service?.name || '', description: service?.description || '', unitPrice: service?.unitPrice ?? '', pricePerKg: service?.pricePerKg ?? '', pricePerItem: service?.pricePerItem ?? '', estimatedDurationHours: service?.estimatedDurationHours ?? 24, serviceType: service?.serviceType || 1, unit: service?.unit || 'kg', reason: '' } })
-  const images = useImages(5, service?.imageUrls || [])
+  const { register, control, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(proposalSchema), defaultValues: { categoryId: service?.categoryId || '', name: service?.name || '', description: service?.description || '', unitPrice: service?.unitPrice ?? '', pricePerKg: service?.pricePerKg ?? '', pricePerItem: service?.pricePerItem ?? '', estimatedDurationHours: service?.estimatedDurationHours ?? 24, unit: service?.unit || 'kg', reason: '' } })
+  const images = useImages(1, service?.imageUrls || [])
   const [pending, setPending] = useState(false)
   const [uncertain, setUncertain] = useState(false)
   const [canRetry, setCanRetry] = useState(false)
@@ -121,6 +120,7 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
                     {['name', 'unitPrice', 'estimatedDurationHours', 'unit'].includes(key) && <span className="ml-1 text-destructive">*</span>}
                   </label>
                   <Input
+                    aria-describedby={errors[key] ? `proposaleditor-${key}-error` : undefined}
                     id={`service-${key}`}
                     {...register(key)}
                     type={['name', 'unit'].includes(key) ? 'text' : 'number'}
@@ -132,6 +132,7 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
                   />
                   {errors[key] && (
                     <p
+                      id={`proposaleditor-${key}-error`}
                       role="alert"
                       className="mt-1 text-sm text-destructive"
                     >
@@ -140,49 +141,32 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
                   )}
                 </div>
               ))}
-              <div>
-                <label
-                  htmlFor="service-category"
-                  className="mb-2 block text-base font-medium"
-                >
-                  {t('categories.processingType')}
-                  <span className="ml-1 text-destructive">*</span>
-                </label>
-                <Controller
-                  name="serviceType"
-                  control={control}
-                  render={({ field }) => (
-                    <SelectField
-                      id="service-category"
-                      label={t('categories.processingType')}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      disabled={edit || pending || uncertain}
-                      options={SERVICE_TYPES.filter((item) => item.value).map((item) => ({ value: Number(item.value), label: t(item.label) }))}
-                    />
-                  )}
-                />
-              </div>
-              <div className="grid gap-2 sm:col-span-2">
+              <div className="grid min-w-0 gap-2">
                 <span className="text-sm font-medium">
                   {t('categories.category')}
+                  <span className="ml-1 text-destructive">*</span>
                 </span>
                 <Controller
                   name="categoryId"
                   control={control}
                   render={({ field }) => (
                     <CategorySelect
+                      aria-invalid={!!errors['categoryId']}
+                      aria-describedby={errors['categoryId'] ? `proposaleditor-${'categoryId'}-error` : undefined}
                       onReady={setCategoryReady}
                       role="Merchant"
                       value={field.value}
                       onChange={field.onChange}
                       current={service}
-                      disabled={pending || uncertain}
+                      disabled={edit || pending || uncertain}
                     />
                   )}
                 />
                 {errors.categoryId && (
-                  <span className="text-sm text-destructive">
+                  <span
+                    id={`proposaleditor-${'categoryId'}-error`}
+                    className="text-sm text-destructive"
+                  >
                     {t('categories.choose')}
                   </span>
                 )}
@@ -199,6 +183,7 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
                     {t(`merchant.services.${key}`)}
                   </label>
                   <textarea
+                    aria-describedby={errors[key] ? `proposaleditor-${key}-error` : undefined}
                     id={`service-${key}`}
                     {...register(key)}
                     rows={3}
@@ -209,6 +194,7 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
                   />
                   {errors[key] && (
                     <p
+                      id={`proposaleditor-${key}-error`}
                       role="alert"
                       className="text-sm text-destructive"
                     >
@@ -235,7 +221,7 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
                   id="service-images"
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
-                  multiple
+                  disabled={images.images.length >= 1}
                   className="h-auto py-2 text-base"
                   onChange={(event) => {
                     images.addFiles(Array.from(event.target.files || [])); event.target.value = ''
@@ -247,7 +233,7 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
                       key={image.url}
                       className="relative"
                     >
-                      <img
+                      <ResourceImage
                         src={getImageUrl(image.url)}
                         alt={t('merchant.services.image', { number: index + 1 })}
                         className="size-20 rounded-xl object-cover"

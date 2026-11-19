@@ -26,7 +26,7 @@ export default function ServiceDetails({ id, onClose }) {
         }
       }}
     >
-      <DialogContent className="flex max-w-2xl flex-col overflow-hidden rounded-3xl p-0 sm:p-0">
+      <DialogContent className="flex max-w-2xl flex-col overflow-clip rounded-3xl p-0 sm:p-0">
         <div className="flex shrink-0 items-center gap-4 border-b border-primary/15 bg-gradient-to-br from-primary/15 via-primary/5 to-card p-6 pr-14 sm:px-7">
           <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/15">
             <ClipboardList

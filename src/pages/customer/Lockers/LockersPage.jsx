@@ -149,6 +149,7 @@ export default function LockersPage() {
           city={query.city}
           search={(
             <CatalogToolbar
+              showLabel
               suggestionType="locker"
               suggestionFilter={{ city: query.city || undefined }}
               embedded

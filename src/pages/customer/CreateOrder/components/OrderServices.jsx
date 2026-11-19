@@ -39,6 +39,7 @@ export default function OrderServices({ items, onChange }) {
           direction="left"
         >
           <CatalogToolbar
+            showLabel
             suggestionType="service"
             keyword={query.keyword}
             onSearch={(keyword) => setQuery({ keyword, page: 1 })}

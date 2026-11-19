@@ -123,15 +123,15 @@ export default function ServiceDialog({ selected, onClose, onEdit }) {
                   <p className="text-sm font-medium text-muted-foreground">
                     {value.code}
                   </p>
-                  <ServiceInfo value={value} />
+                  <ServiceInfo
+                    value={value}
+                    showActivity
+                  />
                   {value.canProposeUpdate !== true && (
                     <p className="rounded-xl bg-amber-500/10 p-3 text-sm font-medium text-amber-700 dark:text-amber-300">
                       {t(proposalBlockedMessage(value))}
                     </p>
                   )}
-                  <span className={`w-fit rounded-full px-3 py-1.5 text-sm font-semibold ${value.isActive ? approvalClass(2) : 'bg-muted text-muted-foreground'}`}>
-                    {t(`merchant.services.activity.${value.isActive}`)}
-                  </span>
                 </>
               )}
             </div>

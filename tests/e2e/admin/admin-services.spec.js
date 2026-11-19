@@ -75,7 +75,7 @@ async function setup(page, options = {}) {
         return route.fulfill({ status: 500, json: { succeeded: false } })
       }
       if (path === '/wash-service') {
-        Object.assign(service, body); return ok(service)
+        Object.assign(service, body, req.method() === 'POST' ? { code: 'SV1234' } : {}); return ok(service)
       }
       if (path === '/wash-service/status') {
         service.isActive = body.isActive; return ok(service)
@@ -113,6 +113,24 @@ test('backend sync: batch services uses one guarded request and clears the selec
   await expect(page.getByRole('button', { name: 'Bulk actions', exact: true })).toHaveCount(0)
 })
 
+test('service table and detail show only the first catalog photo and retain the existing link', async ({ page }) => {
+  const state = await setup(page)
+  state.service.imageUrls = ['/uploads/mock/service-1.png', '/uploads/mock/service-2.png', '/uploads/mock/service-3.png']
+  await page.route('**/api/uploads/mock/service-*.png', route => route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" fill="skyblue"/></svg>' }))
+  await page.goto('/admin/services')
+  await expect(page.getByRole('table').getByRole('img', { name: 'Everyday wash', exact: true })).toBeVisible({ timeout: 20000 })
+  await expect(page.getByRole('table').getByText('+2', { exact: true })).toHaveCount(0)
+  await menu(page, 'Service details')
+  const gallery = page.getByRole('dialog').getByRole('region', { name: 'Photos', exact: true })
+  await expect(gallery.getByRole('link')).toHaveCount(1)
+  for (const link of await gallery.getByRole('link').all()) {
+    await expect(link).toHaveAttribute('target', '_blank')
+  }
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  expect(state.writes).toHaveLength(0)
+})
+
 test('service details animate once after data is ready instead of showing a loading popup', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/admin/services')
@@ -140,6 +158,37 @@ test('Admin catalog filters false availability on the server and summary stays g
   expect(state.writes).toHaveLength(0)
 })
 
+test('service image picker keeps the modal header and footer visible after selecting photos', async ({ page }) => {
+  const state = await setup(page)
+  await page.setViewportSize({ width: 390, height: 720 })
+  await page.goto('/admin/services')
+  await menu(page, 'Edit service')
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { name: 'Service photos (optional)', exact: true })).toBeVisible()
+  await expect(dialog.locator('button').filter({ hasText: /^Add photos$/ })).toHaveCSS('border-style', 'dashed')
+  const chooserPromise = page.waitForEvent('filechooser')
+  await dialog.locator('button').filter({ hasText: /^Add photos$/ }).click()
+  const chooser = await chooserPromise
+  await chooser.setFiles({ name: 'service.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aCGsAAAAASUVORK5CYII=', 'base64') })
+  await expect(dialog.getByRole('img')).toHaveCount(1)
+  await expect(dialog.getByText('1 / 1', { exact: true })).toBeVisible()
+  await expect(dialog.getByLabel('Add photos', { exact: true })).not.toHaveAttribute('multiple')
+  for (const bottom of [false, true]) {
+    await dialog.locator('[data-dialog-body]').evaluate((element, bottom) => {
+      element.scrollTop = bottom ? element.scrollHeight : 0
+    }, bottom)
+    await expect.poll(() => dialog.evaluate(element => {
+      const rect = element.getBoundingClientRect()
+      const header = element.querySelector('[data-dialog-header]').getBoundingClientRect()
+      const footer = element.querySelector('[data-dialog-footer]').getBoundingClientRect()
+      return Math.abs(header.top - rect.top) <= 2 && Math.abs(footer.bottom - rect.bottom) <= 2 && element.scrollTop === 0
+    })).toBe(true)
+  }
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes).toHaveLength(0)
+})
+
 test('Admin creates and edits supported service fields and image list without approval writes', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/admin/services')
@@ -147,7 +196,8 @@ test('Admin creates and edits supported service fields and image list without ap
   let dialog = page.getByRole('dialog')
   await dialog.getByRole('button', { name: 'Save service', exact: true }).click()
   expect(state.writes).toHaveLength(0)
-  for (const [label, value] of [['Service code', 'SVC_TEST'], ['Service name', 'Everyday wash'], ['Base price (VND)', '50000']]) {
+  await expect(dialog.getByLabel('Service code', { exact: true })).toBeDisabled()
+  for (const [label, value] of [['Service name', 'Everyday wash'], ['Base price (VND)', '50000']]) {
     await dialog.getByLabel(label, { exact: true }).fill(value)
   }
   await dialog.getByRole('combobox', { name: 'Category', exact: true }).click()
@@ -156,11 +206,15 @@ test('Admin creates and edits supported service fields and image list without ap
   await expect(dialog).toHaveCount(0)
   await menu(page, 'Edit service')
   dialog = page.getByRole('dialog')
+  await expect(dialog.getByLabel('Service code', { exact: true })).toBeDisabled()
+  await expect(dialog.getByLabel('Service code', { exact: true })).toHaveValue('SV1234')
   await dialog.getByLabel('Base price (VND)', { exact: true }).fill('55000')
   await dialog.getByRole('button', { name: 'Save service', exact: true }).click()
   await expect(dialog).toHaveCount(0)
   expect(state.writes[1].body).toMatchObject({ id, unitPrice: 55000, merchantId: null, isActive: true })
   expect(state.writes[1].body.imageUrls).toEqual([])
+  expect(state.writes[0].body).not.toHaveProperty('code')
+  expect(state.writes[1].body).not.toHaveProperty('code')
   expect(state.writes[1].body).not.toHaveProperty('approvalStatus')
 })
 

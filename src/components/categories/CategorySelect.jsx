@@ -5,7 +5,7 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import { SelectField } from '~/components/ui/select'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 
-export default function CategorySelect({ role = 'Admin', value, onChange, current, disabled, includeInactive = false, filter = false, onReady }) {
+export default function CategorySelect({ role = 'Admin', value, onChange, current, disabled, includeInactive = false, filter = false, onReady, ...props }) {
   const { t } = useTranslation()
   const resource = useCatalogResource(useCallback(signal => categoryLookup(role, signal, includeInactive), [role, includeInactive]))
   useEffect(() => {
@@ -18,6 +18,7 @@ export default function CategorySelect({ role = 'Admin', value, onChange, curren
   return (
     <div className="grid gap-2">
       <SelectField
+        {...props}
         label={t('categories.category')}
         value={value || ''}
         onValueChange={onChange}

@@ -121,6 +121,8 @@ export default function LockersPage() {
               </Button>
             )}
             <SelectField
+              showLabel
+              labelPosition="left"
               label={t('customer.orders.sort')}
               value={query.sort}
               onValueChange={(sort) => update({ sort })}

@@ -50,6 +50,7 @@ export default function OrderLocker({ locker, box, onLocker, onBox }) {
   return (
     <div className="space-y-6">
       <CatalogToolbar
+        showLabel
         suggestionType="locker"
         suggestionFilter={position || {}}
         keyword={query.keyword}

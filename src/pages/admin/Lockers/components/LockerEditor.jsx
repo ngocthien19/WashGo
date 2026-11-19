@@ -2,17 +2,17 @@ import { lazy, Suspense, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useTranslation } from 'react-i18next'
-import { PanelsTopLeft, MapPinned, ImagePlus, X, ArrowUp, ArrowDown, Save } from 'lucide-react'
+import { PanelsTopLeft, MapPinned, X, ArrowUp, ArrowDown, Save } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
 import { SelectField } from '~/components/ui/select'
 import { Button } from '~/components/ui/button'
 import useImages from '~/hooks/useImages'
-import { getImageUrl } from '~/utils/format/formats'
+import ImagePicker from '~/components/ImagePicker'
 import { getApiError } from '~/utils/http/apiError'
 import { notify } from '~/utils/notifications/notifications'
 import { adminLockerApi } from '~/apis/admin/adminLockerApi'
-import { lockerSchema, lockerDefaults, lockerPayload, lockerSnapshot, unknownLockerWrite } from '../lockerModel'
+import { lockerSchema, lockerDefaults, lockerPayload, lockerSnapshot, unknownLockerWrite, lockerFieldErrors } from '../lockerModel'
 import LockerDialogHeader from './LockerDialogHeader'
 
 const AddressPicker = lazy(() => import('~/components/maps/AddressPickerDialog'))
@@ -24,8 +24,8 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
   const [tab, setTab] = useState('basic'), [pending, setPending] = useState(false), [uncertain, setUncertain] = useState(false), [error, setError] = useState('')
   const [confirmedLocation, setConfirmedLocation] = useState(locker ? locationKey(lockerDefaults(locker)) : '')
   const locked = useRef(false)
-  const images = useImages(5, locker?.imageUrls || [])
-  const { register, handleSubmit, setValue, getValues, control, formState: { errors } } = useForm({ resolver: yupResolver(lockerSchema), defaultValues: lockerDefaults(locker) })
+  const images = useImages(1, locker?.imageUrls || [])
+  const { register, handleSubmit, setValue, getValues, control, setError: setFieldError, clearErrors, formState: { errors } } = useForm({ resolver: yupResolver(lockerSchema), defaultValues: lockerDefaults(locker) })
   const values = useWatch({ control })
   const close = () => {
     if (!locked.current) {
@@ -43,7 +43,7 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
     if ((!locker || changedIds) && (!ids.length || ids.some(id => !merchants.some(m => m.id === id && m.status === 1)))) {
       setTab('merchants'); setError('admin.lockers.merchantsRequired'); return
     }
-    locked.current = true; setPending(true); setError('')
+    locked.current = true; setPending(true); setError(''); clearErrors()
     let writing = false
     try {
       const check = async () => !locker || lockerSnapshot(await adminLockerApi.detail(locker.id)) === lockerSnapshot(locker)
@@ -59,6 +59,13 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
       const saved = await adminLockerApi[locker ? 'update' : 'create'](body)
       notify.success(locker ? 'admin.lockers.updated' : 'admin.lockers.created'); onSaved(saved)
     } catch (failure) {
+      const fields = lockerFieldErrors(failure)
+      if (fields.length) {
+        for (const [field, message] of fields) {
+          setFieldError(field, { type: 'server', message })
+        }
+        setTab(fields.some(([field]) => ['merchantIds'].includes(field)) ? 'merchants' : fields.some(([field]) => ['boxCount', 'defaultBoxSize'].includes(field)) ? 'boxes' : 'basic')
+      }
       const unknown = writing && unknownLockerWrite(failure)
       setUncertain(unknown); setError(unknown ? 'admin.lockers.uncertain' : getApiError(failure))
       notify.error(unknown ? 'admin.lockers.uncertain' : getApiError(failure))
@@ -130,27 +137,33 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
               {tab === 'basic' && (
                 <>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {['code', 'name', 'address', 'ward', 'city', 'latitude', 'longitude', 'description'].map(key => (
+                    {['code', 'name', 'address', ...(locker ? ['ward'] : []), 'city', 'latitude', 'longitude', 'description'].map(key => (
                       <label
                         key={key}
-                        className={`flex min-w-0 flex-col gap-3 text-sm font-medium ${['address', 'description'].includes(key) ? 'sm:col-span-2' : ''}`}
+                        className={`flex min-w-0 flex-col gap-3 text-sm font-medium ${['address', 'description'].includes(key) ? 'sm:col-span-2' : ''} ${key === 'code' ? 'cursor-default select-none' : ''}`}
                       >
                         <span>
                           {t(`admin.lockers.fields.${key}`)}
                           {['name', 'address', 'city'].includes(key) && <span className="ml-1 text-destructive">*</span>}
                         </span>
                         <Input
+                          aria-describedby={errors[key] ? `lockereditor-${key}-error` : undefined}
                           {...register(key)}
+                          disabled={key === 'code'}
+                          tabIndex={key === 'code' ? -1 : undefined}
                           aria-label={t(`admin.lockers.fields.${key}`)}
                           aria-invalid={!!errors[key]}
                           readOnly={['latitude', 'longitude'].includes(key) || key === 'code' && !!locker}
                           maxLength={key === 'name' || key === 'city' || key === 'ward' ? 100 : key === 'code' ? 50 : key === 'address' ? 500 : key === 'description' ? 2000 : undefined}
-                          placeholder={t(`admin.lockers.placeholders.${key}`)}
+                          placeholder={t(key === 'code' ? 'common.systemGeneratedCode' : `admin.lockers.placeholders.${key}`)}
                           className="h-11 min-w-0 rounded-xl text-base font-normal read-only:bg-muted/40"
                         />
                         {errors[key] && (
-                          <span className="text-xs text-destructive">
-                            {t('admin.lockers.invalidField')}
+                          <span
+                            id={`lockereditor-${key}-error`}
+                            className="text-xs text-destructive"
+                          >
+                            {errors[key]?.type === 'server' ? t(errors[key].message) : t('admin.lockers.invalidField')}
                           </span>
                         )}
                       </label>
@@ -189,57 +202,22 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
                     <MapPinned size={18} />
                     {t('customer.addressMap.open')}
                   </Button>
-                  <section className="space-y-4 rounded-xl border border-border p-4">
-                    <h3 className="border-b border-border pb-3 text-base font-semibold">
-                      {t('admin.lockers.images')}
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {images.images.map(image => (
-                        <div
-                          key={image.url}
-                          className="relative size-20"
-                        >
-                          <img
-                            src={getImageUrl(image.url)}
-                            alt={t('admin.lockers.images')}
-                            className="size-full rounded-lg object-cover"
-                          />
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="destructive"
-                            className="absolute -right-1 -top-1 size-7"
-                            aria-label={t('merchant.shop.removeImage')}
-                            onClick={() => images.removeImage(image)}
-                          >
-                            <X size={14} />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-primary/40 px-4 py-3 text-primary">
-                      <ImagePlus size={18} />
-                      {t('merchant.shop.addImages')}
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/jpeg,image/png,image/webp"
-                        aria-label={t('merchant.shop.addImages')}
-                        className="sr-only"
-                        disabled={images.images.length >= 5}
-                        onChange={event => {
-                          images.addFiles(Array.from(event.target.files || [])); event.target.value = ''
-                        }}
-                      />
-                    </label>
-                    {images.error && (
-                      <p className="text-sm text-destructive">
-                        {t(images.error)}
-                      </p>
-                    )}
-                  </section>
+                  <ImagePicker
+                    title={t('admin.lockers.images')}
+                    selection={images}
+                    disabled={pending || uncertain}
+                  />
                 </>
               )}
+              {['merchantIds', 'serviceAreaId', 'lockerType', 'status', 'district'].filter(key => errors[key]?.type === 'server').map(key => (
+                <p
+                  key={key}
+                  role="alert"
+                  className="text-sm text-destructive"
+                >
+                  {t(errors[key].message)}
+                </p>
+              ))}
               {tab === 'merchants' && (
                 <section className="space-y-4">
                   <p className="text-sm leading-6 text-muted-foreground">
@@ -319,6 +297,8 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
                       {t('merchant.lockers.totalBoxes')}
                     </span>
                     <Input
+                      aria-invalid={!!errors['boxCount']}
+                      aria-describedby={errors['boxCount'] ? `lockereditor-${'boxCount'}-error` : undefined}
                       {...register('boxCount')}
                       type="number"
                       min="1"
@@ -328,8 +308,11 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
                       className="h-11 rounded-xl text-base"
                     />
                     {errors.boxCount && (
-                      <span className="text-destructive">
-                        {t('admin.lockers.invalidField')}
+                      <span
+                        id={`lockereditor-${'boxCount'}-error`}
+                        className="text-destructive"
+                      >
+                        {errors.boxCount?.type === 'server' ? t(errors.boxCount.message) : t('admin.lockers.invalidField')}
                       </span>
                     )}
                   </label>
@@ -379,29 +362,27 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
             </Button>
           </footer>
         </form>
-        <div data-dialog-body>
-          {mapOpen && (
-            <Suspense fallback={(
-              <p className="py-4">
-                {t('merchant.loading')}
-              </p>
-            )}
-            >
-              <AddressPicker
-                initialCenter={Number.isFinite(Number(values.latitude)) && Number.isFinite(Number(values.longitude)) && (Number(values.latitude) !== 0 || Number(values.longitude) !== 0) ? { latitude: Number(values.latitude), longitude: Number(values.longitude) } : null}
-                onClose={() => setMapOpen(false)}
-                onApply={value => {
-                  for (const key of ['address', 'city']) {
-                    if (value[key]) {
-                      setValue(key, value[key], { shouldValidate: true })
-                    }
-                  }
-                  setValue('latitude', value.position.latitude); setValue('longitude', value.position.longitude); setConfirmedLocation(locationKey(getValues())); setMapOpen(false)
-                }}
-              />
-            </Suspense>
+        {mapOpen && (
+          <Suspense fallback={(
+            <p className="py-4">
+              {t('merchant.loading')}
+            </p>
           )}
-        </div>
+          >
+            <AddressPicker
+              initialCenter={Number.isFinite(Number(values.latitude)) && Number.isFinite(Number(values.longitude)) && (Number(values.latitude) !== 0 || Number(values.longitude) !== 0) ? { latitude: Number(values.latitude), longitude: Number(values.longitude) } : null}
+              onClose={() => setMapOpen(false)}
+              onApply={value => {
+                for (const key of ['address', 'city']) {
+                  if (value[key]) {
+                    setValue(key, value[key], { shouldValidate: true })
+                  }
+                }
+                setValue('latitude', value.position.latitude); setValue('longitude', value.position.longitude); setConfirmedLocation(locationKey(getValues())); setMapOpen(false)
+              }}
+            />
+          </Suspense>
+        )}
       </DialogContent>
     </Dialog>
   )
