@@ -4,7 +4,7 @@ import { getOrderProgress, canPrintReceipt, canPickupFromLocker } from './orderW
 describe('order workflow display', () => {
   it('offers normal locker pickup only for ready and paid orders', () => {
     expect(canPickupFromLocker({ status: 10, paymentStatus: 2 })).toBe(true)
-    for (const status of [1, 2, 4, 8, 9, 11, 12, 13, 99]) {
+    for (const status of [1, 2, 4, 8, 9, 11, 12, 13, 16, 17, 18, 19, 99]) {
       expect(canPickupFromLocker({ status, paymentStatus: 2 })).toBe(false)
     }
     expect(canPickupFromLocker({ status: 10, paymentStatus: 1 })).toBe(false)
@@ -13,10 +13,10 @@ describe('order workflow display', () => {
   it('counts status milestones instead of inventing time or AI completion estimates', () => {
     expect(getOrderProgress({ status: 1 })).toBe(0)
     expect(getOrderProgress({ status: 12 })).toBe(100)
-    expect(getOrderProgress({ status: 4 })).toBe(27)
+    expect(getOrderProgress({ status: 4 })).toBe(33)
     expect(getOrderProgress({ status: 99 })).toBeNull()
-    expect(getOrderProgress({ status: 99, cancellationFromStatus: 2 })).toBe(9)
-    expect(getOrderProgress({ status: 13, timeline: [{ status: 8, timestamp: 2 }, { status: 4, timestamp: 1 }] })).toBe(64)
+    expect(getOrderProgress({ status: 99, cancellationFromStatus: 2 })).toBe(7)
+    expect(getOrderProgress({ status: 13, timeline: [{ status: 8, timestamp: 2 }, { status: 4, timestamp: 1 }] })).toBe(60)
   })
   it('never prints an invoice for a new order, unpaid order or a refunded order', () => {
     expect(canPrintReceipt({ status: 12, paymentStatus: 2 })).toBe(true)

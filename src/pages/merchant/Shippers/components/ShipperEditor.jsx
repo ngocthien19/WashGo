@@ -1,3 +1,5 @@
+import ResourceImage from '~/components/ResourceThumbnail/ResourceImage'
+import FormError from '~/components/ui/FormError'
 import { useRef, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -138,6 +140,7 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
                     {['fullName', 'phone', 'email'].includes(key) && <span className="ml-1 text-destructive">*</span>}
                   </label>
                   <Input
+                    aria-describedby={errors[key] ? `shippereditor-${key}-error` : undefined}
                     placeholder={t(`merchant.shippers.placeholders.${key}`)}
                     id={`shipper-${key}`}
                     type={key === 'email' ? 'email' : 'text'}
@@ -148,6 +151,7 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
                   />
                   {errors[key] && (
                     <p
+                      id={`shippereditor-${key}-error`}
                       role="alert"
                       className="mt-1 text-sm text-destructive"
                     >
@@ -169,6 +173,8 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
                   control={control}
                   render={({ field }) => (
                     <SelectField
+                      aria-describedby={errors.vehicleType ? 'shippereditor-vehicleType-error' : undefined}
+                      aria-invalid={!!errors['vehicleType']}
                       id="shipper-vehicle"
                       label={t('merchant.shippers.vehicleType')}
                       value={field.value}
@@ -177,6 +183,12 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
                     />
                   )}
                 />
+                <FormError
+                  inline
+                  id="shippereditor-vehicleType-error"
+                >
+                  {errors.vehicleType?.message || (errors.vehicleType ? 'forms.invalidValue' : '')}
+                </FormError>
               </div>
               {edit && (
                 <div className="order-7">
@@ -191,6 +203,8 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
                     control={control}
                     render={({ field }) => (
                       <SelectField
+                        aria-describedby={errors.isActive ? 'shippereditor-isActive-error' : undefined}
+                        aria-invalid={!!errors['isActive']}
                         id="shipper-active"
                         label={t('merchant.shippers.workState')}
                         value={String(field.value)}
@@ -199,6 +213,12 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
                       />
                     )}
                   />
+                  <FormError
+                    inline
+                    id="shippereditor-isActive-error"
+                  >
+                    {errors.isActive?.message || (errors.isActive ? 'forms.invalidValue' : '')}
+                  </FormError>
                 </div>
               )}
               <section className="order-8 space-y-3 rounded-2xl border border-border bg-muted/20 p-4 sm:col-span-2">
@@ -219,7 +239,7 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {(shipper.identityImageUrls || []).map((url) => (
-                        <img
+                        <ResourceImage
                           key={url}
                           src={getImageUrl(url)}
                           alt={t('merchant.shippers.identityImages')}
@@ -262,7 +282,7 @@ export default function ShipperEditor({ shipper, onClose, onSaved }) {
                         className={`flex min-h-32 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-input bg-background p-3 text-sm text-muted-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-primary ${!resource.images.length ? 'cursor-pointer hover:border-primary hover:bg-primary/5' : ''}`}
                       >
                         {resource.images[0]?.url ? (
-                          <img
+                          <ResourceImage
                             src={getImageUrl(resource.images[0]?.url)}
                             alt={t(`merchant.shippers.${key}`)}
                             className="h-24 w-full rounded-lg object-contain"

@@ -61,10 +61,10 @@ function AssignmentConfirmation({ id, onClose }) {
 }
 export default function ShipperAssignment({ onClose }) {
   const { t } = useTranslation()
-  const [query, setQuery] = useState({ keyword: '', status: 2, page: 1 })
+  const [query, setQuery] = useState({ keyword: '', status: 16, page: 1 })
   const [resetVersion, setResetVersion] = useState(0)
   const [id, setId] = useState(null)
-  const load = useCallback((signal) => merchantOrderApi.list({ ...query, take: 6, paymentStatus: query.status === 9 ? 2 : undefined, sortBy: [{ field: 'CreatedOn', isDescending: true }] }, signal), [query])
+  const load = useCallback((signal) => merchantOrderApi.list({ ...query, take: 6, paymentStatus: [18, 19].includes(query.status) ? 2 : undefined, sortBy: [{ field: 'CreatedOn', isDescending: true }] }, signal), [query])
   const resource = useCatalogResource(load)
   if (id) {
     return (
@@ -101,10 +101,11 @@ export default function ShipperAssignment({ onClose }) {
           </DialogDescription>
         </div>
         <div data-dialog-body>
-          <div className="workspace-filters mt-5 grid items-center gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-[2fr_1fr]">
+          <div className="workspace-filters mt-5 grid items-end gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-[2fr_1fr]">
             <CatalogToolbar
+              showLabel
               suggestionSource={merchantOrderApi.list}
-              suggestionFilter={{ ...query, take: 6, paymentStatus: query.status === 9 ? 2 : undefined, sortBy: [{ field: 'CreatedOn', isDescending: true }] }}
+              suggestionFilter={{ ...query, take: 6, paymentStatus: [18, 19].includes(query.status) ? 2 : undefined, sortBy: [{ field: 'CreatedOn', isDescending: true }] }}
               resetKey={resetVersion}
               embedded
               keyword={query.keyword}
@@ -113,16 +114,17 @@ export default function ShipperAssignment({ onClose }) {
               onSearch={(keyword) => setQuery({ ...query, keyword, page: 1 })}
             />
             <SelectField
+              showLabel
               label={t('merchant.shippers.taskType')}
               value={query.status}
               onValueChange={(status) => setQuery({ ...query, status, page: 1 })}
-              options={[2, 9, 99].map((value) => ({ value, label: t(`merchant.shippers.tasks.${value}`) }))}
+              options={[16, 17, 18, 19, 99].map((value) => ({ value, label: t(value === 99 ? 'merchant.shippers.tasks.99' : `customer.orders.status.${{ 16: 'MERCHANT_ASSIGNED', 17: 'COLLECTION_SHIPPER_ASSIGNED', 18: 'READY_FOR_RETURN_DISPATCH', 19: 'RETURN_SHIPPER_ASSIGNED' }[value]}`) }))}
             />
             <ClearFiltersButton
               className="sm:col-span-2"
-              active={query.keyword || query.status !== 2}
+              active={query.keyword || query.status !== 16}
               onClear={() => {
-                setResetVersion(value => value + 1); setQuery({ keyword: '', status: 2, page: 1 }); setId(null)
+                setResetVersion(value => value + 1); setQuery({ keyword: '', status: 16, page: 1 }); setId(null)
               }}
             />
           </div>

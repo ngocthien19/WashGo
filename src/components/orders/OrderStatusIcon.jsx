@@ -9,7 +9,7 @@ const icons = {
   1: Clock3, 2: PackageCheck, 3: Truck, 4: WashingMachine,
   5: Wind, 6: Iron, 7: Layers, 8: Wallet, 9: BadgeCheck,
   10: DoorOpen, 11: PackageOpen, 12: CircleCheck,
-  13: Warehouse, 14: PackagePlus, 15: Undo2, 99: PackageX
+  13: Warehouse, 14: PackagePlus, 15: Undo2, 16: PackageCheck, 17: Truck, 18: PackageCheck, 19: Truck, 99: PackageX
 }
 
 export default function OrderStatusIcon({ status, ...props }) {

@@ -113,6 +113,7 @@ function NormalTaskActionDialog({ order, shipperId, onClose, onSaved, onUnknown 
           </div>
         </div>
         <form
+          noValidate
           className="space-y-5"
           onSubmit={(event) => handleSubmit(submit)(event)}
           data-dialog-layout
@@ -198,6 +199,8 @@ function NormalTaskActionDialog({ order, shipperId, onClose, onSaved, onUnknown 
               )}
               <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
                 <input
+                  aria-invalid={!!errors['confirmed']}
+                  aria-describedby={errors['confirmed'] ? `taskactiondialog-${'confirmed'}-error` : undefined}
                   type="checkbox"
                   className="mt-1 size-5 shrink-0 accent-primary"
                   {...register('confirmed')}
@@ -206,6 +209,7 @@ function NormalTaskActionDialog({ order, shipperId, onClose, onSaved, onUnknown 
               </label>
               {errors.confirmed && (
                 <p
+                  id={`taskactiondialog-${'confirmed'}-error`}
                   role="alert"
                   className="text-sm text-destructive"
                 >

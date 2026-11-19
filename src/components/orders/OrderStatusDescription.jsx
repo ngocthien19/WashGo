@@ -1,6 +1,5 @@
-import { useTranslation } from 'react-i18next'
+import { useOrderDescription } from './orderPresentation'
 
-export default function OrderStatusDescription({ status }) {
-  const { t } = useTranslation()
-  return t(`orderProgress.descriptions.${status}`, { defaultValue: t('customer.orders.recordedStep') })
+export default function OrderStatusDescription({ status, role }) {
+  return useOrderDescription(status, role)
 }

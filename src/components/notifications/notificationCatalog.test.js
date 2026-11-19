@@ -10,7 +10,7 @@ it('only shows categories with actually published events and no empty promotion 
     expect(categories.every(item => item.types.length > 0 && item.id !== 'promotion')).toBe(true)
     expect(new Set(categories.flatMap(item => item.types)).size).toBe(notificationTypesFor(role).length)
   }
-  expect(notificationTypesFor('Shipper')).toEqual([10, 30, 31, 32, 33, 34])
+  expect(notificationTypesFor('Shipper')).toEqual([10, 30, 31, 32, 33, 34, 50])
   expect(notificationTypesFor('Customer')).not.toContain(41)
   expect(notificationTypesFor('Merchant')).not.toContain(42)
 })

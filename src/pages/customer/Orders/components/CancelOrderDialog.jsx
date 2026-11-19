@@ -11,6 +11,7 @@ import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { customerOrderApi } from '~/apis/customer/customerOrderApi'
 import { getApiError } from '~/utils/http/apiError'
+import { notify } from '~/utils/notifications/notifications'
 import { formatCurrency, formatNumber } from '~/utils/format/formats'
 import { ORDER_LIST, ORDER_PAYMENT_METHODS } from '~/utils/config/constants'
 import FeePaymentAction from '~/components/customer/payments/FeePaymentAction'
@@ -42,6 +43,7 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled, payIm
     setError('')
     try {
       const result = await customerOrderApi.cancel(orderId, reason)
+      notify.success('forms.cancelled')
       if (payImmediately && Number.isFinite(result.cancellationFeeOutstanding) && result.cancellationFeeOutstanding > 0) {
         setCancelled({ order: result, autoStart: withPayment && result.cancellationFeeOutstanding === quote.data.feeOutstanding })
       } else {
@@ -145,6 +147,7 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled, payIm
                     {t('customer.orders.cancel.reason')}
                   </span>
                   <textarea
+                    aria-label={t('customer.orders.cancel.reason')}
                     {...register('reason')}
                     rows={3}
                     maxLength={ORDER_LIST.REASON_MAX}

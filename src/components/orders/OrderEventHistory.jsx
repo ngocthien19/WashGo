@@ -66,7 +66,7 @@ export default function OrderEventHistory({ entries = [] }) {
                 {t(`orderEvents.descriptions.${key}`)}
               </p>
             )}
-            {!captured && (
+            {(!captured || changesStatus) && (
               <p className="text-sm text-muted-foreground">
                 <OrderStatusDescription status={entry.status} />
               </p>

@@ -10,6 +10,7 @@ import { Button } from '~/components/ui/button'
 import OtpInput from '~/components/ui/OtpInput'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import FormError from '~/components/ui/FormError'
+import { notify } from '~/utils/notifications/notifications'
 import QrScanInput from '~/components/customer/orders/QrScanInput'
 import { isOrderQr } from '~/utils/media/qrScanner'
 import { getApiError } from '~/utils/http/apiError'
@@ -92,6 +93,7 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
           throw new Error('customer.orders.scan.unknownOutcome')
         }
         if (active.current) {
+          notify.success('forms.saved')
           onUpdated()
         }
       } else {
@@ -131,7 +133,7 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
     >
       <DialogContent
         closeLabel="common.close"
-        className="max-w-4xl overflow-hidden p-0 sm:p-0 [&>button]:z-10"
+        className="max-w-4xl overflow-clip p-0 sm:p-0 [&>button]:z-10"
         data-dialog-fixed
       >
         <div className="grid min-h-0 flex-1 max-h-[85dvh] md:h-[min(48rem,85dvh)] md:grid-cols-[0.85fr_1fr]" >
@@ -320,6 +322,7 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
                           disabled={busy || unknown}
                           label="customer.orders.scan.enterPin"
                           digitLabel="customer.orders.scan.pinDigit"
+                          error={error === 'customer.orders.scan.invalidPin' ? { message: error } : undefined}
                         />
                       </div>
                     )
@@ -336,8 +339,8 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
                       )}
                   </>
                 )}
-                <FormError>
-                  {expired ? 'customer.orders.scan.expired' : error}
+                <FormError inline={['customer.orders.scan.requiredQr', 'customer.orders.scan.wrongOrder'].includes(error)}>
+                  {expired ? 'customer.orders.scan.expired' : error === 'customer.orders.scan.invalidPin' ? '' : error}
                 </FormError>
               </div>
               <div

@@ -1,12 +1,17 @@
 import { useTranslation } from 'react-i18next'
 import { ORDER_STATUS_OPTIONS, ORDER_STATUS_COLORS } from '~/utils/config/constants'
 import OrderStatusIcon from './OrderStatusIcon'
+import { useOrderDescription } from './orderPresentation'
 
-export default function OrderStatus({ status, showDot = true, showIcon = true }) {
+export default function OrderStatus({ status, showDot = true, showIcon = true, role }) {
   const { t } = useTranslation()
+  const description = useOrderDescription(status, role)
   const option = ORDER_STATUS_OPTIONS.find((item) => Number(item.value) === status)
   return (
-    <span className={`inline-flex w-fit items-center gap-2 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium ${ORDER_STATUS_COLORS[option?.color] || ORDER_STATUS_COLORS.slate}`}>
+    <span
+      title={description}
+      className={`inline-flex w-fit items-center gap-2 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium ${ORDER_STATUS_COLORS[option?.color] || ORDER_STATUS_COLORS.slate}`}
+    >
       {showIcon ? <OrderStatusIcon status={status} /> : showDot && (
         <span
           className="size-1.5 rounded-full bg-current"

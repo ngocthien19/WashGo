@@ -8,6 +8,47 @@ beforeEach(async () => {
   await i18n.changeLanguage('en')
 })
 
+it('shows confirmed locker delivery before waiting for pickup and customer collection', () => {
+  const timestamp = 1794000000
+  const timeline = [{ id: 'placed', eventType: 'ShipperReturned', basis: 'Captured', fromStatus: 19, status: 10, timestamp }]
+  const { container } = render(<OrderTimeline order={{ status: 10, timeline, workflowSteps: [
+    { status: 19, isApplicable: true, isCompleted: true },
+    { status: 10, isApplicable: true, isCurrent: true, timestamp },
+    { status: 11, isApplicable: true },
+    { status: 12, isApplicable: true }
+  ] }}
+  />)
+  const rows = [...container.querySelectorAll('ol > li')]
+  expect(rows[0]).toHaveTextContent('Return shipper assigned')
+  expect(rows[1]).toHaveTextContent('Returned to locker')
+  expect(rows[1]).toHaveTextContent(formatDateTime(timestamp))
+  expect(rows[2]).toHaveTextContent('Awaiting customer pickup')
+  expect(rows[2]).toHaveAttribute('aria-current', 'step')
+  expect(rows[2].querySelector('time')).toBeNull()
+  expect(rows[3]).toHaveTextContent('Customer collected laundry')
+  expect(timeline).toHaveLength(1)
+})
+
+it('keeps new milestones in server business order and never invents legacy timestamps', () => {
+  const { container } = render(<OrderTimeline order={{ status: 19, workflowSteps: [
+    { status: 9, isApplicable: true, isCompleted: true, basis: 'StatusChange', timestamp: 1794000000 },
+    { status: 18, isApplicable: true, isCompleted: true, basis: 'NotRecorded', timestamp: null },
+    { status: 19, isApplicable: true, isCurrent: true, basis: 'AssignmentEvent', timestamp: 1794000100 },
+    { status: 10, isApplicable: true },
+    { status: 11, isApplicable: true },
+    { status: 12, isApplicable: true }
+  ], timeline: [] }}
+  />)
+  const rows = [...container.querySelectorAll('ol > li')]
+  expect(rows).toHaveLength(7)
+  expect(rows[1]).toHaveTextContent('Awaiting return assignment')
+  expect(rows[1].querySelector('time')).toBeNull()
+  expect(rows[2]).toHaveAttribute('aria-current', 'step')
+  expect(rows[3]).toHaveTextContent('Returned to locker')
+  expect(rows[4]).toHaveTextContent('Awaiting customer pickup')
+  expect(rows[3]).toHaveTextContent(i18n.t('customer.orders.noStepRecord'))
+})
+
 it('shows one milestone per status using its first recorded event without altering history', () => {
   const timeline = [
     { id: 'later', status: 2, timestamp: 1794100000, note: 'Repeated status audit' },

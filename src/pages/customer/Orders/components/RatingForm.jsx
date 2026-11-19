@@ -116,6 +116,9 @@ export default function RatingForm({ orderId, onSaved, onBusy, onClose }) {
             onChange={(value) => setField('overallStars', value)}
             disabled={busy || uncertain}
           />
+          <FormError inline>
+            {error === 'customer.rating.starsRequired' ? error : ''}
+          </FormError>
           <details className="rounded-2xl border border-border bg-muted/15 p-4">
             <summary className="cursor-pointer text-sm font-semibold transition-colors delay-0 duration-200 ease-out hover:text-primary">
               <SlidersHorizontal className="mr-2 inline size-4 text-primary" />
@@ -145,10 +148,18 @@ export default function RatingForm({ orderId, onSaved, onBusy, onClose }) {
             <textarea
               aria-label={t('customer.rating.comment')}
               value={values.comment}
+              aria-invalid={error === 'customer.rating.commentTooLong'}
+              aria-describedby={error === 'customer.rating.commentTooLong' ? 'rating-comment-error' : undefined}
               maxLength={RATING_CONFIG.COMMENT_MAX}
               onChange={(event) => setField('comment', event.target.value)}
               className="min-h-28 w-full resize-y rounded-xl border border-input bg-background p-3 text-sm outline-none transition-colors delay-0 duration-200 ease-out focus:border-primary focus:ring-2 focus:ring-primary/15"
             />
+            <FormError
+              inline
+              id="rating-comment-error"
+            >
+              {error === 'customer.rating.commentTooLong' ? error : ''}
+            </FormError>
             <span className="block text-right text-xs tabular-nums text-muted-foreground">
               {values.comment.length}
               /
@@ -168,7 +179,7 @@ export default function RatingForm({ orderId, onSaved, onBusy, onClose }) {
       </div>
       <div className="shrink-0 px-5 sm:px-6">
         <FormError>
-          {error}
+          {!['customer.rating.starsRequired', 'customer.rating.commentTooLong'].includes(error) ? error : ''}
         </FormError>
         {uncertain && (
           <Button

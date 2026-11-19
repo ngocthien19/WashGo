@@ -1,3 +1,4 @@
+import { ORDER_STATUSES } from '~/utils/config/constants'
 import Reveal from '~/components/motion/Reveal'
 import { useCallback, useEffect, useState } from 'react'
 import { useOutletContext, useSearchParams } from 'react-router-dom'
@@ -16,7 +17,7 @@ import SlaAlerts from './components/SlaAlerts'
 import DashboardFilters from './components/DashboardFilters'
 import { dashboardRange, dashboardFilter } from './dashboardQuery'
 
-const statuses = { 1: 'PENDING', 2: 'DEPOSITED', 3: 'COLLECTED', 4: 'WASHING', 5: 'DRYING', 6: 'IRONING', 7: 'FOLDING', 8: 'AWAITING_PAYMENT', 9: 'PAID', 10: 'READY_TO_RETURN', 11: 'RETURNED', 12: 'COMPLETED', 13: 'MOVED_TO_STORAGE', 99: 'CANCELLED' }
+const statuses = Object.fromEntries(Object.entries(ORDER_STATUSES).map(([name, value]) => [value, name]))
 export default function HomePage() {
   const { t } = useTranslation()
   const { profile } = useOutletContext()

@@ -7,10 +7,12 @@ import { merchantShipperApi } from '~/apis/merchant/merchantShipperApi'
 import { getApiError } from '~/utils/http/apiError'
 import { notify } from '~/utils/notifications/notifications'
 import { resolveMessage } from '~/i18n/messages'
+import FormError from '~/components/ui/FormError'
 
 export default function ShipperAccountAction({ action, shippers, bulk, onClose }) {
   const { t } = useTranslation()
   const [reason, setReason] = useState('')
+  const [reasonError, setReasonError] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [unknown, setUnknown] = useState(false)
@@ -22,8 +24,11 @@ export default function ShipperAccountAction({ action, shippers, bulk, onClose }
       return
     }
     const note = reason.trim()
-    if (note.length > 500 || action !== 'unlock' && !note || !shippers.length || shippers.length > 50) {
-      setError('merchant.shipperSync.reasonRequired'); notify.error('merchant.shipperSync.reasonRequired'); return
+    if (note.length > 500 || action !== 'unlock' && !note) {
+      setReasonError('merchant.shipperSync.reasonRequired'); return
+    }
+    if (!shippers.length || shippers.length > 50) {
+      setError('merchant.shipperSync.reasonRequired'); return
     }
     lock.current = true; setPending(true); setError('')
     try {
@@ -85,6 +90,7 @@ export default function ShipperAccountAction({ action, shippers, bulk, onClose }
           </DialogDescription>
         </DialogHeader>
         <form
+          noValidate
           onSubmit={submit}
           className="mt-5 space-y-4"
           data-dialog-layout
@@ -101,10 +107,20 @@ export default function ShipperAccountAction({ action, shippers, bulk, onClose }
                 required={action !== 'unlock'}
                 disabled={pending || unknown}
                 value={reason}
-                onChange={(event) => setReason(event.target.value)}
+                onChange={(event) => {
+                  setReason(event.target.value); setReasonError('')
+                }}
+                aria-invalid={!!reasonError}
+                aria-describedby={reasonError ? 'shipper-account-reason-error' : undefined}
                 placeholder={t('merchant.shipperSync.reasonPlaceholder')}
                 className="w-full rounded-xl border border-input bg-background p-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
+              <FormError
+                inline
+                id="shipper-account-reason-error"
+              >
+                {reasonError}
+              </FormError>
             </label>
             {error && (
               <p

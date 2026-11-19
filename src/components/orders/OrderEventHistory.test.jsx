@@ -4,7 +4,6 @@ import i18n from '~/i18n'
 import OrderEventHistory from './OrderEventHistory'
 import { milestoneEvents } from '~/utils/orders/orderEvents'
 import { customerOrderView } from '~/apis/customer/customerOrderApi'
-
 it('preserves server sequence despite clock differences and distinguishes assignment from status', async () => {
   await i18n.changeLanguage('en')
   const entries = [

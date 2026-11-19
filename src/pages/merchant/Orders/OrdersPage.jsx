@@ -47,7 +47,7 @@ export default function OrdersPage() {
     setOpeningAssignment(true)
     try {
       const latest = await merchantOrderApi.detail(id)
-      if (assignmentTask(latest) !== 1) {
+      if (!assignmentTask(latest)) {
         notify.error('merchant.orders.changed')
         resource.retry()
         return
@@ -165,6 +165,8 @@ export default function OrdersPage() {
               </Button>
             )}
             <SelectField
+              showLabel
+              labelPosition="left"
               label={t('customer.orders.sort')}
               value={query.sort}
               options={ORDER_SORT_OPTIONS.map((item) => ({ value: item.value, label: t(item.label) }))}
@@ -311,14 +313,14 @@ export default function OrdersPage() {
                             <Eye size={16} />
                             {t('admin.merchants.details')}
                           </DropdownMenuItem>
-                          {(order.allowedActions ? assignmentTask(order) === 1 : order.status === 2) && (
+                          {(order.allowedActions ? !!assignmentTask(order) : [16, 17, 18, 19].includes(order.status)) && (
                             <DropdownMenuItem
                               disabled={openingAssignment}
                               onClick={() => openAssignment(order.id)}
                               className="text-teal-700 dark:text-teal-300"
                             >
                               <Truck size={16} />
-                              {t('merchant.orders.assignCollect')}
+                              {t((assignmentTask(order) || ([18, 19].includes(order.status) ? 2 : 1)) === 2 ? 'merchant.orders.assignReturn' : 'merchant.orders.assignCollect')}
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>

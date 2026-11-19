@@ -131,6 +131,7 @@ function ReturnRequest({ order, onUpdated }) {
           className="space-y-4 border-t border-border pt-4"
         >
           <CatalogToolbar
+            showLabel
             embedded
             keyword={keyword}
             onSearch={value => {

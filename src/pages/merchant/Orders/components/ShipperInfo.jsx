@@ -25,7 +25,7 @@ export default function ShipperInfo({ order }) {
               <dt className="text-sm text-muted-foreground">
                 {t(`merchant.shippers.${key}`)}
               </dt>
-              <dd className="mt-2 break-words text-base font-semibold">
+              <dd className="mt-2 break-words text-sm font-semibold">
                 {value || '—'}
               </dd>
             </div>

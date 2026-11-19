@@ -270,7 +270,7 @@ export default function ShippersPage() {
                             {shipper.fullName}
                           </RecordLink>
                           {shipper.accountActive === false && (
-                            <span className="mt-1 inline-block rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                            <span className="mt-1 inline-block rounded-full badge-inactive px-2 py-0.5 text-xs font-semibold">
                               {t('merchant.shipperSync.locked')}
                             </span>
                           )}
@@ -292,12 +292,12 @@ export default function ShippersPage() {
                       </p>
                     </TableCell>
                     <TableCell>
-                      <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-sm font-semibold ${shipper.isActive ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+                      <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-sm font-semibold ${shipper.isActive ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'badge-inactive'}`}>
                         {t(`merchant.shippers.active.${shipper.isActive}`)}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-sm font-semibold ${shipper.status === 1 ? 'bg-primary/10 text-primary' : shipper.status === 2 ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'}`}>
+                      <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-sm font-semibold ${shipper.status === 1 ? 'bg-primary/10 text-primary' : shipper.status === 2 ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'badge-inactive'}`}>
                         {t(`merchant.shippers.statuses.${shipper.status}`, { defaultValue: '—' })}
                       </span>
                     </TableCell>
@@ -347,7 +347,7 @@ export default function ShippersPage() {
                             disabled={shipper.accountActive !== false}
                             onClick={() => setAccountAction({ action: 'unlock', shippers: [shipper] })}
                             aria-label={t('merchant.shippers.unlockNamed', { name: shipper.fullName })}
-                            className="text-emerald-700 data-disabled:opacity-100 dark:text-emerald-300"
+                            className="text-emerald-700 data-disabled:text-muted-foreground dark:text-emerald-300"
                           >
                             <LockKeyholeOpen size={17} />
                             {t('merchant.shippers.unlock')}
@@ -356,7 +356,7 @@ export default function ShippersPage() {
                             disabled={shipper.accountActive !== true}
                             onClick={() => setAccountAction({ action: 'lock', shippers: [shipper] })}
                             aria-label={t('merchant.shippers.lockNamed', { name: shipper.fullName })}
-                            className="text-amber-700 data-disabled:opacity-100 dark:text-amber-300"
+                            className="text-amber-700 data-disabled:text-muted-foreground dark:text-amber-300"
                           >
                             <LockKeyhole size={17} />
                             {t('merchant.shippers.lock')}

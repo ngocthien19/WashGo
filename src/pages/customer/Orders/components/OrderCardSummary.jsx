@@ -8,7 +8,7 @@ import OrderEstimate from './OrderEstimate'
 export default function OrderCardSummary({ order, estimate }) {
   const { t } = useTranslation()
   const status = order.status
-  const processing = status >= ORDER_STATUSES.DEPOSITED && status <= ORDER_STATUSES.FOLDING
+  const processing = [2, 16, 17, 3, 4, 5, 6, 7].includes(status)
   const timestamp = {
     [ORDER_STATUSES.PENDING]: order.depositDeadline,
     [ORDER_STATUSES.AWAITING_PAYMENT]: order.paymentDeadline,

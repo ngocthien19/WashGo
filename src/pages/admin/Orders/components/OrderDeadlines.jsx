@@ -17,8 +17,8 @@ export default function OrderDeadlines({ order }) {
       aria-label={t('adminOrderTime.title')}
       className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
     >
-      <h2 className="flex items-center gap-3 border-b border-border bg-primary/5 p-5 text-lg font-semibold">
-        <Clock3 className="size-5 text-primary" />
+      <h2 className="flex items-center gap-3 border-b border-border bg-amber-500/5 p-5 text-lg font-semibold">
+        <Clock3 className="size-5 text-amber-700 dark:text-amber-300" />
         {t('adminOrderTime.title')}
       </h2>
       <div className="grid gap-4 p-5 lg:grid-cols-3">
@@ -30,19 +30,19 @@ export default function OrderDeadlines({ order }) {
               key={definition.key}
               data-deadline={definition.key}
               data-overdue={state.expired || undefined}
-              className={`min-w-0 rounded-xl border p-4 ${state.expired ? 'border-amber-500/35 bg-amber-500/8' : 'border-border bg-muted/20'}`}
+              className={`min-w-0 rounded-xl border p-4 ${state.expired ? 'border-red-500/25 bg-red-500/8' : !state.active || !state.date ? 'border-slate-500/15 bg-slate-500/5' : state.seconds != null && state.seconds <= 86400 ? 'border-amber-500/25 bg-amber-500/8' : 'border-emerald-500/20 bg-emerald-500/5'}`}
             >
               <h3 className="flex items-center gap-2 text-base font-semibold">
                 <Timer
                   aria-hidden="true"
-                  className={`size-4 shrink-0 ${state.expired ? 'deposit-expired-clock text-amber-700 dark:text-amber-300' : 'text-primary'}`}
+                  className={`size-4 shrink-0 ${state.expired ? 'deposit-expired-clock text-red-700 dark:text-red-300' : 'text-primary'}`}
                 />
                 {t(`adminOrderTime.${definition.key}`)}
               </h3>
               <p className="mt-3 break-words text-sm font-semibold">
                 {formatDateTime(state.date)}
               </p>
-              <p className={`mt-2 text-sm font-medium ${state.expired ? 'text-amber-800 dark:text-amber-200' : 'text-muted-foreground'}`}>
+              <p className={`mt-2 text-sm font-medium ${state.expired ? 'text-red-800 dark:text-red-200' : 'text-muted-foreground'}`}>
                 {t(state.expired ? 'adminOrderTime.overdue' : state.active && state.date ? 'adminOrderTime.active' : state.date ? 'adminOrderTime.inactive' : 'adminOrderTime.missing')}
               </p>
               {state.seconds != null && (!state.expired || state.seconds < 0) && (

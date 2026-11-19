@@ -25,6 +25,7 @@ function HistoryContent({ id, audit }) {
         <div className="workspace-filters grid gap-3 sm:grid-cols-2">
           {['taskType', 'status'].map((key) => (
             <SelectField
+              showLabel
               key={key}
               label={t(`merchant.shipperSync.${key === 'taskType' ? 'taskTypeLabel' : 'taskStatus'}`)}
               value={query[key]}

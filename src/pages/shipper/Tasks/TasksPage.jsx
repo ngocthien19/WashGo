@@ -107,12 +107,15 @@ export default function TasksPage() {
           />
         </div>
         <SelectField
+          showLabel
           label={t('shipper.sync.taskStatus')}
           value={query.taskStatus}
           onValueChange={taskStatus => update({ taskStatus })}
           options={[1, 2, 3, 4].map(value => ({ value: String(value), label: t(`shipper.sync.statuses.${value}`) }))}
         />
         <SelectField
+          showLabel
+          labelPosition="left"
           label={t('shipper.sync.sort')}
           value={query.sort}
           onValueChange={sort => update({ sort })}
