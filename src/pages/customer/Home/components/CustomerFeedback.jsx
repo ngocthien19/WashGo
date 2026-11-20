@@ -9,7 +9,8 @@ import { Button } from '~/components/ui/button'
 import { CUSTOMER_REVIEWS } from '~/utils/config/constants'
 import { formatNumber } from '~/utils/format/formats'
 import ScrollAccent from '~/components/motion/ScrollAccent'
-import FeedbackCard from './FeedbackCard'
+import FeedbackCarousel from './FeedbackCarousel'
+import feedbackBackground from '~/assets/customer/customer-feedback-background.png'
 import AllFeedbackDialog from './AllFeedbackDialog'
 import SectionGlow from '~/components/customer/SectionGlow/SectionGlow'
 
@@ -25,6 +26,16 @@ export default function CustomerFeedback() {
       aria-labelledby="customer-feedback-heading"
       className="relative isolate overflow-hidden border-y border-primary/10 bg-white dark:bg-background"
     >
+      <img
+        src={feedbackBackground}
+        alt=""
+        loading="lazy"
+        className="pointer-events-none absolute inset-0 -z-20 size-full object-cover object-center opacity-80 dark:opacity-65"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 bg-linear-to-b from-background/90 via-background/40 to-background/85"
+      />
       <SectionGlow side="right" />
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
@@ -55,7 +66,7 @@ export default function CustomerFeedback() {
               loadingText="customerReviews.loading"
             />
           ) : (
-            <ScrollAccent className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+            <ScrollAccent className="flex w-fit flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-border/60 bg-card/90 p-3 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/5 px-4 py-2">
                 <Star
                   className="size-4 fill-amber-400 text-amber-500"
@@ -78,17 +89,7 @@ export default function CustomerFeedback() {
               empty="catalogUi.feedbackEmpty"
             />
           ) : (
-            <ScrollAccent>
-              <ul className="grid items-start gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                {reviews.data.list.map(row => (
-                  <FeedbackCard
-                    key={row.id}
-                    row={row}
-                    preview
-                  />
-                ))}
-              </ul>
-            </ScrollAccent>
+            <FeedbackCarousel rows={reviews.data.list} />
           )}
         </div>
       </div>
