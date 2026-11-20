@@ -362,6 +362,8 @@ test('Home locker map and list remain usable after their slide-in animation', as
 })
 
 test('service cards stay compact with square images and usable actions on narrow screens', async ({ page }) => {
+  // Measure responsive geometry without waiting for offscreen entrance animations.
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await setup(page)
   const catalog = Array.from({ length: 4 }, (_, index) => ({ ...service,
     id: index ? `service-${index}` : service.id,
