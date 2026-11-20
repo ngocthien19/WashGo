@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { MessageSquareQuote, Star } from 'lucide-react'
 import { formatDateTime } from '~/utils/format/formats'
 import FeedbackImage from './FeedbackImage'
+import ReviewComment from './ReviewComment'
 import { cn } from '~/lib/utils'
 
 export default function FeedbackCard({ row, preview = false, className, ...props }) {
@@ -19,7 +20,7 @@ export default function FeedbackCard({ row, preview = false, className, ...props
           />
         </span>
         <div className="min-w-0 space-y-2">
-          <p className="text-sm font-semibold">
+          <p className="text-base font-semibold">
             {t('customerReviews.anonymous')}
           </p>
           <div
@@ -33,14 +34,26 @@ export default function FeedbackCard({ row, preview = false, className, ...props
                 className={`size-4 ${star <= row.overallStars ? 'fill-amber-400 text-amber-500' : 'text-muted-foreground/30'}`}
               />
             ))}
+            <span
+              className="ml-1 text-sm font-medium text-muted-foreground"
+              aria-hidden="true"
+            >
+              (
+              {row.overallStars}
+              /5)
+            </span>
           </div>
         </div>
       </div>
-      {row.comment && (
-        <p className={cn('whitespace-pre-line break-words text-base leading-7 text-foreground/90', preview && 'line-clamp-5')}>
+      {row.comment && (preview ? (
+        <ReviewComment>
+          {row.comment}
+        </ReviewComment>
+      ) : (
+        <p className="whitespace-pre-line break-words text-base leading-7 text-foreground/90">
           {row.comment}
         </p>
-      )}
+      ))}
       {!!row.imageUrls.length && (
         <div className="flex shrink-0 gap-2 overflow-x-auto pb-1">
           {row.imageUrls.map((path, index) => (
