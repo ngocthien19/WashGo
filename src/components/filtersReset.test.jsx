@@ -84,11 +84,11 @@ describe('clear all filters', () => {
       resourceType="Incident"
       resourceId="incident-scope"
     />)
-    await user.type(screen.getByLabelText('Từ khóa'), 'refund')
+    await user.type(screen.getByRole('combobox', { name: 'Từ khóa', exact: true }), 'refund')
     await waitFor(() => expect(adminWorkspaceApi.activities).toHaveBeenLastCalledWith(expect.objectContaining({ keyword: 'refund', resourceId: 'incident-scope' }), false, expect.any(AbortSignal)))
     await user.type(screen.getByLabelText('Từ ngày'), '2026-11-01')
     await user.click(screen.getByRole('button', { name: 'Xóa tất cả', exact: true }))
-    expect(screen.getByLabelText('Từ khóa')).toHaveValue('')
+    expect(screen.getByRole('combobox', { name: 'Từ khóa', exact: true })).toHaveValue('')
     expect(screen.getByLabelText('Từ ngày')).toHaveValue('')
     await waitFor(() => expect(adminWorkspaceApi.activities).toHaveBeenLastCalledWith({ page: 1, take: 10, keyword: '', resourceType: 'Incident', resourceId: 'incident-scope' }, false, expect.any(AbortSignal)))
   })

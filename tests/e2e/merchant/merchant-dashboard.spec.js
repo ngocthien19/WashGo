@@ -470,8 +470,11 @@ test('dashboard period filters keep matching server ranges and survive reload', 
   await expect(page.getByRole('heading', { name: 'Orders by status group', exact: true })).toBeVisible()
   const distribution = empty.locator('..')
   await expect(distribution.locator('svg circle')).toHaveCount(1)
-  await expect(distribution.getByRole('button')).toHaveCount(7)
-  await expect(distribution.getByRole('button').first()).toHaveAttribute('aria-label', /: 0$/)
+  const groups = ['Awaiting deposit', 'Awaiting collection', 'Processing', 'Payment', 'Preparing return', 'Return assignment / delivery', 'Awaiting customer pickup', 'Collected / completed', 'Storage', 'Cancelled']
+  await expect(distribution.getByRole('button')).toHaveCount(groups.length)
+  for (const group of groups) {
+    await expect(distribution.getByRole('button', { name: `${group}: 0`, exact: true })).toBeVisible()
+  }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
 
