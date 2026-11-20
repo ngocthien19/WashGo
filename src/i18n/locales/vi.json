@@ -272,8 +272,6 @@
     "previous": "Đánh giá trước",
     "next": "Đánh giá tiếp theo",
     "showReview": "Xem đánh giá {{number}}",
-    "pause": "Tạm dừng đánh giá",
-    "resume": "Tiếp tục đánh giá",
     "loading": "Đang tải đánh giá…",
     "invalidResponse": "Không thể tải đánh giá. Vui lòng thử lại.",
     "anonymous": "Khách hàng WashGo",

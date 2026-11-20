@@ -7,7 +7,7 @@ async function setup(page, { empty = false, longText = false } = {}) {
   const state = { fail: false, queries: [], summaryReads: 0, imageAuth: [] }
   const rows = Array.from({ length: 8 }, (_, index) => {
     const id = `11111111-1111-4111-8111-${String(index).padStart(12, '0')}`
-    return { id, overallStars: index % 2 ? 4 : 5, comment: `Careful laundry ${index + 1}${longText ? ' Clean clothes and helpful service.'.repeat(40) : ''}`, publishedAt: '2026-11-14T01:00:00Z', imageUrls: index === 0 ? [`/customer/reviews/${id}/images/0`] : [], customerName: 'Never expose this name', orderCode: 'Never expose this order' }
+    return { id, overallStars: index % 2 ? 4 : 5, comment: `Careful laundry ${index + 1}${longText && index === 0 ? ' Clean clothes and helpful service.'.repeat(40) : ''}`, publishedAt: '2026-11-14T01:00:00Z', imageUrls: index === 0 ? [`/customer/reviews/${id}/images/0`] : [], customerName: 'Never expose this name', orderCode: 'Never expose this order' }
   })
   await page.route('**/api/customer/services/filter', route => route.fulfill({ json: { succeeded: true, list: [], total: 0, currentPage: 1, totalPages: 0 } }))
   await page.route('**/api/customer/reviews**', route => {
@@ -34,13 +34,28 @@ async function setup(page, { empty = false, longText = false } = {}) {
 
 test('Home previews four reviews and View all opens server filters and pagination', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  const state = await setup(page)
+  const state = await setup(page, { longText: true })
   const summaryResponse = page.waitForResponse(response => new URL(response.url()).pathname.endsWith('/customer/reviews/summary') && response.status() === 200)
   await page.goto('/')
   await summaryResponse
   const section = page.getByRole('region', { name: 'What customers say about WashGo', exact: true })
   await expect(section.getByText('8 published reviews', { exact: true })).toBeVisible()
   await expect(section.getByText('WashGo customer', { exact: true })).toHaveCount(4)
+  await expect(section.getByText('4.5 / 5', { exact: true })).toBeVisible()
+  const carousel = section.getByRole('region', { name: 'Customer review slideshow' })
+  const active = carousel.locator('[data-active="true"]')
+  await expect(active.getByText('WashGo customer', { exact: true })).toHaveCSS('font-size', '16px')
+  await expect(active.getByText('(5/5)', { exact: true })).toBeVisible()
+  const comment = active.locator('p').filter({ hasText: 'Careful laundry 1' })
+  await expect(comment).toHaveCSS('-webkit-line-clamp', '4')
+  await comment.hover()
+  await expect(page.getByRole('tooltip')).toContainText('Clean clothes and helpful service.')
+  await page.mouse.move(0, 0)
+  await expect(page.getByRole('tooltip')).toHaveCount(0)
+  await carousel.getByRole('button', { name: 'Show review 2', exact: true }).click()
+  await active.getByText('Careful laundry 2', { exact: true }).hover()
+  await expect(page.getByRole('tooltip')).toHaveCount(0)
+  await carousel.getByRole('button', { name: 'Show review 1', exact: true }).click()
   await expect(section.getByRole('combobox')).toHaveCount(0)
   await expect(section.getByRole('button', { name: 'Next page', exact: true })).toHaveCount(0)
   await expect(section).not.toContainText('Never expose')
@@ -73,7 +88,7 @@ test('Home previews four reviews and View all opens server filters and paginatio
   await expect(section.getByRole('button', { name: 'View all reviews', exact: true })).toBeFocused()
 })
 
-test('review slideshow selects dots, cycles at 3.5 seconds and stops for reduced motion', async ({ page }) => {
+test('reviews change only through dots and chevrons, with clickable controls over the cards', async ({ page }) => {
   await page.clock.install()
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await setup(page, { longText: true })
@@ -83,20 +98,10 @@ test('review slideshow selects dots, cycles at 3.5 seconds and stops for reduced
   const first = carousel.getByRole('button', { name: 'Show review 1', exact: true })
   const second = carousel.getByRole('button', { name: 'Show review 2', exact: true })
   await expect(first).toHaveAttribute('aria-current', 'true')
-  await page.clock.fastForward(3600)
-  await expect(second).toHaveAttribute('aria-current', 'true')
-  await expect(carousel.locator('li[data-active="true"]')).toContainText('Careful laundry 2')
-  await first.click()
+  await page.clock.fastForward(14000)
   await expect(first).toHaveAttribute('aria-current', 'true')
-  await page.clock.fastForward(8000)
-  await expect(first).toHaveAttribute('aria-current', 'true')
-  await page.keyboard.press('Tab')
+  await expect(carousel.getByRole('button', { name: /Pause reviews|Resume reviews/ })).toHaveCount(0)
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await expect(carousel.getByRole('button', { name: 'Pause reviews', exact: true })).toHaveCount(0)
-  await page.mouse.move(0, 0)
-  await page.getByRole('heading', { name: 'What customers say about WashGo' }).click()
-  await page.clock.fastForward(8000)
-  await expect(first).toHaveAttribute('aria-current', 'true')
   await second.click()
   await expect(second).toHaveAttribute('aria-current', 'true')
   await carousel.evaluate(node => node.scrollIntoView({ block: 'center', behavior: 'instant' }))
@@ -114,6 +119,19 @@ test('review slideshow selects dots, cycles at 3.5 seconds and stops for reduced
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     const active = carousel.locator('li[data-active="true"]')
     expect(await active.evaluate(node => node.scrollHeight <= node.clientHeight)).toBe(true)
+    await carousel.evaluate(node => node.scrollIntoView({ block: 'center', behavior: 'instant' }))
+    for (const name of ['Previous review', 'Next review']) {
+      expect(await carousel.getByRole('button', { name, exact: true }).evaluate(node => {
+        const box = node.getBoundingClientRect()
+        const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)
+        return node === hit || node.contains(hit)
+      })).toBe(true)
+    }
+  }
+  if (process.env.CUSTOMER_FEEDBACK_QA) {
+    await carousel.screenshot({ path: 'test-results/review-controls-dark.png' })
+    await carousel.getByRole('button', { name: 'Next review', exact: true }).hover()
+    await carousel.screenshot({ path: 'test-results/review-controls-dark-hover.png' })
   }
 })
 
