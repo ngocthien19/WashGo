@@ -296,6 +296,14 @@ test('customer publishing is explicit, works after merchant approval and closes 
   await expect(page.getByText('Review updated.', { exact: true })).toBeVisible()
   expect(state.writes[0].body).toMatchObject({ publishForCustomers: true, expectedVersion: 'v1' })
   await expect(page.getByRole('button', { name: 'Publish for customers', exact: true })).toBeDisabled()
+  const approval = page.locator('dl').filter({ has: page.getByText('Content published', { exact: true }) })
+  await expect(approval.locator('time')).toHaveCount(2)
+  await expect(approval.locator('time').last()).toHaveAttribute('datetime', '2026-11-14T01:00:00Z')
+  await page.setViewportSize({ width: 375, height: 812 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  if (process.env.CUSTOMER_FEEDBACK_QA) {
+    await approval.screenshot({ path: 'test-results/review-approval-mobile.png' })
+  }
 })
 
 test('bulk publishing skips hidden reviews and sends one Publish command', async ({ page }) => {

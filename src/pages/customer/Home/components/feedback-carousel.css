@@ -1,0 +1,35 @@
+.feedback-carousel-track {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 1rem 0;
+  perspective: 1200px;
+  transition: height .45s ease;
+}
+.feedback-carousel-card {
+  position: absolute;
+  inset: 50% 0 auto;
+  width: min(78%, 32rem);
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(-50%) translateX(calc(var(--review-offset) * 76%)) scale(.9) rotate(calc(var(--review-offset) * 2deg));
+  opacity: .7;
+  transition: transform .65s ease, opacity .65s ease, box-shadow .65s ease;
+}
+.feedback-carousel-card[data-active="true"] {
+  transform: translateY(-50%) translateX(0) scale(1);
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  box-shadow: 0 20px 55px -20px color-mix(in srgb, var(--primary) 45%, transparent);
+}
+.feedback-carousel-card[data-near="false"] {
+  opacity: 0;
+  visibility: hidden;
+}
+@media (min-width: 640px) {
+  .feedback-carousel-card { width: min(56%, 32rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feedback-carousel-card, .feedback-carousel-track { transition: none; }
+}

@@ -9,6 +9,7 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import { customerReviewApi } from '~/apis/customer/customerReviewApi'
 import { CUSTOMER_REVIEWS } from '~/utils/config/constants'
 import FeedbackCard from './FeedbackCard'
+import { Button } from '~/components/ui/button'
 
 export default function AllFeedbackDialog({ onClose }) {
   const { t } = useTranslation()
@@ -25,7 +26,7 @@ export default function AllFeedbackDialog({ onClose }) {
     >
       <DialogContent
         closeLabel="common.close"
-        className="max-w-5xl"
+        className="max-w-5xl bg-linear-to-br from-card via-card to-primary/5"
         data-dialog-fixed
       >
         <DialogHeader className="mb-6 pr-12">
@@ -43,7 +44,7 @@ export default function AllFeedbackDialog({ onClose }) {
             className="space-y-6"
           >
             <div
-              className="flex flex-wrap items-center justify-between gap-4"
+              className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-primary/15 bg-primary/5 p-4"
               data-pagination-header
             >
               <p className="font-semibold">
@@ -87,6 +88,18 @@ export default function AllFeedbackDialog({ onClose }) {
             )}
           </div>
         </div>
+        <footer
+          data-dialog-footer
+          className="flex justify-end"
+        >
+          <Button
+            variant="secondary"
+            className="h-11 px-6"
+            onClick={onClose}
+          >
+            {t('common.close')}
+          </Button>
+        </footer>
       </DialogContent>
     </Dialog>
   )

@@ -1,5 +1,13 @@
 # Customer Home generated images
 
+## Customer testimonials background
+
+`customer-feedback-background.png` was generated with the built-in `image_gen` tool on 20 November 2026. Decorative background only; all review text, ratings and photos still come from the public review API. The frontend applies moderate theme overlays, without blurring the photograph.
+
+Final generation prompt:
+
+> Use case: photorealistic-natural. Asset type: wide website background for the customer testimonials section of WashGo, a smart laundry locker service. Create a candid premium editorial photograph of cheerful Vietnamese adult customers outside a clean blue smart laundry locker station, one person holding a phone and showing a pleased review gesture to a friend, another holding a neatly folded laundry bag. Realistic people, natural believable hands and interactions, authentic contemporary Vietnamese urban setting. Blue lockers and soft sky blue/cream palette matching a blue laundry service brand. Wide landscape composition with the people toward the outer edges and calm clean negative space in the middle for testimonial cards rendered later in HTML. Crisp detailed photography, natural daylight, gentle depth of field but no heavy blur or fog. No text, logos, watermarks, stars or UI baked into the image.
+
 ## Hero: locker customers
 
 `locker-community-hero.png` (1672 × 941) replaces the old Home hero. Created with the built-in `image_gen` tool on 18 November 2026. Desktop centers the wide photograph with theme overlays and parallax. Below 640px, text remains over the photo as requested: a blurred cover copy fills the portrait hero, while a width-fitted, uncropped main photo with softly faded edges sits behind the heading. Mobile disables zoom/parallax to preserve the main composition. Both photo layers crossfade together every 4 seconds, including the last-to-first transition. Desktop presentation remains unchanged. Reduced-motion preferences are respected.

@@ -1,7 +1,7 @@
 import ReviewContact from './ReviewContact'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Star, ClipboardList, MessageSquareText, Images } from 'lucide-react'
+import { Star, ClipboardList, MessageSquareText, Images, CheckCheck, Globe, Clock3 } from 'lucide-react'
 import CustomerImageGallery from '~/components/customer/CustomerImageGallery'
 import CustomerVideoGallery from '~/components/customer/CustomerVideoGallery'
 import { ADMIN_ROUTES } from '~/utils/config/constants'
@@ -123,16 +123,40 @@ export default function ReviewContent({ row, fresh }) {
         {' '}
         {row.contactRetrievedAt ? formatDateTime(row.contactRetrievedAt) : ''}
       </p>
-      <p className="font-medium">
-        {t(row.contentApprovedAt ? 'admin.reviews.published' : 'admin.reviews.unpublished')}
-        {' '}
-        {row.contentApprovedAt ? formatDateTime(row.contentApprovedAt) : ''}
-      </p>
-      <p className="font-medium">
-        {t(row.publicApprovedAt ? 'admin.reviews.publicApproved' : 'admin.reviews.notPublicApproved')}
-        {' '}
-        {row.publicApprovedAt ? formatDateTime(row.publicApprovedAt) : ''}
-      </p>
+      <dl className="grid gap-3 sm:grid-cols-2">
+        {[
+          { date: row.contentApprovedAt, label: row.contentApprovedAt ? 'published' : 'unpublished', Icon: CheckCheck },
+          { date: row.publicApprovedAt, label: row.publicApprovedAt ? 'publicApproved' : 'notPublicApproved', Icon: Globe }
+        ].map(({ date, label, Icon }) => (
+          <div
+            key={label}
+            className={`flex items-start gap-3 rounded-2xl border p-4 ${date ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border bg-muted/30'}`}
+          >
+            <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${date ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+              <Icon
+                className="size-5"
+                aria-hidden="true"
+              />
+            </span>
+            <div className="min-w-0 space-y-2">
+              <dt className="text-sm font-semibold">
+                {t(`admin.reviews.${label}`)}
+              </dt>
+              {date && (
+                <dd className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Clock3
+                    className="size-3.5 shrink-0"
+                    aria-hidden="true"
+                  />
+                  <time dateTime={date}>
+                    {formatDateTime(date)}
+                  </time>
+                </dd>
+              )}
+            </div>
+          </div>
+        ))}
+      </dl>
 
     </div>
   )
