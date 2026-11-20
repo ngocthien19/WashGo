@@ -76,7 +76,7 @@ test('Shipper shares inbox actions and routes real order notifications to scoped
   await nav.getByRole('button', { name: 'Delivery tasks', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'New delivery task', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'View details', exact: true })).toBeVisible()
-  await expect.poll(() => state.filters.at(-1)?.types).toEqual([10, 30, 31, 32, 33, 34])
+  await expect.poll(() => state.filters.at(-1)?.types).toEqual([10, 30, 31, 32, 33, 34, 50])
   await page.getByRole('button', { name: 'Mark as read', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Mark as read', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: 'Notifications', exact: true }).click()

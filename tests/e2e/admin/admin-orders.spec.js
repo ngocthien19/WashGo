@@ -60,7 +60,7 @@ test('order detail shows people and history but never locker access secrets or A
   const actor = page.getByText('Test Customer', { exact: true }).last()
   await expect(actor).toHaveCSS('font-weight', '700')
   await expect(actor.locator('svg')).toHaveCount(0)
-  await expect(page.getByText('Your laundry is in the locker, ready for the shipper to collect.', { exact: true })).toBeVisible()
+  await expect(page.getByText('Laundry is in the deposit locker. Review and assign an eligible laundry shop.', { exact: true })).toBeVisible()
   await expect(page.getByText('Deposited', { exact: true })).toBeVisible()
   await expect(page.getByText('SECRET_DEPOSIT')).toHaveCount(0)
   await expect(page.getByText('SECRET_PICKUP')).toHaveCount(0)
@@ -128,7 +128,8 @@ test('Admin assigns a shipper using guarded shared workflow', async ({ page }) =
   await dialog.getByRole('radio', { name: 'Test Driver', exact: true }).check()
   await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
   await expect(dialog).toHaveCount(0)
-  expect(state.writes[0].body).toMatchObject({ orderId, expectedRevision: 1, expectedStatus: 2 })
+  expect(state.writes[0].body).toMatchObject({ orderId, expectedRevision: 1, expectedStatus: 16 })
+  expect(state.orders[0].status).toBe(17)
   expect(state.writes[0].body.operationId).toMatch(/^[\da-f-]{36}$/)
 })
 test('storage coordination replaces the old one-step transfer action', async ({ page }) => {

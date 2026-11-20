@@ -64,6 +64,7 @@ export default function OrdersPage() {
             suggestionFilter={buildOrdersFilter(query)}
             embedded
             className="sm:col-span-2 lg:col-span-1"
+            formClassName="h-11 py-0.5"
             keyword={query.keyword}
             label={t('customer.orders.search')}
             placeholder={t('customer.orders.searchPlaceholder')}
