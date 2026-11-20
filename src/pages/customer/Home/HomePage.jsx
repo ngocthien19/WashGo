@@ -65,7 +65,7 @@ export default function HomePage() {
         </motion.div>
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-linear-to-r from-background/95 via-background/65 to-background/20 dark:from-background/95 dark:via-background/70 dark:to-background/35"
+          className="pointer-events-none absolute inset-0 -z-10 bg-linear-to-r from-background/95 via-background/50 to-background/10 dark:from-background/95 dark:via-background/55 dark:to-background/15"
         />
         <div
           aria-hidden="true"

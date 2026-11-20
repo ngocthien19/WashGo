@@ -68,7 +68,7 @@ export default function HeroSlideshow() {
     <div
       ref={ref}
       aria-hidden="true"
-      className="absolute inset-0 opacity-55 dark:opacity-35"
+      className="absolute inset-0 opacity-80 dark:opacity-65"
       data-hero-slideshow
     >
       {previous !== null && (
