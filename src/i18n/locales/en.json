@@ -200,6 +200,12 @@
     }
   },
   "customerReviews": {
+    "carousel": "Customer review slideshow",
+    "previous": "Previous review",
+    "next": "Next review",
+    "showReview": "Show review {{number}}",
+    "pause": "Pause reviews",
+    "resume": "Resume reviews",
     "loading": "Loading reviews…",
     "invalidResponse": "Unable to load reviews. Please try again.",
     "anonymous": "WashGo customer",
