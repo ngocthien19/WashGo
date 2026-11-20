@@ -68,7 +68,10 @@ export default function ServiceTerms({ children, guest = false }) {
           showClose={canClose && !busy}
           className="flex max-w-3xl flex-col overflow-clip p-0 sm:p-0"
         >
-          <div className="shrink-0 border-b border-border bg-primary/5 p-6 pr-14">
+          <div
+            data-dialog-header
+            className="shrink-0 border-b border-border bg-primary/5 p-6 pr-14"
+          >
             <DialogTitle className="flex items-center gap-3 text-xl font-bold">
               <ScrollText className="text-primary" />
               {policy?.terms.title || t('customer.serviceTerms.title')}

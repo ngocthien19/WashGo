@@ -98,19 +98,6 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
             {t(`admin.complaints.hints.${kind}`)}
           </DialogDescription>
         </DialogHeader>
-        {kind === 'pay' && value && (
-          <div data-dialog-body>
-            <div className="space-y-3">
-              <h2 className="font-semibold">
-                {t('admin.sync.paymentProof')}
-              </h2>
-              <ImagePicker
-                selection={proof}
-                disabled={pending || blocked}
-              />
-            </div>
-          </div>
-        )}
         {!value ? (
           <div data-dialog-body>
             <ResourceFeedback
@@ -126,6 +113,19 @@ export default function ComplaintActionDialog({ id, kind, onClose, onSaved }) {
             data-dialog-layout
           >
             <div data-dialog-body>
+              {kind === 'pay' && value && (
+                <div className="space-y-3">
+                  <h2 className="font-semibold">
+                    {t('admin.sync.paymentProof')}
+                  </h2>
+                  <ImagePicker
+                    selection={proof}
+                    disabled={pending || blocked}
+                  />
+                </div>
+
+              )}
+
               <div className="rounded-xl border border-border p-4">
                 <p className="font-semibold text-primary">
                   {value.orderCode}

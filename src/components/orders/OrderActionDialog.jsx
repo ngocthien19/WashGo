@@ -38,7 +38,7 @@ function ShipperSelection({ id, value, onChange, disabled }) {
           {t('merchant.shippers.eligibleCount', { count: resource.data.length })}
         </span>
       </legend>
-      <div className="max-h-72 space-y-3 overflow-y-auto pr-1">
+      <div className="space-y-3">
         {resource.data.map((item) => (
           <label
             key={item.id}
@@ -218,40 +218,6 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
             {t(`merchant.orders.${action}Note`)}
           </DialogDescription>
         </div>
-        <div data-dialog-body>
-          {action === 'assign' && (
-            <div className="mt-4 grid gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4 sm:grid-cols-2">
-              <div className="flex gap-2">
-                <MapPin
-                  size={18}
-                  className="mt-1 shrink-0 text-primary"
-                />
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    {t('merchant.shippers.assignmentLocation')}
-                  </p>
-                  <p className="mt-1 text-base font-semibold">
-                    {assignmentTask(order) === 2 ? t('merchant.shippers.returnTask') : (order.lockerName || '—')}
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Package
-                  size={18}
-                  className="mt-1 shrink-0 text-primary"
-                />
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    {t('merchant.shippers.taskType')}
-                  </p>
-                  <p className="mt-1 text-base font-semibold">
-                    {t(assignmentTask(order) === 1 ? 'merchant.orders.assignCollect' : 'merchant.orders.assignReturn')}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
         <form
           noValidate
           onSubmit={submit}
@@ -259,6 +225,39 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
           data-dialog-layout
         >
           <div data-dialog-body>
+            {action === 'assign' && (
+              <div className="mt-4 grid gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4 sm:grid-cols-2">
+                <div className="flex gap-2">
+                  <MapPin
+                    size={18}
+                    className="mt-1 shrink-0 text-primary"
+                  />
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {t('merchant.shippers.assignmentLocation')}
+                    </p>
+                    <p className="mt-1 text-base font-semibold">
+                      {assignmentTask(order) === 2 ? t('merchant.shippers.returnTask') : (order.lockerName || '—')}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Package
+                    size={18}
+                    className="mt-1 shrink-0 text-primary"
+                  />
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {t('merchant.shippers.taskType')}
+                    </p>
+                    <p className="mt-1 text-base font-semibold">
+                      {t(assignmentTask(order) === 1 ? 'merchant.orders.assignCollect' : 'merchant.orders.assignReturn')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <fieldset
               disabled={pending || uncertain}
               className="space-y-4"

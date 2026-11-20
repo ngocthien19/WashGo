@@ -102,7 +102,10 @@ export default function PaymentCheckout({ order, returned = false, refresh, pend
   return (
     <Wrapper>
       <section className={modal ? 'flex min-h-0 flex-1 flex-col overflow-hidden bg-card' : 'overflow-hidden rounded-3xl border border-border bg-card shadow-sm'}>
-        <header className="flex shrink-0 items-center gap-4 border-b border-border bg-primary/5 p-6 pr-14">
+        <header
+          data-dialog-header
+          className="flex shrink-0 items-center gap-4 border-b border-border bg-primary/5 p-6 pr-14"
+        >
           {paid ? <CircleCheck className="size-10 shrink-0 text-emerald-600" /> : <CreditCard className="size-10 shrink-0 text-primary" />}
           <div className="min-w-0">
             <Heading className="text-2xl font-bold">

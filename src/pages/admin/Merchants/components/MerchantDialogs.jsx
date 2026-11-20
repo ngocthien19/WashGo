@@ -218,22 +218,6 @@ function StatusDialog({ merchant, onClose, onSaved }) {
             {t(locking ? 'admin.merchants.lockHint' : 'admin.merchants.unlockHint')}
           </DialogDescription>
         </MerchantDialogHeader>
-        <div data-dialog-body>
-          <div className={`mt-5 flex items-center gap-3 rounded-xl border p-4 ${locking ? 'border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20' : 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900 dark:bg-emerald-950/20'}`}>
-            <Store
-              size={20}
-              className="shrink-0 text-muted-foreground"
-            />
-            <div className="min-w-0">
-              <p className="break-words text-base font-medium">
-                {merchant.businessName}
-              </p>
-              <p className="mt-1 break-all text-sm text-muted-foreground">
-                {merchant.email}
-              </p>
-            </div>
-          </div>
-        </div>
         <form
           noValidate
           onSubmit={submit}
@@ -241,6 +225,21 @@ function StatusDialog({ merchant, onClose, onSaved }) {
           data-dialog-layout
         >
           <div data-dialog-body>
+            <div className={`mt-5 flex items-center gap-3 rounded-xl border p-4 ${locking ? 'border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20' : 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900 dark:bg-emerald-950/20'}`}>
+              <Store
+                size={20}
+                className="shrink-0 text-muted-foreground"
+              />
+              <div className="min-w-0">
+                <p className="break-words text-base font-medium">
+                  {merchant.businessName}
+                </p>
+                <p className="mt-1 break-all text-sm text-muted-foreground">
+                  {merchant.email}
+                </p>
+              </div>
+            </div>
+
             <fieldset
               disabled={pending || blocked}
               className="space-y-5"

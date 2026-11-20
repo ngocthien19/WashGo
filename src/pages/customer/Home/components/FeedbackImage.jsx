@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ImageOff } from 'lucide-react'
 import { customerReviewApi } from '~/apis/customer/customerReviewApi'
 import { Button } from '~/components/ui/button'
-import { Dialog, DialogContent, DialogTitle } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 
 export default function FeedbackImage({ reviewId, path, index }) {
   const { t } = useTranslation()
@@ -55,9 +55,11 @@ export default function FeedbackImage({ reviewId, path, index }) {
             closeLabel="common.close"
             className="max-w-3xl"
           >
-            <DialogTitle>
-              {label}
-            </DialogTitle>
+            <DialogHeader>
+              <DialogTitle>
+                {label}
+              </DialogTitle>
+            </DialogHeader>
             <ResourceImage
               src={source}
               alt={label}

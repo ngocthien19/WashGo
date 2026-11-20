@@ -101,7 +101,11 @@ export default function IncidentReportDialog({ order, onClose, eligibility, init
           className="flex max-h-[85dvh] flex-col"
           noValidate
         >
-          <div className="shrink-0 border-b border-border bg-rose-500/5 p-5 pr-14 sm:p-6 sm:pr-14" >
+          <div
+            data-dialog-header
+            data-tone="danger"
+            className="shrink-0 border-b border-border bg-rose-500/5 p-5 pr-14 sm:p-6 sm:pr-14"
+          >
             <DialogTitle className="flex items-center gap-3 text-xl font-bold">
               <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-300">
                 <ShieldAlert size={24} />

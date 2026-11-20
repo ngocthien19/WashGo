@@ -47,7 +47,10 @@ export default function OrderReceiptDialog({ orderId, onClose }) {
         closeLabel="common.close"
       >
         <div className="flex max-h-[85dvh] flex-col" >
-          <div className="shrink-0 border-b border-border px-5 py-5 pr-14 sm:px-7" >
+          <div
+            data-dialog-header
+            className="shrink-0 border-b border-border px-5 py-5 pr-14 sm:px-7"
+          >
             <DialogTitle className="flex items-center gap-2 text-lg font-bold">
               <ReceiptText className="size-5 text-primary" />
               {t('customer.orders.receipt.action')}
