@@ -7,7 +7,6 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { Button } from '~/components/ui/button'
 import { CUSTOMER_REVIEWS } from '~/utils/config/constants'
-import { formatNumber } from '~/utils/format/formats'
 import ScrollAccent from '~/components/motion/ScrollAccent'
 import FeedbackCarousel from './FeedbackCarousel'
 import feedbackBackground from '~/assets/customer/customer-feedback-background.png'
@@ -17,12 +16,13 @@ import SectionGlow from '~/components/customer/SectionGlow/SectionGlow'
 const loadPreview = signal => customerReviewApi.list({ take: CUSTOMER_REVIEWS.TAKE }, signal)
 
 export default function CustomerFeedback() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [showAll, setShowAll] = useState(false)
   const reviews = useCatalogResource(loadPreview)
   const summary = useCatalogResource(customerReviewApi.summary)
   return (
     <section
+      id="customer-feedback"
       aria-labelledby="customer-feedback-heading"
       className="relative isolate overflow-hidden border-y border-primary/10 bg-white dark:bg-background"
     >
@@ -73,7 +73,7 @@ export default function CustomerFeedback() {
                   aria-hidden="true"
                 />
                 <span className="text-lg font-bold text-foreground">
-                  {summary.data.averageStars === null ? '—' : formatNumber(summary.data.averageStars)}
+                  {summary.data.averageStars === null ? '—' : new Intl.NumberFormat(i18n.resolvedLanguage, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(summary.data.averageStars)}
                   <span className="text-sm font-normal text-muted-foreground"> / 5</span>
                 </span>
               </span>
@@ -93,7 +93,11 @@ export default function CustomerFeedback() {
           )}
         </div>
       </div>
-      {showAll && <AllFeedbackDialog onClose={() => setShowAll(false)} />}
+      {showAll && (
+        <AllFeedbackDialog
+          onClose={() => setShowAll(false)}
+        />
+      )}
     </section>
   )
 }
