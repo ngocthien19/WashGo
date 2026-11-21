@@ -212,7 +212,7 @@ test('row edit loads fresh data and bulk selection is limited to current page', 
   await page.getByRole('checkbox', { name: 'Select Test Driver', exact: true }).check()
   const bar = page.getByRole('region', { name: 'Bulk actions', exact: true })
   await expect(bar).toContainText('1 shippers selected on this page')
-  await expect(bar.getByRole('button', { name: 'Delete selected' })).toBeEnabled()
+  await expect(bar.getByRole('button', { name: 'Bulk actions', exact: true })).toBeEnabled()
   await page.getByRole('button', { name: 'Clear selection', exact: true }).click()
   await expect(bar).toHaveCount(0)
   await page.getByRole('checkbox', { name: 'Select all shippers on this page' }).check()
@@ -315,7 +315,7 @@ test('batch closes and resets selection with per-ID failures in toast', async ({
   const state = await setup(page)
   await page.goto('/merchant/shippers')
   await page.getByRole('checkbox', { name: 'Select Test Driver', exact: true }).check()
-  await page.getByRole('region', { name: 'Bulk actions', exact: true }).getByRole('button', { name: 'Lock selected', exact: true }).click()
+  await page.getByRole('region', { name: 'Bulk actions', exact: true }).getByRole('button', { name: 'Bulk actions', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('textbox').fill('Review')
   await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
@@ -361,14 +361,15 @@ test('identity edit sends explicit clear with the loaded revision', async ({ pag
 })
 
 
-test('locked selection offers only bulk unlock and resets after success', async ({ page }) => {
+test('bulk tabs allow unlocking a locked selection and reset after success', async ({ page }) => {
   const state = await setup(page)
   state.rows[0].accountActive = false
   await page.goto('/merchant/shippers')
   await page.getByRole('checkbox', { name: 'Select Test Driver', exact: true }).check()
   const bar = page.getByRole('region', { name: 'Bulk actions', exact: true })
-  await expect(bar.getByRole('button', { name: 'Lock selected', exact: true })).toHaveCount(0)
-  await bar.getByRole('button', { name: 'Unlock selected', exact: true }).click()
+  await bar.getByRole('button', { name: 'Bulk actions', exact: true }).click()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Confirm update', exact: true })).toBeDisabled()
+  await page.getByRole('tab', { name: 'Unlock account', exact: true }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Confirm update', exact: true }).click()
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(bar).toHaveCount(0)

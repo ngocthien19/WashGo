@@ -2105,6 +2105,9 @@
       "reasonPlaceholder": "Enter a reason for this action…",
       "reasonRequired": "Enter a reason up to 500 characters and select 1–50 shippers.",
       "accountHint": "Account access is separate from Working/On leave. Finish or reassign active tasks before locking or deleting.",
+      "bulkScope": "{{count}} / {{total}} shippers match this action. Business rules are checked when you confirm.",
+      "serverChecks": "Will be checked on confirmation",
+      "notApplicable": "Not applicable to the current account status",
       "actionUnknown": "The outcome is unknown. Close and refresh the list to check before taking another action.",
       "batchResult": "Succeeded: {{succeeded}} · Failed: {{failed}}",
       "codes": {
