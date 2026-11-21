@@ -10,16 +10,16 @@ import { Checkbox } from '~/components/ui/checkbox'
 import { ReviewScore, ReviewStatus } from './ReviewDisplay'
 import { adminReviewApi } from '~/apis/admin/adminReviewApi'
 import { newOperationId } from '~/apis/admin/adminWrite'
-import { canModerate, canPublishReview, canPublishForCustomers, reviewActionSchema } from '../reviewModel'
+import { canModerate, canPublishForCustomers, reviewActionSchema } from '../reviewModel'
 import { getApiError } from '~/utils/http/apiError'
 import { notify } from '~/utils/notifications/notifications'
 
 export default function ReviewActionDialog({ rows, bulk = false, initialOperation, initialAction, onClose, onSaved, onUnknown, onResolved }) {
   const { t } = useTranslation()
   const [action, setAction] = useState(initialOperation?.publishForCustomers ? 'PublishForCustomers' : initialOperation?.action || initialAction || (rows[0].isHidden ? 'Show' : 'Hide'))
-  const publicPublishing = action === 'PublishForCustomers'
+  const publicPublishing = !bulk && (action === 'Publish' || action === 'PublishForCustomers')
   const hidden = action === 'Hide', publishing = action === 'Publish' || publicPublishing
-  const eligibleRow = row => publicPublishing ? !bulk && canPublishForCustomers(row) : publishing ? canPublishReview(row) : canModerate(row, hidden)
+  const eligibleRow = row => publishing ? !bulk && canPublishForCustomers(row) : canModerate(row, hidden)
   const [busy, setBusy] = useState(false), [unknown, setUnknown] = useState(!!initialOperation), [error, setError] = useState(''), [blocked, setBlocked] = useState(false)
   const [frozen, setFrozen] = useState(!!initialOperation)
   const lock = useRef(false), submitted = useRef(initialOperation || null)
@@ -45,7 +45,7 @@ export default function ReviewActionDialog({ rows, bulk = false, initialOperatio
             setBlocked(true); throw new Error('admin.reviews.stale')
           }
         }
-        const command = { operationId: newOperationId(), action: publishing ? 'Publish' : action, ...(publicPublishing ? { publishForCustomers: true } : {}), reason: values.reason.trim() || null, items: eligible.map(row => ({ id: row.id, expectedVersion: row.version })) }
+        const command = { operationId: newOperationId(), action: publishing ? 'Publish' : action, ...(publicPublishing ? { publishForCustomers: true, publishForGuests: true } : {}), reason: values.reason.trim() || null, items: eligible.map(row => ({ id: row.id, expectedVersion: row.version })) }
         submitted.current = command; setFrozen(true); sent = true
         response = bulk ? await adminReviewApi.batch(command) : publishing ? await adminReviewApi.publish(eligible[0], command.reason, command.operationId, publicPublishing) : await adminReviewApi.visibility(eligible[0], hidden, command.reason, command.operationId)
       }
@@ -75,7 +75,7 @@ export default function ReviewActionDialog({ rows, bulk = false, initialOperatio
   }
   return (
     <ActionConfirmationDialog
-      title={t(bulk ? 'admin.reviews.bulk' : publicPublishing ? 'admin.reviews.publishForCustomers' : publishing ? 'admin.reviews.publish' : hidden ? 'admin.reviews.hide' : 'admin.reviews.show')}
+      title={t(bulk ? 'admin.reviews.bulk' : publishing ? 'admin.reviews.publish' : hidden ? 'admin.reviews.hide' : 'admin.reviews.show')}
       description={t(publicPublishing ? 'admin.reviews.publicHint' : 'admin.reviews.actionHint', { count: rows.length })}
       icon={bulk ? Layers : hidden ? EyeOff : Eye}
       tone={hidden ? 'danger' : 'info'}
@@ -90,7 +90,7 @@ export default function ReviewActionDialog({ rows, bulk = false, initialOperatio
           form.handleSubmit(values => execute(values))()
         }
       }}
-      confirmLabel={t(unknown ? 'admin.sync.checkResult' : publicPublishing ? 'admin.reviews.publishForCustomers' : publishing ? 'admin.reviews.publish' : hidden ? 'admin.reviews.hide' : 'admin.reviews.show')}
+      confirmLabel={t(unknown ? 'admin.sync.checkResult' : publishing ? 'admin.reviews.publish' : hidden ? 'admin.reviews.hide' : 'admin.reviews.show')}
     >
       {bulk && !frozen && (
         <DetailTabs
@@ -101,7 +101,7 @@ export default function ReviewActionDialog({ rows, bulk = false, initialOperatio
               setAction(value); form.reset({ reason: '', confirmed: false }); setError('')
             }
           }}
-          tabs={[{ value: 'Hide', label: t('admin.reviews.hide') }, { value: 'Show', label: t('admin.reviews.show') }, { value: 'Publish', label: t('admin.reviews.publish') }]}
+          tabs={[{ value: 'Hide', label: t('admin.reviews.hide') }, { value: 'Show', label: t('admin.reviews.show') }]}
         />
       )}
       <ul className="max-h-64 divide-y divide-border overflow-y-auto rounded-xl border border-border px-4">
@@ -118,7 +118,7 @@ export default function ReviewActionDialog({ rows, bulk = false, initialOperatio
                 <ReviewScore value={row.overallStars} />
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <ReviewStatus hidden={row.isHidden} />
+                <ReviewStatus row={row} />
                 {!eligibleRow(row) && (
                   <span className="text-sm text-muted-foreground">
                     {t('admin.reviews.skipped')}

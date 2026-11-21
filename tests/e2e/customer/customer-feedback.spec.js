@@ -32,6 +32,25 @@ async function setup(page, { empty = false, longText = false } = {}) {
   return state
 }
 
+test('guests see released reviews, summary and photos without signing in', async ({ page }) => {
+  const state = await setup(page)
+  await page.addInitScript(() => {
+    const persisted = JSON.parse(localStorage.getItem('persist:root'))
+    persisted.auth = JSON.stringify({ user: null, accessToken: null, refreshToken: null })
+    localStorage.setItem('persist:root', JSON.stringify(persisted))
+  })
+  await page.goto('/')
+  await expect(page.getByRole('button', { name: 'Sign in', exact: true }).or(page.getByRole('link', { name: 'Sign in', exact: true })).first()).toBeVisible()
+  const section = page.getByRole('region', { name: 'What customers say about WashGo', exact: true })
+  await section.scrollIntoViewIfNeeded()
+  await expect(section.getByText('20 published reviews', { exact: true })).toBeVisible()
+  await expect(section.getByText('Careful laundry 1', { exact: true })).toBeVisible()
+  await expect.poll(() => state.imageAuth.length).toBeGreaterThan(0)
+  expect(state.imageAuth.every(value => value === undefined)).toBe(true)
+  await section.getByRole('button', { name: 'View all reviews', exact: true }).click()
+  await expect(page.getByRole('dialog')).toContainText('Careful laundry 1')
+})
+
 test('Home previews up to fifteen reviews and View all opens server filters and pagination', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   const state = await setup(page, { longText: true })
@@ -151,7 +170,9 @@ test('reviews change only through dots and chevrons, with clickable controls ove
 
 test('empty feedback keeps its average unknown and a failed list can retry', async ({ page }) => {
   const state = await setup(page, { empty: true }); state.fail = true
+  const failedList = page.waitForResponse(response => new URL(response.url()).pathname.endsWith('/customer/reviews') && response.status() === 503)
   await page.goto('/')
+  await failedList
   const section = page.locator('section[aria-labelledby="customer-feedback-heading"]')
   await expect(section.getByRole('alert')).toBeVisible()
   await expect(section.getByText('0 published reviews', { exact: true })).toBeVisible()

@@ -1,15 +1,19 @@
 import ReviewContact from './ReviewContact'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Star, ClipboardList, MessageSquareText, Images, CheckCheck, Globe, Clock3 } from 'lucide-react'
+import { Star, ClipboardList, MessageSquareText, Images, Globe, Clock3, EyeOff } from 'lucide-react'
 import CustomerImageGallery from '~/components/customer/CustomerImageGallery'
 import CustomerVideoGallery from '~/components/customer/CustomerVideoGallery'
 import { ADMIN_ROUTES } from '~/utils/config/constants'
 import { formatDateTime } from '~/utils/format/formats'
+import { reviewPublication } from '../reviewModel'
 import { ReviewScore, ReviewStatus } from './ReviewDisplay'
 
 export default function ReviewContent({ row, fresh }) {
   const { t } = useTranslation()
+  const publication = reviewPublication(row)
+  const PublicationIcon = publication.label === 'hidden' ? EyeOff : publication.label === 'pendingApproval' ? Clock3 : Globe
+  const publicationTone = publication.label === 'approvedPublished' ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300' : publication.label === 'hidden' ? 'border-rose-500/20 bg-rose-500/5 text-rose-700 dark:text-rose-300' : 'border-amber-500/20 bg-amber-500/5 text-amber-700 dark:text-amber-300'
   return (
     <div className="space-y-5">
       {!fresh && (
@@ -31,7 +35,7 @@ export default function ReviewContent({ row, fresh }) {
         </div>
         <div className="flex flex-wrap items-center gap-4">
           <ReviewScore value={row.overallStars} />
-          <ReviewStatus hidden={row.isHidden} />
+          <ReviewStatus row={row} />
         </div>
       </div>
       <div className="grid items-start gap-5 md:grid-cols-2">
@@ -123,39 +127,31 @@ export default function ReviewContent({ row, fresh }) {
         {' '}
         {row.contactRetrievedAt ? formatDateTime(row.contactRetrievedAt) : ''}
       </p>
-      <dl className="grid gap-3 sm:grid-cols-2">
-        {[
-          { date: row.contentApprovedAt, label: row.contentApprovedAt ? 'published' : 'unpublished', Icon: CheckCheck },
-          { date: row.publicApprovedAt, label: row.publicApprovedAt ? 'publicApproved' : 'notPublicApproved', Icon: Globe }
-        ].map(({ date, label, Icon }) => (
-          <div
-            key={label}
-            className={`flex items-start gap-3 rounded-2xl border p-4 ${date ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border bg-muted/30'}`}
-          >
-            <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${date ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
-              <Icon
-                className="size-5"
-                aria-hidden="true"
-              />
-            </span>
-            <div className="min-w-0 space-y-2">
-              <dt className="text-sm font-semibold">
-                {t(`admin.reviews.${label}`)}
-              </dt>
-              {date && (
-                <dd className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Clock3
-                    className="size-3.5 shrink-0"
-                    aria-hidden="true"
-                  />
-                  <time dateTime={date}>
-                    {formatDateTime(date)}
-                  </time>
-                </dd>
-              )}
-            </div>
+      <dl className={`rounded-2xl border p-4 ${publicationTone}`}>
+        <div className="flex items-start gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-current/5">
+            <PublicationIcon
+              className="size-5"
+              aria-hidden="true"
+            />
+          </span>
+          <div className="min-w-0 space-y-2">
+            <dt className="text-sm font-semibold">
+              {t(`admin.reviews.${publication.label}`)}
+            </dt>
+            {publication.date && (
+              <dd className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Clock3
+                  className="size-3.5 shrink-0"
+                  aria-hidden="true"
+                />
+                <time dateTime={publication.date}>
+                  {formatDateTime(publication.date)}
+                </time>
+              </dd>
+            )}
           </div>
-        ))}
+        </div>
       </dl>
 
     </div>

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import authorizedAxios from '~/utils/http/authorizedAxios'
 import { adminReviewApi } from './adminReviewApi'
-import { readReviewQuery, reviewFilter, canModerate, canPublishReview, canPublishForCustomers, reviewActionSchema } from '~/pages/admin/Reviews/reviewModel'
+import { readReviewQuery, reviewFilter, canModerate, canPublishReview, canPublishForCustomers, reviewActionSchema, reviewPublication } from '~/pages/admin/Reviews/reviewModel'
 
 vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn(), patch: vi.fn() } }))
 const id = '10000000-0000-4000-8000-000000000001', orderId = '20000000-0000-4000-8000-000000000001'
@@ -10,20 +10,41 @@ const ok = data => ({ data: { succeeded: true, data } })
 beforeEach(() => vi.clearAllMocks())
 
 describe('admin reviews contract', () => {
+  it('shows one publication state without treating partial approval as public', () => {
+    expect(reviewPublication(row)).toEqual({ label: 'pendingApproval', date: null })
+    expect(reviewPublication({ ...row, contentApprovedAt: '2026-11-14T00:00:00Z', publicApprovedAt: '2026-11-14T01:00:00Z' }).label).toBe('pendingApproval')
+    const published = { ...row, contentApprovedAt: '2026-11-14T00:00:00Z', publicApprovedAt: '2026-11-14T01:00:00Z', guestApprovedAt: '2026-11-21T01:00:00Z' }
+    expect(reviewPublication(published)).toEqual({ label: 'approvedPublished', date: published.guestApprovedAt })
+    expect(reviewPublication({ ...published, isHidden: true, moderatedAt: '2026-11-21T02:00:00Z' })).toEqual({ label: 'hidden', date: '2026-11-21T02:00:00Z' })
+    expect(reviewPublication({ ...published, isHidden: false }).label).toBe('approvedPublished')
+  })
   it('requires separate public capability and explicit approval, including lookup verification', async () => {
     const ready = { ...row, version: 'v1', canPublishForCustomers: true, contentApprovedAt: '2026-11-14T00:00:00Z' }
     expect(canPublishReview(ready)).toBe(false)
     expect(canPublishForCustomers(ready)).toBe(true)
     expect(canPublishForCustomers({ ...ready, isHidden: true })).toBe(false)
     expect(canPublishForCustomers({ ...ready, canPublishForCustomers: undefined })).toBe(false)
-    const approved = { ...ready, publicApprovedAt: '2026-11-14T01:00:00Z', version: 'v2' }
+    const approved = { ...ready, publicApprovedAt: '2026-11-14T01:00:00Z', guestApprovedAt: '2026-11-14T01:00:00Z', version: 'v2' }
     authorizedAxios.post.mockResolvedValue(ok(approved))
     await adminReviewApi.publish(ready, null, 'public-operation', true)
-    expect(authorizedAxios.post).toHaveBeenCalledWith(`/rating/${id}/publish`, { reason: null, expectedVersion: 'v1', operationId: 'public-operation', publishForCustomers: true })
+    expect(authorizedAxios.post).toHaveBeenCalledWith(`/rating/${id}/publish`, { reason: null, expectedVersion: 'v1', operationId: 'public-operation', publishForCustomers: true, publishForGuests: true })
     authorizedAxios.get.mockResolvedValue(ok({ operationId: 'public-operation', state: 'Completed', action: 'Publish', resourceId: id, result: { succeeded: true, data: ready } }))
     await expect(adminReviewApi.lookup({ operationId: 'public-operation', action: 'Publish', publishForCustomers: true, items: [{ id }] }, false)).rejects.toThrow()
     authorizedAxios.post.mockResolvedValue(ok(ready))
     await expect(adminReviewApi.publish(ready, null, 'other-operation', true)).rejects.toMatchObject({ uncertain: true })
+  })
+  it('uses one public action for guests and keeps incomplete guest approvals unresolved', async () => {
+    const legacy = { ...row, version: 'v1', contentApprovedAt: '2026-11-14T00:00:00Z', publicApprovedAt: '2026-11-14T01:00:00Z', canPublishForCustomers: false, canPublishForGuests: true }
+    expect(canPublishForCustomers(legacy)).toBe(true)
+    expect(canPublishForCustomers({ ...legacy, guestApprovedAt: '2026-11-21T01:00:00Z' })).toBe(false)
+    authorizedAxios.post.mockResolvedValue(ok(legacy))
+    await expect(adminReviewApi.publish(legacy, null, 'unified-operation', true)).rejects.toMatchObject({ uncertain: true })
+    const command = { operationId: 'unified-operation', action: 'Publish', publishForCustomers: true, publishForGuests: true, items: [{ id }] }
+    authorizedAxios.get.mockResolvedValue(ok({ operationId: command.operationId, state: 'Completed', action: 'Publish', resourceId: id, result: { succeeded: true, data: legacy } }))
+    await expect(adminReviewApi.lookup(command, false)).rejects.toThrow()
+    const approved = { ...legacy, guestApprovedAt: '2026-11-21T01:00:00Z' }
+    authorizedAxios.get.mockResolvedValue(ok({ operationId: command.operationId, state: 'Completed', action: 'Publish', resourceId: id, result: { succeeded: true, data: approved } }))
+    expect(await adminReviewApi.lookup(command, false)).toMatchObject({ guestApprovedAt: approved.guestApprovedAt })
   })
   it('preserves false visibility and converts Vietnam calendar dates before server paging', () => {
     const query = readReviewQuery(new URLSearchParams('isHidden=false&stars=4&from=2026-11-01&to=2026-11-02&page=3'))
