@@ -19,7 +19,7 @@ export default function ActionConfirmationDialog({ title, description, icon: Ico
         data-dialog-fixed
       >
         <DialogHeader tone={tone}>
-          <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
+          <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-bold">
             <Icon />
             {title}
           </DialogTitle>

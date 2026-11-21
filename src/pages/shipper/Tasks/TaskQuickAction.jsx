@@ -38,7 +38,7 @@ export default function TaskQuickAction({ row, profile, onClose, onSaved, onUnkn
         data-dialog-fixed
       >
         <DialogHeader>
-          <DialogTitle className="pr-8 text-xl font-bold">
+          <DialogTitle className="pr-8 text-2xl font-bold">
             {t(taskActionLabel(row.assignedTaskType))}
           </DialogTitle>
         </DialogHeader>

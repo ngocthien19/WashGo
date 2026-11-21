@@ -48,6 +48,7 @@ export default function HomePage() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <DashboardFilters
+            showLabel={false}
             range={range}
             onChange={({ mode, from, to }) => setParams({ period: mode, ...(mode === 'custom' ? { from, to } : {}) })}
           />

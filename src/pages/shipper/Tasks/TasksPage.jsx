@@ -73,7 +73,7 @@ export default function TasksPage() {
         to={query.to}
         revision={revision}
       />
-      <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-[minmax(0,2fr)_minmax(200px,1fr)_auto]">
+      <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <div className="grid gap-2">
           <p className="text-sm font-medium">
             {t('shipper.tasks.search')}
@@ -113,14 +113,6 @@ export default function TasksPage() {
           onValueChange={taskStatus => update({ taskStatus })}
           options={[1, 2, 3, 4].map(value => ({ value: String(value), label: t(`shipper.sync.statuses.${value}`) }))}
         />
-        <SelectField
-          showLabel
-          labelPosition="left"
-          label={t('shipper.sync.sort')}
-          value={query.sort}
-          onValueChange={sort => update({ sort })}
-          options={[{ value: 'AssignedAt', label: t('shipper.tasks.assigned') }, { value: 'Deadline', label: t('shipper.sync.deadline') }]}
-        />
         <div className="sm:col-span-full">
           <DateRangeFilter
             from={query.from}
@@ -155,12 +147,25 @@ export default function TasksPage() {
         data-pagination-scope
         className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
       >
-        <p className="p-5 text-sm">
-          <strong className="mr-2 text-2xl font-bold">
-            {loading ? '…' : error ? '—' : formatNumber(data?.total)}
-          </strong>
-          {t('shipper.tasks.results')}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3 p-5">
+          <p className="text-sm">
+            <strong className="mr-2 text-2xl font-bold">
+              {loading ? '…' : error ? '—' : formatNumber(data?.total)}
+            </strong>
+            {t('shipper.tasks.results')}
+          </p>
+          <div className="ml-auto">
+            <SelectField
+              showLabel
+              labelPosition="left"
+              label={t('shipper.sync.sort')}
+              value={query.sort}
+              onValueChange={sort => update({ sort })}
+              className="w-48 sm:w-56"
+              options={[{ value: 'AssignedAt', label: t('shipper.tasks.assigned') }, { value: 'Deadline', label: t('shipper.sync.deadline') }]}
+            />
+          </div>
+        </div>
         {loading || error || !data?.list.length ? (
           <ResourceFeedback
             {...resource}

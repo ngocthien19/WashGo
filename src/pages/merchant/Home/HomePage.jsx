@@ -54,6 +54,7 @@ export default function HomePage() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <DashboardFilters
+            showLabel={false}
             key={range.mode}
             range={range}
             onChange={(next) => setParams((current) => {

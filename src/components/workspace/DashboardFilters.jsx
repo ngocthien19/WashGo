@@ -7,7 +7,7 @@ import { Button } from '~/components/ui/button'
 import DateRangeFilter from '~/components/DateRangeFilter/DateRangeFilter'
 import { validDashboardRange } from '~/utils/dashboard/dashboardQuery'
 
-export default function DashboardFilters({ range, onChange, showClear = true }) {
+export default function DashboardFilters({ range, onChange, showClear = true, showLabel = true }) {
   const { t } = useTranslation()
   const [custom, setCustom] = useState(false)
   const [error, setError] = useState(false)
@@ -17,7 +17,7 @@ export default function DashboardFilters({ range, onChange, showClear = true }) 
       onOpenChange={setCustom}
     >
       <div className="grid gap-2">
-        <p className="text-sm font-medium">
+        <p className={showLabel ? 'text-sm font-medium' : 'sr-only'}>
           {t('merchant.sync.dashboardPeriod')}
         </p>
         <div
