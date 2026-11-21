@@ -136,10 +136,10 @@ test('password reset requires a verified token and sends it instead of the OTP',
   })
   await page.goto('/forgot-password')
   await chooseEnglish(page)
-  await expect(page.locator('main header').getByRole('link', { name: 'WashGo - Home', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'WashGo - Home', exact: true })).toBeVisible()
   await page.getByLabel('Your email', { exact: true }).fill(user.email)
   await page.getByRole('button', { name: 'Send OTP', exact: true }).click()
-  await expect(page.locator('main header').getByRole('link', { name: 'WashGo - Home', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'WashGo - Home', exact: true })).toBeVisible()
   for (let digit = 1; digit <= 6; digit += 1) {
     await page.getByLabel(`OTP digit ${digit}`, { exact: true }).fill(String(digit))
   }
@@ -151,7 +151,7 @@ test('password reset requires a verified token and sends it instead of the OTP',
   await expect(page).toHaveURL('/verify-otp')
   await page.getByRole('button', { name: 'Continue', exact: true }).click()
   await expect(page).toHaveURL('/reset-password')
-  await expect(page.locator('main header').getByRole('link', { name: 'WashGo - Home', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'WashGo - Home', exact: true })).toBeVisible()
   await page.getByLabel('New password', { exact: true }).fill('TestPassword123')
   await page.getByLabel('Confirm new password', { exact: true }).fill('TestPassword123')
   await page.getByRole('button', { name: 'Save new password', exact: true }).click()
@@ -306,6 +306,7 @@ test('auth forms use readable 16px fields and descriptions without breaking resp
 })
 
 test('home descriptions and locker actions use larger text and a primary location button', async ({ page }) => {
+  const homeCatalog = page.waitForResponse(response => new URL(response.url()).pathname.endsWith('/customer/services/filter') && response.status() === 200)
   await page.route(/\/api\/customer\/lockers(?:\?|$)/, (route) => route.fulfill({ json: {
     succeeded: true, currentPage: 1, totalPages: 1, total: 1,
     list: [{ id: 'locker-test', code: 'LK_TEST', name: 'Locker test', city: 'Test city', address: '123 Test Street', availableSlotCount: 2, latitude: null, longitude: null }]
@@ -316,6 +317,7 @@ test('home descriptions and locker actions use larger text and a primary locatio
   await page.getByLabel('Password', { exact: true }).fill('Password123')
   await page.locator('form').getByRole('button', { name: 'Sign in', exact: true }).click()
   await expect(page).toHaveURL('/')
+  await homeCatalog
   for (const text of [
     'Choose the right care for every item. Consistent prices across our network.',
     'Find a convenient drop-off point. Use your location to see the nearest lockers.',
