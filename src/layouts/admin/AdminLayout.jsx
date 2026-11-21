@@ -1,12 +1,12 @@
 import { useCallback } from 'react'
-import { FolderTree, Warehouse, LayoutDashboard, Store, Package, PanelsTopLeft, Shirt, Tags, Star, MessageSquareWarning, Wallet, Settings } from 'lucide-react'
+import { UsersRound, FolderTree, Warehouse, LayoutDashboard, Store, Package, PanelsTopLeft, Shirt, Tags, Star, MessageSquareWarning, Wallet, Settings } from 'lucide-react'
 import WorkspaceLayout from '~/components/workspace/WorkspaceLayout'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminDashboardApi } from '~/apis/admin/adminDashboardApi'
 import { ADMIN_ROUTES } from '~/utils/config/constants'
 import { adminNotificationHref } from '~/utils/notifications/adminNotifications'
 
-const navigation = [['overview', LayoutDashboard, ADMIN_ROUTES.HOME], ['merchants', Store, ADMIN_ROUTES.MERCHANTS], ['orders', Package, ADMIN_ROUTES.ORDERS], ['storage', Warehouse, ADMIN_ROUTES.STORAGE], ['lockers', PanelsTopLeft, ADMIN_ROUTES.LOCKERS], ['categories', FolderTree, ADMIN_ROUTES.CATEGORIES], ['services', Shirt, ADMIN_ROUTES.SERVICES], ['promotions', Tags, ADMIN_ROUTES.PROMOTIONS], ['reviews', Star, ADMIN_ROUTES.REVIEWS], ['complaints', MessageSquareWarning, ADMIN_ROUTES.COMPLAINTS], ['finance', Wallet, ADMIN_ROUTES.FINANCE], ['settings', Settings, ADMIN_ROUTES.SETTINGS]]
+const navigation = [['overview', LayoutDashboard, ADMIN_ROUTES.HOME], ['merchants', Store, ADMIN_ROUTES.MERCHANTS], ['accounts', UsersRound, ADMIN_ROUTES.ACCOUNTS], ['orders', Package, ADMIN_ROUTES.ORDERS], ['storage', Warehouse, ADMIN_ROUTES.STORAGE], ['lockers', PanelsTopLeft, ADMIN_ROUTES.LOCKERS], ['categories', FolderTree, ADMIN_ROUTES.CATEGORIES], ['services', Shirt, ADMIN_ROUTES.SERVICES], ['promotions', Tags, ADMIN_ROUTES.PROMOTIONS], ['reviews', Star, ADMIN_ROUTES.REVIEWS], ['complaints', MessageSquareWarning, ADMIN_ROUTES.COMPLAINTS], ['finance', Wallet, ADMIN_ROUTES.FINANCE], ['settings', Settings, ADMIN_ROUTES.SETTINGS]]
 export default function AdminLayout() {
   const load = useCallback((signal) => adminDashboardApi.profile(signal), [])
   const profile = useCatalogResource(load)

@@ -33,6 +33,7 @@ const AdminMerchantsPage = lazy(() => import('~/pages/admin/Merchants/MerchantsP
 const AdminOrdersPage = lazy(() => import('~/pages/admin/Orders/OrdersPage'))
 const AdminLockersPage = lazy(() => import('~/pages/admin/Lockers/LockersPage'))
 const AdminCategoriesPage = lazy(() => import('~/pages/admin/Categories/CategoriesPage'))
+const AdminAccountsPage = lazy(() => import('~/pages/admin/Accounts/AccountsPage'))
 const AdminServicesPage = lazy(() => import('~/pages/admin/Services/ServicesPage'))
 const AdminPromotionsPage = lazy(() => import('~/pages/admin/Promotions/PromotionsPage'))
 const AdminReviewDetailPage = lazy(() => import('~/pages/admin/Reviews/ReviewDetailPage'))
@@ -212,6 +213,10 @@ export default function App() {
               <Route
                 path={ADMIN_ROUTES.LOCKERS}
                 element={<AdminLockersPage />}
+              />
+              <Route
+                path={ADMIN_ROUTES.ACCOUNTS}
+                element={<AdminAccountsPage />}
               />
               <Route
                 path={ADMIN_ROUTES.CATEGORIES}
