@@ -9,7 +9,7 @@ export const CHATBOT_CONFIG = {
   FAILED: 3
 }
 
-export const CUSTOMER_REVIEWS = { ENDPOINT: '/customer/reviews', TAKE: 4, MAX_TAKE: 20, MAX_IMAGE_BYTES: 5 * 1024 * 1024 }
+export const CUSTOMER_REVIEWS = { ENDPOINT: '/customer/reviews', TAKE: 10, HOME_TAKE: 15, MAX_TAKE: 20, MAX_IMAGE_BYTES: 5 * 1024 * 1024 }
 
 export const AUTH_ROUTES = {
   ROOT: '/',

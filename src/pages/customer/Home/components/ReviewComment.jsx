@@ -38,7 +38,7 @@ export default function ReviewComment({ children }) {
         <p
           ref={ref}
           tabIndex={truncated ? 0 : undefined}
-          className="line-clamp-4 whitespace-pre-line break-words text-base leading-7 text-foreground/90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="line-clamp-4 whitespace-pre-line break-words text-base leading-7 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           {children}
         </p>
