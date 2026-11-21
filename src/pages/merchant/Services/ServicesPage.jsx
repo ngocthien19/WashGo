@@ -86,19 +86,19 @@ export default function ServicesPage() {
       <ServiceSummary resource={summary} />
       <Tabs.Root
         value={query.tab}
-        onValueChange={(tab) => update({ tab, keyword: '', state: '', type: '', sort: 'name', serviceId: '' })}
+        onValueChange={(tab) => update({ tab, keyword: '', categoryId: '', state: '', type: '', sort: 'name', serviceId: '' })}
         className="grid gap-6"
       >
         <Tabs.List
           activateOnFocus
           aria-label={t('merchant.services.views')}
-          className="grid grid-cols-2 gap-3 border-b border-border"
+          className="flex gap-4 overflow-x-auto border-b border-border"
         >
           {[['catalog', Shirt], ['proposals', FileText]].map(([key, Icon]) => (
             <Tabs.Tab
               key={key}
               value={key}
-              className="-mb-px flex cursor-pointer items-center justify-center gap-2 border-b-2 border-transparent px-2 py-4 text-base font-medium text-muted-foreground outline-none hover:bg-primary/5 hover:text-primary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary data-active:border-primary data-active:font-semibold data-active:text-primary"
+              className="-mb-px flex h-12 shrink-0 cursor-pointer items-center justify-center gap-2 border-b-2 border-transparent px-3 text-lg font-medium text-muted-foreground outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary data-active:border-primary data-active:text-primary"
             >
               <Icon size={18} />
               {t(`merchant.services.tabs.${key}`)}
@@ -109,17 +109,6 @@ export default function ServicesPage() {
           value={query.tab}
           className="grid gap-6 outline-none"
         >
-          {catalog && (
-            <div className="workspace-filters rounded-xl border border-border bg-card p-4">
-              <CategorySelect
-                role="Merchant"
-                filter
-                includeInactive={false}
-                value={query.categoryId}
-                onChange={categoryId => update({ categoryId })}
-              />
-            </div>
-          )}
           <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
             <div className="grid gap-2">
               <p className="text-sm text-muted-foreground">
@@ -137,22 +126,32 @@ export default function ServicesPage() {
                 formClassName="h-11 rounded-xl p-1 pl-3 [&_input]:h-8 [&_button]:size-8"
               />
             </div>
-            {!catalog && (
-            <div className="grid gap-2">
-              <label
-                htmlFor="service-type-filter"
-                className="text-sm text-muted-foreground"
-              >
-                {t('merchant.services.requestType')}
-              </label>
-              <SelectField
-                id="service-type-filter"
-                label={t('merchant.services.requestType')}
-                value={query.type}
-                onValueChange={(type) => update({ type })}
-                options={[{ value: '', label: t('common.all') }, ...[1, 2].map((value) => ({ value: String(value), label: t(`merchant.services.requestTypes.${value}`) }))]}
+            {catalog && (
+              <CategorySelect
+                role="Merchant"
+                filter
+                showLabel
+                includeInactive={false}
+                value={query.categoryId}
+                onChange={categoryId => update({ categoryId })}
               />
-            </div>
+            )}
+            {!catalog && (
+              <div className="grid gap-2">
+                <label
+                  htmlFor="service-type-filter"
+                  className="text-sm text-muted-foreground"
+                >
+                  {t('merchant.services.requestType')}
+                </label>
+                <SelectField
+                  id="service-type-filter"
+                  label={t('merchant.services.requestType')}
+                  value={query.type}
+                  onValueChange={(type) => update({ type })}
+                  options={[{ value: '', label: t('common.all') }, ...[1, 2].map((value) => ({ value: String(value), label: t(`merchant.services.requestTypes.${value}`) }))]}
+                />
+              </div>
             )}
             <div className="grid gap-2">
               <label
@@ -201,10 +200,10 @@ export default function ServicesPage() {
                     {t('merchant.serviceSync.filteredService')}
                   </span>
                 )}
-                {(query.keyword || query.state || query.type || query.serviceId || query.sort !== 'name') && (
+                {(query.keyword || query.categoryId || query.state || query.type || query.serviceId || query.sort !== 'name') && (
                   <Button
                     variant="ghost"
-                    onClick={() => update({ keyword: '', state: '', type: '', sort: 'name', serviceId: '' })}
+                    onClick={() => update({ keyword: '', categoryId: '', state: '', type: '', sort: 'name', serviceId: '' })}
                     className="h-11 text-base"
                   >
                     <RotateCcw size={17} />
