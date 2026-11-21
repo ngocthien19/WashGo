@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
+import { cn } from '~/lib/utils'
 
-export default function ActionConfirmationDialog({ title, description, icon: Icon, tone = 'info', children, pending, disabled, error, onClose, onConfirm, confirmLabel }) {
+export default function ActionConfirmationDialog({ title, description, icon: Icon, tone = 'info', children, contentClassName, pending, disabled, error, onClose, onConfirm, confirmLabel }) {
   const { t } = useTranslation()
   return (
     <Dialog
@@ -28,7 +29,7 @@ export default function ActionConfirmationDialog({ title, description, icon: Ico
           </DialogDescription>
         </DialogHeader>
         <div data-dialog-body>
-          <div className="mt-5 space-y-4">
+          <div className={cn('mt-5 space-y-4', contentClassName)}>
             {children}
           </div>
           {error && (

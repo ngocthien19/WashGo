@@ -75,6 +75,7 @@ export default function ReviewActionDialog({ rows, bulk = false, initialOperatio
   }
   return (
     <ActionConfirmationDialog
+      contentClassName={bulk ? 'mt-0' : undefined}
       title={t(bulk ? 'admin.reviews.bulk' : publishing ? 'admin.reviews.publish' : hidden ? 'admin.reviews.hide' : 'admin.reviews.show')}
       description={t(publicPublishing ? 'admin.reviews.publicHint' : 'admin.reviews.actionHint', { count: rows.length })}
       icon={bulk ? Layers : hidden ? EyeOff : Eye}
