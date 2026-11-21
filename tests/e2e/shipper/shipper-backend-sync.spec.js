@@ -117,7 +117,7 @@ test('history uses event detail and scoped export without reading current order 
   const dialog = page.getByRole('dialog')
   await expect(dialog).toContainText('Historical address')
   await expect(dialog).toContainText('Information captured at completion.')
-  await dialog.getByRole('button', { name: 'Close', exact: true }).click()
+  await dialog.locator('[data-dialog-footer]').getByRole('button', { name: 'Close', exact: true }).click()
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Export CSV', exact: true }).click()
   await download
