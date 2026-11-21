@@ -3,6 +3,27 @@ import { expect, test } from '@playwright/test'
 import { merchantSession } from '../helpers/merchantSession'
 const id = 'a0000000-0000-4000-8000-000000000001', proposalId = 'b0000000-0000-4000-8000-000000000001', merchantId = 'c0000000-0000-4000-8000-000000000001'
 
+test('Admin category filter shares the search panel and resets with filters', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto('/admin/services')
+  const category = page.getByRole('combobox', { name: 'Category', exact: true })
+  await expect(category).toBeEnabled()
+  await expect(category.locator('xpath=ancestor::section').getByRole('search')).toBeVisible()
+  await category.click()
+  await page.getByRole('option', { name: 'Special care', exact: true }).click()
+  await expect.poll(() => state.filters.at(-1)?.categoryIds).toEqual(['ca000000-0000-0000-0000-000000000006'])
+  await expect(page).toHaveURL(/categoryId=/)
+  await page.getByRole('button', { name: 'Clear all', exact: true }).click()
+  await expect(page).not.toHaveURL(/categoryId=/)
+  await expect.poll(() => state.filters.at(-1)?.categoryIds).toBeUndefined()
+  await category.click()
+  await page.getByRole('option', { name: 'Special care', exact: true }).click()
+  await expect(page).toHaveURL(/categoryId=/)
+  await page.getByRole('tab', { name: 'Merchant proposals', exact: true }).click()
+  await expect(page).not.toHaveURL(/categoryId=/)
+  await expect(category).toHaveCount(0)
+})
+
 test('Admin search suggestions keep catalog/proposal scope and highlight matching fields', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/admin/services')

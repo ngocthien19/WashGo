@@ -101,7 +101,7 @@ export default function ShipperAssignment({ onClose }) {
           </DialogDescription>
         </div>
         <div data-dialog-body>
-          <div className="workspace-filters mt-5 grid items-end gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-[2fr_1fr]">
+          <div className="workspace-filters mt-5 grid items-end gap-4 rounded-2xl border border-border bg-muted/20 p-4 sm:grid-cols-[1.3fr_1fr]">
             <CatalogToolbar
               showLabel
               suggestionSource={merchantOrderApi.list}

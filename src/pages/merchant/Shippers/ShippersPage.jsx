@@ -2,7 +2,7 @@ import RecordLink from '~/components/RecordLink'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Truck, Plus, RefreshCw, Eye, RotateCcw, Pencil, Trash2, LockKeyhole, LockKeyholeOpen, MoreHorizontal, ClipboardPlus, X } from 'lucide-react'
+import { Truck, Plus, RefreshCw, Eye, RotateCcw, Pencil, Trash2, LockKeyhole, LockKeyholeOpen, MoreHorizontal, ClipboardPlus, Layers, X } from 'lucide-react'
 import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '~/components/ui/dropdown-menu'
 import { Checkbox } from '~/components/ui/checkbox'
@@ -40,8 +40,6 @@ export default function ShippersPage() {
   const ids = selection.source === data ? selection.ids : []
   const rows = data?.list || []
   const selectedRows = rows.filter((row) => ids.includes(row.id))
-  const lockable = selectedRows.filter((row) => row.accountActive === true)
-  const unlockable = selectedRows.filter((row) => row.accountActive === false)
   const toggle = (id, checked) => setSelection({ source: data, ids: checked ? [...new Set([...ids, id])] : ids.filter((value) => value !== id) })
   useEffect(() => {
     document.title = `${t('merchant.nav.shippers')} | WashGo`
@@ -144,33 +142,12 @@ export default function ShippersPage() {
             {t('merchant.shippers.selected', { count: ids.length })}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            {lockable.length > 0 && (
-              <Button
-                variant="secondary"
-                onClick={() => setAccountAction({ action: 'lock', bulk: true, shippers: lockable })}
-                className="h-11 bg-amber-500/10 px-4 text-base font-semibold text-amber-700 dark:text-amber-300"
-              >
-                <LockKeyhole size={17} />
-                {t('merchant.shippers.bulkLock')}
-              </Button>
-            )}
-            {unlockable.length > 0 && (
-              <Button
-                variant="secondary"
-                onClick={() => setAccountAction({ action: 'unlock', bulk: true, shippers: unlockable })}
-                className="h-11 bg-emerald-500/10 px-4 text-base font-semibold text-emerald-700 dark:text-emerald-300"
-              >
-                <LockKeyholeOpen size={17} />
-                {t('merchant.shipperSync.bulkUnlock')}
-              </Button>
-            )}
             <Button
-              variant="destructive"
-              onClick={() => setAccountAction({ action: 'delete', bulk: true, shippers: selectedRows })}
-              className="h-10 px-4"
+              onClick={() => setAccountAction({ action: 'lock', bulk: true, shippers: selectedRows })}
+              className="h-11 px-5 text-base font-semibold"
             >
-              <Trash2 size={17} />
-              {t('merchant.shippers.bulkDelete')}
+              <Layers size={18} />
+              {t('merchant.shippers.bulkActions')}
             </Button>
             <Button
               variant="ghost"

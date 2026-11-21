@@ -5,6 +5,24 @@ import { merchantSession } from '../helpers/merchantSession'
 const id = '77777777-7777-4777-8777-777777777777'
 const proposalId = '88888888-8888-4888-8888-888888888888'
 
+test('Merchant service tabs fit their labels and category stays with search', async ({ page }) => {
+  await setup(page)
+  await page.goto('/merchant/services')
+  const tabs = page.getByRole('tablist')
+  const tab = page.getByRole('tab', { name: 'Service catalog', exact: true })
+  const listBox = await tabs.boundingBox()
+  const tabBox = await tab.boundingBox()
+  expect(tabBox.width).toBeLessThan(listBox.width / 2)
+  const category = page.getByRole('combobox', { name: 'Category', exact: true })
+  await expect(category).toBeEnabled()
+  await expect(category.locator('xpath=ancestor::section').getByRole('search')).toBeVisible()
+  await category.click()
+  await page.getByRole('option', { name: 'Special care', exact: true }).click()
+  await expect(page).toHaveURL(/categoryId=/)
+  await page.getByRole('tab', { name: 'My proposals', exact: true }).click()
+  await expect(page).not.toHaveURL(/categoryId=/)
+})
+
 test('Merchant search suggestions use owned catalog images and keep manual search', async ({ page }) => {
   const state = await setup(page, { images: true, dark: true })
   await page.goto('/merchant/services')

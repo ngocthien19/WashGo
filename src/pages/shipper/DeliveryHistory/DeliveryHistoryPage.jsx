@@ -9,7 +9,7 @@ import DeliveryLocker from '../components/DeliveryLocker'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { History, RefreshCw, Download, Eye, ClockArrowDown } from 'lucide-react'
+import { History, RefreshCw, Download, Eye } from 'lucide-react'
 import Reveal from '~/components/motion/Reveal'
 import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
@@ -93,8 +93,8 @@ export default function DeliveryHistoryPage() {
           label={t('shipper.tasks.search')}
           placeholder={t('shipper.tasks.searchHint')}
         />
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="grid w-full gap-2 sm:w-72">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid w-full gap-2">
             <label
               htmlFor="delivery-task-type"
               className="text-sm font-medium"
@@ -123,14 +123,6 @@ export default function DeliveryHistoryPage() {
             value={query.cancelledReturn}
             onValueChange={cancelledReturn => update({ cancelledReturn })}
             options={[{ value: '', label: t('common.all') }, { value: 'true', label: t('shipper.sync.cancelledOnly') }, { value: 'false', label: t('shipper.sync.normalOnly') }]}
-          />
-          <SelectField
-            showLabel
-            labelPosition="left"
-            label={t('shipper.sync.sort')}
-            value={query.sort}
-            onValueChange={sort => update({ sort })}
-            options={[{ value: 'newest', label: t('shipper.deliveryHistory.newest') }, { value: 'oldest', label: t('shipper.sync.oldest') }]}
           />
           <ClearFiltersButton
             active={query.from || query.to || query.taskType || query.keyword || query.lockerId || query.cancelledReturn || query.sort === 'oldest' || query.invalidDates}
@@ -178,10 +170,17 @@ export default function DeliveryHistoryPage() {
             </strong>
             {t('shipper.deliveryHistory.results')}
           </p>
-          <span className="flex items-center gap-2 text-sm text-muted-foreground">
-            <ClockArrowDown size={17} />
-            {t('shipper.deliveryHistory.newest')}
-          </span>
+          <div className="ml-auto">
+            <SelectField
+              showLabel
+              labelPosition="left"
+              label={t('shipper.sync.sort')}
+              value={query.sort}
+              onValueChange={sort => update({ sort })}
+              className="w-48 sm:w-56"
+              options={[{ value: 'newest', label: t('shipper.deliveryHistory.newest') }, { value: 'oldest', label: t('shipper.sync.oldest') }]}
+            />
+          </div>
         </div>
         {loading || error || !data?.list.length ? (
           <ResourceFeedback

@@ -22,5 +22,5 @@ export const persistor = persistStore(store)
 configureAxiosSession({
   getAuth: () => store.getState().auth,
   setSession: (data) => store.dispatch(setSession(data)),
-  clearSession: () => store.dispatch(clearSession())
+  clearSession: (notice, reason) => store.dispatch(clearSession({ notice, reason }))
 })

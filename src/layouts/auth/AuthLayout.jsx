@@ -31,26 +31,34 @@ export default function AuthLayout() {
 
   return (
     <div className={cn(
-      'min-h-dvh bg-slate-50 text-foreground transition-colors delay-0 duration-200 ease-in-out motion-reduce:transition-none dark:bg-background',
+      'relative min-h-dvh bg-slate-50 text-foreground transition-colors delay-0 duration-200 ease-in-out motion-reduce:transition-none dark:bg-background',
       isSplitLayout && 'md:h-dvh md:overflow-hidden'
     )}
     >
+      <div className="absolute right-8 top-8 z-30 hidden md:block">
+        <DisplayControls variant="inline" />
+      </div>
+      {!isSplitLayout && (
+        <div className="absolute left-8 top-8 hidden md:block">
+          <AuthBrand />
+        </div>
+      )}
       <main className={cn(
         isSplitLayout
           ? 'grid min-h-dvh w-full grid-cols-1 bg-background md:h-dvh md:min-h-0 md:grid-cols-2 md:overflow-hidden'
-          : 'mx-auto flex min-h-dvh w-full flex-col items-center justify-start px-6 py-8 sm:px-10 md:justify-center md:px-8 md:py-10'
+          : 'mx-auto flex min-h-dvh w-full flex-col items-center justify-start px-6 py-8 sm:px-10 md:justify-center md:px-8 md:py-28'
       )}
       >
         {isSplitLayout && <AuthStory />}
         <div
           className={cn(
             isSplitLayout
-              ? 'flex min-h-dvh min-w-0 flex-col items-center px-6 py-8 sm:px-10 md:h-dvh md:min-h-0 md:overflow-y-auto md:overscroll-contain md:px-10 lg:px-16'
+              ? 'flex min-h-dvh min-w-0 flex-col items-center px-6 py-8 sm:px-10 md:h-dvh md:min-h-0 md:overflow-y-auto md:overscroll-contain md:px-10 md:pb-10 md:pt-28 lg:px-16'
               : 'w-full max-w-[440px]'
           )}
           data-testid={isSplitLayout ? 'auth-form-panel' : undefined}
         >
-          <header className={cn('mb-7 flex w-full shrink-0 items-center justify-between gap-3 border-b border-border pb-5', isSplitLayout && 'max-w-[420px] md:justify-end')}>
+          <header className={cn('mb-7 flex w-full shrink-0 items-center justify-between gap-3 border-b border-border pb-5 md:hidden', isSplitLayout && 'max-w-[420px]')}>
             <div className={isSplitLayout ? 'md:hidden' : undefined}>
               <AuthBrand />
             </div>

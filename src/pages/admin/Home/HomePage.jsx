@@ -108,6 +108,7 @@ export default function HomePage() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <DashboardFilters
+            showLabel={false}
             range={range}
             onChange={({ mode, from, to }) => setParams({ period: mode, ...(mode === 'custom' ? { from, to } : {}) })}
           />
@@ -241,10 +242,10 @@ export default function HomePage() {
           title={t('admin.workspaceSync.currentStatuses')}
           icon={ChartNoAxesColumn}
           resource={orders}
-          className="flex h-[32rem] flex-col self-start [&>h2]:shrink-0"
+          className="self-start"
         >
           {orders.data && (
-            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">
+            <div className="space-y-4">
               {groups.map((group) => (
                 <div key={group.key}>
                   <div className="mb-2 flex items-center justify-between gap-3 text-sm">

@@ -1,4 +1,36 @@
 {
+  "accounts": {
+    "activityFields": { "time": "Thời gian", "actor": "Người thực hiện", "action": "Hành động", "result": "Kết quả", "reason": "Ghi chú" },
+    "placeholders": { "generic": "Nhập {{field}}…", "fullName": "VD: Nguyễn Văn An", "businessName": "VD: Giặt Sấy An Nhiên", "phone": "VD: 0931234567", "email": "VD: nguyenvana@gmail.com", "newEmail": "VD: nguyenvana.moi@gmail.com", "code": "VD: 123456 (6 chữ số)", "password": "Nhập mật khẩu đăng nhập của bạn", "address": "VD: 123 Nguyễn Văn Cừ, phường Chợ Quán", "city": "VD: Thành phố Hồ Chí Minh", "latitude": "VD: 10.762622", "longitude": "VD: 106.660172", "depositAmount": "VD: 500000 (đ) — trống: mặc định", "commissionRate": "VD: 20 (%) — trống: mặc định", "serviceRadiusKm": "VD: 5 (km) — trống: mặc định", "maxCapacity": "VD: 50 — trống: mặc định", "vehiclePlate": "VD: 59A1-12345", "merchantSearch": "VD: Giặt Sấy An Nhiên", "reason": "VD: Khóa tài khoản theo yêu cầu của chủ tài khoản" },
+    "title": "Quản lý tài khoản", "description": "Quản lý khách hàng, đối tác và quản trị viên trong hệ thống.",
+    "create": "Thêm tài khoản", "details": "Chi tiết tài khoản", "dialogDescription": "Thông tin tài khoản, trạng thái và các hoạt động liên quan.",
+    "editDescription": "Cập nhật thông tin và ảnh đại diện. Vai trò giữ nguyên; đổi email bằng chức năng xác minh riêng.", "editorDescription": "Nhập thông tin tài khoản. Mật khẩu tạm sẽ được gửi đến email sau khi tạo thành công.",
+    "save": "Lưu tài khoản", "saving": "Đang xử lý…", "saved": "Đã cập nhật tài khoản.", "confirm": "Xác nhận", "bulk": "Thao tác hàng loạt",
+    "stats": { "total": "Tổng tài khoản chưa xóa", "active": "Đang hoạt động", "locked": "Đang khóa", "deleted": "Đã xóa mềm" },
+    "roles": { "Customer": "Khách hàng", "Merchant": "Tiệm giặt", "Shipper": "Shipper", "Admin": "Quản trị viên" },
+    "status": { "active": "Đang hoạt động", "locked": "Đang khóa", "deleted": "Đã xóa mềm" },
+    "fields": { "account": "Tài khoản", "contact": "Thông tin liên hệ", "fullName": "Họ và tên", "businessName": "Tên tiệm giặt", "email": "Email", "phone": "Số điện thoại", "role": "Vai trò", "status": "Trạng thái", "createdAt": "Ngày tạo", "updatedAt": "Cập nhật gần nhất", "lastLoginAt": "Đăng nhập gần nhất", "signInMethod": "Phương thức đăng nhập", "avatarUrl": "Ảnh đại diện (không bắt buộc)", "address": "Địa chỉ", "city": "Tỉnh / Thành phố", "latitude": "Vĩ độ", "longitude": "Kinh độ", "depositAmount": "Tiền đặt cọc (đ)", "commissionRate": "Hoa hồng (%)", "serviceRadiusKm": "Bán kính phục vụ (km)", "maxCapacity": "Công suất tối đa", "merchantSearch": "Tìm tiệm giặt", "merchantId": "Tiệm giặt quản lý", "vehicleType": "Phương tiện", "vehiclePlate": "Biển số xe", "reason": "Lý do", "password": "Mật khẩu của bạn", "newEmail": "Email mới", "code": "Mã xác minh" },
+    "actions": { "Edit": "Sửa tài khoản", "ChangeEmail": "Đổi email", "Lock": "Khóa tài khoản", "Unlock": "Mở khóa tài khoản", "SoftDelete": "Xóa mềm tài khoản", "Restore": "Khôi phục tài khoản", "Permissions": "Quản lý quyền" },
+    "descriptions": { "Lock": "Khóa tài khoản sẽ thu hồi các phiên đăng nhập hiện tại. Hồ sơ và lịch sử vẫn được giữ lại.", "Unlock": "Mở khóa cho phép đăng nhập lại; trạng thái hồ sơ đối tác được quản lý riêng.", "SoftDelete": "Tài khoản được xóa mềm. Dữ liệu nghiệp vụ và lịch sử liên quan vẫn được bảo toàn.", "Restore": "Khôi phục tài khoản về trạng thái khóa. Email hoặc liên kết Google đã được dùng lại sẽ chặn khôi phục.", "Permissions": "Chọn toàn bộ quyền cấp riêng cho quản trị viên này. Không thể tự thay đổi quyền của mình.", "Bulk": "Xem điều kiện và kết quả riêng cho từng tài khoản trước khi xác nhận.", "ChangeEmail": "Xác minh quyền sở hữu email mới bằng OTP. Liên kết Google hiện tại được giữ nguyên." },
+    "methods": { "Password": "Mật khẩu", "Google": "Google", "PasswordAndGoogle": "Mật khẩu và Google" },
+    "searchLabel": "Tìm kiếm tài khoản", "searchPlaceholder": "Họ tên, email, số điện thoại hoặc tên tiệm giặt…", "allRoles": "Tất cả vai trò", "allStatuses": "Tất cả trạng thái", "deletedFilter": "Tài khoản đã xóa", "deleted": { "Exclude": "Không gồm đã xóa", "Include": "Gồm cả đã xóa", "Only": "Chỉ tài khoản đã xóa" },
+    "createdRange": "Khoảng ngày tạo tài khoản", "sortLabel": "Sắp xếp", "sort": { "createdAt_desc": "Mới nhất", "createdAt_asc": "Cũ nhất", "fullName_asc": "Tên A–Z", "fullName_desc": "Tên Z–A", "lastLoginAt_desc": "Đăng nhập gần đây", "deletedAt_desc": "Xóa gần đây" },
+    "results": "{{count}} tài khoản", "empty": "Không có tài khoản phù hợp với bộ lọc.", "selected": "Đã chọn {{count}} tài khoản trên trang này", "selectPage": "Chọn tất cả tài khoản trên trang", "selectAccount": "Chọn tài khoản {{name}}", "clearSelection": "Bỏ chọn tất cả", "actionsLabel": "Thao tác", "actionsFor": "Thao tác với {{name}}", "neverLoggedIn": "Chưa đăng nhập",
+    "profile": "Thông tin", "activities": "Nhật ký hoạt động", "noActivities": "Chưa có hoạt động được ghi nhận.", "system": "Hệ thống", "protected": "Tài khoản được bảo vệ", "statusChanged": "Lần thay đổi trạng thái gần nhất", "deletedInfo": "Thông tin xóa mềm", "noExtraPermissions": "Chưa được cấp quyền quản lý bổ sung.",
+    "permissions": { "ManageAdmins": "Quản lý tài khoản và quyền của Admin khác", "ReadDeleted": "Xem tài khoản đã xóa mềm", "Restore": "Khôi phục tài khoản đã xóa mềm" }, "permissionLegend": "Quyền cấp riêng",
+    "obligationsTitle": "Nghĩa vụ và dữ liệu liên quan", "relatedOrders": "Đơn hàng / nhiệm vụ cần xử lý (tối đa 20 mục)",
+    "obligations": { "openOrders": "Đơn chưa hoàn tất", "pendingPayments": "Thanh toán đang chờ", "openRefunds": "Hoàn tiền đang mở", "openIncidents": "Khiếu nại đang mở", "unsettledSettlements": "Đối soát chưa hoàn tất", "activeShippers": "Shipper đang hoạt động", "lockerAssignments": "Locker đang phụ trách", "activeTasks": "Nhiệm vụ đang thực hiện", "loyaltyPoints": "Điểm tích lũy", "heldLoyaltyPoints": "Điểm đang giữ" },
+    "partnerProfile": "Hồ sơ đối tác", "partnerDefaults": "Để trống các thiết lập không bắt buộc để áp dụng giá trị mặc định của hệ thống.", "pickMap": "Chọn trên bản đồ", "searchMerchant": "Tìm tiệm giặt", "chooseMerchant": "Chọn tiệm giặt quản lý", "vehicles": { "1": "Xe máy", "2": "Ô tô", "3": "Xe đạp" },
+    "addImage": "Thêm ảnh", "removeImage": "Xóa ảnh đại diện", "avatarHint": "Tối đa 1 ảnh JPG, PNG hoặc WEBP, dung lượng không quá 5 MB.", "credentialFailed": "Tài khoản đã tạo nhưng chưa gửi được email mật khẩu tạm. Không tạo lại tài khoản; hãy kiểm tra việc gửi email.",
+    "reauthenticate": "Để thao tác với tài khoản Admin, hãy xác nhận lại mật khẩu của bạn. Không nhập mật khẩu của tài khoản đang được quản lý.",
+    "chooseAction": "Chọn thao tác", "previewCount": "{{ready}} / {{total}} tài khoản đủ điều kiện tại thời điểm kiểm tra.", "ready": "Đủ điều kiện", "blocked": "Chưa đủ điều kiện", "notFound": "Không tìm thấy tài khoản", "unchanged": "Đã ở trạng thái yêu cầu", "openOrders": "Còn {{count}} đơn chưa hoàn tất.", "confirmOpenOrders": "Tôi đã kiểm tra các đơn chưa hoàn tất và xác nhận vẫn khóa tài khoản.", "authenticatePreview": "Xác thực và kiểm tra lại",
+    "batchDone": "Kết quả xử lý hàng loạt", "batchSummary": "Đã thay đổi: {{changed}} · Giữ nguyên: {{unchanged}} · Bỏ qua: {{skipped}} · Thất bại: {{failed}}", "outcomes": { "Changed": "Đã thay đổi", "Unchanged": "Giữ nguyên", "Skipped": "Đã bỏ qua", "Failed": "Thất bại" },
+    "unknown": "Chưa xác định được kết quả thao tác.", "processing": "Thao tác vẫn đang được xử lý. Vui lòng tra cứu lại sau.", "recoveryHint": "Tài khoản liên quan đang tạm khóa thao tác để tránh gửi trùng. Hãy tra cứu kết quả trước khi tiếp tục.", "checkOperation": "Tra cứu kết quả", "actionUnavailable": "Thao tác không còn khả dụng. Đóng cửa sổ và cập nhật danh sách để kiểm tra lại.",
+    "currentEmail": "Email hiện tại", "sendCode": "Gửi mã xác minh", "codeSent": "Mã đã được gửi đến {{email}}. Hết hạn lúc {{expires}}.", "resend": "Gửi lại mã", "resendAfter": "Gửi lại sau {{seconds}} giây", "expiredCode": "Mã đã hết hạn. Vui lòng gửi lại mã mới.", "emailChallengeUnknown": "Chưa xác định được kết quả gửi mã. Hãy kiểm tra hộp thư và chờ mã hết hạn trước khi yêu cầu lại.",
+    "validation": { "required": "Vui lòng nhập thông tin này.", "name": "Họ tên từ 2 đến 100 ký tự.", "email": "Email không hợp lệ hoặc vượt quá 100 ký tự.", "phone": "Số điện thoại tài khoản gồm 10 chữ số, bắt đầu bằng 0. Khi tạo đối tác, nhập 9–11 chữ số.", "number": "Vui lòng nhập số hợp lệ trong phạm vi cho phép.", "coordinate": "Tọa độ không hợp lệ.", "length": "Nội dung vượt quá độ dài cho phép.", "reason": "Vui lòng nhập lý do không quá 500 ký tự.", "confirm": "Vui lòng xác nhận đã kiểm tra các đơn còn mở.", "code": "Vui lòng nhập mã xác minh gồm 6 chữ số." },
+    "errors": { "ValidationFailed": "Vui lòng kiểm tra các trường thông tin.", "EmailAlreadyInUse": "Email đã được sử dụng.", "PhoneAlreadyInUse": "Số điện thoại đã được sử dụng.", "IdentityAlreadyInUse": "Email hoặc liên kết Google đã được tài khoản khác sử dụng.", "UseEmailChangeFlow": "Hãy sử dụng chức năng đổi email để xác minh địa chỉ mới.", "RevisionConflict": "Tài khoản đã thay đổi. Đóng cửa sổ và tải lại thông tin trước khi tiếp tục.", "OperationIdReused": "Yêu cầu đã được sử dụng cho nội dung khác. Vui lòng tải lại thông tin.", "PermissionRequired": "Bạn chưa có quyền thực hiện thao tác này.", "ManageAdminsRequired": "Bạn cần quyền quản lý Admin để thực hiện thao tác này.", "ReauthenticationRequired": "Vui lòng xác thực lại bằng mật khẩu của bạn.", "CannotModifySelf": "Không thể thực hiện thao tác này với tài khoản của chính bạn.", "ProtectedAccount": "Tài khoản được bảo vệ khỏi thao tác này.", "LastPrivilegedAdmin": "Cần giữ ít nhất một Admin đang hoạt động có quyền quản lý Admin.", "AccountAlreadyDeleted": "Tài khoản đã được xóa mềm.", "AccountNotDeleted": "Tài khoản chưa bị xóa mềm.", "AccountHasOpenObligations": "Tài khoản còn nghĩa vụ chưa hoàn tất. Xem chi tiết trước khi xóa mềm.", "ConfirmationRequired": "Cần xác nhận các đơn chưa hoàn tất trước khi khóa.", "HasActiveTasks": "Shipper còn nhiệm vụ đang thực hiện.", "PartnerNotActive": "Hồ sơ đối tác chưa hoạt động. Kiểm tra tại trang quản lý đối tác.", "PartnerProfileDeleted": "Hồ sơ đối tác đã bị xóa.", "RestoreNotSupportedForPartner": "Chưa hỗ trợ khôi phục tài khoản đối tác tại đây.", "NotAdminAccount": "Chỉ tài khoản Admin mới có quyền cấp riêng.", "OtpThrottled": "Vui lòng chờ trước khi gửi lại mã.", "EmailDeliveryFailed": "Chưa gửi được email xác minh. Vui lòng thử lại sau.", "TooManyAttempts": "Đã thử quá nhiều lần. Vui lòng thử lại sau.", "WrongPassword": "Mật khẩu xác nhận không đúng.", "NotFound": "Không tìm thấy tài khoản.", "OpenOrders": "Còn đơn chưa hoàn tất.", "ActiveTasks": "Còn nhiệm vụ đang thực hiện." },
+    "audit": { "Login": "Đăng nhập", "Logout": "Đăng xuất", "Reauthenticate": "Xác thực lại", "Create": "Tạo tài khoản", "Update": "Sửa tài khoản", "Lock": "Khóa tài khoản", "Unlock": "Mở khóa tài khoản", "SoftDelete": "Xóa mềm tài khoản", "Restore": "Khôi phục tài khoản", "Permissions": "Thay đổi quyền", "EmailChange": "Đổi email", "Success": "Thành công", "Succeeded": "Thành công", "Failed": "Thất bại", "Denied": "Bị từ chối" }
+  },
   "orderRoleDescriptions": {
     "Admin": {
       "1": "Khách đã tạo đơn, đang chờ gửi đồ vào locker trước hạn.",
@@ -673,6 +705,18 @@
     "contactAddress": "123 Đường Số 7, Phường Tân Kiểng, Quận 7, TP. HCM"
   },
   "auth": {
+    "accountAccess": {
+      "lockedReason": "Lý do khóa tài khoản",
+      "deletedReason": "Lý do xóa tài khoản",
+      "noReason": "Chưa có lý do được cung cấp.",
+      "home": "Về trang chủ",
+      "lockedTitle": "Tài khoản đã bị khóa",
+      "lockedDescription": "Tài khoản của bạn hiện bị khóa nên chưa thể đăng nhập. Vui lòng liên hệ bộ phận hỗ trợ hoặc đơn vị quản lý tài khoản để được kiểm tra.",
+      "deletedTitle": "Tài khoản không còn khả dụng",
+      "deletedDescription": "Tài khoản này đã được xóa mềm nên không thể đăng nhập. Vui lòng liên hệ bộ phận hỗ trợ nếu cần kiểm tra hoặc khôi phục.",
+      "sessionEndedTitle": "Phiên đăng nhập đã kết thúc",
+      "sessionEndedDescription": "Phiên đăng nhập đã hết hiệu lực hoặc bị thu hồi. Vui lòng đăng nhập lại. Nếu tài khoản bị khóa, hãy liên hệ bộ phận hỗ trợ hoặc đơn vị quản lý tài khoản."
+    },
     "signInToContinue": "Vui lòng đăng nhập để sử dụng chức năng này.",
     "signInDescription": "Đăng nhập để quản lý đơn hàng và chăm sóc đồ dễ dàng hơn.",
     "createAccountDescription": "Tạo tài khoản để bắt đầu trải nghiệm giặt ủi cùng WashGo.",
@@ -1433,6 +1477,7 @@
     "loading": "Đang tải dữ liệu…",
     "invalidResponse": "Dữ liệu hệ thống chưa hợp lệ. Vui lòng thử lại.",
     "nav": {
+      "accounts": "Quản lý tài khoản",
       "reviews": "Quản lý đánh giá",
       "overview": "Dashboard",
       "merchants": "Quản lý Merchant",
@@ -2092,6 +2137,9 @@
       "reasonPlaceholder": "Nhập lý do thực hiện thao tác…",
       "reasonRequired": "Nhập lý do tối đa 500 ký tự và chọn từ 1–50 shipper.",
       "accountHint": "Thao tác tài khoản khác với trạng thái Đang làm việc/Tạm nghỉ. Nhiệm vụ đang thực hiện phải được xử lý trước khi khóa hoặc xóa.",
+      "bulkScope": "{{count}} / {{total}} shipper phù hợp với thao tác đã chọn. Điều kiện nghiệp vụ được kiểm tra khi xác nhận.",
+      "serverChecks": "Sẽ được kiểm tra khi xác nhận",
+      "notApplicable": "Không áp dụng do trạng thái tài khoản hiện tại",
       "actionUnknown": "Chưa xác định được kết quả. Đóng cửa sổ và cập nhật danh sách để kiểm tra trước khi thao tác tiếp.",
       "batchResult": "Thành công: {{succeeded}} · Không thành công: {{failed}}",
       "codes": {

@@ -1,18 +1,20 @@
 import { useTranslation } from 'react-i18next'
 import { AUTH_ROUTES, CUSTOMER_ROUTES, USER_ROLES, UI_TRANSITIONS } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
-import { Link, Navigate, matchPath, useLocation } from 'react-router-dom'
+import { Link, Navigate, matchPath, useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { notify } from '~/utils/notifications/notifications'
 import { authApi } from '~/apis/auth/authApi'
-import { setSession } from '~/redux/auth/authSlice'
+import { setSession, clearSession } from '~/redux/auth/authSlice'
 import AuthForm from '../components/AuthForm'
 import AuthHeading from '../components/AuthHeading'
 import AuthSwitchLink from '../components/AuthSwitchLink'
 import { loginSchema } from '../authSchemas'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import GoogleSignInButton from './components/GoogleSignInButton'
 import { getRoleHome } from '~/utils/auth/roles'
+import { accountAccessIssue, accountAccessReason } from '~/utils/auth/accountAccess'
+import SessionEndedDialog from './components/SessionEndedDialog'
 
 const fields = [
   {
@@ -34,13 +36,18 @@ const fields = [
 export default function LoginPage() {
   const { t } = useTranslation()
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const auth = useSelector((state) => state.auth)
+  const [loginIssue, setLoginIssue] = useState(null)
+  const [loginReason, setLoginReason] = useState(null)
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false)
+  const accessIssue = loginIssue || auth.notice
   const { state } = useLocation()
   useEffect(() => {
-    if (!auth.accessToken && state?.loginRequired) {
+    if (!auth.accessToken && !accessIssue && state?.loginRequired) {
       notify.info('auth.signInToContinue', undefined, { id: 'sign-in-required' })
     }
-  }, [auth.accessToken, state?.loginRequired])
+  }, [auth.accessToken, accessIssue, state?.loginRequired])
   const returnTo = auth.user?.role === USER_ROLES.CUSTOMER && typeof state?.returnTo === 'string'
     && Object.values(CUSTOMER_ROUTES).some(path => matchPath({ path, end: true }, state.returnTo.split(/[?#]/)[0]))
     && !state.returnTo.includes('\\')
@@ -56,6 +63,17 @@ export default function LoginPage() {
     notify.success('auth.signedInSuccessfully')
   }, [dispatch])
 
+  const handleGoogleError = useCallback(error => {
+    const issue = accountAccessIssue(error)
+    setLoginIssue(issue)
+    setLoginReason(accountAccessReason(error))
+    setLoginDialogOpen(Boolean(issue))
+    if (auth.notice) {
+      dispatch(clearSession())
+    }
+    return Boolean(issue)
+  }, [auth.notice, dispatch])
+
   if (auth.accessToken) {
     return (
       <Navigate
@@ -66,8 +84,24 @@ export default function LoginPage() {
   }
 
   const login = async (values) => {
-    const data = await authApi.login(values)
-    completeLogin(data)
+    setLoginIssue(null)
+    setLoginReason(null)
+    setLoginDialogOpen(false)
+    if (auth.notice) {
+      dispatch(clearSession())
+    }
+    try {
+      const data = await authApi.login(values)
+      completeLogin(data)
+    } catch (error) {
+      const issue = accountAccessIssue(error)
+      if (!issue) {
+        throw error
+      }
+      setLoginIssue(issue)
+      setLoginReason(accountAccessReason(error))
+      setLoginDialogOpen(true)
+    }
   }
 
   return (
@@ -78,6 +112,23 @@ export default function LoginPage() {
       >
         {t('auth.signInDescription')}
       </AuthHeading>
+      <SessionEndedDialog
+        issue={auth.notice || (loginDialogOpen ? loginIssue : null)}
+        reason={auth.notice ? auth.noticeReason : loginReason}
+        onClose={() => {
+          setLoginDialogOpen(false)
+          setLoginIssue(null)
+          setLoginReason(null)
+          dispatch(clearSession())
+        }}
+        onHome={() => {
+          setLoginDialogOpen(false)
+          setLoginIssue(null)
+          setLoginReason(null)
+          dispatch(clearSession())
+          navigate(CUSTOMER_ROUTES.HOME, { replace: true })
+        }}
+      />
       <AuthForm
         schema={loginSchema}
         onSubmit={login}
@@ -96,7 +147,10 @@ export default function LoginPage() {
           </Link>
         </div>
       </AuthForm>
-      <GoogleSignInButton onSuccess={completeLogin} />
+      <GoogleSignInButton
+        onSuccess={completeLogin}
+        onError={handleGoogleError}
+      />
       <AuthSwitchLink
         to={AUTH_ROUTES.REGISTER}
         prompt={t('auth.donTHaveAnAccount')}

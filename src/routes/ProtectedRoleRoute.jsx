@@ -47,6 +47,14 @@ export default function ProtectedRoleRoute({ role, allowGuestPaths = [] }) {
   }, [hasSession, dispatch, attempt])
 
   if (!hasSession) {
+    if (auth.notice) {
+      return (
+        <Navigate
+          to={AUTH_ROUTES.LOGIN}
+          replace
+        />
+      )
+    }
     if (auth.signedOut && sessionRoute.hasSession) {
       return (
         <Navigate

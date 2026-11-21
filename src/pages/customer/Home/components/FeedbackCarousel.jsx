@@ -78,12 +78,12 @@ export default function FeedbackCarousel({ rows }) {
         )}
       </div>
       {rows.length > 1 && (
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-1">
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-0">
           {rows.map((row, index) => (
             <button
               key={row.id}
               type="button"
-              className="group flex size-11 cursor-pointer items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="group flex h-9 min-w-7 cursor-pointer items-center justify-center rounded-full px-1 outline-none focus-visible:ring-2 focus-visible:ring-primary"
               aria-label={t('customerReviews.showReview', { number: index + 1 })}
               aria-current={active === index ? 'true' : undefined}
               onClick={() => setSelected(index)}

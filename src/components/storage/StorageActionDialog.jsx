@@ -87,7 +87,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
         data-dialog-fixed
       >
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="pr-8 text-2xl font-bold">
             {t(`storage.actions.${action}`)}
           </DialogTitle>
           <DialogDescription className="mt-3">

@@ -14,7 +14,17 @@ import { Button } from '~/components/ui/button'
 export default function AllFeedbackDialog({ onClose }) {
   const { t } = useTranslation()
   const [query, setQuery] = useState({ page: 1, stars: '' })
-  const reviews = useCatalogResource(useCallback(signal => customerReviewApi.list({ page: query.page, take: CUSTOMER_REVIEWS.TAKE, ...(query.stars ? { stars: Number(query.stars) } : {}) }, signal), [query]))
+  const [previousPage, setPreviousPage] = useState(null)
+  const reviews = useCatalogResource(useCallback(async signal => {
+    const data = await customerReviewApi.list({ page: query.page, take: CUSTOMER_REVIEWS.TAKE, ...(query.stars ? { stars: Number(query.stars) } : {}) }, signal)
+    if (!signal.aborted) {
+      setPreviousPage(data)
+    }
+    return data
+  }, [query]))
+  // Keep the list and pagination mounted while loading so the modal doesn't
+  // collapse to the loading message and jump to the top before smooth scrolling.
+  const displayed = reviews.data || (reviews.loading ? previousPage : null)
   return (
     <Dialog
       open
@@ -26,7 +36,7 @@ export default function AllFeedbackDialog({ onClose }) {
     >
       <DialogContent
         closeLabel="common.close"
-        className="max-w-5xl bg-linear-to-br from-card via-card to-primary/5"
+        className="max-w-4xl"
         data-dialog-fixed
       >
         <DialogHeader className="mb-6 pr-12">
@@ -41,25 +51,26 @@ export default function AllFeedbackDialog({ onClose }) {
         <div data-dialog-body>
           <div
             data-pagination-scope
-            className="space-y-6"
+            className="space-y-4"
           >
             <div
-              className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-primary/15 bg-primary/5 p-4"
+              className="flex scroll-mt-6 flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 bg-muted/30 px-4 py-3"
               data-pagination-header
             >
-              <p className="font-semibold">
+              <p className="text-base font-semibold text-primary sm:text-lg">
                 {reviews.data ? t('customerReviews.found', { count: reviews.data.total }) : t('customerFeedbackActions.allTitle')}
               </p>
               <SelectField
                 showLabel
+                labelPosition="left"
                 label={t('customerReviews.filter')}
                 value={query.stars}
                 onValueChange={stars => setQuery({ page: 1, stars: stars || '' })}
-                className="w-full sm:w-48"
+                className="w-40 sm:w-44"
                 options={[{ value: '', label: t('customerReviews.allStars') }, ...[5, 4, 3, 2, 1].map(value => ({ value: String(value), label: t('customerReviews.stars', { count: value }) }))]}
               />
             </div>
-            {reviews.loading || reviews.error || !reviews.data?.list.length ? (
+            {!displayed || reviews.error || !displayed.list.length ? (
               <ResourceFeedback
                 {...reviews}
                 loadingText="customerReviews.loading"
@@ -67,20 +78,25 @@ export default function AllFeedbackDialog({ onClose }) {
               />
             ) : (
               <>
-                <ul className="grid items-start gap-5 sm:grid-cols-2">
-                  {reviews.data.list.map(row => (
+                <ul
+                  className="grid gap-4"
+                  aria-busy={reviews.loading}
+                >
+                  {displayed.list.map(row => (
                     <FeedbackCard
                       key={row.id}
                       row={row}
+                      layout="list"
                     />
                   ))}
                 </ul>
                 <TablePagination
-                  currentPage={query.page}
-                  totalPages={Math.ceil(reviews.data.total / CUSTOMER_REVIEWS.TAKE)}
-                  total={reviews.data.total}
+                  currentPage={displayed.page}
+                  totalPages={Math.ceil(displayed.total / CUSTOMER_REVIEWS.TAKE)}
+                  total={displayed.total}
                   pageSize={CUSTOMER_REVIEWS.TAKE}
-                  rowCount={reviews.data.list.length}
+                  rowCount={displayed.list.length}
+                  disabled={reviews.loading}
                   onPageChange={page => setQuery(current => ({ ...current, page }))}
                   className="px-0"
                 />

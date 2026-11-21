@@ -141,24 +141,13 @@ export default function ServicesPage() {
             role="tab"
             aria-selected={query.tab === tab}
             variant="ghost"
-            onClick={() => update({ tab, keyword: '', state: '', type: '', approval: '', merchantId: '', serviceId: '', sort: 'name' })}
+            onClick={() => update({ tab, keyword: '', categoryId: '', state: '', type: '', approval: '', merchantId: '', serviceId: '', sort: 'name' })}
             className={`h-12 shrink-0 rounded-none border-x-0 border-t-0 border-b-2 bg-transparent px-3 text-lg font-medium hover:bg-transparent dark:hover:bg-transparent ${query.tab === tab ? 'border-b-primary text-primary' : 'border-b-transparent text-muted-foreground'}`}
           >
             {t(`admin.services.tabs.${tab}`)}
           </Button>
         ))}
       </div>
-      {catalog && (
-        <div className="workspace-filters rounded-xl border border-border bg-card p-4">
-          <CategorySelect
-            role="Admin"
-            filter
-            includeInactive={true}
-            value={query.categoryId}
-            onChange={categoryId => update({ categoryId })}
-          />
-        </div>
-      )}
       <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-4">
         <div className="grid gap-2">
           <p className="text-sm">
@@ -177,6 +166,16 @@ export default function ServicesPage() {
             formClassName="h-11 rounded-xl p-1 pl-3 [&_input]:h-8 [&_button]:size-8"
           />
         </div>
+        {catalog && (
+          <CategorySelect
+            role="Admin"
+            filter
+            showLabel
+            includeInactive={true}
+            value={query.categoryId}
+            onChange={categoryId => update({ categoryId })}
+          />
+        )}
         {options.map(({ key, label, values }) => (
           <label
             key={key}
@@ -222,7 +221,7 @@ export default function ServicesPage() {
         )}
         <ClearFiltersButton
           className="sm:col-span-2 xl:col-span-full"
-          active={query.keyword || query.type || query.state || query.approval || query.merchantId || query.serviceId}
+          active={query.keyword || query.categoryId || query.type || query.state || query.approval || query.merchantId || query.serviceId}
           onClear={() => {
             setResetVersion(value => value + 1); setParams(writeQuery({ tab: query.tab, sort: query.sort }))
           }}

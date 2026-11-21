@@ -260,10 +260,11 @@ export default function TaskActionDialog(props) {
         data-dialog-fixed
       >
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-bold">
+            <PackageOpen />
             {t('storage.taskAction')}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="mt-3 text-sm leading-relaxed text-muted-foreground">
             {t('storage.simulation')}
           </DialogDescription>
         </DialogHeader>

@@ -13,7 +13,7 @@ import feedbackBackground from '~/assets/customer/customer-feedback-background.p
 import AllFeedbackDialog from './AllFeedbackDialog'
 import SectionGlow from '~/components/customer/SectionGlow/SectionGlow'
 
-const loadPreview = signal => customerReviewApi.list({ take: CUSTOMER_REVIEWS.TAKE }, signal)
+const loadPreview = signal => customerReviewApi.list({ take: CUSTOMER_REVIEWS.HOME_TAKE }, signal)
 
 export default function CustomerFeedback() {
   const { t, i18n } = useTranslation()

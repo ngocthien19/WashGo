@@ -9,7 +9,7 @@ export const CHATBOT_CONFIG = {
   FAILED: 3
 }
 
-export const CUSTOMER_REVIEWS = { ENDPOINT: '/customer/reviews', TAKE: 4, MAX_TAKE: 20, MAX_IMAGE_BYTES: 5 * 1024 * 1024 }
+export const CUSTOMER_REVIEWS = { ENDPOINT: '/customer/reviews', TAKE: 10, HOME_TAKE: 15, MAX_TAKE: 20, MAX_IMAGE_BYTES: 5 * 1024 * 1024 }
 
 export const AUTH_ROUTES = {
   ROOT: '/',
@@ -53,7 +53,7 @@ export const CUSTOMER_ROUTES = {
 
 export const MERCHANT_ROUTES = { HOME: '/merchant', STORAGE: '/merchant/storage', ORDERS: '/merchant/orders', ORDER_DETAIL: '/merchant/orders/:orderId', SHIPPERS: '/merchant/shippers', LOCKERS: '/merchant/lockers', SERVICES: '/merchant/services', REPORTS: '/merchant/reports', PROFILE: '/merchant/profile', NOTIFICATIONS: '/merchant/notifications' }
 export const SHIPPER_ROUTES = { HOME: '/shipper', PROFILE: '/shipper/profile', NOTIFICATIONS: '/shipper/notifications', HISTORY: '/shipper/history', TASKS: '/shipper/tasks', TASK_DETAIL: '/shipper/tasks/:orderId' }
-export const ADMIN_ROUTES = { HOME: '/admin', STORAGE: '/admin/storage', PROFILE: '/admin/profile', NOTIFICATIONS: '/admin/notifications', MERCHANTS: '/admin/merchants', ORDERS: '/admin/orders', LOCKERS: '/admin/lockers', SERVICES: '/admin/services', CATEGORIES: '/admin/categories', PROMOTIONS: '/admin/promotions', REVIEWS: '/admin/reviews', COMPLAINTS: '/admin/complaints', FINANCE: '/admin/finance', SETTINGS: '/admin/settings' }
+export const ADMIN_ROUTES = { ACCOUNTS: '/admin/accounts', HOME: '/admin', STORAGE: '/admin/storage', PROFILE: '/admin/profile', NOTIFICATIONS: '/admin/notifications', MERCHANTS: '/admin/merchants', ORDERS: '/admin/orders', LOCKERS: '/admin/lockers', SERVICES: '/admin/services', CATEGORIES: '/admin/categories', PROMOTIONS: '/admin/promotions', REVIEWS: '/admin/reviews', COMPLAINTS: '/admin/complaints', FINANCE: '/admin/finance', SETTINGS: '/admin/settings' }
 export const MERCHANT_API = { PROFILE: '/merchant-profile', ORDERS: '/wash-order/filter', SETTLEMENTS: '/finance/settlements/filter' }
 export const MERCHANT_DASHBOARD = { RECENT_TAKE: 5, SETTLEMENT_TAKE: 4, STATUSES: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 99] }
 
