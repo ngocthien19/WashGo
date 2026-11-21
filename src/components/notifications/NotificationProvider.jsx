@@ -141,7 +141,11 @@ function NotificationSession({ children, store, role, listHref, resolveHref, cat
     })
     connection.onclose(() => {
       if (!disposed) {
-        setLive(false); retryTimer = setTimeout(start, NOTIFICATION_CONFIG.RETRY_MS)
+        setLive(false)
+        // A server-side account lock also closes the socket. Let an authenticated
+        // read validate the session; a transport interruption alone is not a lock.
+        refresh()
+        retryTimer = setTimeout(start, NOTIFICATION_CONFIG.RETRY_MS)
       }
     })
     const focus = () => refresh()

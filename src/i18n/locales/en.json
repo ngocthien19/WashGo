@@ -673,6 +673,18 @@
     "contactAddress": "123 Street 7, Tan Kieng Ward, District 7, Ho Chi Minh City"
   },
   "auth": {
+    "accountAccess": {
+      "lockedReason": "Reason for locking the account",
+      "deletedReason": "Reason for deleting the account",
+      "noReason": "No reason has been provided.",
+      "home": "Go to Home",
+      "lockedTitle": "Account locked",
+      "lockedDescription": "Your account is locked and cannot sign in. Please contact support or the team managing your account for assistance.",
+      "deletedTitle": "Account unavailable",
+      "deletedDescription": "This account has been soft-deleted and cannot sign in. Please contact support if you need assistance or restoration.",
+      "sessionEndedTitle": "Your session has ended",
+      "sessionEndedDescription": "Your session has expired or been revoked. Please sign in again. If your account is locked, contact support or the team managing your account."
+    },
     "signInToContinue": "Please sign in to use this feature.",
     "signInDescription": "Sign in to manage your orders and care for your clothes with ease.",
     "createAccountDescription": "Create an account to start your laundry journey with WashGo.",

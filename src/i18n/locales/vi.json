@@ -705,6 +705,18 @@
     "contactAddress": "123 Đường Số 7, Phường Tân Kiểng, Quận 7, TP. HCM"
   },
   "auth": {
+    "accountAccess": {
+      "lockedReason": "Lý do khóa tài khoản",
+      "deletedReason": "Lý do xóa tài khoản",
+      "noReason": "Chưa có lý do được cung cấp.",
+      "home": "Về trang chủ",
+      "lockedTitle": "Tài khoản đã bị khóa",
+      "lockedDescription": "Tài khoản của bạn hiện bị khóa nên chưa thể đăng nhập. Vui lòng liên hệ bộ phận hỗ trợ hoặc đơn vị quản lý tài khoản để được kiểm tra.",
+      "deletedTitle": "Tài khoản không còn khả dụng",
+      "deletedDescription": "Tài khoản này đã được xóa mềm nên không thể đăng nhập. Vui lòng liên hệ bộ phận hỗ trợ nếu cần kiểm tra hoặc khôi phục.",
+      "sessionEndedTitle": "Phiên đăng nhập đã kết thúc",
+      "sessionEndedDescription": "Phiên đăng nhập đã hết hiệu lực hoặc bị thu hồi. Vui lòng đăng nhập lại. Nếu tài khoản bị khóa, hãy liên hệ bộ phận hỗ trợ hoặc đơn vị quản lý tài khoản."
+    },
     "signInToContinue": "Vui lòng đăng nhập để sử dụng chức năng này.",
     "signInDescription": "Đăng nhập để quản lý đơn hàng và chăm sóc đồ dễ dàng hơn.",
     "createAccountDescription": "Tạo tài khoản để bắt đầu trải nghiệm giặt ủi cùng WashGo.",

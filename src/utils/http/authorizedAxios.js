@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { API_TIMEOUT_MS, AUTH_API_ENDPOINTS } from '~/utils/config/constants'
 import { resolveApiUrl } from './apiConfig'
+import { accountAccessIssue, accountAccessReason } from '~/utils/auth/accountAccess'
 
 export const API_URL = resolveApiUrl(import.meta.env.VITE_API_URL, import.meta.env.PROD)
 const authorizedAxios = axios.create({ baseURL: API_URL, timeout: API_TIMEOUT_MS })
@@ -22,12 +23,23 @@ authorizedAxios.interceptors.request.use((config) => {
 })
 authorizedAxios.interceptors.response.use((response) => response, async (error) => {
   const request = error.config
+  const accessIssue = accountAccessIssue(error)
+  if (request && !request.skipAuth && accessIssue && session.getAuth()?.accessToken
+    && request.headers?.Authorization === `Bearer ${session.getAuth().accessToken}`) {
+    session.clearSession(accessIssue, accountAccessReason(error))
+    throw error
+  }
   if (!request || request.skipAuth || error.response?.status !== 401) {
     throw error
   }
   const auth = session.getAuth()
+  if (!auth?.accessToken || request.headers?.Authorization !== `Bearer ${auth.accessToken}`) {
+    throw error
+  }
   if (request._retry || !auth?.refreshToken) {
-    session.clearSession()
+    if (auth?.accessToken && request.headers?.Authorization === `Bearer ${auth.accessToken}`) {
+      session.clearSession('sessionEnded')
+    }
     throw error
   }
   request._retry = true
@@ -37,7 +49,9 @@ authorizedAxios.interceptors.response.use((response) => response, async (error) 
       refreshToken: auth.refreshToken
     }, { timeout: API_TIMEOUT_MS }).then(({ data }) => {
       if (!data.succeeded || !data.data?.accessToken) {
-        throw new Error(data.message || 'auth.yourSessionIsInvalid')
+        const failure = new Error(data.message || 'auth.yourSessionIsInvalid')
+        failure.response = { data, status: 401 }
+        throw failure
       }
       if (session.getAuth()?.refreshToken !== auth.refreshToken) {
         throw new axios.CanceledError('auth.yourSessionHasChanged')
@@ -50,7 +64,7 @@ authorizedAxios.interceptors.response.use((response) => response, async (error) 
       const invalidResponse = !refreshError.response && !axios.isAxiosError(refreshError)
 
       if (sessionUnchanged && (invalidRefreshToken || invalidResponse)) {
-        session.clearSession()
+        session.clearSession(accountAccessIssue(refreshError) || 'sessionEnded', accountAccessReason(refreshError))
       }
       throw refreshError
     }).finally(() => {

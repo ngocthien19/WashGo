@@ -11,7 +11,7 @@ import { loadGoogleIdentity, subscribeGoogleCredential } from '~/utils/auth/goog
 import { getApiError } from '~/utils/http/apiError'
 import { useTheme } from '~/hooks/useTheme'
 
-export default function GoogleSignInButton({ onSuccess }) {
+export default function GoogleSignInButton({ onSuccess, onError }) {
   const { t, i18n } = useTranslation()
   const containerRef = useRef(null)
   const pendingRef = useRef(false)
@@ -38,12 +38,14 @@ export default function GoogleSignInButton({ onSuccess }) {
       const session = await authApi.googleLogin(credential)
       onSuccess(session)
     } catch (err) {
-      setError(getApiError(err))
+      if (!onError?.(err)) {
+        setError(getApiError(err))
+      }
     } finally {
       pendingRef.current = false
       setPending(false)
     }
-  }, [onSuccess])
+  }, [onSuccess, onError])
 
   useEffect(() => {
     if (!configured) {

@@ -3,7 +3,9 @@ import { AUTH_API_ENDPOINTS, GOOGLE_ADMIN_PORTAL_MESSAGE } from '~/utils/config/
 
 const unwrap = ({ data }) => {
   if (!data.succeeded) {
-    throw new Error(data.message || 'auth.unableToCompleteTheRequest')
+    const error = new Error(data.message || 'auth.unableToCompleteTheRequest')
+    error.response = { data }
+    throw error
   }
   return data.data
 }
