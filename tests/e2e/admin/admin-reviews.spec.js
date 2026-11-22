@@ -46,7 +46,7 @@ async function setup(page, { legacy = false, dark = false } = {}) {
       if (state.unknown) {
         return route.fulfill({ status: 500, json: { succeeded: false } })
       }
-      state.rows[0] = body.action === 'Publish' ? { ...state.rows[0], contentApprovedAt: '2026-11-14T00:00:00Z', version: 'v2', canPublish: false } : { ...state.rows[0], isHidden: body.action === 'Hide', version: 'v2', canHide: false, canShow: true }
+      state.rows[0] = body.action === 'Publish' ? { ...state.rows[0], contentApprovedAt: '2026-11-14T00:00:00Z', version: 'v2', canPublish: false, ...(body.publishForCustomers && body.publishForGuests ? { publicApprovedAt: '2026-11-14T01:00:00Z', guestApprovedAt: '2026-11-14T01:00:00Z', canPublishForCustomers: false, canPublishForGuests: false } : {}) } : { ...state.rows[0], isHidden: body.action === 'Hide', version: 'v2', canHide: false, canShow: true }
       return ok({ operationId: body.operationId, state: 'Completed', items: body.items.map((item, index) => ({ id: item.id, succeeded: index === 0, statusCode: index === 0 ? 200 : 409, outcome: index === 0 ? 'Changed' : 'Failed', message: index === 0 ? null : 'Review changed' })) })
     }
     if (path.startsWith('/admin-operations/Rating/')) {
@@ -79,10 +79,12 @@ async function setup(page, { legacy = false, dark = false } = {}) {
   })
   return state
 }
-async function bulk(page) {
+async function bulk(page, action = 'Hide reviews') {
   await page.getByRole('checkbox', { name: 'Select all reviews on this page', exact: true }).check()
   await page.getByRole('region', { name: 'Bulk review actions' }).getByRole('button', { name: 'Bulk review actions', exact: true }).click()
-  return page.getByRole('dialog')
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('tab', { name: action, exact: true }).click()
+  return dialog
 }
 async function confirm(dialog) {
   await dialog.getByLabel('Reason for hiding', { exact: true }).fill('Contains personal information')
@@ -193,7 +195,7 @@ test('bulk restore uses keyboard tabs, skips visible reviews and needs confirmat
   await page.goto('/admin/reviews')
   const dialog = await bulk(page)
   const hide = dialog.getByRole('tab', { name: 'Hide reviews', exact: true })
-  await hide.focus(); await hide.press('Home')
+  await hide.focus()
   await expect(hide).toHaveAttribute('aria-selected', 'true')
   await hide.press('ArrowRight')
   await expect(dialog.getByRole('tab', { name: 'Restore visibility', exact: true })).toHaveAttribute('aria-selected', 'true')
@@ -283,20 +285,14 @@ test('publishing uses a distinct guarded action and keeps visibility unchanged',
   expect(state.rows[0].comment).toBe('Excellent service')
 })
 
-test('one public action completes legacy customer approval for guests', async ({ page }) => {
+test('legacy public approval is published without requiring guest reapproval', async ({ page }) => {
   const state = await setup(page)
   Object.assign(state.rows[0], { contentApprovedAt: '2026-11-14T00:00:00Z', publicApprovedAt: '2026-11-14T01:00:00Z', canPublish: false, canPublishForCustomers: false, canPublishForGuests: true })
   await page.goto(`/admin/reviews/${first}`)
-  await expect(page.getByRole('button', { name: 'Publish on Home', exact: true })).toHaveCount(0)
-  await page.getByRole('button', { name: 'Approve and publish', exact: true }).click()
-  const dialog = page.getByRole('dialog')
-  await expect(dialog).toContainText('visitors who have not signed in')
-  await dialog.getByRole('checkbox').check()
-  await dialog.getByRole('button', { name: 'Approve and publish', exact: true }).click()
-  await expect(dialog).not.toBeVisible()
-  expect(state.writes).toHaveLength(1)
-  expect(state.writes[0].body).toMatchObject({ publishForCustomers: true, publishForGuests: true })
   await expect(page.getByRole('button', { name: 'Approve and publish', exact: true })).toBeDisabled()
+  const approval = page.locator('dl').filter({ has: page.getByText('Published', { exact: true }) })
+  await expect(approval.locator('time')).toHaveAttribute('datetime', '2026-11-14T01:00:00Z')
+  expect(state.writes).toHaveLength(0)
 })
 
 test('customer publishing is explicit, works after merchant approval and closes with a toast', async ({ page }) => {
@@ -325,14 +321,37 @@ test('customer publishing is explicit, works after merchant approval and closes 
   }
 })
 
-test('bulk review actions only offer supported visibility operations', async ({ page }) => {
-  await setup(page)
+test('bulk approve and publish sends both public flags with per-item results', async ({ page }) => {
+  const state = await setup(page)
   await page.goto('/admin/reviews')
-  const dialog = await bulk(page)
-  await expect(dialog.getByRole('tab')).toHaveCount(2)
-  await expect(dialog.getByRole('tab', { name: 'Approve and publish', exact: true })).toHaveCount(0)
-  await dialog.getByRole('tab', { name: 'Hide reviews', exact: true }).press('End')
-  await expect(dialog.getByRole('tab', { name: 'Restore visibility', exact: true })).toHaveAttribute('aria-selected', 'true')
+  const dialog = await bulk(page, 'Approve and publish')
+  await expect(dialog.getByRole('tab')).toHaveCount(3)
+  await expect(dialog).toContainText('visitors who have not signed in')
+  await dialog.getByRole('checkbox').check()
+  await dialog.getByRole('button', { name: 'Approve and publish', exact: true }).click()
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByText('Review changed', { exact: true })).toBeVisible()
+  await expect(page.getByRole('table').getByText('Published', { exact: true })).toHaveCount(1)
+  expect(state.writes).toHaveLength(1)
+  expect(state.writes[0].body).toMatchObject({ action: 'Publish', publishForCustomers: true, publishForGuests: true, items: [{ id: first, expectedVersion: 'v1' }, { id: second, expectedVersion: 'v1' }] })
+})
+
+test('unknown public batch recovers its original command without publishing again', async ({ page }) => {
+  const state = await setup(page); state.unknown = true
+  Object.assign(state.rows[1], { contentApprovedAt: '2026-11-14T00:00:00Z', publicApprovedAt: '2026-11-14T01:00:00Z' })
+  await page.goto('/admin/reviews')
+  let dialog = await bulk(page, 'Approve and publish')
+  await dialog.getByRole('checkbox').check()
+  await dialog.getByRole('button', { name: 'Approve and publish', exact: true }).click()
+  await expect(dialog.getByRole('button', { name: 'Check result', exact: true })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  state.recovered = true
+  await page.getByRole('button', { name: 'Check result', exact: true }).click()
+  dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Check result', exact: true }).click()
+  await expect(dialog).not.toBeVisible()
+  expect(state.writes).toHaveLength(1)
+  expect(state.writes[0].body).toMatchObject({ action: 'Publish', publishForCustomers: true, publishForGuests: true, items: [{ id: first, expectedVersion: 'v1' }] })
 })
 
 test('review detail is a reloadable page with lazy activity tab and correct scrubbed order references', async ({ page }) => {

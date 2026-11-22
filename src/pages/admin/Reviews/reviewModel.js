@@ -24,10 +24,10 @@ export const reviewActionSchema = hidden => yup.object({
 })
 
 export const canPublishReview = row => typeof row?.version === 'string' && !!row.version.trim() && row.canPublish === true && !row.isHidden && !row.contentApprovedAt
-export const canPublishForCustomers = row => typeof row?.version === 'string' && !!row.version.trim() && !row.isHidden && (row.canPublishForCustomers === true && !row.publicApprovedAt || row.canPublishForGuests === true && !row.guestApprovedAt)
+export const canPublishForCustomers = row => typeof row?.version === 'string' && !!row.version.trim() && !row.isHidden && !row.publicApprovedAt && (row.canPublishForCustomers === true || row.canPublishForGuests === true)
 
 export const reviewPublication = row => row.isHidden
   ? { label: 'hidden', date: row.moderatedAt || null }
-  : row.contentApprovedAt && row.publicApprovedAt && row.guestApprovedAt
-    ? { label: 'approvedPublished', date: row.guestApprovedAt }
+  : row.contentApprovedAt && row.publicApprovedAt
+    ? { label: 'approvedPublished', date: row.guestApprovedAt || row.publicApprovedAt }
     : { label: 'pendingApproval', date: null }
