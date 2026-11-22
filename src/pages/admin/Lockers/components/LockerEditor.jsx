@@ -137,7 +137,7 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
               {tab === 'basic' && (
                 <>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {['code', 'name', 'address', ...(locker ? ['ward'] : []), 'city', 'latitude', 'longitude', 'description'].map(key => (
+                    {['code', 'name', 'address', 'city', 'latitude', 'longitude', 'description'].map(key => (
                       <label
                         key={key}
                         className={`flex min-w-0 flex-col gap-3 text-sm font-medium ${['address', 'description'].includes(key) ? 'sm:col-span-2' : ''} ${key === 'code' ? 'cursor-default select-none' : ''}`}
@@ -154,7 +154,7 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
                           aria-label={t(`admin.lockers.fields.${key}`)}
                           aria-invalid={!!errors[key]}
                           readOnly={['latitude', 'longitude'].includes(key) || key === 'code' && !!locker}
-                          maxLength={key === 'name' || key === 'city' || key === 'ward' ? 100 : key === 'code' ? 50 : key === 'address' ? 500 : key === 'description' ? 2000 : undefined}
+                          maxLength={key === 'name' || key === 'city' ? 100 : key === 'code' ? 50 : key === 'address' ? 500 : key === 'description' ? 2000 : undefined}
                           placeholder={t(key === 'code' ? 'common.systemGeneratedCode' : `admin.lockers.placeholders.${key}`)}
                           className="h-11 min-w-0 rounded-xl text-base font-normal read-only:bg-muted/40"
                         />
@@ -209,7 +209,7 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
                   />
                 </>
               )}
-              {['merchantIds', 'serviceAreaId', 'lockerType', 'status', 'district'].filter(key => errors[key]?.type === 'server').map(key => (
+              {['merchantIds', 'serviceAreaId', 'lockerType', 'status', 'ward', 'district'].filter(key => errors[key]?.type === 'server').map(key => (
                 <p
                   key={key}
                   role="alert"
