@@ -21,7 +21,7 @@ export const adminSystemSettingApi = {
   },
   update: async (group, values, version) => {
     const body = settingPayload(group, values)
-    const action = { loyalty: 'Loyalty', sla: 'Sla', commission: 'Commission', penalty: 'Penalty' }[group]
+    const action = { dispatch: 'Dispatch', loyalty: 'Loyalty', sla: 'Sla', commission: 'Commission', penalty: 'Penalty' }[group]
     const response = await adminWrite('SystemSetting', action, null, 'put', `/system-setting/${group}`, { ...body, ...versionGuard(version) })
     try {
       const data = unwrap(response)

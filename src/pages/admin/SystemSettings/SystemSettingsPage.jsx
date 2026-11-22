@@ -90,7 +90,7 @@ export default function SystemSettingsPage() {
             key={key}
             role="tab"
             aria-selected={key === group}
-            disabled={busy || key === 'loyalty' && !Number.isFinite(resource.data?.earnPercent)}
+            disabled={busy || key === 'dispatch' && !Number.isFinite(resource.data?.maxActiveTasksPerShipper) || key === 'loyalty' && !Number.isFinite(resource.data?.earnPercent)}
             variant="ghost"
             onClick={() => navigate(key)}
             className={`h-12 shrink-0 rounded-none border-x-0 border-t-0 border-b-2 px-3 text-lg hover:bg-transparent ${key === group ? 'border-b-primary text-primary' : 'border-b-transparent text-muted-foreground'}`}

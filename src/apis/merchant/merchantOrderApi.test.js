@@ -8,7 +8,7 @@ const guard = { expectedRevision: 3, expectedStatus: 3, operationId: '11111111-1
 it('uses eligible shipper contacts from the order endpoint without extra profile requests', async () => {
   authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: [{ id: 'driver', fullName: 'Eligible Driver', email: 'driver@example.test', avatarUrl: '/avatar.png', vehicleType: 1 }] } })
   expect(await merchantOrderApi.shippers('order')).toMatchObject([{ id: 'driver', email: 'driver@example.test', avatar: '/avatar.png', vehicleType: 1 }])
-  expect(authorizedAxios.get).toHaveBeenCalledExactlyOnceWith('/wash-order/order/available-shippers', { signal: undefined })
+  expect(authorizedAxios.get).toHaveBeenCalledExactlyOnceWith('/wash-order/order/available-shippers', { params: { includeUnavailable: true }, signal: undefined })
 })
 it('keeps eligible shippers with null email without probing profiles', async () => {
   authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: [{ id: 'driver', fullName: 'Eligible Driver', email: null }] } })

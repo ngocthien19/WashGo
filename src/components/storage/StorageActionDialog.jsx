@@ -1,3 +1,5 @@
+import ShipperSelection from '~/components/shippers/ShipperSelection'
+import { canAssignShipper, isShipperCapacityConflict } from '~/utils/orders/shipperCapacity'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useForm, useWatch } from 'react-hook-form'
@@ -9,7 +11,6 @@ import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
 import FormError from '~/components/ui/FormError'
 import { notify } from '~/utils/notifications/notifications'
-import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { storageApi } from '~/apis/storage/storageApi'
 import { getApiError } from '~/utils/http/apiError'
@@ -50,6 +51,10 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
         }
         const body = { reason: values.reason || undefined }
         if (action === 'assign') {
+          const candidates = await storageApi.shippers(order.id)
+          if (!candidates.some(row => row.id === values.shipperId && canAssignShipper(row))) {
+            setValue('shipperId', ''); shippers.retry(); setError('shipperCapacity.changed'); return
+          }
           body.shipperId = values.shipperId
         }
         if (action === 'verify-legacy') {
@@ -65,6 +70,9 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
       }
       notify.success('forms.saved'); setUnknown(false); onSaved()
     } catch (failure) {
+      if (action === 'assign' && isShipperCapacityConflict(failure)) {
+        setValue('shipperId', ''); shippers.retry(); setError('shipperCapacity.changed'); return
+      }
       const metadata = failure.response?.data?.meta || {}
       setAttempts({ remaining: metadata.remainingAttempts, until: metadata.lockoutUntil })
       const pending = storageApi.hasPending(order.id)
@@ -125,17 +133,14 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
             >
               {action === 'assign' && (
                 <>
-                  {shippers.loading || shippers.error ? <ResourceFeedback {...shippers} /> : (
-                    <SelectField
-                      showLabel
-                      aria-invalid={!!errors.shipperId}
-                      aria-describedby={errors.shipperId ? 'storage-shipper-error' : undefined}
-                      value={shipperId}
-                      label={t('storage.shipper')}
-                      options={[{ value: '', label: t('storage.chooseShipper') }, ...(shippers.data || []).map(row => ({ value: row.id, label: `${row.fullName} · ${row.phone || row.email || '—'}` }))]}
-                      onValueChange={value => setValue('shipperId', value, { shouldValidate: true })}
-                    />
-                  )}
+                  <ShipperSelection
+                    resource={shippers}
+                    value={shipperId}
+                    disabled={busy || unknown || blocked}
+                    onChange={row => {
+                      setValue('shipperId', row?.id || '', { shouldValidate: true }); setValue('confirmed', false)
+                    }}
+                  />
                   <FormError
                     inline
                     id="storage-shipper-error"

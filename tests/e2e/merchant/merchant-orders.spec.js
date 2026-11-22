@@ -5,6 +5,26 @@ import { merchantSession } from '../helpers/merchantSession'
 const id = '11111111-1111-4111-8111-111111111111'
 const shipperId = '22222222-2222-4222-8222-222222222222'
 
+test('dispatch accepts a busy queue below the limit and refreshes a capacity race without retry', async ({ page }) => {
+  const state = await setup(page, { status: 18, paymentStatus: 2 })
+  state.candidates = [
+    { id: shipperId, fullName: 'Test Driver', activeTaskCount: 1, maxActiveTasks: 3, remainingTaskCapacity: 2, canAssign: true },
+    { id: 'full-driver', fullName: 'Full Driver', activeTaskCount: 3, maxActiveTasks: 3, remainingTaskCapacity: 0, canAssign: false, blockedReasonCode: 'ShipperCapacityExceeded' }
+  ]
+  state.capacityRace = true
+  await page.goto(`/merchant/orders/${id}`)
+  await page.getByRole('button', { name: 'Assign return delivery', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByText('1 / 3 open tasks', { exact: true })).toBeVisible()
+  await expect(dialog.getByRole('radio', { name: 'Full Driver', exact: true })).toBeDisabled()
+  await dialog.getByRole('radio', { name: 'Test Driver', exact: true }).check()
+  await dialog.getByRole('button', { name: 'Confirm update', exact: true }).click()
+  await expect(dialog).toContainText('task capacity has changed')
+  await expect(dialog.getByRole('radio', { name: 'Test Driver', exact: true })).toBeDisabled()
+  await expect(dialog.getByRole('button', { name: 'Confirm update', exact: true })).toBeDisabled()
+  expect(state.writes).toHaveLength(1)
+})
+
 test('return readiness requires confirmation and advances Paid before return assignment', async ({ page }) => {
   const state = await setup(page, { status: 9, paymentStatus: 2 })
   await page.goto(`/merchant/orders/${id}`)
@@ -112,7 +132,7 @@ async function setup(page, options = {}) {
       return route.fulfill({ json: { succeeded: true, list: [], total: 0, currentPage: 1 } })
     }
     if (path === `/shipper/${shipperId}`) {
-      return ok({ id: shipperId, fullName: 'Test Driver', email: 'driver@example.test', phone: '0901234567', vehicleType: 1, vehiclePlate: '59-ABC', isActive: true })
+      return ok({ id: shipperId, fullName: 'Test Driver', activeTaskCount: 1, maxActiveTasks: 3, remainingTaskCapacity: 2, canAssign: true, email: 'driver@example.test', phone: '0901234567', vehicleType: 1, vehiclePlate: '59-ABC', isActive: true })
     }
     if (path === '/locker/33333333-3333-4333-8333-333333333333') {
       return ok({ id: '33333333-3333-4333-8333-333333333333', imageUrls: [] })
@@ -158,11 +178,19 @@ async function setup(page, options = {}) {
       return ok({ ...state.order, allowedActions: state.allowedActions || mockOrderActions(state.order) })
     }
     if (path === `/wash-order/${id}/available-shippers`) {
-      return ok(state.shippers ? [{ id: shipperId, fullName: 'Test Driver', email: 'driver@example.test', phone: '0901234567', vehicleType: 1, taskType: [18, 19].includes(options.status) ? 2 : 1, vehiclePlate: '59-ABC' }] : [])
+      if (state.candidates) {
+        expect(new URL(req.url()).searchParams.get('includeUnavailable')).toBe('true')
+        return ok(state.candidates)
+      }
+      return ok(state.shippers ? [{ id: shipperId, fullName: 'Test Driver', activeTaskCount: 1, maxActiveTasks: 3, remainingTaskCapacity: 2, canAssign: true, email: 'driver@example.test', phone: '0901234567', vehicleType: 1, taskType: [18, 19].includes(options.status) ? 2 : 1, vehiclePlate: '59-ABC' }] : [])
     }
     if (['PUT', 'POST'].includes(req.method()) && [`/wash-order/${id}/actual-weight`, '/wash-order/status', '/wash-order/assign-shipper', `/wash-order/${id}/confirm-return-ready`, `/wash-order/${id}/unassign-shipper`].includes(path)) {
       const body = req.postDataJSON()
       state.writes.push({ path, body })
+      if (path === '/wash-order/assign-shipper' && state.capacityRace) {
+        state.candidates[0] = { ...state.candidates[0], activeTaskCount: 3, remainingTaskCapacity: 0, canAssign: false, blockedReasonCode: 'ShipperCapacityExceeded' }
+        return route.fulfill({ status: 409, json: { succeeded: false, meta: { code: 'ShipperCapacityExceeded', activeTaskCount: 3, maxActiveTasks: 3, remainingTaskCapacity: 0 } } })
+      }
       if (state.conflict || body.expectedRevision !== state.order.revision) {
         return route.fulfill({ status: 409, json: { succeeded: false, data: state.order, meta: { code: 'RevisionMismatch' } } })
       }

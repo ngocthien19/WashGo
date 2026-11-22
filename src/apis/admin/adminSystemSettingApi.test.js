@@ -4,6 +4,11 @@ import authorizedAxios from '~/utils/http/authorizedAxios'
 import { systemSettingsFixture } from '~/test/fixtures/systemSettings'
 vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), put: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
+it('sends the dispatch limit with an operation and checks the returned value', async () => {
+  authorizedAxios.put.mockResolvedValue({ data: { succeeded: true, data: { ...systemSettingsFixture(), maxActiveTasksPerShipper: 4 } } })
+  await adminSystemSettingApi.update('dispatch', { maxActiveTasksPerShipper: 4, merchantId: 'spoof' }, 'v1')
+  expect(authorizedAxios.put).toHaveBeenCalledWith('/system-setting/dispatch', { maxActiveTasksPerShipper: 4, expectedVersion: 'v1', operationId: expect.any(String) })
+})
 it('maps loyalty settings and writes only rates with version and operation identity', async () => {
   const value = { ...systemSettingsFixture(), loyaltyEarnPercent: 1.25, loyaltyMaxUsePercent: 20 }
   authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, data: value } })

@@ -65,7 +65,7 @@ export const orderManagementApi = {
     return { ...data, currentPage: data.currentPage || page, totalPages: Math.ceil(data.total / take) }
   },
   shippers: async (id, signal) => {
-    const { data } = await authorizedAxios.get(`/wash-order/${encodeURIComponent(id)}/available-shippers`, { signal })
+    const { data } = await authorizedAxios.get(`/wash-order/${encodeURIComponent(id)}/available-shippers`, { params: { includeUnavailable: true }, signal })
     if (data?.succeeded !== true || !Array.isArray(data.data) || data.data.some((item) => !item.id || !item.fullName)) {
       throw invalid()
     }

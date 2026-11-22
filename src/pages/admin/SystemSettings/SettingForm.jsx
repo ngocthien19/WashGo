@@ -14,7 +14,7 @@ import { getApiError } from '~/utils/http/apiError'
 import { resolveMessage } from '~/i18n/messages'
 import { settingGroups, settingsSchema, settingPayload, settingSnapshot, settingChanges, unknownWrite } from './settingModel'
 
-const icons = { loyalty: Percent, sla: Clock3, commission: Percent, penalty: ShieldCheck }
+const icons = { dispatch: ShieldCheck, loyalty: Percent, sla: Clock3, commission: Percent, penalty: ShieldCheck }
 export default function SettingForm({ group, data, onDirty, onBusy, onSaved }) {
   const { t } = useTranslation()
   const fields = settingGroups[group], Icon = icons[group]

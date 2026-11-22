@@ -46,7 +46,7 @@ export const storageApi = {
     return value
   }),
   cycles: (id, page = 1, signal) => authorizedAxios.get(`${path(id)}/cycles`, { params: { page, take: 20 }, signal }).then(paged),
-  shippers: (id, signal) => authorizedAxios.get(`${path(id)}/shippers`, { signal }).then(unwrap).then(value => {
+  shippers: (id, signal) => authorizedAxios.get(`${path(id)}/shippers`, { params: { includeUnavailable: true }, signal }).then(unwrap).then(value => {
     if (!Array.isArray(value) || value.some(row => !row.id || typeof row.fullName !== 'string')) {
       throw invalid()
     }

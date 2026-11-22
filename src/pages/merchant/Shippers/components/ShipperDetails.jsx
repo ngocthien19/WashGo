@@ -1,3 +1,4 @@
+import ShipperCapacity from '~/components/shippers/ShipperCapacity'
 import ResourceImage from '~/components/ResourceThumbnail/ResourceImage'
 import ShipperHistory from './ShipperHistory'
 import { useCallback, useEffect } from 'react'
@@ -105,9 +106,9 @@ export default function ShipperDetails({ id, onClose, onEdit, editImmediately = 
                       size={20}
                       className={`mb-2 ${iconColor}`}
                     />
-                    <p className="text-2xl font-bold">
-                      <AnimatedNumber value={shipper[key]} />
-                    </p>
+                    <div className="text-2xl font-bold">
+                      {key === 'activeTaskCount' ? <ShipperCapacity shipper={shipper} /> : <AnimatedNumber value={shipper[key]} />}
+                    </div>
                     <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">
                       {t(`merchant.shippers.${key}`)}
                     </p>

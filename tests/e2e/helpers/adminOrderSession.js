@@ -33,7 +33,7 @@ export async function setupAdminOrders(page, options = {}) {
       return ok(0)
     }
     if (path === `/shipper/${shipperId}`) {
-      return ok({ id: shipperId, fullName: 'Test Driver', email: 'driver@example.test', vehicleType: 1, vehiclePlate: '59-ABC', isActive: true })
+      return ok({ id: shipperId, fullName: 'Test Driver', activeTaskCount: 1, maxActiveTasks: 3, remainingTaskCapacity: 2, canAssign: true, email: 'driver@example.test', vehicleType: 1, vehiclePlate: '59-ABC', isActive: true })
     }
     if (path.startsWith('/hubs/notifications')) {
       return fail(404)
@@ -96,7 +96,7 @@ export async function setupAdminOrders(page, options = {}) {
       return ok(order)
     }
     if (path.endsWith('/available-shippers')) {
-      return ok([{ id: shipperId, fullName: 'Test Driver', avatarUrl: null }])
+      return ok([{ id: shipperId, fullName: 'Test Driver', activeTaskCount: 1, maxActiveTasks: 3, remainingTaskCapacity: 2, canAssign: true, avatarUrl: null }])
     }
     if (path.includes('/operations/')) {
       return state.operations.has(path.split('/').at(-1)) ? ok(state.operations.get(path.split('/').at(-1))) : fail(404)

@@ -1,13 +1,13 @@
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Truck, MapPin, CircleCheck, Package } from 'lucide-react'
-import UserAvatar from '~/components/UserAvatar/UserAvatar'
+import ShipperPicker from '~/components/shippers/ShipperSelection'
+import { canAssignShipper, isShipperCapacityConflict } from '~/utils/orders/shipperCapacity'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import FormError from '~/components/ui/FormError'
 import { SelectField } from '~/components/ui/select'
-import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { orderManagementApi as merchantOrderApi } from '~/apis/orders/orderManagementApi'
 import { notify } from '~/utils/notifications/notifications'
@@ -15,76 +15,15 @@ import { getApiError } from '~/utils/http/apiError'
 import { processingSteps, canWeigh, assignmentTask, validWeight, sameOrderState, statusLabel } from '~/utils/orders/orderManagement'
 
 function ShipperSelection({ id, value, onChange, disabled }) {
-  const { t } = useTranslation()
-  const load = useCallback((signal) => merchantOrderApi.shippers(id, signal), [id])
+  const load = useCallback(signal => merchantOrderApi.shippers(id, signal), [id])
   const resource = useCatalogResource(load)
-  if (resource.loading || resource.error || !resource.data?.length) {
-    return (
-      <ResourceFeedback
-        {...resource}
-        loadingText="merchant.loading"
-        empty="merchant.orders.noShippers"
-      />
-    )
-  }
   return (
-    <fieldset
-      className="space-y-3"
+    <ShipperPicker
+      resource={resource}
+      value={value?.id}
+      onChange={onChange}
       disabled={disabled}
-    >
-      <legend className="mb-3 flex w-full flex-wrap items-center justify-between gap-2 text-base font-semibold">
-        {t('merchant.orders.chooseShipper')}
-        <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-700 dark:text-emerald-300">
-          {t('merchant.shippers.eligibleCount', { count: resource.data.length })}
-        </span>
-      </legend>
-      <div className="space-y-3">
-        {resource.data.map((item) => (
-          <label
-            key={item.id}
-            className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-colors ${value?.id === item.id ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-border bg-background hover:border-primary/40'} has-focus-visible:ring-2 has-focus-visible:ring-primary`}
-          >
-            <UserAvatar
-              avatar={item.avatar}
-              fullName={item.fullName}
-              className="size-11 text-sm"
-            />
-            <span className="min-w-0 flex-1">
-              <span className="block break-words text-base font-semibold">
-                {item.fullName}
-              </span>
-              <span className="mt-2 block break-all text-sm text-muted-foreground">
-                {t('merchant.shippers.email')}
-                :
-                {' '}
-                {item.email || '—'}
-              </span>
-              <span className="mt-1 block text-sm text-muted-foreground">
-                {t('merchant.shippers.phone')}
-                :
-                {' '}
-                {item.phone || '—'}
-              </span>
-              <span className="mt-1 block text-sm text-muted-foreground">
-                {t('merchant.shippers.vehicleType')}
-                :
-                {' '}
-                {t(`merchant.shippers.vehicles.${item.vehicleType}`, { defaultValue: '—' })}
-                {item.vehiclePlate && ` · ${item.vehiclePlate}`}
-              </span>
-            </span>
-            <input
-              type="radio"
-              name="assignment-shipper"
-              aria-label={item.fullName}
-              checked={value?.id === item.id}
-              onChange={() => onChange(item)}
-              className="size-5 shrink-0 accent-primary"
-            />
-          </label>
-        ))}
-      </div>
-    </fieldset>
+    />
   )
 }
 
@@ -93,6 +32,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
   const [weight, setWeight] = useState(order.actualWeightKg == null ? '' : String(order.actualWeightKg))
   const [next, setNext] = useState(String(processingSteps(order)[0] || ''))
   const [shipper, setShipper] = useState(null)
+  const [shipperReload, setShipperReload] = useState(0)
   const [note, setNote] = useState('')
   const [confirmed, setConfirmed] = useState(false)
   const needsConfirmation = ['returnReady', 'unassign'].includes(action)
@@ -132,7 +72,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
       return
     }
     if (!intent.current) {
-      const fields = { weight: action === 'weigh' && !validWeight(weight), next: action === 'process' && !processingSteps(order).includes(Number(next)), shipper: action === 'assign' && !shipper, note: note.trim().length > 500, confirmed: needsConfirmation && !confirmed }
+      const fields = { weight: action === 'weigh' && !validWeight(weight), next: action === 'process' && !processingSteps(order).includes(Number(next)), shipper: action === 'assign' && !canAssignShipper(shipper), note: note.trim().length > 500, confirmed: needsConfirmation && !confirmed }
       setValidation(fields)
       if (Object.values(fields).some(Boolean)) {
         return
@@ -154,6 +94,12 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
         if (!canAct(latest) || (action === 'weigh' && !canWeigh(latest)) || (action === 'process' && !processingSteps(latest).includes(Number(next))) || (action === 'assign' && !assignmentTask(latest))) {
           setUncertain(true); setError('merchant.orders.changed'); return
         }
+        if (action === 'assign') {
+          const candidates = await merchantOrderApi.shippers(order.id)
+          if (!candidates.some(row => row.id === shipper?.id && canAssignShipper(row))) {
+            setShipper(null); setShipperReload(value => value + 1); setError('shipperCapacity.changed'); return
+          }
+        }
         intent.current = { weight: Number(weight), next: Number(next), shipper, note: note.trim() || null, guard: { expectedRevision: order.revision, expectedStatus: order.status, operationId: crypto.randomUUID() } }
       }
       const request = intent.current
@@ -173,6 +119,10 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
       }
       complete()
     } catch (failure) {
+      if (action === 'assign' && isShipperCapacityConflict(failure)) {
+        intent.current = null; setShipper(null); setShipperReload(value => value + 1)
+        setUncertain(false); setCanRetry(false); setCanCheck(false); setError('shipperCapacity.changed'); return
+      }
       const unknown = writing && (failure.uncertain || !failure.response || failure.response.status >= 500)
       const conflict = failure.response?.status === 409
       setUncertain(unknown || conflict)
@@ -311,6 +261,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
               </FormError>
               {action === 'assign' && (
                 <ShipperSelection
+                  key={shipperReload}
                   id={order.id}
                   value={shipper}
                   onChange={value => {

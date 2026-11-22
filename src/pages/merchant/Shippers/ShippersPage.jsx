@@ -1,3 +1,4 @@
+import ShipperCapacity from '~/components/shippers/ShipperCapacity'
 import RecordLink from '~/components/RecordLink'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -279,7 +280,7 @@ export default function ShippersPage() {
                       </span>
                     </TableCell>
                     <TableCell className="font-semibold">
-                      {shipper.activeTaskCount ?? '—'}
+                      <ShipperCapacity shipper={shipper} />
                     </TableCell>
                     <TableCell className="font-semibold">
                       {shipper.totalDeliveries ?? '—'}
