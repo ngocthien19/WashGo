@@ -183,6 +183,7 @@ test('editing preserves legacy geography and Merchant links and uploads station 
   await page.goto('/admin/lockers')
   await menu(page, 'Edit locker')
   const dialog = page.getByRole('dialog')
+  await expect(dialog.getByLabel('Ward / Commune', { exact: true })).toHaveCount(0)
   await expect(dialog.getByLabel('Locker code', { exact: true })).not.toBeEditable()
   const code = dialog.getByLabel('Locker code', { exact: true })
   await code.evaluate(element => element.focus())
@@ -196,7 +197,7 @@ test('editing preserves legacy geography and Merchant links and uploads station 
   await expect(dialog).toHaveCount(0)
   await expect(page.getByRole('table')).toContainText('Renamed Station')
   expect(state.uploads).toBe(1)
-  expect(state.writes[0].body).toMatchObject({ id: lockerId, merchantIds: null, district: 'Legacy district', serviceAreaId: '70000000-0000-4000-8000-000000000001', imageUrls: ['/uploads/mock/new.png'] })
+  expect(state.writes[0].body).toMatchObject({ id: lockerId, merchantIds: null, ward: 'Test Ward', district: 'Legacy district', serviceAreaId: '70000000-0000-4000-8000-000000000001', imageUrls: ['/uploads/mock/new.png'] })
   for (const key of ['code', 'boxes', 'boxCount', 'actorId', 'role']) {
     expect(state.writes[0].body).not.toHaveProperty(key)
   }

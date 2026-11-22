@@ -1,4 +1,6 @@
 import WorkStatusControl from './WorkStatusControl'
+import ShipperCapacity from '~/components/shippers/ShipperCapacity'
+import { hasShipperCapacity } from '~/utils/orders/shipperCapacity'
 import AccountSecurity from '~/components/account/AccountSecurity'
 import ShipperActivities from './ShipperActivities'
 import { useEffect, useState } from 'react'
@@ -215,6 +217,11 @@ export default function ProfilePage() {
                   </div>
                 ))}
               </dl>
+              {hasShipperCapacity(user) && (
+                <div className="mx-5 mb-5 rounded-xl border border-primary/15 bg-primary/5 p-4">
+                  <ShipperCapacity shipper={user} />
+                </div>
+              )}
               <p className="border-t border-border px-5 py-4 text-sm text-muted-foreground">
                 {t('shipper.workHint')}
               </p>

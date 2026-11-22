@@ -12,7 +12,7 @@ beforeEach(() => vi.clearAllMocks())
 describe('admin reviews contract', () => {
   it('shows one publication state without treating partial approval as public', () => {
     expect(reviewPublication(row)).toEqual({ label: 'pendingApproval', date: null })
-    expect(reviewPublication({ ...row, contentApprovedAt: '2026-11-14T00:00:00Z', publicApprovedAt: '2026-11-14T01:00:00Z' }).label).toBe('pendingApproval')
+    expect(reviewPublication({ ...row, contentApprovedAt: '2026-11-14T00:00:00Z', publicApprovedAt: '2026-11-14T01:00:00Z' }).label).toBe('approvedPublished')
     const published = { ...row, contentApprovedAt: '2026-11-14T00:00:00Z', publicApprovedAt: '2026-11-14T01:00:00Z', guestApprovedAt: '2026-11-21T01:00:00Z' }
     expect(reviewPublication(published)).toEqual({ label: 'approvedPublished', date: published.guestApprovedAt })
     expect(reviewPublication({ ...published, isHidden: true, moderatedAt: '2026-11-21T02:00:00Z' })).toEqual({ label: 'hidden', date: '2026-11-21T02:00:00Z' })
@@ -35,7 +35,7 @@ describe('admin reviews contract', () => {
   })
   it('uses one public action for guests and keeps incomplete guest approvals unresolved', async () => {
     const legacy = { ...row, version: 'v1', contentApprovedAt: '2026-11-14T00:00:00Z', publicApprovedAt: '2026-11-14T01:00:00Z', canPublishForCustomers: false, canPublishForGuests: true }
-    expect(canPublishForCustomers(legacy)).toBe(true)
+    expect(canPublishForCustomers(legacy)).toBe(false)
     expect(canPublishForCustomers({ ...legacy, guestApprovedAt: '2026-11-21T01:00:00Z' })).toBe(false)
     authorizedAxios.post.mockResolvedValue(ok(legacy))
     await expect(adminReviewApi.publish(legacy, null, 'unified-operation', true)).rejects.toMatchObject({ uncertain: true })
@@ -97,6 +97,20 @@ describe('admin reviews contract', () => {
     expect(authorizedAxios.post).toHaveBeenCalledWith(`/rating/${id}/publish`, { reason: null, expectedVersion: 'v1', operationId: 'publish-operation' })
     authorizedAxios.get.mockResolvedValue(ok({ operationId: 'publish-operation', state: 'Completed', action: 'Publish', resourceId: id, result: { succeeded: true, data: approved } }))
     await expect(adminReviewApi.lookup({ operationId: 'publish-operation', action: 'Publish', items: [{ id }] }, false)).resolves.toMatchObject({ contentApprovedAt: approved.contentApprovedAt, isHidden: false })
+  })
+  it('preserves public batch flags and original legacy operation scopes', async () => {
+    const command = { operationId: 'public-batch', action: 'Publish', publishForCustomers: true, publishForGuests: true, reason: null, items: [{ id, expectedVersion: 'v1' }] }
+    const result = { operationId: command.operationId, state: 'Completed', items: [{ id, succeeded: true, statusCode: 200, outcome: 'Changed' }] }
+    authorizedAxios.post.mockResolvedValue(ok(result))
+    await expect(adminReviewApi.batch(command)).resolves.toEqual(result)
+    expect(authorizedAxios.post).toHaveBeenCalledWith('/rating/batch', command)
+    authorizedAxios.get.mockResolvedValue(ok({ operationId: command.operationId, state: 'Completed', action: 'Batch', resourceId: 'batch', result: { succeeded: true, data: result } }))
+    await expect(adminReviewApi.lookup(command, true)).resolves.toEqual(result)
+    const legacy = { operationId: 'legacy-publish', action: 'Publish', items: [{ id }] }
+    authorizedAxios.get.mockResolvedValue(ok({ operationId: legacy.operationId, state: 'Completed', action: 'Publish', resourceId: id, result: { succeeded: true, data: { ...row, contentApprovedAt: '2026-11-14T00:00:00Z' } } }))
+    await expect(adminReviewApi.lookup(legacy, false)).resolves.toMatchObject({ id })
+    expect(legacy).not.toHaveProperty('publishForGuests')
+    expect(authorizedAxios.post).toHaveBeenCalledTimes(1)
   })
   it('does not retry a batch after an ambiguous write and failed lookup', async () => {
     authorizedAxios.post.mockRejectedValue({ response: { status: 500 } })

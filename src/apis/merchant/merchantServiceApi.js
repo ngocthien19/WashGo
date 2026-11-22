@@ -17,7 +17,7 @@ export const merchantServiceApi = {
     return pageResult(data, filter.page, filter.take, validService)
   },
   proposals: async (filter, signal) => {
-    const { data } = await authorizedAxios.post('/service-proposal/filter', pick(filter, ['keyword', 'serviceId', 'status', 'requestType', 'page', 'take']), { signal })
+    const { data } = await authorizedAxios.post('/service-proposal/filter', pick(filter, ['keyword', 'categoryIds', 'serviceId', 'status', 'requestType', 'page', 'take']), { signal })
     return pageResult(data, filter.page, filter.take, validProposal)
   },
   proposal: async (id, signal) => {

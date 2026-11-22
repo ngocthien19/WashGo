@@ -3,6 +3,18 @@ import { expect, test } from '@playwright/test'
 import { merchantSession } from '../helpers/merchantSession'
 const id = 'a0000000-0000-4000-8000-000000000001', proposalId = 'b0000000-0000-4000-8000-000000000001', merchantId = 'c0000000-0000-4000-8000-000000000001'
 
+test('Admin proposals filter categories on the server and reset page', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto('/admin/services?tab=proposals&page=2&state=1')
+  await page.getByRole('combobox', { name: 'Category', exact: true }).click()
+  await page.getByRole('option', { name: 'Special care', exact: true }).click()
+  await expect.poll(() => state.proposalFilters.at(-1)).toMatchObject({ categoryIds: ['ca000000-0000-0000-0000-000000000006'], page: 1, status: 1 })
+  await page.reload()
+  await expect(page.getByRole('combobox', { name: 'Category', exact: true })).toContainText('Special care')
+  await page.getByRole('button', { name: 'Clear all', exact: true }).click()
+  await expect.poll(() => state.proposalFilters.at(-1)?.categoryIds).toBeUndefined()
+})
+
 test('Admin category filter shares the search panel and resets with filters', async ({ page }) => {
   const state = await setup(page)
   await page.goto('/admin/services')
@@ -21,7 +33,7 @@ test('Admin category filter shares the search panel and resets with filters', as
   await expect(page).toHaveURL(/categoryId=/)
   await page.getByRole('tab', { name: 'Merchant proposals', exact: true }).click()
   await expect(page).not.toHaveURL(/categoryId=/)
-  await expect(category).toHaveCount(0)
+  await expect(category).toBeVisible()
 })
 
 test('Admin search suggestions keep catalog/proposal scope and highlight matching fields', async ({ page }) => {
@@ -42,7 +54,7 @@ test('Admin search suggestions keep catalog/proposal scope and highlight matchin
 async function setup(page, options = {}) {
   await merchantSession(page, { role: 'Admin', ...options })
   const service = { id, categoryId: 'ca000000-0000-0000-0000-000000000001', categoryName: 'Standard wash', categoryIsActive: true, effectiveIsActive: true, merchantId, code: 'SVC_TEST', name: 'Everyday wash', description: 'Careful cleaning', unitPrice: 50000, pricePerKg: null, pricePerItem: null, estimatedDurationHours: 24, serviceType: 1, unit: 'kg', isActive: true, approvalStatus: 2, imageUrls: [] }
-  const state = { service, proposal: { id: proposalId, merchantId, merchantName: 'Central Laundry', merchantImageUrls: ['/uploads/mock/merchant.svg'], serviceId: id, requestType: 2, status: 1, current: { ...service }, proposed: { ...service, name: 'Premium wash', unitPrice: 60000 }, reason: 'Improve service', createdAt: '2026-11-08T00:00:00Z' }, filters: [], writes: [], stale: false, unknown: false, reads: 0, removed: false }
+  const state = { proposalFilters: [], service, proposal: { id: proposalId, merchantId, merchantName: 'Central Laundry', merchantImageUrls: ['/uploads/mock/merchant.svg'], serviceId: id, requestType: 2, status: 1, current: { ...service }, proposed: { ...service, name: 'Premium wash', unitPrice: 60000 }, reason: 'Improve service', createdAt: '2026-11-08T00:00:00Z' }, filters: [], writes: [], stale: false, unknown: false, reads: 0, removed: false }
   await page.route('**/api/**', async route => {
     const req = route.request(), path = new URL(req.url()).pathname.replace(/^\/api/, ''), body = /application\/json/.test(req.headers()['content-type'] || '') ? req.postDataJSON() : undefined
     const ok = data => route.fulfill({ json: { succeeded: true, data } })
@@ -74,6 +86,7 @@ async function setup(page, options = {}) {
       return list(body.take === 1 ? [] : rows, rows.length)
     }
     if (path === '/service-proposal/filter') {
+      state.proposalFilters.push(body)
       return list(body.take === 1 ? [] : [state.proposal], body.status && body.status !== state.proposal.status ? 0 : 1)
     }
     if (path === `/wash-service/${id}` && req.method() === 'GET') {

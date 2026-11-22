@@ -129,7 +129,7 @@ export default function HomePage() {
           value={live ? formatCurrency(live.revenue.total.current) : '—'}
           resource={snapshot}
           metric={live?.revenue.total}
-          className="border-l-emerald-500 [&_p]:text-xl"
+          className="border-l-emerald-500 [&>div>p:first-of-type]:text-xl"
           iconClassName="bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
         />
         <Metric

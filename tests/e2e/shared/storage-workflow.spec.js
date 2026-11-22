@@ -45,7 +45,10 @@ async function setup(page, role, options = {}) {
       return paged([state.cycle])
     }
     if (path === `/storage/${orderId}/shippers`) {
-      return ok([{ id: 'shipper-domain', fullName: 'Driver Example', phone: '0901234567' }])
+      if (state.capacityFull) {
+        return ok([{ id: 'shipper-domain', fullName: 'Driver Example', activeTaskCount: 3, maxActiveTasks: 3, remainingTaskCapacity: 0, canAssign: false, blockedReasonCode: 'ShipperCapacityExceeded' }])
+      }
+      return ok([{ id: 'shipper-domain', fullName: 'Driver Example', phone: '0901234567', activeTaskCount: 1, maxActiveTasks: 3, remainingTaskCapacity: 2, canAssign: true }])
     }
     if (path === `/storage/${orderId}/quote`) {
       return ok({ orderId, lockerId: url.searchParams.get('lockerId'), feeTotal: 100000, outstanding: 80000, quoteToken: 'server-quote', expiresAt: '2099-01-01T00:00:00Z' })
@@ -55,6 +58,10 @@ async function setup(page, role, options = {}) {
     }
     if (path.startsWith(`/storage/${orderId}/`) && request.method() === 'POST') {
       const body = request.postDataJSON(); state.writes.push({ path, body })
+      if (path.endsWith('/assign') && state.capacityRace) {
+        state.capacityFull = true
+        return route.fulfill({ status: 409, json: { succeeded: false, meta: { code: 'ShipperCapacityExceeded', activeTaskCount: 3, maxActiveTasks: 3, remainingTaskCapacity: 0 } } })
+      }
       if (state.conflict) {
         return route.fulfill({ status: 409, json: { succeeded: false, meta: { code: 'RevisionMismatch' } } })
       }
@@ -167,8 +174,7 @@ for (const role of ['Admin', 'Merchant']) {
     await page.goto(`/${role.toLowerCase()}/storage`)
     await page.getByRole('button', { name: 'Assign Shipper', exact: true }).click()
     const dialog = page.getByRole('dialog')
-    await dialog.getByRole('combobox', { name: 'Assigned Shipper' }).click()
-    await page.getByRole('option', { name: /Driver Example/ }).click()
+    await dialog.getByRole('radio', { name: 'Driver Example', exact: true }).check()
     if (role === 'Admin') {
       await dialog.getByRole('textbox', { name: 'Reason', exact: true }).fill('Support merchant dispatch')
     }
@@ -181,13 +187,26 @@ for (const role of ['Admin', 'Merchant']) {
   })
 }
 
+test('storage capacity conflict refreshes candidates without replaying assignment', async ({ page }) => {
+  const state = await setup(page, 'Merchant'); state.capacityRace = true
+  await page.goto('/merchant/storage')
+  await page.getByRole('button', { name: 'Assign Shipper', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('radio', { name: 'Driver Example', exact: true }).check()
+  await dialog.getByRole('checkbox').check()
+  await dialog.getByRole('button', { name: 'Assign Shipper', exact: true }).click()
+  await expect(dialog).toContainText('task capacity has changed')
+  await expect(dialog.getByRole('radio', { name: 'Driver Example', exact: true })).toBeDisabled()
+  await expect(dialog.getByRole('button', { name: 'Replay the same request' })).toHaveCount(0)
+  expect(state.writes).toHaveLength(1)
+})
+
 test('unknown storage assignment survives closing and only checks the original operation', async ({ page }) => {
   const state = await setup(page, 'Merchant'); state.unknown = true
   await page.goto('/merchant/storage')
   await page.getByRole('button', { name: 'Assign Shipper', exact: true }).click()
   let dialog = page.getByRole('dialog')
-  await dialog.getByRole('combobox', { name: 'Assigned Shipper' }).click()
-  await page.getByRole('option', { name: /Driver Example/ }).click()
+  await dialog.getByRole('radio', { name: 'Driver Example', exact: true }).check()
   await dialog.getByRole('checkbox').check()
   await dialog.getByRole('button', { name: 'Assign Shipper', exact: true }).click()
   await expect(dialog.getByRole('button', { name: 'Replay the same request' })).toBeVisible()

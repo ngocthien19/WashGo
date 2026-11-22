@@ -1,6 +1,15 @@
 import { expect, it } from 'vitest'
 import { settingsSchema, settingPayload, settingSnapshot, settingChanges, validSettings } from './settingModel'
 import { systemSettingsFixture } from '~/test/fixtures/systemSettings'
+it('validates the server dispatch limit without accepting unlimited or fractional values', () => {
+  for (const value of [1, 3, 20]) {
+    expect(settingsSchema('dispatch').isValidSync({ maxActiveTasksPerShipper: value })).toBe(true)
+  }
+  for (const value of [0, 21, 1.5, null, '']) {
+    expect(settingsSchema('dispatch').isValidSync({ maxActiveTasksPerShipper: value })).toBe(false)
+  }
+  expect(settingPayload('dispatch', { maxActiveTasksPerShipper: '4', role: 'Admin' })).toEqual({ maxActiveTasksPerShipper: 4 })
+})
 it('validates loyalty policy ranges and includes rates in stale-write checks', () => {
   const good = { earnPercent: 1.25, maxUsePercent: 20 }
   expect(settingsSchema('loyalty').isValidSync(good)).toBe(true)

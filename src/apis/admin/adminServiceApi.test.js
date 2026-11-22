@@ -5,6 +5,11 @@ vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: 
 const id = '10000000-0000-4000-8000-000000000001'
 const service = { id, version: 'v1', name: 'Wash', code: 'SVC1', approvalStatus: 2, isActive: true }
 beforeEach(() => vi.clearAllMocks())
+it('passes proposal categories to BE with the remaining filters', async () => {
+  authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, list: [], total: 0 } })
+  await adminServiceApi.proposals({ categoryIds: [id], status: 1, page: 2, take: 12, actorId: 'spoof' })
+  expect(authorizedAxios.post).toHaveBeenCalledWith('/service-proposal/filter', { categoryIds: [id], status: 1, page: 2, take: 12 }, { signal: undefined })
+})
 it('preserves false availability and whitelists catalog filters', async () => {
   authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, list: [service], total: 13 } })
   expect(await adminServiceApi.catalog({ page: 2, take: 12, isActive: false, role: 'Admin', imageUrls: ['bad'] })).toMatchObject({ currentPage: 2, totalPages: 2 })

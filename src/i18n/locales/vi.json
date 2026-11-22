@@ -1,4 +1,11 @@
 {
+  "shipperCapacity": {
+    "load": "{{count}} / {{limit}} nhiệm vụ chưa hoàn tất",
+    "remaining": "Còn nhận được {{count}} nhiệm vụ",
+    "unknown": "Chưa có thông tin năng lực nhận nhiệm vụ",
+    "changed": "Khả năng nhận nhiệm vụ của Shipper đã thay đổi. Danh sách đã được tải lại; hãy chọn Shipper và xác nhận lại.",
+    "reasons": { "AccountInactive": "Tài khoản chưa hoạt động hoặc đã bị khóa.", "ShipperOnLeave": "Shipper đang tạm nghỉ.", "ShipperNotAvailable": "Trạng thái vận hành chưa sẵn sàng nhận nhiệm vụ.", "ShipperCapacityExceeded": "Đã đạt giới hạn nhiệm vụ chưa hoàn tất.", "Unavailable": "Chưa đủ thông tin để phân công. Vui lòng tải lại danh sách." }
+  },
   "accounts": {
     "activityFields": { "time": "Thời gian", "actor": "Người thực hiện", "action": "Hành động", "result": "Kết quả", "reason": "Ghi chú" },
     "placeholders": { "generic": "Nhập {{field}}…", "fullName": "VD: Nguyễn Văn An", "businessName": "VD: Giặt Sấy An Nhiên", "phone": "VD: 0931234567", "email": "VD: nguyenvana@gmail.com", "newEmail": "VD: nguyenvana.moi@gmail.com", "code": "VD: 123456 (6 chữ số)", "password": "Nhập mật khẩu đăng nhập của bạn", "address": "VD: 123 Nguyễn Văn Cừ, phường Chợ Quán", "city": "VD: Thành phố Hồ Chí Minh", "latitude": "VD: 10.762622", "longitude": "VD: 106.660172", "depositAmount": "VD: 500000 (đ) — trống: mặc định", "commissionRate": "VD: 20 (%) — trống: mặc định", "serviceRadiusKm": "VD: 5 (km) — trống: mặc định", "maxCapacity": "VD: 50 — trống: mặc định", "vehiclePlate": "VD: 59A1-12345", "merchantSearch": "VD: Giặt Sấy An Nhiên", "reason": "VD: Khóa tài khoản theo yêu cầu của chủ tài khoản" },
@@ -1872,12 +1879,14 @@
     "settings": {
       "description": "Quản lý thời gian vận hành, hoa hồng mặc định, phí và chính sách bồi thường.",
       "groups": {
+        "dispatch": "Điều phối Shipper",
         "sla": "Thời gian & SLA",
         "commission": "Hoa hồng mặc định",
         "penalty": "Phí & bồi thường",
         "loyalty": "Điểm tích lũy"
       },
       "hints": {
+        "dispatch": "Giới hạn nhiệm vụ chưa hoàn tất áp dụng cho mọi luồng phân công. Giảm giới hạn chỉ chặn nhận thêm, không hủy nhiệm vụ đã giao.",
         "sla": "Thiết lập thời gian gửi, thu gom, trả đồ và khoảng nhận đồ miễn phí.",
         "commission": "Áp dụng khi tạo Merchant mới không nhập tỷ lệ riêng. Không thay thế tỷ lệ đã thiết lập của Merchant hiện có.",
         "penalty": "Cấu hình phí quá hạn, lưu kho, hủy đơn và mức bồi thường theo giá trị đồ.",
@@ -1894,6 +1903,7 @@
         "compensation": "Phần trăm trên giá trị đồ được xác nhận khi xử lý khiếu nại. Mức nặng hơn không được thấp hơn mức nhẹ."
       },
       "fields": {
+        "maxActiveTasksPerShipper": "Số nhiệm vụ chưa hoàn tất tối đa mỗi Shipper",
         "depositWindowMinutes": "Thời hạn khách gửi đồ",
         "merchantCollectSlaHours": "SLA Merchant thu gom",
         "merchantReturnSlaHours": "SLA Merchant trả đồ",
@@ -1914,6 +1924,7 @@
         "maxUsePercent": "Giới hạn sử dụng điểm"
       },
       "fieldHints": {
+        "maxActiveTasksPerShipper": "Từ 1 đến 20 nhiệm vụ; Shipper có thể thực hiện lần lượt trong giới hạn này.",
         "depositWindowMinutes": "5–1.440 phút để khách gửi đồ vào ô tủ đang giữ.",
         "merchantCollectSlaHours": "1–168 giờ cho Merchant thu gom đồ đã gửi.",
         "merchantReturnSlaHours": "1–720 giờ cho SLA trả đồ của Merchant.",
@@ -1934,6 +1945,7 @@
         "maxUsePercent": "0–99%, tối đa 2 chữ số thập phân. Tính sau voucher; luôn cần trả một phần bằng tiền."
       },
       "units": {
+        "tasks": "nhiệm vụ",
         "minutes": "phút",
         "hours": "giờ",
         "percent": "%",

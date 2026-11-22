@@ -28,7 +28,7 @@ export const lockerSnapshot = locker => JSON.stringify([
 ])
 export const lockerSchema = yup.object({
   code: yup.mixed().strip(), name: yup.string().trim().required().max(100),
-  address: yup.string().trim().required().max(500), city: yup.string().trim().required().max(100), ward: yup.string().trim().max(100),
+  address: yup.string().trim().required().max(500), city: yup.string().trim().required().max(100),
   latitude: yup.number().required().min(-90).max(90), longitude: yup.number().required().min(-180).max(180),
   lockerType: yup.number().required().oneOf([1, 2]), status: yup.number().required().oneOf([1, 2, 3]),
   description: yup.string().trim().max(2000), boxCount: yup.number().integer().min(1).max(200).required(),
@@ -38,7 +38,7 @@ export const lockerSchema = yup.object({
 })
 
 export const lockerDefaults = locker => ({
-  code: locker?.code || '', name: locker?.name || '', address: locker?.address || '', ward: locker?.ward || '', city: locker?.city || '',
+  code: locker?.code || '', name: locker?.name || '', address: locker?.address || '', city: locker?.city || '',
   latitude: locker?.latitude ?? '', longitude: locker?.longitude ?? '', lockerType: locker?.lockerType || 1,
   status: locker?.status || 1, description: locker?.description || '', boxCount: locker?.boxes?.length || 10, defaultBoxSize: 2
 })
@@ -47,7 +47,7 @@ export const lockerPayload = (values, locker, merchantIds, imageUrls) => {
   Object.assign(body, { latitude: Number(values.latitude), longitude: Number(values.longitude), lockerType: Number(values.lockerType), imageUrls,
     merchantIds, serviceAreaId: locker?.serviceAreaId || null })
   if (locker) {
-    return { ...body, ward: values.ward.trim(), district: locker.district || '', id: locker.id, expectedVersion: locker.version, status: Number(values.status) }
+    return { ...body, ward: locker.ward || '', district: locker.district || '', id: locker.id, expectedVersion: locker.version, status: Number(values.status) }
   }
   return { ...body, boxCount: Number(values.boxCount), defaultBoxSize: Number(values.defaultBoxSize) }
 }

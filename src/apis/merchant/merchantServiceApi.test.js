@@ -3,6 +3,11 @@ import authorizedAxios from '~/utils/http/authorizedAxios'
 import { merchantServiceApi } from './merchantServiceApi'
 vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
 beforeEach(() => vi.clearAllMocks())
+it('filters proposals by category without forwarding a Merchant identity', async () => {
+  authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, list: [], total: 0 } })
+  await merchantServiceApi.proposals({ categoryIds: ['category'], status: 1, page: 2, take: 12, merchantId: 'spoof' })
+  expect(authorizedAxios.post).toHaveBeenCalledWith('/service-proposal/filter', { categoryIds: ['category'], status: 1, page: 2, take: 12 }, { signal: undefined })
+})
 it('scopes list payloads and passes supported server filters', async () => {
   authorizedAxios.post.mockResolvedValue({ data: { succeeded: true, list: [], total: 25 } })
   const page = await merchantServiceApi.catalog({ page: 1, take: 12, isActive: false, merchantId: 'forbidden', sortBy: [{ field: 'UnitPrice', isDescending: true }] })

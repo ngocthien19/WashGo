@@ -5,7 +5,7 @@ import { merchantSession } from '../helpers/merchantSession'
 const id = '22222222-2222-4222-8222-222222222222'
 async function setup(page, options = {}) {
   await merchantSession(page, options)
-  const state = { summaryError: false, summaryCalls: [], filters: [], writes: [], fail: false, readFail: false, tasks: 0, uploads: 0, rows: [{ id, accountActive: true, revision: 1, hasRating: true, credentialDelivery: 1, identityImageSides: 'None', fullName: 'Test Driver', phone: '0901234567', email: 'driver@example.test', vehicleType: 1, vehiclePlate: '59-A1234', isActive: true, status: 1, totalDeliveries: 12, activeTaskCount: 0, rating: 4.8, identityNumber: '123456789', identityImageUrls: [], createdAt: '2026-10-01T00:00:00Z' }] }
+  const state = { summaryError: false, summaryCalls: [], filters: [], writes: [], fail: false, readFail: false, tasks: 0, uploads: 0, rows: [{ id, accountActive: true, revision: 1, hasRating: true, credentialDelivery: 1, identityImageSides: 'None', fullName: 'Test Driver', maxActiveTasks: 3, remainingTaskCapacity: 3, phone: '0901234567', email: 'driver@example.test', vehicleType: 1, vehiclePlate: '59-A1234', isActive: true, status: 1, totalDeliveries: 12, activeTaskCount: 0, rating: 4.8, identityNumber: '123456789', identityImageUrls: [], createdAt: '2026-10-01T00:00:00Z' }] }
   await page.route('**/api/**', async (route) => {
     const request = route.request()
     const path = new URL(request.url()).pathname.replace(/^\/api/, '').replace(/\/$/, '')
@@ -238,7 +238,7 @@ test('assignment reuses eligible shippers and verifies the order before submitti
       return route.fulfill({ json: { succeeded: true, total: 1, list: [order] } })
     }
     if (path.endsWith('/available-shippers')) {
-      return ok([{ id, fullName: 'Test Driver', phone: '0901234567', vehiclePlate: '59-A1234' }])
+      return ok([{ id, fullName: 'Test Driver', activeTaskCount: 1, maxActiveTasks: 3, remainingTaskCapacity: 2, canAssign: true, phone: '0901234567', vehiclePlate: '59-A1234' }])
     }
     if (path.endsWith('/assign-shipper')) {
       writes.push(req.postDataJSON())

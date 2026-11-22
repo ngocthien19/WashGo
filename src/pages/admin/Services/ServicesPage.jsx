@@ -148,7 +148,7 @@ export default function ServicesPage() {
           </Button>
         ))}
       </div>
-      <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-4">
+      <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
         <div className="grid gap-2">
           <p className="text-sm">
             {t('admin.services.search')}
@@ -166,16 +166,14 @@ export default function ServicesPage() {
             formClassName="h-11 rounded-xl p-1 pl-3 [&_input]:h-8 [&_button]:size-8"
           />
         </div>
-        {catalog && (
-          <CategorySelect
-            role="Admin"
-            filter
-            showLabel
-            includeInactive={true}
-            value={query.categoryId}
-            onChange={categoryId => update({ categoryId })}
-          />
-        )}
+        <CategorySelect
+          role="Admin"
+          filter
+          showLabel
+          includeInactive={true}
+          value={query.categoryId}
+          onChange={categoryId => update({ categoryId })}
+        />
         {options.map(({ key, label, values }) => (
           <label
             key={key}

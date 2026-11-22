@@ -1,4 +1,11 @@
 {
+  "shipperCapacity": {
+    "load": "{{count}} / {{limit}} open tasks",
+    "remaining": "Room for {{count}} more tasks",
+    "unknown": "Task capacity is unavailable",
+    "changed": "The Shipper's task capacity has changed. The list has been refreshed; select a Shipper and confirm again.",
+    "reasons": { "AccountInactive": "The account is inactive or locked.", "ShipperOnLeave": "The Shipper is on leave.", "ShipperNotAvailable": "The Shipper is not available for assignments.", "ShipperCapacityExceeded": "The open task limit has been reached.", "Unavailable": "Assignment information is incomplete. Refresh the list." }
+  },
   "accounts": {
     "activityFields": { "time": "Time", "actor": "Performed by", "action": "Action", "result": "Result", "reason": "Notes" },
     "placeholders": { "generic": "Enter {{field}}…", "fullName": "e.g. Nguyen Van An", "businessName": "e.g. An Nhien Laundry", "phone": "e.g. 0931234567", "email": "e.g. nguyenvana@gmail.com", "newEmail": "e.g. nguyenvana.new@gmail.com", "code": "e.g. 123456 (6 digits)", "password": "Enter your sign-in password", "address": "e.g. 123 Nguyen Van Cu, Cho Quan Ward", "city": "e.g. Ho Chi Minh City", "latitude": "e.g. 10.762622", "longitude": "e.g. 106.660172", "depositAmount": "e.g. 500000 (VND); blank: default", "commissionRate": "e.g. 20 (%); blank: default", "serviceRadiusKm": "e.g. 5 (km); blank: default", "maxCapacity": "e.g. 50; blank: default", "vehiclePlate": "e.g. 59A1-12345", "merchantSearch": "e.g. An Nhien Laundry", "reason": "e.g. Lock requested by the account owner" },
@@ -1832,12 +1839,14 @@
     "settings": {
       "description": "Manage operating times, default commission, fees and compensation rules.",
       "groups": {
+        "dispatch": "Shipper dispatch",
         "sla": "Timing & SLA",
         "commission": "Default commission",
         "penalty": "Fees & compensation",
         "loyalty": "Loyalty points"
       },
       "hints": {
+        "dispatch": "The open task limit applies to every assignment flow. Lowering it stops new assignments without cancelling existing tasks.",
         "sla": "Set deposit, collection, return and free pickup time windows.",
         "commission": "Used for new Merchants when no individual rate is supplied. Existing Merchant rates remain separate.",
         "penalty": "Configure overdue, storage and cancellation fees and compensation based on item value.",
@@ -1854,6 +1863,7 @@
         "compensation": "Percentage of verified item value when reviewing a complaint. More severe damage cannot receive a lower rate."
       },
       "fields": {
+        "maxActiveTasksPerShipper": "Maximum open tasks per Shipper",
         "depositWindowMinutes": "Customer deposit window",
         "merchantCollectSlaHours": "Merchant collection SLA",
         "merchantReturnSlaHours": "Merchant return SLA",
@@ -1874,6 +1884,7 @@
         "maxUsePercent": "Maximum points discount"
       },
       "fieldHints": {
+        "maxActiveTasksPerShipper": "From 1 to 20 tasks; Shippers can complete their assigned tasks one after another within this limit.",
         "depositWindowMinutes": "5–1,440 minutes to deposit items into the reserved locker box.",
         "merchantCollectSlaHours": "1–168 hours for Merchant collection of deposited items.",
         "merchantReturnSlaHours": "1–720 hours for the Merchant return SLA.",
@@ -1894,6 +1905,7 @@
         "maxUsePercent": "0–99% of laundry after vouchers, up to 2 decimal places; a positive cash payment remains required."
       },
       "units": {
+        "tasks": "tasks",
         "minutes": "min",
         "hours": "hours",
         "percent": "%",

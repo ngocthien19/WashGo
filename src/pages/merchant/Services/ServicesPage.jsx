@@ -109,7 +109,7 @@ export default function ServicesPage() {
           value={query.tab}
           className="grid gap-6 outline-none"
         >
-          <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr]">
+          <section className="workspace-filters grid items-end gap-4 rounded-2xl border border-border bg-card p-5 font-semibold shadow-sm [&_input]:font-semibold [&_input::placeholder]:font-semibold sm:grid-cols-2 xl:grid-cols-4">
             <div className="grid gap-2">
               <p className="text-sm text-muted-foreground">
                 {t('merchant.services.search')}
@@ -126,16 +126,14 @@ export default function ServicesPage() {
                 formClassName="h-11 rounded-xl p-1 pl-3 [&_input]:h-8 [&_button]:size-8"
               />
             </div>
-            {catalog && (
-              <CategorySelect
-                role="Merchant"
-                filter
-                showLabel
-                includeInactive={false}
-                value={query.categoryId}
-                onChange={categoryId => update({ categoryId })}
-              />
-            )}
+            <CategorySelect
+              role="Merchant"
+              filter
+              showLabel
+              includeInactive={!catalog}
+              value={query.categoryId}
+              onChange={categoryId => update({ categoryId })}
+            />
             {!catalog && (
               <div className="grid gap-2">
                 <label
@@ -317,7 +315,7 @@ export default function ServicesPage() {
                                   {t(catalog ? 'merchant.services.details' : 'merchant.services.proposalDetails')}
                                 </DropdownMenuItem>
                                 {catalog && (
-                                  <DropdownMenuItem onClick={() => update({ tab: 'proposals', serviceId: row.id, keyword: '', state: '', type: '', sort: 'name' })}>
+                                  <DropdownMenuItem onClick={() => update({ tab: 'proposals', categoryId: '', serviceId: row.id, keyword: '', state: '', type: '', sort: 'name' })}>
                                     <FileText
                                       size={17}
                                       className="text-primary"
@@ -370,7 +368,7 @@ export default function ServicesPage() {
           service={editor.id ? editor : null}
           onClose={closeEditor}
           onSaved={() => {
-            closeEditor(); update({ tab: 'proposals', keyword: '', state: '', type: '', sort: 'name', serviceId: '' })
+            closeEditor(); update({ tab: 'proposals', categoryId: '', keyword: '', state: '', type: '', sort: 'name', serviceId: '' })
           }}
         />
       )}

@@ -10,16 +10,18 @@ import { Checkbox } from '~/components/ui/checkbox'
 import { ReviewScore, ReviewStatus } from './ReviewDisplay'
 import { adminReviewApi } from '~/apis/admin/adminReviewApi'
 import { newOperationId } from '~/apis/admin/adminWrite'
-import { canModerate, canPublishForCustomers, reviewActionSchema } from '../reviewModel'
+import { canModerate, canPublishReview, canPublishForCustomers, reviewActionSchema } from '../reviewModel'
 import { getApiError } from '~/utils/http/apiError'
 import { notify } from '~/utils/notifications/notifications'
 
 export default function ReviewActionDialog({ rows, bulk = false, initialOperation, initialAction, onClose, onSaved, onUnknown, onResolved }) {
   const { t } = useTranslation()
-  const [action, setAction] = useState(initialOperation?.publishForCustomers ? 'PublishForCustomers' : initialOperation?.action || initialAction || (rows[0].isHidden ? 'Show' : 'Hide'))
-  const publicPublishing = !bulk && (action === 'Publish' || action === 'PublishForCustomers')
-  const hidden = action === 'Hide', publishing = action === 'Publish' || publicPublishing
-  const eligibleRow = row => publishing ? !bulk && canPublishForCustomers(row) : canModerate(row, hidden)
+  const [action, setAction] = useState(initialOperation?.action || initialAction || (bulk && rows.some(canPublishForCustomers) ? 'Publish' : rows[0].isHidden ? 'Show' : 'Hide'))
+  const hidden = action === 'Hide', publishing = ['Publish', 'PublishForCustomers'].includes(action)
+  // A stored legacy operation without public flags retains its original Merchant-only scope during lookup.
+  const legacyPublishing = publishing && initialOperation && !initialOperation.publishForCustomers && !initialOperation.publishForGuests
+  const publicPublishing = publishing && !legacyPublishing
+  const eligibleRow = row => publishing ? legacyPublishing ? canPublishReview(row) : canPublishForCustomers(row) : canModerate(row, hidden)
   const [busy, setBusy] = useState(false), [unknown, setUnknown] = useState(!!initialOperation), [error, setError] = useState(''), [blocked, setBlocked] = useState(false)
   const [frozen, setFrozen] = useState(!!initialOperation)
   const lock = useRef(false), submitted = useRef(initialOperation || null)
@@ -102,7 +104,7 @@ export default function ReviewActionDialog({ rows, bulk = false, initialOperatio
               setAction(value); form.reset({ reason: '', confirmed: false }); setError('')
             }
           }}
-          tabs={[{ value: 'Hide', label: t('admin.reviews.hide') }, { value: 'Show', label: t('admin.reviews.show') }]}
+          tabs={[{ value: 'Publish', label: t('admin.reviews.publish') }, { value: 'Hide', label: t('admin.reviews.hide') }, { value: 'Show', label: t('admin.reviews.show') }]}
         />
       )}
       <ul className="max-h-64 divide-y divide-border overflow-y-auto rounded-xl border border-border px-4">
