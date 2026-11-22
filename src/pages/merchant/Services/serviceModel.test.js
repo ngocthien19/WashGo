@@ -1,6 +1,10 @@
 import { expect, it } from 'vitest'
 import { proposalSchema, readServiceQuery, serviceFilter } from './serviceModel'
 const draft = { categoryId: 'ca000000-0000-4000-8000-000000000001', name: ' Test service ', unit: 'kg', unitPrice: 50000, pricePerKg: '', pricePerItem: '', serviceType: 1, estimatedDurationHours: 24, description: '', reason: '' }
+it('sends proposal category together with the other server filters', () => {
+  const query = readServiceQuery(new URLSearchParams(`tab=proposals&categoryId=${draft.categoryId}&state=1&type=2&page=2`))
+  expect(serviceFilter(query)).toMatchObject({ categoryIds: [draft.categoryId], status: 1, requestType: 2, page: 2 })
+})
 it('normalizes optional amounts without treating zero as blank', async () => {
   expect(await proposalSchema.validate(draft)).toMatchObject({ name: 'Test service', pricePerKg: null, pricePerItem: null })
   await expect(proposalSchema.validate({ ...draft, pricePerKg: 0 })).rejects.toThrow()

@@ -30,7 +30,7 @@ const fields = ['merchantId', 'name', 'description', 'unitPrice', 'pricePerKg', 
 export const adminServiceApi = {
   merchants: adminLockerApi.merchants,
   catalog: (query, signal) => authorizedAxios.post('/wash-service/filter', pick(query, ['keyword', 'isActive', 'approvalStatus', 'categoryIds', 'merchantId', 'page', 'take', 'sortBy']), { signal }).then(response => paged(response, query, valid)),
-  proposals: (query, signal) => authorizedAxios.post('/service-proposal/filter', pick(query, ['keyword', 'status', 'requestType', 'merchantId', 'serviceId', 'page', 'take']), { signal }).then(response => paged(response, query, proposal)),
+  proposals: (query, signal) => authorizedAxios.post('/service-proposal/filter', pick(query, ['keyword', 'categoryIds', 'status', 'requestType', 'merchantId', 'serviceId', 'page', 'take']), { signal }).then(response => paged(response, query, proposal)),
   service: (id, signal) => authorizedAxios.get(`/wash-service/${encodeURIComponent(id)}`, { signal }).then(response => unwrap(response, item => valid(item) && item.id === id)),
   proposal: (id, signal) => authorizedAxios.get(`/service-proposal/${encodeURIComponent(id)}`, { signal }).then(response => unwrap(response, item => proposal(item) && item.id === id)),
   summary: async signal => {

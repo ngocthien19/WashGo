@@ -5,6 +5,16 @@ import { merchantSession } from '../helpers/merchantSession'
 const id = '77777777-7777-4777-8777-777777777777'
 const proposalId = '88888888-8888-4888-8888-888888888888'
 
+test('Merchant proposals keep category filtering with request type and paging', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto('/merchant/services?tab=proposals&page=2&type=2')
+  await page.getByRole('combobox', { name: 'Category', exact: true }).click()
+  await page.getByRole('option', { name: 'Special care', exact: true }).click()
+  await expect.poll(() => state.lists.filter(row => row.path === '/service-proposal/filter').at(-1)?.body).toMatchObject({ categoryIds: ['ca000000-0000-0000-0000-000000000006'], requestType: 2, page: 1 })
+  await page.reload()
+  await expect(page.getByRole('combobox', { name: 'Category', exact: true })).toContainText('Special care')
+})
+
 test('Merchant service tabs fit their labels and category stays with search', async ({ page }) => {
   await setup(page)
   await page.goto('/merchant/services')
