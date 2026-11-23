@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { Store, WandSparkles } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
@@ -122,11 +122,19 @@ export default function MerchantAssignmentDialog({ id, ids, onClose, onSaved }) 
                           {item.suggested.businessName}
                         </p>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          {t('admin.orderManagement.load', { current: item.suggested.currentLoad, max: item.suggested.maxCapacity })}
+                          <Trans
+                            i18nKey="merchantAssignmentMetrics.load"
+                            values={{ current: item.suggested.currentLoad, max: item.suggested.maxCapacity }}
+                            components={{ strong: <strong className="font-medium text-foreground" /> }}
+                          />
                           {' '}
                           ·
                           {' '}
-                          {t('admin.orderManagement.score', { value: formatNumber(item.suggested.score) })}
+                          <Trans
+                            i18nKey="merchantAssignmentMetrics.score"
+                            values={{ value: formatNumber(item.suggested.score) }}
+                            components={{ strong: <strong className="font-medium text-foreground" /> }}
+                          />
                         </p>
                       </>
                     ) : (
@@ -168,21 +176,43 @@ export default function MerchantAssignmentDialog({ id, ids, onClose, onSaved }) 
                         {item.businessName}
                       </span>
                       <span className="mt-2 block text-sm text-muted-foreground">
-                        {t('admin.orderManagement.load', { current: item.currentLoad, max: item.maxCapacity })}
+                        <Trans
+                          i18nKey="merchantAssignmentMetrics.load"
+                          values={{ current: item.currentLoad, max: item.maxCapacity }}
+                          components={{ strong: <strong className="font-medium text-foreground" /> }}
+                        />
                         {' '}
                         ·
                         {' '}
-                        {t('admin.orderManagement.priority', { value: item.priority })}
+                        <Trans
+                          i18nKey="merchantAssignmentMetrics.priority"
+                          values={{ value: item.priority }}
+                          components={{ strong: <strong className="font-medium text-foreground" /> }}
+                        />
                       </span>
                       <span className="mt-1 block text-sm text-muted-foreground">
-                        {t('admin.orderManagement.score', { value: formatNumber(item.score) })}
-                        {item.distanceKm != null && ` · ${formatNumber(item.distanceKm)} km`}
+                        <Trans
+                          i18nKey="merchantAssignmentMetrics.score"
+                          values={{ value: formatNumber(item.score) }}
+                          components={{ strong: <strong className="font-medium text-foreground" /> }}
+                        />
+                        {item.distanceKm != null && (
+                          <>
+                            {' · '}
+                            <strong className="font-medium text-foreground">
+                              {formatNumber(item.distanceKm)}
+                            </strong>
+                            {' km'}
+                          </>
+                        )}
                       </span>
                       <span className="mt-1 block text-sm text-muted-foreground">
                         {t('admin.merchants.fields.commissionRate')}
-                        :
-                        {item.commissionRate}
-                        %
+                        {': '}
+                        <strong className="font-medium text-foreground">
+                          {item.commissionRate}
+                          %
+                        </strong>
                       </span>
                     </span>
                   </label>
