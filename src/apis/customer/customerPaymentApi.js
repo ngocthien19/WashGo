@@ -17,6 +17,15 @@ const validOrder = (order) => {
 }
 
 export const customerPaymentApi = {
+  getActiveSession: async (orderId, purpose, signal) => {
+    const { data } = await authorizedAxios.get(`/payment/orders/${encodeURIComponent(orderId)}/active-session`, { params: { purpose }, signal })
+    if (data?.succeeded !== true || data.data !== null && (!data.data || data.data.orderId !== orderId || data.data.purpose !== purpose || typeof data.data.canVerify !== 'boolean' || typeof data.data.requiresReconciliation !== 'boolean')) {
+      throw new Error('customer.payment.invalidResponse')
+    }
+    return data.data
+  },
+  verifySession: (orderId, purpose, operationId) => authorizedAxios.post(`/payment/orders/${encodeURIComponent(orderId)}/verify-session`, { purpose, operationId }).then(unwrap),
+  getVerification: (operationId, signal) => authorizedAxios.get(`/payment/verification-operations/${encodeURIComponent(operationId)}`, { signal }).then(unwrap),
   createFeeUrl: (orderId, paymentMethod, kind) => {
     if (!['cancellation', 'overdue'].includes(kind)) {
       throw new Error('customer.payment.invalidResponse')
