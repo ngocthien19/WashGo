@@ -1,7 +1,6 @@
 import * as yup from 'yup'
 
 export const settingGroups = {
-  dispatch: [{ key: 'maxActiveTasksPerShipper', min: 1, max: 20, unit: 'tasks' }],
   loyalty: [
     { key: 'earnPercent', min: 0, max: 100, unit: 'percent', decimal: true },
     { key: 'maxUsePercent', min: 0, max: 99, unit: 'percent', decimal: true }
@@ -32,5 +31,5 @@ export const settingsSchema = group => yup.object(Object.fromEntries(settingGrou
 export const settingPayload = (group, values) => Object.fromEntries(settingGroups[group].map(({ key }) => [key, Number(values[key])]))
 export const settingSnapshot = value => JSON.stringify([...settingFields.map(field => field.key), 'storageTransferAfterHours', 'updatedAt', 'version'].map(key => value[key] ?? null))
 export const settingChanges = (group, original, values) => settingGroups[group].filter(({ key }) => original[key] !== Number(values[key]))
-export const validSettings = value => Boolean(value && settingFields.filter(field => !['earnPercent', 'maxUsePercent', 'maxActiveTasksPerShipper'].includes(field.key)).every(field => typeof value[field.key] === 'number') && Object.keys(settingGroups).every(group => group === 'dispatch' && value.maxActiveTasksPerShipper == null || group === 'loyalty' && value.earnPercent == null && value.maxUsePercent == null || settingsSchema(group).isValidSync(value)) && Number.isInteger(value.storageTransferAfterHours) && value.storageTransferAfterHours > 0 && (value.updatedAt == null || typeof value.updatedAt === 'string' && Number.isFinite(Date.parse(value.updatedAt))))
+export const validSettings = value => Boolean(value && settingFields.filter(field => !['earnPercent', 'maxUsePercent'].includes(field.key)).every(field => typeof value[field.key] === 'number') && Object.keys(settingGroups).every(group => group === 'loyalty' && value.earnPercent == null && value.maxUsePercent == null || settingsSchema(group).isValidSync(value)) && Number.isInteger(value.storageTransferAfterHours) && value.storageTransferAfterHours > 0 && (value.updatedAt == null || typeof value.updatedAt === 'string' && Number.isFinite(Date.parse(value.updatedAt))))
 export { unknownWrite } from '~/pages/admin/Services/serviceModel'

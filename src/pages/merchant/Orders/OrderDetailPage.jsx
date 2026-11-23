@@ -1,4 +1,3 @@
-import OrderStatusDescription from '~/components/orders/OrderStatusDescription'
 import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
 import Reveal from '~/components/motion/Reveal'
 import { useCallback, useEffect, useState } from 'react'
@@ -134,35 +133,6 @@ export default function OrderDetailPage() {
               )}
             </div>
           </header>
-          <p className="text-sm leading-6 text-muted-foreground">
-            <OrderStatusDescription status={order.status} />
-          </p>
-          <div className="space-y-3">
-            {' '}
-            {order.allowedActions?.statusOptions?.some((option) => option.reasonCode === 'WeightRequired') && (
-              <p className="rounded-xl bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-800 dark:text-amber-200">
-                {t('merchant.orders.weightRequired')}
-              </p>
-            )}
-            {!canWeigh(order) && !processingSteps(order).length && !assignmentTask(order) && !order.allowedActions?.canConfirmReturnReady && !order.allowedActions?.canUnassignShipper && (
-              <p className="text-base leading-relaxed text-muted-foreground">
-                {t('merchant.orders.noActions')}
-              </p>
-            )}
-            {!order.allowedActions && (
-              <p className="text-sm text-amber-700 dark:text-amber-300">
-                {t('merchant.orderSync.missingActions')}
-              </p>
-            )}
-            {[...new Set([order.allowedActions?.updateWeightReasonCode, order.allowedActions?.assignShipperReasonCode].filter((code) => ['LegacyPricing', 'NoWeightService', 'NoMerchant', 'RoleNotAllowed'].includes(code)))].map((code) => (
-              <p
-                key={code}
-                className="text-sm text-muted-foreground"
-              >
-                {t(`merchant.orderSync.reasons.${code}`)}
-              </p>
-            ))}
-          </div>
           {([10, 13, 14, 15].includes(order.status) || order.storageWorkflowVersion >= 1 && [11, 12, 99].includes(order.status)) && (
             <StorageOrderPanel
               order={order}

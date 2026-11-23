@@ -46,3 +46,19 @@ describe('payment API contract', () => {
     await expect(customerPaymentApi.createUrl(order.id, 2)).rejects.toThrow('Denied')
   })
 })
+
+it('reads nullable scoped sessions and queues only an operation identifier for verification', async () => {
+  const signal = new AbortController().signal
+  authorizedAxios.get.mockResolvedValue(envelope(null))
+  await expect(customerPaymentApi.getActiveSession(order.id, 1, signal)).resolves.toBeNull()
+  expect(authorizedAxios.get).toHaveBeenLastCalledWith(`/payment/orders/${order.id}/active-session`, { params: { purpose: 1 }, signal })
+  authorizedAxios.get.mockResolvedValue(envelope({ orderId: 'other', purpose: 1, canVerify: true, requiresReconciliation: false }))
+  await expect(customerPaymentApi.getActiveSession(order.id, 1)).rejects.toThrow('customer.payment.invalidResponse')
+  const operationId = '11111111-1111-4111-8111-111111111111'
+  authorizedAxios.post.mockResolvedValue(envelope({ orderId: order.id, purpose: 1, operationId, state: 'Queued' }))
+  await customerPaymentApi.verifySession(order.id, 1, operationId)
+  expect(authorizedAxios.post).toHaveBeenLastCalledWith(`/payment/orders/${order.id}/verify-session`, { purpose: 1, operationId })
+  authorizedAxios.get.mockResolvedValue(envelope({ orderId: order.id, purpose: 1, operationId, state: 'Completed' }))
+  await customerPaymentApi.getVerification(operationId, signal)
+  expect(authorizedAxios.get).toHaveBeenLastCalledWith(`/payment/verification-operations/${operationId}`, { signal })
+})

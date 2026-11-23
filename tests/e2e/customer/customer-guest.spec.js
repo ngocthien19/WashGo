@@ -344,6 +344,8 @@ test('standalone locker map and list remain usable after sliding in and fit mobi
 })
 
 test('Home locker map and list remain usable after their slide-in animation', async ({ page }) => {
+  await page.context().grantPermissions(['geolocation'])
+  await page.context().setGeolocation({ latitude: 10.7769, longitude: 106.7009 })
   await setup(page)
   await page.route(/\/api\/customer\/lockers(?:\?|$)/, route => route.fulfill({ json: {
     succeeded: true, currentPage: 1, totalPages: 1, total: 1,
@@ -410,4 +412,70 @@ test('service cards stay compact with square images and usable actions on narrow
     await expect(page.getByRole('dialog')).toContainText('Guest laundry')
     await page.keyboard.press('Escape')
   }
+})
+
+
+test('Home shows general lockers and all-locker view switches between all and nearby', async ({ page }) => {
+  await page.context().grantPermissions(['geolocation'])
+  await page.context().setGeolocation({ latitude: 10, longitude: 106 })
+  await setup(page)
+  const calls = []
+  const rows = [0.02, 0.04, 0.08, 0.12].map((delta, index) => ({ ...locker, id: `near-${index}`, name: `Nearby Station ${index + 1}`, latitude: 10 + delta, longitude: 106, distanceKm: delta * 111.2 }))
+  await page.route(/\/api\/customer\/lockers(?:\?|$)/, route => {
+    const query = Object.fromEntries(new URL(route.request().url()).searchParams); calls.push(query)
+    return route.fulfill({ json: { succeeded: true, list: rows, total: 4, currentPage: 1, totalPages: 1 } })
+  })
+  await page.goto('/')
+  const home = page.locator('#lockers')
+  await expect(home.getByRole('heading', { name: 'WashGo lockers', exact: true })).toBeVisible()
+  await expect(home.getByText('Nearby Station 4', { exact: true })).toBeVisible()
+  await expect(home.getByRole('button', { name: 'Use my location', exact: true })).toHaveCount(0)
+  expect(calls.every(query => !('latitude' in query))).toBe(true)
+  await home.getByRole('button', { name: 'View all lockers', exact: true }).click()
+  const bottom = page.getByRole('region', { name: 'Locker search results', exact: true })
+  await expect(page.getByRole('button', { name: 'Use my location', exact: true })).toHaveCount(1)
+  await expect(page.getByRole('region', { name: 'Locker location map', exact: true })).toHaveCount(1)
+  await expect(bottom.getByRole('region', { name: 'Locker location map', exact: true })).toHaveCount(1)
+  await expect(page.getByRole('combobox', { name: 'Search radius', exact: true })).toBeDisabled()
+  await expect(bottom).not.toContainText('Showing 1')
+  await page.getByRole('button', { name: 'Use my location', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Sort lockers', exact: true })).toContainText('Nearest')
+  await page.getByRole('combobox', { name: 'Search radius', exact: true }).click()
+  await page.getByRole('option', { name: '3 km', exact: true }).click()
+  await expect(bottom.getByText('Nearby Station 1', { exact: true })).toBeVisible()
+  await expect(bottom.getByText('Nearby Station 2', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('Nearby Station 4', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('Nearby Station 1', { exact: true })).toHaveCount(1)
+  const mainCalls = calls.filter(query => query.take !== '4').length
+  for (const [radius, expected] of [['5 km', 'Nearby Station 2'], ['10 km', 'Nearby Station 3']]) {
+    await page.getByRole('combobox', { name: 'Search radius', exact: true }).click()
+    await page.getByRole('option', { name: radius, exact: true }).click()
+    await expect(bottom.getByText(expected, { exact: true })).toBeVisible()
+  }
+  expect(calls.filter(query => query.take !== '4')).toHaveLength(mainCalls)
+  expect(calls.some(query => 'radiusKm' in query)).toBe(false)
+  await expect(page.getByRole('region', { name: 'Locker location map', exact: true })).toHaveCount(1)
+  await expect(page.getByRole('button', { name: 'Use my location', exact: true })).toHaveCount(1)
+  await page.getByRole('combobox', { name: 'Search radius', exact: true }).click()
+  await page.getByRole('option', { name: 'All', exact: true }).click()
+  await expect(bottom.getByText('Nearby Station 4', { exact: true })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Search radius', exact: true })).toHaveText('All')
+  await page.setViewportSize({ width: 390, height: 844 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
+
+test('empty nearby radius offers explicit expansion without showing far lockers as nearby', async ({ page }) => {
+  await page.context().grantPermissions(['geolocation'])
+  await page.context().setGeolocation({ latitude: 10, longitude: 106 })
+  await setup(page)
+  await page.route(/\/api\/customer\/lockers(?:\?|$)/, route => route.fulfill({ json: { succeeded: true, list: [{ ...locker, latitude: 10.04, longitude: 106 }], total: 1, currentPage: 1, totalPages: 1 } }))
+  await page.goto('/lockers')
+  const nearby = page.getByRole('region', { name: 'Locker search results', exact: true })
+  await page.getByRole('button', { name: 'Use my location', exact: true }).click()
+  await page.getByRole('combobox', { name: 'Search radius', exact: true }).click()
+  await page.getByRole('option', { name: '3 km', exact: true }).click()
+  await expect(nearby.getByRole('status').filter({ hasText: 'No available' })).toHaveText('No available lockers within 3 km of your location.')
+  await expect(nearby.getByText('Guest locker', { exact: true })).toHaveCount(0)
+  await nearby.getByRole('button', { name: 'Expand to 5 km', exact: true }).click()
+  await expect(nearby.getByText('Guest locker', { exact: true })).toBeVisible()
 })

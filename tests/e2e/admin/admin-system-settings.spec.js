@@ -3,20 +3,14 @@ import { expect, test } from '@playwright/test'
 import { merchantSession } from '../helpers/merchantSession'
 import { systemSettingsFixture } from '../../../src/test/fixtures/systemSettings'
 
-test('dispatch task capacity uses the effective server value and guarded save', async ({ page }) => {
+test('Admin no longer exposes global Shipper dispatch settings', async ({ page }) => {
   const state = await setup(page)
   state.value.maxActiveTasksPerShipper = 3
   await page.goto('/admin/settings')
-  await page.getByRole('tab', { name: 'Shipper dispatch', exact: true }).click()
-  const field = page.getByLabel('Maximum open tasks per Shipper', { exact: true })
-  await expect(field).toHaveValue('3')
-  await field.fill('4')
-  await page.getByRole('button', { name: 'Review & save', exact: true }).click()
-  const dialog = page.getByRole('dialog')
-  await dialog.getByRole('checkbox').check()
-  await dialog.getByRole('button', { name: 'Confirm save', exact: true }).click()
-  await expect(dialog).not.toBeVisible()
-  expect(state.writes[0]).toMatchObject({ path: '/system-setting/dispatch', body: { maxActiveTasksPerShipper: 4, expectedVersion: state.value.version, operationId: expect.any(String) } })
+  await expect(page.getByRole('tab', { name: 'Timing & SLA', exact: true })).toBeVisible()
+  await expect(page.getByRole('tab', { name: 'Shipper dispatch', exact: true })).toHaveCount(0)
+  await expect(page.getByLabel('Maximum open tasks per Shipper', { exact: true })).toHaveCount(0)
+  expect(state.writes).toHaveLength(0)
 })
 
 test('clear all resets history and audit filters including an unsubmitted date draft', async ({ page }) => {

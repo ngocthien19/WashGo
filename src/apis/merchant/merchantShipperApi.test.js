@@ -59,3 +59,21 @@ it('unlocks selected accounts through existing endpoints and reports each failur
   expect(await merchantShipperApi.batch('unlock', ['a', 'b', 'a'], '')).toMatchObject({ succeeded: 1, failed: 1, results: [{ shipperId: 'a', succeeded: true }, { shipperId: 'b', succeeded: false, code: 'NotFound' }] })
   expect(authorizedAxios.post).toHaveBeenCalledTimes(2)
 })
+
+it('creates and updates per-Shipper limits with guards and no ownership fields', async () => {
+  const shipper = { id: 's', fullName: 'Driver', isActive: true, revision: 4, activeTaskCount: 3, maxActiveTasks: 3, remainingTaskCapacity: 0 }
+  authorizedAxios.post.mockResolvedValue(response(shipper))
+  await merchantShipperApi.create({ fullName: 'Driver', maxActiveTasks: 3, clientRequestId: 'create-id', merchantId: 'spoof' })
+  expect(authorizedAxios.post).toHaveBeenCalledWith('/shipper', { fullName: 'Driver', maxActiveTasks: 3, clientRequestId: 'create-id' })
+  expect(() => merchantShipperApi.update('s', { expectedRevision: 3, maxActiveTasks: 3 })).toThrow()
+  authorizedAxios.put.mockResolvedValue(response(shipper))
+  const command = { maxActiveTasks: 3, expectedRevision: 3, operationId: 'update-id' }
+  await merchantShipperApi.update('s', { ...command, merchantId: 'spoof', role: 'Admin' })
+  expect(authorizedAxios.put).toHaveBeenCalledWith('/shipper/s', command)
+  authorizedAxios.get.mockResolvedValue(response(shipper))
+  await expect(merchantShipperApi.updateOperation('s', command)).resolves.toMatchObject({ maxActiveTasks: 3 })
+  expect(authorizedAxios.get).toHaveBeenCalledWith('/shipper/s/operations/update-id')
+  authorizedAxios.get.mockResolvedValue(response({ ...shipper, maxActiveTasks: 2 }))
+  await expect(merchantShipperApi.updateOperation('s', command)).rejects.toThrow()
+  expect(authorizedAxios.put).toHaveBeenCalledTimes(1)
+})

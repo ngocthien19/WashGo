@@ -9,7 +9,7 @@ const envelope = (data) => ({ succeeded: true, data })
 
 async function setup(page, overrides = {}) {
   await seedSeenTerms(page, user.id)
-  const state = { order: { ...order, ...overrides }, calls: [], failure: null, code: null, review: false, available: 50000, resultPatch: {} }
+  const state = { order: { ...order, ...overrides }, calls: [], failure: null, code: null, review: false, available: 50000, resultPatch: {}, verifications: [], verificationReads: [], verifyFailure: false, settleOnVerify: false, needsReview: false }
   await page.route('https://accounts.google.com/**', (route) => route.abort())
   await page.route('**/api/**', async (route) => {
     const path = new URL(route.request().url()).pathname.replace(/^\/api/, '')
@@ -39,6 +39,25 @@ async function setup(page, overrides = {}) {
     if (path === '/wash-order/mine') {
       expect(route.request().postDataJSON().keyword).toBe(order.orderCode)
       return route.fulfill({ json: { succeeded: true, list: [state.order], total: 1 } })
+    }
+    if (path === `/payment/orders/${orderId}/active-session`) {
+      return route.fulfill({ json: envelope({ orderId, purpose: 1, canVerify: !state.needsReview, requiresReconciliation: state.needsReview }) })
+    }
+    if (path === `/payment/orders/${orderId}/verify-session`) {
+      const body = route.request().postDataJSON()
+      state.verifications.push(body)
+      if (state.verifyFailure) {
+        return route.fulfill({ status: 503, json: { succeeded: false } })
+      }
+      return route.fulfill({ status: 202, json: envelope({ orderId, purpose: 1, operationId: body.operationId, state: 'Queued', retryAfterSeconds: 2 }) })
+    }
+    if (path.startsWith('/payment/verification-operations/')) {
+      const operationId = path.split('/').at(-1)
+      state.verificationReads.push(operationId)
+      if (state.settleOnVerify) {
+        state.order.paymentStatus = 2
+      }
+      return route.fulfill({ json: envelope({ orderId, purpose: 1, operationId, state: state.settleOnVerify ? 'Completed' : 'Verifying', retryAfterSeconds: 2, requiresReconciliation: false }) })
     }
     if (path === '/payment/create-url') {
       state.calls.push(route.request().postDataJSON())
@@ -272,4 +291,51 @@ test('failed requests are not auto-retried and unknown outcomes remain locked wi
   await expect(page.getByRole('alert')).toContainText('outcome is unknown')
   await expect(pay).toBeDisabled()
   expect(state.calls).toHaveLength(2)
+})
+
+test('delayed IPN updates the return page without another payment request', async ({ page }) => {
+  const state = await setup(page)
+  await page.goto(`/payment/return?vnp_TxnRef=${reference}&vnp_ResponseCode=00`)
+  await english(page)
+  await signIn(page)
+  await expect(page.getByRole('button', { name: 'Check payment', exact: true })).toBeVisible()
+  state.order.paymentStatus = 2
+  await expect(page.getByRole('heading', { name: 'Payment confirmed', exact: true })).toBeVisible({ timeout: 12000 })
+  expect(state.calls).toHaveLength(0)
+  expect(state.verifications).toHaveLength(0)
+})
+
+test('return verification follows one operation through an uncertain response and reload', async ({ page }) => {
+  const state = await setup(page)
+  state.verifyFailure = true
+  await page.goto(`/payment/return?vnp_TxnRef=${reference}&vnp_ResponseCode=00`)
+  await english(page)
+  await signIn(page)
+  const check = page.getByRole('button', { name: 'Check payment', exact: true })
+  await check.click()
+  await expect.poll(() => state.verificationReads.length).toBeGreaterThan(0)
+  expect(state.verifications).toHaveLength(1)
+  expect(state.verifications[0]).toEqual({ purpose: 1, operationId: expect.any(String) })
+  await check.click()
+  await page.reload()
+  await expect.poll(() => state.verificationReads.length).toBeGreaterThan(1)
+  state.settleOnVerify = true
+  await page.getByRole('button', { name: 'Check payment', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Payment confirmed', exact: true })).toBeVisible({ timeout: 12000 })
+  expect(new Set(state.verificationReads)).toEqual(new Set([state.verifications[0].operationId]))
+  expect(state.verifications).toHaveLength(1)
+  expect(state.calls).toHaveLength(0)
+})
+
+test('a return requiring reconciliation never queues another verification or payment', async ({ page }) => {
+  const state = await setup(page)
+  state.needsReview = true
+  await page.goto(`/payment/return?vnp_TxnRef=${reference}&vnp_ResponseCode=00`)
+  await english(page)
+  await signIn(page)
+  await expect(page.getByText('This payment needs reconciliation.', { exact: false })).toBeVisible()
+  await page.getByRole('button', { name: 'Check payment', exact: true }).click()
+  expect(state.verifications).toHaveLength(0)
+  expect(state.calls).toHaveLength(0)
+  await expect(page.getByRole('heading', { name: 'Payment confirmed', exact: true })).toHaveCount(0)
 })

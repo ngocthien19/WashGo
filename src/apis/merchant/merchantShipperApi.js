@@ -1,3 +1,4 @@
+import { hasShipperCapacity } from '~/utils/orders/shipperCapacity'
 import authorizedAxios from '~/utils/http/authorizedAxios'
 
 const fields = ['fullName', 'phone', 'email', 'vehicleType', 'vehiclePlate']
@@ -31,17 +32,33 @@ export const merchantShipperApi = {
     }
     return data
   }),
-  create: (value) => authorizedAxios.post('/shipper', pick(value, [...fields, 'identityNumber', 'identityFrontImageUrl', 'identityBackImageUrl', 'clientRequestId'])).then(detail),
+  create: async (value) => {
+    const result = await authorizedAxios.post('/shipper', pick(value, [...fields, 'identityNumber', 'identityFrontImageUrl', 'identityBackImageUrl', 'clientRequestId', 'maxActiveTasks'])).then(detail)
+    if (value.maxActiveTasks !== undefined && (!hasShipperCapacity(result) || result.maxActiveTasks !== value.maxActiveTasks)) {
+      throw Object.assign(new Error('merchant.invalidResponse'), { uncertain: true })
+    }
+    return result
+  },
   update: (id, value) => {
     if (!Number.isSafeInteger(value.expectedRevision) || value.expectedRevision < 0) {
       throw new Error('merchant.shippers.changed')
     }
-    return authorizedAxios.put(`/shipper/${encodeURIComponent(id)}`, pick(value, [...fields, 'isActive', 'identityNumber', 'identityFrontImageUrl', 'identityBackImageUrl', 'expectedRevision'])).then(detail).then((result) => {
-      if (result.id !== id) {
+    if (value.maxActiveTasks !== undefined && !value.operationId) {
+      throw new Error('merchant.shippers.changed')
+    }
+    return authorizedAxios.put(`/shipper/${encodeURIComponent(id)}`, pick(value, [...fields, 'isActive', 'identityNumber', 'identityFrontImageUrl', 'identityBackImageUrl', 'expectedRevision', 'maxActiveTasks', 'operationId'])).then(detail).then((result) => {
+      if (result.id !== id || value.maxActiveTasks !== undefined && (!hasShipperCapacity(result) || result.maxActiveTasks !== value.maxActiveTasks)) {
         const error = new Error('merchant.invalidResponse'); error.uncertain = true; throw error
       }
       return result
     })
+  },
+  updateOperation: async (id, command) => {
+    const result = await authorizedAxios.get(`/shipper/${encodeURIComponent(id)}/operations/${encodeURIComponent(command.operationId)}`).then(detail)
+    if (result.id !== id || !hasShipperCapacity(result) || result.maxActiveTasks !== command.maxActiveTasks) {
+      throw new Error('merchant.invalidResponse')
+    }
+    return result
   },
   account: async (action, id, reason) => {
     const path = `/shipper/${encodeURIComponent(id)}`

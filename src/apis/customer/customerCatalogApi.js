@@ -1,5 +1,6 @@
+import { getDistanceKm, hasCoordinates } from '~/utils/format/formats'
 import authorizedAxios from '~/utils/http/authorizedAxios'
-import { CUSTOMER_API_ENDPOINTS, CUSTOMER_CATALOG, LOCKER_AREA_PAGE_SIZE } from '~/utils/config/constants'
+import { CUSTOMER_API_ENDPOINTS, CUSTOMER_CATALOG, LOCKER_AREA_PAGE_SIZE, NEARBY_LOCKERS } from '~/utils/config/constants'
 export { suggestionImages as catalogImages } from '~/utils/search/searchSuggestions'
 
 const ensureSuccess = ({ data }) => {
@@ -20,6 +21,23 @@ export const customerCatalogApi = {
     .then(ensureSuccess).then((response) => response.data),
   getLockers: (params, signal) => authorizedAxios.get(CUSTOMER_API_ENDPOINTS.LOCKERS, { params, signal })
     .then(ensureSuccess),
+  getNearbyLockers: async ({ latitude, longitude, radiusKm, keyword, city }, signal) => {
+    const position = { latitude, longitude }
+    if (!hasCoordinates(position) || !NEARBY_LOCKERS.RADII_KM.includes(radiusKm)) {
+      throw new Error('nearbyLockers.invalidLocation')
+    }
+    const result = await customerCatalogApi.getLockers({ page: 1, take: NEARBY_LOCKERS.TAKE, latitude, longitude, ...(keyword ? { keyword } : {}), ...(city ? { city } : {}) }, signal)
+    if (!Array.isArray(result.list) || result.list.length > NEARBY_LOCKERS.TAKE) {
+      throw new Error('nearbyLockers.invalidResponse')
+    }
+    const closest = result.list.map(locker => ({ ...locker, distanceKm: getDistanceKm(position, locker) }))
+    if (closest.some((locker, index) => locker.distanceKm === null || index > 0 && locker.distanceKm < closest[index - 1].distanceKm - 1e-9)) {
+      throw new Error('nearbyLockers.invalidResponse')
+    }
+    // BE orders the whole catalog by unrounded distance before taking four. Filtering this nearest
+    // prefix gives exactly the first <=4 in-radius results, without inventing totals or sorting a page.
+    return { list: closest.filter(locker => locker.distanceKm <= radiusKm) }
+  },
   getLocker: (id, signal) => authorizedAxios.get(`${CUSTOMER_API_ENDPOINTS.LOCKERS}/${encodeURIComponent(id)}`, { signal })
     .then(ensureSuccess).then((response) => response.data),
   getLockerAreas: async (signal) => {

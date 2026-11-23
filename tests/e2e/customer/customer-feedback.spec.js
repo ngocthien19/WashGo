@@ -182,3 +182,43 @@ test('empty feedback keeps its average unknown and a failed list can retry', asy
   await expect(section.getByRole('alert')).toHaveCount(0)
   await expect(section.getByText('WashGo customer', { exact: true })).toHaveCount(0)
 })
+
+
+test('Home steps and feedback keep full background photos on mobile in both themes', async ({ page }) => {
+  await setup(page)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/')
+  for (const dark of [false, true]) {
+    await page.evaluate(value => document.documentElement.classList.toggle('dark', value), dark)
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 })
+      for (const id of ['how-it-works', 'customer-feedback']) {
+        const section = page.locator(`#${id}`), photo = section.locator('img').first()
+        await section.scrollIntoViewIfNeeded()
+        await photo.evaluate(image => image.decode())
+        const geometry = await photo.evaluate(image => {
+          const box = image.getBoundingClientRect(), section = image.closest('section').getBoundingClientRect()
+          return { width: box.width, height: box.height, ratio: image.naturalHeight / image.naturalWidth, sectionWidth: section.width, left: box.left, right: box.right, sectionLeft: section.left, sectionRight: section.right }
+        })
+        await expect(photo).toHaveCSS('object-fit', 'contain')
+        expect(geometry.height / geometry.width).toBeCloseTo(geometry.ratio, 3)
+        expect(geometry.width).toBeGreaterThanOrEqual(geometry.sectionWidth - 3)
+        expect(geometry.left).toBeGreaterThanOrEqual(geometry.sectionLeft - 1)
+        expect(geometry.right).toBeLessThanOrEqual(geometry.sectionRight + 1)
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+        if (process.env.CUSTOMER_BACKGROUND_QA && width === 390) {
+          await section.screenshot({ path: `test-results/${id}-${dark ? 'dark' : 'light'}-mobile.png` })
+        }
+      }
+    }
+    await page.setViewportSize({ width: 1280, height: 900 })
+    for (const id of ['how-it-works', 'customer-feedback']) {
+      const section = page.locator(`#${id}`)
+      await section.scrollIntoViewIfNeeded()
+      await expect(section.locator('img').first()).toHaveCSS('object-fit', 'cover')
+      if (process.env.CUSTOMER_BACKGROUND_QA) {
+        await section.screenshot({ path: `test-results/${id}-${dark ? 'dark' : 'light'}-desktop.png` })
+      }
+    }
+  }
+})

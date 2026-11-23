@@ -5,7 +5,7 @@ import { merchantSession } from '../helpers/merchantSession'
 const id = '22222222-2222-4222-8222-222222222222'
 async function setup(page, options = {}) {
   await merchantSession(page, options)
-  const state = { summaryError: false, summaryCalls: [], filters: [], writes: [], fail: false, readFail: false, tasks: 0, uploads: 0, rows: [{ id, accountActive: true, revision: 1, hasRating: true, credentialDelivery: 1, identityImageSides: 'None', fullName: 'Test Driver', maxActiveTasks: 3, remainingTaskCapacity: 3, phone: '0901234567', email: 'driver@example.test', vehicleType: 1, vehiclePlate: '59-A1234', isActive: true, status: 1, totalDeliveries: 12, activeTaskCount: 0, rating: 4.8, identityNumber: '123456789', identityImageUrls: [], createdAt: '2026-10-01T00:00:00Z' }] }
+  const state = { limitConflict: false, recovered: false, lookupIds: [], operation: null, summaryError: false, summaryCalls: [], filters: [], writes: [], fail: false, readFail: false, tasks: 0, uploads: 0, rows: [{ id, accountActive: true, revision: 1, hasRating: true, credentialDelivery: 1, identityImageSides: 'None', fullName: 'Test Driver', maxActiveTasks: 3, remainingTaskCapacity: 3, phone: '0901234567', email: 'driver@example.test', vehicleType: 1, vehiclePlate: '59-A1234', isActive: true, status: 1, totalDeliveries: 12, activeTaskCount: 0, rating: 4.8, identityNumber: '123456789', identityImageUrls: [], createdAt: '2026-10-01T00:00:00Z' }] }
   await page.route('**/api/**', async (route) => {
     const request = route.request()
     const path = new URL(request.url()).pathname.replace(/^\/api/, '').replace(/\/$/, '')
@@ -55,6 +55,10 @@ async function setup(page, options = {}) {
       const rows = state.rows.filter((row) => (!body.keyword || row.fullName.includes(body.keyword)) && (body.isActive === undefined || body.isActive === row.isActive) && (!body.status || body.status === row.status))
       return route.fulfill({ json: { succeeded: true, list: rows, total: rows.length ? 25 : 0 } })
     }
+    if (path.startsWith(`/shipper/${id}/operations/`)) {
+      state.lookupIds.push(path.split('/').at(-1))
+      return state.recovered ? ok({ ...state.rows[0], ...state.operation, activeTaskCount: state.tasks, remainingTaskCapacity: Math.max(0, state.operation.maxActiveTasks - state.tasks) }) : route.fulfill({ status: 404, json: { succeeded: false } })
+    }
     if (path === `/shipper/${id}` && request.method() === 'GET') {
       if (state.readFail) {
         return route.fulfill({ status: 403, json: { succeeded: false } })
@@ -66,11 +70,18 @@ async function setup(page, options = {}) {
       expect(body).not.toHaveProperty('merchantId')
       expect(body).not.toHaveProperty('status')
       state.writes.push(body)
+      if (request.method() === 'PUT') {
+        state.operation = body
+      }
+      if (request.method() === 'PUT' && state.limitConflict) {
+        state.tasks = 3
+        return route.fulfill({ status: 409, json: { succeeded: false, data: { ...state.rows[0], activeTaskCount: 3 }, meta: { code: 'ShipperTaskLimitBelowActiveCount', activeTaskCount: 3, maxActiveTasks: state.rows[0].maxActiveTasks, minimumAllowedMaxActiveTasks: 3 } } })
+      }
       if (state.fail) {
         return route.fulfill({ status: 500, json: { succeeded: false } })
       }
       if (request.method() === 'PUT') {
-        state.rows[0] = { ...state.rows[0], ...body }
+        state.rows[0] = { ...state.rows[0], ...body, activeTaskCount: state.tasks, remainingTaskCapacity: Math.max(0, body.maxActiveTasks - state.tasks) }
       } else {
         state.rows.push({ ...state.rows[0], ...body, id: 'new-shipper' })
       }
@@ -338,7 +349,8 @@ test('shipper ratings are removed while detail keeps operational metrics and sco
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByText('Rating', { exact: true })).toHaveCount(0)
   await expect(dialog.getByText('Deliveries completed', { exact: true })).toBeVisible()
-  await expect(dialog.getByText('Active tasks', { exact: true })).toBeVisible()
+  await expect(dialog.getByText('Active tasks', { exact: true })).toHaveCount(0)
+  await expect(dialog.getByText('0 / 3 open tasks', { exact: true })).toHaveCSS('font-size', '18px')
   await dialog.locator('summary').filter({ hasText: 'Task history' }).click()
   for (const title of ['Task type', 'Task status']) {
     await expect(dialog.locator('label').filter({ hasText: title })).toHaveCSS('font-size', '14px')
@@ -375,4 +387,124 @@ test('bulk tabs allow unlocking a locked selection and reset after success', asy
   await expect(bar).toHaveCount(0)
   await expect(page.getByRole('status')).toContainText('Succeeded: 1')
   expect(state.rows[0].accountActive).toBe(true)
+})
+
+
+test('Merchant cannot reduce below three tasks but may save three or four', async ({ page }) => {
+  const state = await setup(page); state.tasks = 3
+  await page.goto('/merchant/shippers')
+  await rowAction(page, 'Edit Test Driver')
+  let dialog = page.getByRole('dialog')
+  const field = dialog.getByLabel('Maximum open tasks', { exact: true })
+  await field.fill('2')
+  await dialog.getByRole('button', { name: 'Save shipper', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toContainText('maximum must be at least 3')
+  expect(state.writes).toHaveLength(0)
+  await field.fill('3')
+  await dialog.getByRole('button', { name: 'Save shipper', exact: true }).click()
+  await expect(dialog).not.toBeVisible()
+  expect(state.writes[0]).toMatchObject({ maxActiveTasks: 3, expectedRevision: 1, operationId: expect.any(String) })
+  await rowAction(page, 'Edit Test Driver')
+  dialog = page.getByRole('dialog')
+  await dialog.getByLabel('Maximum open tasks', { exact: true }).fill('4')
+  await dialog.getByRole('button', { name: 'Save shipper', exact: true }).click()
+  await expect(dialog).not.toBeVisible()
+  expect(state.writes[1].maxActiveTasks).toBe(4)
+})
+
+test('a concurrent assignment returns the latest count without overwriting the entered limit', async ({ page }) => {
+  const state = await setup(page); state.tasks = 2; state.limitConflict = true
+  await page.goto('/merchant/shippers')
+  await rowAction(page, 'Edit Test Driver')
+  const dialog = page.getByRole('dialog'), field = dialog.getByLabel('Maximum open tasks', { exact: true })
+  await field.fill('2')
+  await dialog.getByRole('button', { name: 'Save shipper', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toContainText('maximum must be at least 3')
+  await expect(field).toHaveValue('2')
+  await expect(field).toBeEnabled()
+  expect(state.writes).toHaveLength(1)
+  state.limitConflict = false
+  await field.fill('3')
+  await dialog.getByRole('button', { name: 'Save shipper', exact: true }).click()
+  await expect(dialog).not.toBeVisible()
+  expect(state.writes).toHaveLength(2)
+  expect(state.writes[0].operationId).not.toBe(state.writes[1].operationId)
+})
+
+test('unknown limit update survives reopening and only looks up its original operation', async ({ page }) => {
+  const state = await setup(page); state.fail = true
+  await page.goto('/merchant/shippers')
+  await rowAction(page, 'Edit Test Driver')
+  let dialog = page.getByRole('dialog')
+  await dialog.getByLabel('Maximum open tasks', { exact: true }).fill('4')
+  await dialog.getByRole('button', { name: 'Save shipper', exact: true }).click()
+  await expect(dialog.getByRole('button', { name: 'Check result', exact: true })).toBeVisible()
+  await expect(dialog.getByLabel('Maximum open tasks', { exact: true })).toBeDisabled()
+  await dialog.getByRole('button', { name: 'Check result', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toContainText('still unknown')
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await rowAction(page, 'Edit Test Driver')
+  dialog = page.getByRole('dialog')
+  state.recovered = true
+  await dialog.getByRole('button', { name: 'Check result', exact: true }).click()
+  await expect(dialog).not.toBeVisible()
+  expect(state.writes).toHaveLength(1)
+  expect(state.lookupIds).toEqual([state.writes[0].operationId, state.writes[0].operationId])
+})
+
+
+test('row edit keeps one edit dialog while fresh details load without showing a detail modal', async ({ page }) => {
+  const state = await setup(page)
+  let release
+  const gate = new Promise(resolve => {
+    release = resolve
+  })
+  await page.route(`**/api/shipper/${id}`, async route => {
+    if (route.request().method() !== 'GET') {
+      return route.fallback()
+    }
+    await gate
+    await route.fulfill({ json: { succeeded: true, data: { ...state.rows[0], fullName: 'Fresh Driver' } } })
+  })
+  await page.goto('/merchant/shippers')
+  await rowAction(page, 'Edit Test Driver')
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { name: 'Edit shipper', exact: true })).toBeVisible()
+  await expect(dialog.getByRole('status')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Shipper details', exact: true })).toHaveCount(0)
+  await dialog.evaluate(node => {
+    window.shipperEditorDialog = node
+  })
+  release()
+  await expect(dialog.getByLabel('Full name')).toHaveValue('Fresh Driver')
+  expect(await dialog.evaluate(node => node === window.shipperEditorDialog)).toBe(true)
+  await expect(dialog.getByRole('status')).toHaveCount(0)
+  expect(state.writes).toHaveLength(0)
+})
+
+test('edit load failure retries inside the same modal and closing prevents a late reopen', async ({ page }) => {
+  const state = await setup(page); state.readFail = true
+  await page.goto('/merchant/shippers')
+  await rowAction(page, 'Edit Test Driver')
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { name: 'Edit shipper', exact: true })).toBeVisible()
+  await expect(dialog.getByRole('alert')).toBeVisible()
+  state.readFail = false
+  await dialog.getByRole('button', { name: 'Try again', exact: true }).click()
+  await expect(dialog.getByLabel('Full name')).toHaveValue('Test Driver')
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  let release
+  const gate = new Promise(resolve => {
+    release = resolve
+  })
+  await page.route(`**/api/shipper/${id}`, async route => {
+    await gate
+    await route.fulfill({ json: { succeeded: true, data: state.rows[0] } }).catch(() => {})
+  })
+  await rowAction(page, 'Edit Test Driver')
+  await expect(dialog.getByRole('status')).toBeVisible()
+  await dialog.getByRole('button', { name: 'Close', exact: true }).click()
+  release()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes).toHaveLength(0)
 })

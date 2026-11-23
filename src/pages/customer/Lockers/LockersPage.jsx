@@ -1,5 +1,6 @@
 import Breadcrumb from '~/components/Breadcrumb/Breadcrumb'
-import NearbyLockers from '~/pages/customer/Home/components/NearbyLockers'
+import LocationButton from '~/components/maps/LocationButton'
+import { SelectField } from '~/components/ui/select'
 import { useTranslation } from 'react-i18next'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOutletContext, useSearchParams } from 'react-router-dom'
@@ -12,18 +13,25 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import CatalogToolbar from '~/components/customer/catalog/CatalogToolbar'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import LockerResults from '~/components/customer/lockers/LockerResults'
-import LocationButton from '~/components/maps/LocationButton'
 import Pagination from '~/components/Pagination/Pagination'
 import { customerCatalogApi } from '~/apis/customer/customerCatalogApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
-import { CUSTOMER_CATALOG, CUSTOMER_ROUTES, UI_TRANSITIONS } from '~/utils/config/constants'
+import { CUSTOMER_CATALOG, CUSTOMER_ROUTES, NEARBY_LOCKERS, UI_TRANSITIONS } from '~/utils/config/constants'
 
 export default function LockersPage() {
   const { t } = useTranslation()
   const { position, locating, locationError, requestLocation } = useOutletContext()
-  const [sort, setSort] = useState(position ? 'nearest' : 'name')
-  const [params, setParams] = useSearchParams()
+  const [radiusKm, setRadiusKm] = useState(null)
+  const nearby = radiusKm !== null
   const active = useRef(true)
+  useEffect(() => {
+    active.current = true
+    return () => {
+      active.current = false
+    }
+  }, [])
+  const [sort, setSort] = useState('name')
+  const [params, setParams] = useSearchParams()
   const query = useMemo(() => {
     const page = Number(params.get('page'))
     return {
@@ -32,16 +40,19 @@ export default function LockersPage() {
       page: Number.isSafeInteger(page) && page > 0 ? page : CUSTOMER_CATALOG.INITIAL_PAGE
     }
   }, [params])
-  const load = useCallback((signal) => customerCatalogApi.getLockers({
+  const load = useCallback((signal) => nearby && position ? customerCatalogApi.getNearbyLockers({
+    ...position, radiusKm, keyword: query.keyword, city: query.city
+  }, signal) : customerCatalogApi.getLockers({
     page: query.page,
     take: CUSTOMER_CATALOG.PAGE_SIZE,
     keyword: query.keyword || undefined,
     city: query.city || undefined,
     ...(sort === 'nearest' ? position : {})
-  }, signal), [query, sort, position])
+  }, signal), [query, sort, position, nearby, radiusKm])
   const { data, loading, error, retry } = useCatalogResource(load)
   const areas = useCatalogResource(customerCatalogApi.getLockerAreas)
   const lockers = data?.list || []
+  const nextRadius = NEARBY_LOCKERS.RADII_KM.find(value => value > radiusKm)
   const hasFilters = !!(query.keyword || query.city)
   useEffect(() => {
     if (params.has('district')) {
@@ -66,21 +77,16 @@ export default function LockersPage() {
       return search
     })
   }
-  const useNearest = async () => {
-    const next = await requestLocation()
-    if (next && active.current) {
+  const useNearest = () => {
+    if (position) {
       setSort('nearest')
       setQuery({ page: CUSTOMER_CATALOG.INITIAL_PAGE })
     }
   }
 
   useEffect(() => {
-    active.current = true
     document.title = t('customer.allLockersWashgo')
     window.scrollTo({ top: 0, behavior: 'instant' })
-    return () => {
-      active.current = false
-    }
   }, [t])
 
   const sortControl = (
@@ -89,7 +95,7 @@ export default function LockersPage() {
         render={(
           <Button
             variant="outline"
-            className="group h-11 min-w-36 justify-between rounded-xl text-base px-4"
+            className="group h-11 min-w-36 justify-between rounded-xl text-sm font-semibold px-4"
           />
         )}
         aria-label={t('customer.sortLockers')}
@@ -103,6 +109,7 @@ export default function LockersPage() {
           aria-current={sort === 'name' ? 'true' : undefined}
           onClick={() => {
             setSort('name')
+            setRadiusKm(null)
             setQuery({ page: CUSTOMER_CATALOG.INITIAL_PAGE })
           }}
         >
@@ -114,6 +121,7 @@ export default function LockersPage() {
         </DropdownMenuItem>
         <DropdownMenuItem
           aria-current={sort === 'nearest' ? 'true' : undefined}
+          disabled={!position}
           onClick={useNearest}
         >
           <LocateFixed size={16} />
@@ -141,7 +149,13 @@ export default function LockersPage() {
           />
           <LocationButton
             locating={locating}
-            onClick={useNearest}
+            onClick={async () => {
+              const next = await requestLocation()
+              if (next && active.current) {
+                setSort('nearest')
+                setQuery({ page: CUSTOMER_CATALOG.INITIAL_PAGE })
+              }
+            }}
           />
         </div>
         <LockerAreaFilters
@@ -167,7 +181,7 @@ export default function LockersPage() {
         {locationError && (
           <p
             role="alert"
-            className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 text-sm text-amber-800 dark:text-amber-300"
+            className="text-sm text-amber-800 dark:text-amber-300"
           >
             {t(locationError)}
           </p>
@@ -183,13 +197,63 @@ export default function LockersPage() {
             loading={loading}
             error={error}
             query={query}
+            nearby={nearby}
             sortControl={sortControl}
+            radiusControl={(
+              <div className="flex flex-wrap items-center gap-2.5">
+                <label
+                  htmlFor="locker-radius"
+                  className="text-muted-foreground"
+                >
+                  {t('nearbyLockers.radius')}
+                </label>
+                <div className="w-36">
+                  <SelectField
+                    id="locker-radius"
+                    className="font-semibold"
+                    label={t('nearbyLockers.radius')}
+                    disabled={!position || locating}
+                    value={radiusKm === null ? 'all' : String(radiusKm)}
+                    onValueChange={value => {
+                      setRadiusKm(value === 'all' ? null : Number(value))
+                      if (value !== 'all') {
+                        setSort('nearest')
+                      }
+                      setQuery({ page: CUSTOMER_CATALOG.INITIAL_PAGE })
+                    }}
+                    options={[
+                      { value: 'all', label: t('common.all') },
+                      ...NEARBY_LOCKERS.RADII_KM.map(value => ({ value: String(value), label: `${value} km` }))
+                    ]}
+                  />
+                </div>
+              </div>
+            )}
             onRemoveFilter={(id) => setQuery({
               [id]: '', page: CUSTOMER_CATALOG.INITIAL_PAGE
             })}
             onClearFilters={() => setQuery({ keyword: '', city: '', page: CUSTOMER_CATALOG.INITIAL_PAGE })}
           />
-          {loading || error || !lockers.length ? (
+          {nearby && (
+            <p className="text-sm text-muted-foreground">
+              {t('nearbyLockers.description', { radius: radiusKm })}
+            </p>
+          )}
+          {!loading && !error && nearby && !lockers.length ? (
+            <div className="space-y-4 rounded-2xl border border-dashed border-primary/20 bg-card p-6">
+              <p role="status">
+                {t('nearbyLockers.empty', { radius: radiusKm })}
+              </p>
+              {nextRadius && (
+                <Button
+                  variant="outline"
+                  onClick={() => setRadiusKm(nextRadius)}
+                >
+                  {t('nearbyLockers.expand', { radius: nextRadius })}
+                </Button>
+              )}
+            </div>
+          ) : loading || error || !lockers.length ? (
             <CatalogFeedback
               loading={loading}
               loadingText={t('customer.loadingLockers')}
@@ -199,12 +263,11 @@ export default function LockersPage() {
             />
           ) : (
             <LockerResults
-              animate
               lockers={lockers}
               position={position}
             />
           )}
-          {!loading && !error && data?.totalPages > 0 && (
+          {!nearby && !loading && !error && data?.totalPages > 0 && (
             <Pagination
               className="pt-5"
               currentPage={data.currentPage}
@@ -215,10 +278,6 @@ export default function LockersPage() {
             />
           )}
         </section>
-        <NearbyLockers
-          embedded
-          excludeIds={lockers.map((locker) => locker.id)}
-        />
       </div>
     </div>
   )

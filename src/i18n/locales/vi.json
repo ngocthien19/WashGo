@@ -1,5 +1,37 @@
 {
+  "paymentReturn": {
+    "waiting": "WashGo đang chờ xác nhận thanh toán và sẽ tự cập nhật trạng thái đơn trong ít phút. Nếu bạn đã thanh toán, hãy kiểm tra giao dịch bên dưới.",
+    "checking": "Hệ thống đang xác minh giao dịch đã có. Vui lòng chờ, không thanh toán lại.",
+    "completed": "Đã kết thúc lượt xác minh. WashGo đang đọc lại trạng thái đơn; kết quả này chưa đồng nghĩa với thanh toán thành công.",
+    "review": "Giao dịch cần được đối soát. Vui lòng liên hệ WashGo và không thanh toán lại.",
+    "checkButton": "Kiểm tra thanh toán",
+    "checkingButton": "Đang kiểm tra…"
+  },
+  "merchantAssignmentMetrics": {
+    "load": "Tải lượng: <strong>{{current}}/{{max}}</strong> đơn",
+    "priority": "Ưu tiên <strong>{{value}}</strong>",
+    "score": "Điểm gợi ý: <strong>{{value}}/100</strong>"
+  },
+  "nearbyLockers": {
+    "homeTitle": "Locker WashGo",
+    "homeDescription": "Khám phá các trạm locker khả dụng và chọn điểm gửi đồ thuận tiện cho bạn.",
+    "radius": "Bán kính tìm kiếm",
+    "description": "Tối đa 4 locker khả dụng trong {{radius}} km, gần nhất trước. Khoảng cách tính theo đường chim bay.",
+    "optIn": "Chọn Dùng vị trí của tôi để tìm locker gần bạn. Bạn vẫn có thể xem tất cả locker mà không cần chia sẻ vị trí.",
+    "empty": "Không có locker khả dụng trong bán kính {{radius}} km quanh bạn.",
+    "expand": "Mở rộng lên {{radius}} km",
+    "browseAll": "Bạn vẫn có thể tìm và đặt đơn tại các locker xa hơn trong Tất cả locker.",
+    "invalidLocation": "Chưa có vị trí hợp lệ để tìm locker gần bạn.",
+    "invalidResponse": "Chưa xác định được danh sách locker gần nhất. Vui lòng thử lại."
+  },
   "shipperCapacity": {
+    "limit": "Số nhiệm vụ tối đa",
+    "limitHint": "Nhập số nguyên từ 1 đến 20. Shipper mới mặc định 3 nhiệm vụ; không được đặt thấp hơn số nhiệm vụ chưa hoàn tất.",
+    "currentTasks": "Đang có {{count}} nhiệm vụ chưa hoàn tất.",
+    "belowActive": "Shipper đang có {{count}} nhiệm vụ chưa hoàn tất. Số nhiệm vụ tối đa phải từ {{count}} trở lên.",
+    "invalidLimit": "Nhập số nhiệm vụ tối đa là số nguyên từ 1 đến 20.",
+    "checkResult": "Kiểm tra kết quả",
+    "lookupPending": "Chưa xác định được kết quả lưu. Hãy kiểm tra lại; không gửi một lần lưu mới.",
     "load": "{{count}} / {{limit}} nhiệm vụ chưa hoàn tất",
     "remaining": "Còn nhận được {{count}} nhiệm vụ",
     "unknown": "Chưa có thông tin năng lực nhận nhiệm vụ",
@@ -1879,14 +1911,12 @@
     "settings": {
       "description": "Quản lý thời gian vận hành, hoa hồng mặc định, phí và chính sách bồi thường.",
       "groups": {
-        "dispatch": "Điều phối Shipper",
         "sla": "Thời gian & SLA",
         "commission": "Hoa hồng mặc định",
         "penalty": "Phí & bồi thường",
         "loyalty": "Điểm tích lũy"
       },
       "hints": {
-        "dispatch": "Giới hạn nhiệm vụ chưa hoàn tất áp dụng cho mọi luồng phân công. Giảm giới hạn chỉ chặn nhận thêm, không hủy nhiệm vụ đã giao.",
         "sla": "Thiết lập thời gian gửi, thu gom, trả đồ và khoảng nhận đồ miễn phí.",
         "commission": "Áp dụng khi tạo Merchant mới không nhập tỷ lệ riêng. Không thay thế tỷ lệ đã thiết lập của Merchant hiện có.",
         "penalty": "Cấu hình phí quá hạn, lưu kho, hủy đơn và mức bồi thường theo giá trị đồ.",
@@ -1903,7 +1933,6 @@
         "compensation": "Phần trăm trên giá trị đồ được xác nhận khi xử lý khiếu nại. Mức nặng hơn không được thấp hơn mức nhẹ."
       },
       "fields": {
-        "maxActiveTasksPerShipper": "Số nhiệm vụ chưa hoàn tất tối đa mỗi Shipper",
         "depositWindowMinutes": "Thời hạn khách gửi đồ",
         "merchantCollectSlaHours": "SLA Merchant thu gom",
         "merchantReturnSlaHours": "SLA Merchant trả đồ",
@@ -1924,7 +1953,6 @@
         "maxUsePercent": "Giới hạn sử dụng điểm"
       },
       "fieldHints": {
-        "maxActiveTasksPerShipper": "Từ 1 đến 20 nhiệm vụ; Shipper có thể thực hiện lần lượt trong giới hạn này.",
         "depositWindowMinutes": "5–1.440 phút để khách gửi đồ vào ô tủ đang giữ.",
         "merchantCollectSlaHours": "1–168 giờ cho Merchant thu gom đồ đã gửi.",
         "merchantReturnSlaHours": "1–720 giờ cho SLA trả đồ của Merchant.",

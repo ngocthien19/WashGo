@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react'
-import { Button } from '~/components/ui/button'
 import UserAvatar from '~/components/UserAvatar/UserAvatar'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import ShipperCapacity from './ShipperCapacity'
@@ -33,14 +32,6 @@ export default function ShipperSelection({ resource, value, onChange, disabled }
           {t('merchant.shippers.eligibleCount', { count: resource.data.filter(canAssignShipper).length })}
         </span>
       </legend>
-      <Button
-        type="button"
-        variant="outline"
-        disabled={disabled}
-        onClick={resource.retry}
-      >
-        {t('customer.orders.refresh')}
-      </Button>
       {resource.data.map(row => {
         const selectable = canAssignShipper(row)
         return (
