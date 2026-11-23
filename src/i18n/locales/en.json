@@ -1,5 +1,37 @@
 {
+  "paymentReturn": {
+    "waiting": "WashGo is waiting for payment confirmation. We will refresh the order status automatically for a short time. If you have already paid, check the payment below.",
+    "checking": "The server is verifying the existing payment. Please wait; do not pay again.",
+    "completed": "Verification has finished. WashGo is reloading the order status; this result alone does not confirm a successful payment.",
+    "review": "This payment needs reconciliation. Please contact WashGo and avoid paying again.",
+    "checkButton": "Check payment",
+    "checkingButton": "Checking payment…"
+  },
+  "merchantAssignmentMetrics": {
+    "load": "Workload: <strong>{{current}}/{{max}}</strong> orders",
+    "priority": "Priority <strong>{{value}}</strong>",
+    "score": "Suggestion score: <strong>{{value}}/100</strong>"
+  },
+  "nearbyLockers": {
+    "homeTitle": "WashGo lockers",
+    "homeDescription": "Explore available locker stations and choose a convenient drop-off point.",
+    "radius": "Search radius",
+    "description": "Up to 4 available lockers within {{radius}} km, nearest first. Distances are straight-line estimates.",
+    "optIn": "Choose Use my location to find nearby lockers. You can still browse all lockers without sharing your location.",
+    "empty": "No available lockers within {{radius}} km of your location.",
+    "expand": "Expand to {{radius}} km",
+    "browseAll": "You can still find and order at more distant lockers in All lockers.",
+    "invalidLocation": "A valid location is needed to find nearby lockers.",
+    "invalidResponse": "The nearest lockers could not be verified. Please try again."
+  },
   "shipperCapacity": {
+    "limit": "Maximum open tasks",
+    "limitHint": "Enter a whole number from 1 to 20. New Shippers default to 3 tasks; the limit cannot be below the open task count.",
+    "currentTasks": "Currently handling {{count}} open tasks.",
+    "belowActive": "The Shipper has {{count}} open tasks. The maximum must be at least {{count}}.",
+    "invalidLimit": "Enter a whole number from 1 to 20 for the task limit.",
+    "checkResult": "Check result",
+    "lookupPending": "The save outcome is still unknown. Check again without submitting a new update.",
     "load": "{{count}} / {{limit}} open tasks",
     "remaining": "Room for {{count}} more tasks",
     "unknown": "Task capacity is unavailable",
@@ -1839,14 +1871,12 @@
     "settings": {
       "description": "Manage operating times, default commission, fees and compensation rules.",
       "groups": {
-        "dispatch": "Shipper dispatch",
         "sla": "Timing & SLA",
         "commission": "Default commission",
         "penalty": "Fees & compensation",
         "loyalty": "Loyalty points"
       },
       "hints": {
-        "dispatch": "The open task limit applies to every assignment flow. Lowering it stops new assignments without cancelling existing tasks.",
         "sla": "Set deposit, collection, return and free pickup time windows.",
         "commission": "Used for new Merchants when no individual rate is supplied. Existing Merchant rates remain separate.",
         "penalty": "Configure overdue, storage and cancellation fees and compensation based on item value.",
@@ -1863,7 +1893,6 @@
         "compensation": "Percentage of verified item value when reviewing a complaint. More severe damage cannot receive a lower rate."
       },
       "fields": {
-        "maxActiveTasksPerShipper": "Maximum open tasks per Shipper",
         "depositWindowMinutes": "Customer deposit window",
         "merchantCollectSlaHours": "Merchant collection SLA",
         "merchantReturnSlaHours": "Merchant return SLA",
@@ -1884,7 +1913,6 @@
         "maxUsePercent": "Maximum points discount"
       },
       "fieldHints": {
-        "maxActiveTasksPerShipper": "From 1 to 20 tasks; Shippers can complete their assigned tasks one after another within this limit.",
         "depositWindowMinutes": "5–1,440 minutes to deposit items into the reserved locker box.",
         "merchantCollectSlaHours": "1–168 hours for Merchant collection of deposited items.",
         "merchantReturnSlaHours": "1–720 hours for the Merchant return SLA.",
