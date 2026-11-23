@@ -29,6 +29,7 @@ export default function LockerAreaFilters({ city, hasFilters, onApply, onReset, 
             </label>
             <SelectField
               id="locker-city"
+              className="font-semibold"
               label={t('customer.provinceCity')}
               value={selectedCity}
               disabled={loading || !!error}

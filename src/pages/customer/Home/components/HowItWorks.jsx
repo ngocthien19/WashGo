@@ -4,6 +4,7 @@ import Reveal from '~/components/motion/Reveal'
 import ScrollAccent from '~/components/motion/ScrollAccent'
 import { UI_MOTION } from '~/utils/config/constants'
 import SectionGlow from '~/components/customer/SectionGlow/SectionGlow'
+import SectionBackground from '~/components/customer/SectionBackground'
 import stepsBackground from '~/assets/customer/laundry-steps-background.png'
 
 const steps = [
@@ -21,21 +22,13 @@ export default function HowItWorks() {
       aria-labelledby="how-it-works-heading"
       className="relative isolate scroll-mt-[var(--customer-header-offset)] overflow-hidden bg-background px-4 py-20 sm:px-6 lg:py-24"
     >
+      <SectionBackground
+        src={stepsBackground}
+        className="opacity-90 dark:opacity-80"
+      />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10"
-      >
-        <img
-          src={stepsBackground}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="size-full object-cover object-[center_60%] opacity-50 dark:opacity-30"
-        />
-      </div>
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-linear-to-b from-background/85 via-background/65 to-background/80"
+        className="pointer-events-none absolute inset-0 -z-10 bg-linear-to-b from-background/65 via-background/35 to-background/60"
       />
       <SectionGlow side="left" />
       <div className="mx-auto max-w-7xl">

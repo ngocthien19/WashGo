@@ -12,7 +12,7 @@ import { UI_MOTION } from '~/utils/config/constants'
 import LockerMap from './LockerMap'
 import LockerDetails from './LockerDetails'
 
-export default function LockerResults({ lockers, position, animate = false }) {
+export default function LockerResults({ lockers, position, animate = false, showMap = true }) {
   const { t } = useTranslation()
   const [selectedId, setSelectedId] = useState(null)
   const [detailId, setDetailId] = useState(null)
@@ -27,30 +27,32 @@ export default function LockerResults({ lockers, position, animate = false }) {
   }
   return (
     <>
-      <div className="grid items-start gap-5 lg:grid-cols-[1.3fr_1fr]">
-        <div
-          ref={mapRef}
-          className="min-w-0 scroll-mt-[var(--customer-header-offset)]"
-        >
-          <ScrollAccent
-            direction="left"
-            disabled={!animate}
+      <div className={showMap ? 'grid items-start gap-5 lg:grid-cols-[1.3fr_1fr]' : 'min-w-0'}>
+        {showMap && (
+          <div
+            ref={mapRef}
+            className="min-w-0 scroll-mt-[var(--customer-header-offset)]"
           >
-            <LockerMap
-              lockers={lockers}
-              selectedId={selectedId}
-              selectionVersion={selectionVersion}
-              position={position}
-              onSelect={selectLocker}
-            />
-          </ScrollAccent>
-        </div>
+            <ScrollAccent
+              direction="left"
+              disabled={!animate}
+            >
+              <LockerMap
+                lockers={lockers}
+                selectedId={selectedId}
+                selectionVersion={selectionVersion}
+                position={position}
+                onSelect={selectLocker}
+              />
+            </ScrollAccent>
+          </div>
+        )}
         <ScrollAccent
           direction="right"
           disabled={!animate}
           className="min-w-0"
         >
-          <div className="space-y-3 lg:max-h-[32rem] lg:overflow-y-auto lg:pr-1">
+          <div className={showMap ? 'space-y-3 lg:max-h-[32rem] lg:overflow-y-auto lg:pr-1' : 'grid gap-3 sm:grid-cols-2'}>
             {lockers.map((locker, index) => {
               const distance = hasCoordinates(position)
                 ? formatDistance(locker.distanceKm ?? getDistanceKm(position, locker)) : ''
@@ -93,16 +95,18 @@ export default function LockerResults({ lockers, position, animate = false }) {
                           </span>
                         </div>
                         <div className="mt-3 flex flex-wrap gap-2">
-                          <Button
-                            variant="outline-primary"
-                            className="h-11 rounded-xl px-4 text-base"
-                            disabled={!hasCoordinates(locker)}
-                            aria-pressed={selectedId === locker.id}
-                            onClick={() => selectLocker(locker.id, true)}
-                          >
-                            <MapPin size={18} />
-                            {t('customer.showOnMap')}
-                          </Button>
+                          {showMap && (
+                            <Button
+                              variant="outline-primary"
+                              className="h-11 rounded-xl px-4 text-base"
+                              disabled={!hasCoordinates(locker)}
+                              aria-pressed={selectedId === locker.id}
+                              onClick={() => selectLocker(locker.id, true)}
+                            >
+                              <MapPin size={18} />
+                              {t('customer.showOnMap')}
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             className="h-11 rounded-xl px-4 text-base"

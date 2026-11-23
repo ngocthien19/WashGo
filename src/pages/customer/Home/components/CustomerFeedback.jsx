@@ -12,6 +12,7 @@ import FeedbackCarousel from './FeedbackCarousel'
 import feedbackBackground from '~/assets/customer/customer-feedback-background.png'
 import AllFeedbackDialog from './AllFeedbackDialog'
 import SectionGlow from '~/components/customer/SectionGlow/SectionGlow'
+import SectionBackground from '~/components/customer/SectionBackground'
 
 const loadPreview = signal => customerReviewApi.list({ take: CUSTOMER_REVIEWS.HOME_TAKE }, signal)
 
@@ -26,11 +27,9 @@ export default function CustomerFeedback() {
       aria-labelledby="customer-feedback-heading"
       className="relative isolate overflow-hidden border-y border-primary/10 bg-white dark:bg-background"
     >
-      <img
+      <SectionBackground
         src={feedbackBackground}
-        alt=""
-        loading="lazy"
-        className="pointer-events-none absolute inset-0 -z-20 size-full object-cover object-center opacity-80 dark:opacity-65"
+        className="opacity-80 dark:opacity-65"
       />
       <div
         aria-hidden="true"

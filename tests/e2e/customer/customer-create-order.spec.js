@@ -342,14 +342,14 @@ test('Home shows four service cards and feedback; locker suggestions request loc
   }
   await expect(page.getByRole('heading', { name: 'What customers say about WashGo', exact: true })).toBeVisible()
   await page.goto('/lockers')
-  const suggestions = page.getByRole('region', { name: 'Lockers near you', exact: true })
-  await expect(suggestions).toContainText('Share your location to discover nearby lockers')
+  const suggestions = page.getByRole('region', { name: 'Locker search results', exact: true })
+  await expect(page.getByRole('combobox', { name: 'Search radius', exact: true })).toBeDisabled()
   expect(state.lockerQueries.some((query) => query.latitude)).toBe(false)
   await context.grantPermissions(['geolocation'])
   await context.setGeolocation({ latitude: 10.77, longitude: 106.69 })
-  await suggestions.getByRole('button', { name: 'Use my location', exact: true }).click()
+  await page.getByRole('button', { name: 'Use my location', exact: true }).click()
   await expect(suggestions.getByRole('heading', { name: 'Another nearby locker', exact: true })).toBeVisible()
-  await expect(suggestions.getByRole('heading', { name: 'Ben Thanh Locker', exact: true })).toHaveCount(0)
+  await expect(suggestions.getByRole('heading', { name: 'Ben Thanh Locker', exact: true })).toHaveCount(1)
   expect(state.lockerQueries.some((query) => query.latitude === '10.77' && query.longitude === '106.69')).toBe(true)
 })
 
