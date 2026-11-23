@@ -383,16 +383,9 @@ export default function ShippersPage() {
         />
       )}
       {assigning && <ShipperAssignment onClose={() => setAssigning(false)} />}
-      {editor?.loadingId && (
-        <ShipperDetails
-          id={editor.loadingId}
-          editImmediately
-          onClose={closeEditor}
-          onEdit={(shipper) => setEditor(shipper)}
-        />
-      )}
-      {editor && !editor.loadingId && (
+      {editor && (
         <ShipperEditor
+          id={editor.loadingId}
           shipper={editor.id ? editor : null}
           onClose={closeEditor}
           onSaved={closeEditor}

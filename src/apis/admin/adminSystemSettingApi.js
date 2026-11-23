@@ -20,8 +20,11 @@ export const adminSystemSettingApi = {
     return data
   },
   update: async (group, values, version) => {
+    if (!['loyalty', 'sla', 'commission', 'penalty'].includes(group)) {
+      throw new Error('admin.invalidResponse')
+    }
     const body = settingPayload(group, values)
-    const action = { dispatch: 'Dispatch', loyalty: 'Loyalty', sla: 'Sla', commission: 'Commission', penalty: 'Penalty' }[group]
+    const action = { loyalty: 'Loyalty', sla: 'Sla', commission: 'Commission', penalty: 'Penalty' }[group]
     const response = await adminWrite('SystemSetting', action, null, 'put', `/system-setting/${group}`, { ...body, ...versionGuard(version) })
     try {
       const data = unwrap(response)

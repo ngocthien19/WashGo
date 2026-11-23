@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readShipperQuery, shipperFilter, shipperSchema } from './shipperModel'
 
-const valid = { fullName: ' Test Driver ', phone: '+84 901234567', email: 'Driver@example.test', vehicleType: 1, vehiclePlate: '59-a123', identityNumber: '', isActive: true }
+const valid = { fullName: ' Test Driver ', phone: '+84 901234567', email: 'Driver@example.test', vehicleType: 1, vehiclePlate: '59-a123', identityNumber: '', isActive: true, maxActiveTasks: 3 }
 describe('merchant shipper management', () => {
   it('preserves false availability and rejects invalid URL filters', () => {
     expect(shipperFilter(readShipperQuery(new URLSearchParams('isActive=false&status=2&page=3')))).toMatchObject({ isActive: false, status: 2, page: 3, take: 12 })
@@ -18,4 +18,13 @@ describe('merchant shipper management', () => {
     expect(shipperFilter(readShipperQuery(new URLSearchParams('ratingSort=desc&page=2')))).toEqual({ keyword: undefined, status: undefined, isActive: undefined, page: 2, take: 12 })
     expect(shipperFilter(readShipperQuery(new URLSearchParams('ratingSort=unsupported'))).sortBy).toBeUndefined()
   })
+})
+
+it('accepts a limit equal to active tasks and rejects lower or invalid limits', async () => {
+  for (const value of [3, 4, 20]) {
+    await expect(shipperSchema.validate({ ...valid, maxActiveTasks: value }, { context: { activeTaskCount: 3 } })).resolves.toBeTruthy()
+  }
+  for (const value of [2, 0, -1, 21, 3.5, '', null]) {
+    await expect(shipperSchema.validate({ ...valid, maxActiveTasks: value }, { context: { activeTaskCount: 3 } })).rejects.toThrow()
+  }
 })

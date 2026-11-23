@@ -1,7 +1,7 @@
 import ShipperCapacity from '~/components/shippers/ShipperCapacity'
 import ResourceImage from '~/components/ResourceThumbnail/ResourceImage'
 import ShipperHistory from './ShipperHistory'
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pencil, UserRound, Phone, Mail, CalendarDays, CreditCard, Bike, Hash, PackageCheck, ClipboardList, ShieldCheck } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
@@ -13,16 +13,11 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import { merchantShipperApi } from '~/apis/merchant/merchantShipperApi'
 import { formatDateTime, getImageUrl } from '~/utils/format/formats'
 
-export default function ShipperDetails({ id, onClose, onEdit, editImmediately = false }) {
+export default function ShipperDetails({ id, onClose, onEdit }) {
   const { t } = useTranslation()
   const load = useCallback((signal) => merchantShipperApi.detail(id, signal), [id])
   const resource = useCatalogResource(load)
   const shipper = resource.data
-  useEffect(() => {
-    if (editImmediately && shipper) {
-      onEdit(shipper)
-    }
-  }, [editImmediately, shipper, onEdit])
   return (
     <Dialog
       open
@@ -100,18 +95,20 @@ export default function ShipperDetails({ id, onClose, onEdit, editImmediately = 
                 {[{ key: 'totalDeliveries', Icon: PackageCheck, color: 'border-l-primary', iconColor: 'text-primary' }, { key: 'activeTaskCount', Icon: ClipboardList, color: 'border-l-emerald-500', iconColor: 'text-emerald-600 dark:text-emerald-300' }].map(({ key, Icon, color, iconColor }) => (
                   <div
                     key={key}
-                    className={`rounded-xl border border-border border-l-4 bg-card p-3 sm:p-4 ${color}`}
+                    className={`min-w-0 rounded-xl border border-border border-l-4 bg-card p-3 ${color}`}
                   >
                     <Icon
-                      size={20}
-                      className={`mb-2 ${iconColor}`}
+                      size={18}
+                      className={`mb-1 ${iconColor}`}
                     />
-                    <div className="text-2xl font-bold">
+                    <div className={key === 'activeTaskCount' ? 'text-lg leading-snug' : 'text-2xl font-bold'}>
                       {key === 'activeTaskCount' ? <ShipperCapacity shipper={shipper} /> : <AnimatedNumber value={shipper[key]} />}
                     </div>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">
-                      {t(`merchant.shippers.${key}`)}
-                    </p>
+                    {key !== 'activeTaskCount' && (
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">
+                        {t(`merchant.shippers.${key}`)}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
