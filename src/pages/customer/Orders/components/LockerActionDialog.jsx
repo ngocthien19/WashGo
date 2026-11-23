@@ -172,7 +172,7 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
             </p>
           </div>
           <div
-            className="max-h-[85dvh] min-h-0 overflow-y-auto overscroll-contain p-6 sm:p-8 md:max-h-none"
+            className="min-h-0"
             data-dialog-layout
           >
             <div data-dialog-header>
@@ -184,50 +184,6 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
                 {t('customer.orders.scan.simulationNote')}
               </DialogDescription>
             </div>
-            <div data-dialog-body>
-              {deposit && (
-                <div className="mt-4">
-                  <DepositDeadlineNotice order={order} />
-                </div>
-              )}
-              {deposit && (
-                <>
-                  <dl className="mt-5 grid grid-cols-2 gap-4 rounded-2xl border border-border bg-muted/35 p-4 text-sm">
-                    <div>
-                      <dt className="text-xs text-muted-foreground">
-                        {t('customer.order.locker')}
-                      </dt>
-                      <dd className="mt-1 break-words font-semibold">
-                        {order.lockerName}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">
-                        {t('customer.orders.compartmentSize')}
-                      </dt>
-                      <dd className="mt-1 font-medium">
-                        {t(LOCKER_SLOT_SIZES[order.boxSize] || 'customer.orders.unknown')}
-                      </dd>
-                    </div>
-                    <div className="col-span-2 flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-300">
-                      <DoorOpen size={18} />
-                      {t('customer.order.box', { number: order.boxNumber })}
-                    </div>
-                  </dl>
-                  <div className="mt-4 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
-                    <HandHeart className="mt-0.5 size-6 shrink-0 text-amber-600 dark:text-amber-300" />
-                    <div>
-                      <p className="font-semibold">
-                        {t('customer.orders.dropoff.instruction')}
-                      </p>
-                      <p className="mt-1 text-sm leading-6">
-                        {t('customer.orders.dropoff.instructionNote', { number: order.boxNumber })}
-                      </p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
             <form
               onSubmit={submit}
               noValidate
@@ -235,6 +191,49 @@ export default function LockerActionDialog({ order, deposit, onClose, onUpdated 
               data-dialog-layout
             >
               <div data-dialog-body>
+                {deposit && (
+                  <div className="mt-4">
+                    <DepositDeadlineNotice order={order} />
+                  </div>
+                )}
+                {deposit && (
+                  <>
+                    <dl className="mt-5 grid grid-cols-2 gap-4 rounded-2xl border border-border bg-muted/35 p-4 text-sm">
+                      <div>
+                        <dt className="text-xs text-muted-foreground">
+                          {t('customer.order.locker')}
+                        </dt>
+                        <dd className="mt-1 break-words font-semibold">
+                          {order.lockerName}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-muted-foreground">
+                          {t('customer.orders.compartmentSize')}
+                        </dt>
+                        <dd className="mt-1 font-medium">
+                          {t(LOCKER_SLOT_SIZES[order.boxSize] || 'customer.orders.unknown')}
+                        </dd>
+                      </div>
+                      <div className="col-span-2 flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-300">
+                        <DoorOpen size={18} />
+                        {t('customer.order.box', { number: order.boxNumber })}
+                      </div>
+                    </dl>
+                    <div className="mt-4 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
+                      <HandHeart className="mt-0.5 size-6 shrink-0 text-amber-600 dark:text-amber-300" />
+                      <div>
+                        <p className="font-semibold">
+                          {t('customer.orders.dropoff.instruction')}
+                        </p>
+                        <p className="mt-1 text-sm leading-6">
+                          {t('customer.orders.dropoff.instructionNote', { number: order.boxNumber })}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 {!deposit && !session && <ReturnLockerInfo order={order} />}
                 {!deposit && !session && (
                   <div className="space-y-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 dark:border-sky-400/20 dark:bg-sky-400/10">

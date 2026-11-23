@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { expectFixedDialog } from '../helpers/dialogLayout'
 import { chooseMobileDisplay } from '../helpers/customerDisplay'
 
 const id = '11111111-1111-4111-8111-111111111111'
@@ -1385,3 +1386,27 @@ test('order cards load detail ETA in the background and refresh it without expos
   await page.setViewportSize({ width: 375, height: 812 })
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
+
+for (const width of [375, 1280]) {
+  test(`locker deposit and pickup use one scroll body with pinned controls (${width})`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 620 })
+    const state = await setup(page)
+    for (const pickup of [false, true]) {
+      if (pickup) {
+        state.order = { ...state.order, status: 10, paymentStatus: 2 }
+      }
+      await page.goto(`/orders/${id}`)
+      await page.getByRole('button', { name: pickup ? 'Collect from locker' : 'Drop off at locker', exact: true }).click()
+      const dialog = page.getByRole('dialog')
+      await expect(dialog.locator('[data-dialog-body]')).toHaveCount(1)
+      await expectFixedDialog(dialog)
+      const owners = await dialog.evaluate(root => [root, ...root.querySelectorAll('*')].filter(node => {
+        const style = getComputedStyle(node)
+        return /auto|scroll/.test(style.overflowY) && node.scrollHeight > node.clientHeight + 1
+      }).length)
+      expect(owners).toBe(1)
+      await page.keyboard.press('Escape')
+    }
+    expect(state.lockerCalls).toHaveLength(0)
+  })
+}

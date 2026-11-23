@@ -453,3 +453,25 @@ test('workspace Admin service name opens its detail modal', async ({ page }) => 
   await expect(page.getByRole('dialog')).toContainText('Everyday wash')
   await expect(page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).last()).toBeVisible()
 })
+
+test('long service bulk preview uses only the dialog body scrollbar', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 620 })
+  const state = await setup(page)
+  const services = Array.from({ length: 10 }, (_, index) => ({ ...state.service, id: `a0000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`, name: `Laundry service ${index + 1}`, code: `SV${index}` }))
+  await page.route('**/api/wash-service/filter', route => route.fulfill({ json: { succeeded: true, list: services, total: 10, currentPage: 1, totalPages: 1 } }))
+  await page.goto('/admin/services')
+  await page.getByRole('checkbox', { name: 'Select all services on this page', exact: true }).check()
+  await page.getByRole('button', { name: 'Bulk actions', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByText('Laundry service 10', { exact: true })).toBeAttached()
+  const body = dialog.locator('[data-dialog-body]')
+  await body.evaluate(node => {
+    node.scrollTop = node.scrollHeight
+  })
+  await expect(dialog.getByText('Laundry service 10', { exact: true })).toBeInViewport()
+  const owners = await dialog.evaluate(root => [root, ...root.querySelectorAll('*')].filter(node => /auto|scroll/.test(getComputedStyle(node).overflowY) && node.scrollHeight > node.clientHeight + 1).length)
+  expect(owners).toBe(1)
+  await expect(dialog.locator('[data-dialog-header]')).toBeInViewport()
+  await expect(dialog.locator('[data-dialog-footer]')).toBeInViewport()
+  expect(state.writes).toHaveLength(0)
+})

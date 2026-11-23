@@ -338,6 +338,12 @@ label:has([data-slot="checkbox"][data-disabled]) {
   padding: 1.5rem;
 }
 [data-dialog-fixed] [data-dialog-body] > * + * { margin-top: 1.25rem; }
+/* The body owns vertical scrolling; nested lists, galleries and audit details expand with it.
+   Keep native textarea scrolling and portalled select menus independent. */
+[data-dialog-popup] :is([data-dialog-body], [class*="overflow-y-auto"], [class*="overflow-auto"]) :is(div, section, ul, ol, dl, pre):is([class*="overflow-y-auto"], [class*="overflow-auto"]) {
+  max-height: none;
+  overflow: visible;
+}
 [data-dialog-fixed] [data-dialog-footer] {
   flex-shrink: 0;
   margin: 0;

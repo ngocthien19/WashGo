@@ -50,6 +50,7 @@ export function DialogContent({ children, className, closeLabel = 'common.closeS
       />
       <DialogPrimitive.Popup
         {...props}
+        data-dialog-popup
         className={cn('fixed left-1/2 top-1/2 z-50 max-h-[85dvh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-border bg-card p-6 text-foreground shadow-xl outline-none sm:p-8', className)}
         render={(
           <motion.div
