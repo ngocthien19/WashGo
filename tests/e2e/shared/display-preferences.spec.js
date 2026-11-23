@@ -305,11 +305,11 @@ test('auth forms use readable 16px fields and descriptions without breaking resp
   await page.setViewportSize({ width: 1440, height: 900 })
 })
 
-test('home descriptions and locker actions use larger text and a primary location button', async ({ page }) => {
+test('home descriptions and locker actions remain readable while location belongs to the locker catalog', async ({ page }) => {
   const homeCatalog = page.waitForResponse(response => new URL(response.url()).pathname.endsWith('/customer/services/filter') && response.status() === 200)
   await page.route(/\/api\/customer\/lockers(?:\?|$)/, (route) => route.fulfill({ json: {
     succeeded: true, currentPage: 1, totalPages: 1, total: 1,
-    list: [{ id: 'locker-test', code: 'LK_TEST', name: 'Locker test', city: 'Test city', address: '123 Test Street', availableSlotCount: 2, latitude: null, longitude: null }]
+    list: [{ id: 'locker-test', code: 'LK_TEST', name: 'Locker test', city: 'Test city', address: '123 Test Street', availableSlotCount: 2, latitude: 10.77, longitude: 106.7 }]
   } }))
   await page.goto('/login')
   await chooseEnglish(page)
@@ -320,7 +320,7 @@ test('home descriptions and locker actions use larger text and a primary locatio
   await homeCatalog
   for (const text of [
     'Choose the right care for every item. Consistent prices across our network.',
-    'Find a convenient drop-off point. Use your location to see the nearest lockers.',
+    'Explore available locker stations and choose a convenient drop-off point.',
     'One less thing to worry about. More time for yourself.'
   ]) {
     await expect(page.getByText(text, { exact: true })).toHaveCSS('font-size', '16px')
@@ -332,9 +332,8 @@ test('home descriptions and locker actions use larger text and a primary locatio
   await expect(page.locator('footer h2').first()).toHaveCSS('font-size', '18px')
   await expect(page.locator('footer p').first()).toHaveCSS('font-size', '16px')
   await expect(page.locator('footer').getByRole('button', { name: 'Terms', exact: true })).toHaveCSS('font-size', '16px')
-  const location = lockerSection.getByRole('button', { name: 'Use my location', exact: true })
-  await expect(location).toHaveCSS('font-size', '16px')
-  await expect(location).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+  await expect(lockerSection.getByRole('heading', { name: 'WashGo lockers', exact: true })).toBeVisible()
+  await expect(lockerSection.getByRole('button', { name: 'Use my location', exact: true })).toHaveCount(0)
   for (const name of ['Show on map', 'Details']) {
     const button = lockerSection.getByRole('button', { name, exact: true })
     await expect(button).toHaveCSS('font-size', '16px')
@@ -344,6 +343,13 @@ test('home descriptions and locker actions use larger text and a primary locatio
   await page.setViewportSize({ width: 375, height: 844 })
   await lockerSection.getByRole('button', { name: 'Details', exact: true }).scrollIntoViewIfNeeded()
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await lockerSection.getByRole('button', { name: 'View all lockers', exact: true }).click()
+  const location = page.getByRole('button', { name: 'Use my location', exact: true })
+  await expect(location).toHaveCount(1)
+  await expect(location).toHaveCSS('font-size', '16px')
+  await expect(location).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+  await expect(page.getByRole('combobox', { name: 'Search radius', exact: true })).toBeDisabled()
+  await expect(page.getByRole('region', { name: 'Locker location map', exact: true })).toHaveCount(1)
 })
 
 test('customer service modal works in dark mode, with responsive layout and keyboard close', async ({ page }) => {

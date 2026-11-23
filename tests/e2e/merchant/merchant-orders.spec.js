@@ -440,7 +440,7 @@ test('revision-only changes and server conflicts require a fresh review rather t
   expect(state.writes).toHaveLength(1)
 })
 
-test('server permissions and overdue metadata drive the detail view', async ({ page }) => {
+test('server permissions and overdue metadata remain visible without removed helper copy', async ({ page }) => {
   const state = await setup(page, { status: 3 })
   state.allowedActions = { canUpdateWeight: false, updateWeightReasonCode: 'LegacyPricing', canAssignShipper: false, allowedNextStatuses: [], statusOptions: [] }
   Object.assign(state.order, { paymentDeadline: '2026-11-05T10:00:00Z', pickupDeadline: '2026-11-07T10:00:00Z', overdueTypes: ['PaymentOverdue'] })
@@ -449,7 +449,7 @@ test('server permissions and overdue metadata drive the detail view', async ({ p
   await expect(page.getByRole('button', { name: 'Update processing', exact: true })).toHaveCount(0)
   await expect(page.getByText('Payment deadline', { exact: true })).toBeVisible()
   await expect(page.getByText('Payment overdue', { exact: true })).toBeVisible()
-  await expect(page.getByText('This legacy order has no package pricing data for weighing and repricing.', { exact: true })).toBeVisible()
+  await expect(page.getByText('This legacy order has no package pricing data for weighing and repricing.', { exact: true })).toHaveCount(0)
   expect(state.writes).toHaveLength(0)
 })
 
