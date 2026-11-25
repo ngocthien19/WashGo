@@ -19,64 +19,68 @@ function LoadedStorageOrderPanel({ order, role, onUpdated, taskId }) {
   return (
     <section
       data-pagination-scope
-      className="space-y-4 rounded-2xl border border-border bg-card p-5"
+      className={role === 'Admin' ? 'overflow-hidden rounded-2xl border border-border bg-card shadow-sm' : 'space-y-4 rounded-2xl border border-border bg-card p-5'}
     >
-      <h2 className="flex items-center gap-3 text-xl font-bold">
-        <Warehouse className="text-primary" />
+      <h2 className={role === 'Admin' ? 'flex items-center gap-3 border-b border-border bg-teal-500/5 p-5 text-lg font-semibold' : 'flex items-center gap-3 text-xl font-bold'}>
+        <Warehouse className={role === 'Admin' ? 'size-5 text-teal-700 dark:text-teal-300' : 'text-primary'} />
         {t('storage.title')}
       </h2>
-      {resource.loading || resource.error ? <ResourceFeedback {...resource} /> : (
-        <>
-          {(resource.data?.list || []).map((row, index) => (
-            <StorageCycleCard
-              key={row.id}
-              row={row}
-              current={order.activeStorageCycleId ? row.id === order.activeStorageCycleId : page === 1 && index === 0}
-              role={role}
-              taskId={taskId}
-              disabled={storageApi.hasPending(order.id)}
-              onAction={name => setAction({ name, cycle: row })}
-            />
-          ))}
-          {storageApi.hasPending(order.id) && (
-            <Button
-              variant="outline"
-              onClick={() => setAction({ name: 'exception', cycle: resource.data?.list[0] })}
-            >
-              {t('admin.sync.checkResult')}
-            </Button>
-          )}
-          {!resource.data?.list.length && (
-            <p className="text-muted-foreground">
-              {t('storage.noCycles')}
-            </p>
-          )}
-          <Pagination
-            currentPage={page}
-            totalPages={resource.data?.totalPages || 0}
-            onPageChange={setPage}
+      <div className={role === 'Admin' ? 'space-y-5 p-5 sm:p-6' : 'space-y-4'}>
+        {resource.loading || resource.error ? <ResourceFeedback {...resource} /> : (
+          <>
+            {(resource.data?.list || []).map((row, index) => (
+              <StorageCycleCard
+                key={row.id}
+                row={row}
+                current={order.activeStorageCycleId ? row.id === order.activeStorageCycleId : page === 1 && index === 0}
+                role={role}
+                taskId={taskId}
+                disabled={storageApi.hasPending(order.id)}
+                onAction={name => setAction({ name, cycle: row })}
+              />
+            ))}
+            {storageApi.hasPending(order.id) && (
+              <Button
+                variant="outline"
+                onClick={() => setAction({ name: 'exception', cycle: resource.data?.list[0] })}
+              >
+                {t('admin.sync.checkResult')}
+              </Button>
+            )}
+            {!resource.data?.list.length && (
+              <p className="text-muted-foreground">
+                {t('storage.noCycles')}
+              </p>
+            )}
+            {resource.data?.totalPages > 1 && (
+              <Pagination
+                currentPage={page}
+                totalPages={resource.data.totalPages}
+                onPageChange={setPage}
+              />
+            )}
+          </>
+        )}
+        {role === 'Admin' && order.storageWorkflowVersion === 0 && order.status === 13 && (
+          <Button
+            variant="outline"
+            onClick={() => setAction({ name: 'verify-legacy' })}
+          >
+            {t('storage.actions.verify-legacy')}
+          </Button>
+        )}
+        {action && (
+          <StorageActionDialog
+            order={order}
+            cycle={action.cycle}
+            action={action.name}
+            taskId={taskId}
+            role={role}
+            onClose={done}
+            onSaved={done}
           />
-        </>
-      )}
-      {role === 'Admin' && order.storageWorkflowVersion === 0 && order.status === 13 && (
-        <Button
-          variant="outline"
-          onClick={() => setAction({ name: 'verify-legacy' })}
-        >
-          {t('storage.actions.verify-legacy')}
-        </Button>
-      )}
-      {action && (
-        <StorageActionDialog
-          order={order}
-          cycle={action.cycle}
-          action={action.name}
-          taskId={taskId}
-          role={role}
-          onClose={done}
-          onSaved={done}
-        />
-      )}
+        )}
+      </div>
     </section>
   )
 }

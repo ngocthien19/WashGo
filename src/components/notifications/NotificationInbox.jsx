@@ -13,7 +13,7 @@ import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import Pagination from '~/components/Pagination/Pagination'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { notificationApi } from '~/apis/notifications/notificationApi'
-import { resolveNotificationOrders } from '~/apis/notifications/notificationOrders'
+import { resolveNotificationOrders, isStorageNotification } from '~/apis/notifications/notificationOrders'
 import { formatDateTime } from '~/utils/format/formats'
 import { notify } from '~/utils/notifications/notifications'
 import { getApiError } from '~/utils/http/apiError'
@@ -38,6 +38,11 @@ export default function NotificationInbox({ revealFrom, onNavigate, page = 1, un
   }, [])
   const loadPage = useCallback(async (targetPage, signal) => {
     const result = await (filters ? notificationApi.filter({ ...filters, page: targetPage, unreadOnly }, signal) : notificationApi.list(targetPage, unreadOnly, signal))
+    if (role === 'Customer') {
+      const storage = await resolveNotificationOrders(result.list.filter(isStorageNotification), signal)
+      const resolved = new Map(storage.map(item => [item.id, item]))
+      return { ...result, list: result.list.map(item => resolved.get(item.id) || item) }
+    }
     return role === 'Admin' ? { ...result, list: await resolveNotificationOrders(result.list, signal) } : result
   }, [unreadOnly, filters, role])
   const load = useCallback(signal => compact ? Promise.resolve(null) : loadPage(page, signal), [compact, loadPage, page])

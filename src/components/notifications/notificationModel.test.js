@@ -1,6 +1,14 @@
 import { expect, it } from 'vitest'
 import i18n from '~/i18n'
 import { notificationFilters, notificationText, notificationHighlights } from './notificationModel'
+it('shows an order code on private storage notifications without duplicating it or adding internal data', async () => {
+  await i18n.changeLanguage('en')
+  const item = { title: 'Storage notice', content: 'WashGo is keeping your items.', messageKey: 'storage.customer.private', messageArgs: { orderCode: 'WG2611241234' } }
+  const text = notificationText(item, i18n.t.bind(i18n))
+  expect(text.title).not.toContain('WG2611241234')
+  expect(text.content).toContain('WG2611241234')
+  expect(notificationText({ ...item, content: text.content }, i18n.t.bind(i18n)).content.match(/WG2611241234/g)).toHaveLength(1)
+})
 it('describes new orders with their locker and compartment, without inventing missing details', async () => {
   await i18n.changeLanguage('en')
   const item = { title: 'Original', content: 'Original content', messageKey: 'orderEvent.OrderCreated', messageArgs: { orderCode: 'WG2611172521' }, displayOrderSummary: { lockerName: 'Ben Thanh Locker', boxNumber: '3' } }

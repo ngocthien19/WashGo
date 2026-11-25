@@ -22,3 +22,18 @@ it('does not expose internal custody fields to Customer', () => {
   />)
   expect(screen.queryByText(/LK202611170900001234|Snapshot shop|Private address|PAPER-1/)).not.toBeInTheDocument()
 })
+
+it.each(['Admin', 'Customer'])('omits frozen cycle fee details for %s', async role => {
+  await i18n.changeLanguage('en')
+  render(<StorageCycleCard
+    row={{ ...row, frozenLockerFee: 17000, frozenWarehouseFee: 23000 }}
+    role={role}
+  />)
+  expect(screen.queryByText(i18n.t('storage.frozenLockerFee'))).not.toBeInTheDocument()
+  expect(screen.queryByText(i18n.t('storage.frozenWarehouseFee'))).not.toBeInTheDocument()
+  if (role === 'Admin') {
+    expect(screen.getByText(i18n.t('storage.feeTotal'))).toBeVisible()
+    expect(screen.getByText(i18n.t('storage.feePaid'))).toBeVisible()
+    expect(screen.getByText(i18n.t('storage.outstanding'))).toBeVisible()
+  }
+})

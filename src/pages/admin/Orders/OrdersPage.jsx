@@ -321,11 +321,16 @@ export default function OrdersPage() {
               <TableBody>
                 {rows.map(row => {
                   const depositExpired = !waiting && row.status === ORDER_STATUSES.PENDING && row.isDepositExpired === true
+                  const stored = row.status === ORDER_STATUSES.MOVED_TO_STORAGE
                   return (
                     <TableRow
                       key={row.id}
                       data-deposit-expired={depositExpired || undefined}
-                      className={depositExpired ? 'bg-amber-500/8 hover:bg-amber-500/12 [&>td:first-child]:shadow-[inset_4px_0_0_var(--color-amber-500)]' : waiting && row.isOverdue ? 'bg-rose-500/5' : ''}
+                      className={depositExpired
+                        ? 'bg-amber-500/8 hover:bg-amber-500/12 [&>td:first-child]:shadow-[inset_4px_0_0_var(--color-amber-500)]'
+                        : stored
+                          ? 'bg-teal-500/8 hover:bg-teal-500/12 [&>td:first-child]:shadow-[inset_4px_0_0_var(--color-teal-500)]'
+                          : waiting && row.isOverdue ? 'bg-rose-500/5' : ''}
                     >
                       {waiting && (
                         <TableCell>
@@ -454,7 +459,11 @@ export default function OrdersPage() {
                           </TableCell>
                         </>
                       )}
-                      <TableCell className={`sticky right-0 z-10 border-l border-border text-center ${depositExpired ? 'bg-[color-mix(in_srgb,var(--color-amber-500)_8%,var(--card))]' : 'bg-card'}`}>
+                      <TableCell
+                        className={`sticky right-0 z-10 border-l border-border text-center ${depositExpired
+                          ? 'bg-[color-mix(in_srgb,var(--color-amber-500)_8%,var(--card))]'
+                          : stored ? 'bg-[color-mix(in_srgb,var(--color-teal-500)_8%,var(--card))]' : 'bg-card'}`}
+                      >
                         <DropdownMenu>
                           <DropdownMenuTrigger render={(
                             <Button

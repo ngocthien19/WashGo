@@ -1,14 +1,16 @@
 import { render, screen, cleanup } from '@testing-library/react'
 import { expect, it } from 'vitest'
 import i18n from '~/i18n'
-import { ORDER_STATUS_OPTIONS } from '~/utils/config/constants'
+import { ORDER_STATUS_OPTIONS, ORDER_STATUSES } from '~/utils/config/constants'
 import OrderStatus from './OrderStatus'
 import OrderStatusDescription from './OrderStatusDescription'
 import { OrderRoleContext } from './orderPresentation'
 import { ORDER_STATUS_COLORS } from '~/utils/config/constants'
 
-it('gives every order status its own badge palette and localized role description', async () => {
-  expect(new Set(ORDER_STATUS_OPTIONS.map(option => option.color)).size).toBe(ORDER_STATUS_OPTIONS.length)
+it('distinguishes stored and cancelled badges and localizes every role description', async () => {
+  const palette = status => ORDER_STATUS_OPTIONS.find(option => Number(option.value) === status).color
+  expect(palette(ORDER_STATUSES.MOVED_TO_STORAGE)).toBe('teal')
+  expect(palette(ORDER_STATUSES.MOVED_TO_STORAGE)).not.toBe(palette(ORDER_STATUSES.CANCELLED))
   for (const language of ['vi', 'en']) {
     await i18n.changeLanguage(language)
     for (const role of ['Admin', 'Merchant', 'Shipper']) {

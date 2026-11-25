@@ -4,6 +4,12 @@ import { resolveNotificationOrders } from './notificationOrders'
 
 vi.mock('~/utils/http/authorizedAxios', () => ({ default: { get: vi.fn() } }))
 const id = '3a24f745-2e37-5d6f-1e10-b01dd461d257'
+it('resolves the linked order for a private storage notice without exposing custody details', async () => {
+  authorizedAxios.get.mockResolvedValueOnce({ data: { succeeded: true, data: { id, orderCode: 'WG2611241234', storageLocation: 'PRIVATE SHOP' } } })
+  const item = { linkType: 'order', linkId: id, messageKey: 'storage.customer.private', messageArgs: {}, content: 'WashGo is keeping your items.' }
+  const result = await resolveNotificationOrders([item])
+  expect(result[0]).toEqual({ ...item, displayOrderCode: 'WG2611241234' })
+})
 it('loads locker and compartment for a new order notification that already has its code', async () => {
   authorizedAxios.get.mockResolvedValueOnce({ data: { succeeded: true, data: { id, orderCode: 'WG2611172521', lockerName: 'Ben Thanh Locker', boxNumber: 3 } } })
   const result = await resolveNotificationOrders([{ linkType: 'order', linkId: id, messageKey: 'orderEvent.OrderCreated', messageArgs: { orderCode: 'WG2611172521' } }])
