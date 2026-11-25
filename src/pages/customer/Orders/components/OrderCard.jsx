@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import { lazy, Suspense, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Package, Timer } from 'lucide-react'
 import Reveal from '~/components/motion/Reveal'
@@ -8,23 +7,22 @@ import OrderProgress from '~/components/customer/orders/OrderProgress'
 import { Button } from '~/components/ui/button'
 import { CUSTOMER_ROUTES, ORDER_STATUSES } from '~/utils/config/constants'
 import useDepositDeadline from '~/hooks/customer/useDepositDeadline'
-import { formatCurrency, formatDateTime, formatNumber } from '~/utils/format/formats'
-import { paymentBlockReason } from '~/pages/customer/Payment/paymentModel'
+import { formatDateTime, formatNumber } from '~/utils/format/formats'
+import OrderPaymentAction from '~/pages/customer/Payment/OrderPaymentAction'
 import OrderCardSummary from './OrderCardSummary'
 
-const PaymentDialog = lazy(() => import('~/pages/customer/Payment/PaymentDialog'))
 
 export default function OrderCard({ order, estimate }) {
   const { t } = useTranslation()
-  const [paymentOpen, setPaymentOpen] = useState(false)
-  const pendingPayments = useRef(new Set())
   const deadline = useDepositDeadline(order)
+  const stored = order.status === ORDER_STATUSES.MOVED_TO_STORAGE
   const expired = order.status === ORDER_STATUSES.PENDING && deadline.expired
   return (
     <Reveal
       as="article"
       data-deposit-expired={expired || undefined}
-      className={`rounded-2xl border bg-card p-5 shadow-sm sm:p-6 ${expired ? 'border-amber-500/40 border-l-4 bg-gradient-to-r from-amber-500/8 to-card shadow-amber-500/5' : 'border-border/70'}`}
+      data-stored={stored || undefined}
+      className={`rounded-2xl border bg-card p-5 shadow-sm sm:p-6 ${expired ? 'border-amber-500/40 border-l-4 bg-gradient-to-r from-amber-500/8 to-card shadow-amber-500/5' : stored ? 'border-teal-500/40 border-l-4 bg-gradient-to-r from-teal-500/10 to-card shadow-teal-500/5' : 'border-border/70'}`}
     >
       {expired && (
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:text-amber-200">
@@ -95,45 +93,23 @@ export default function OrderCard({ order, estimate }) {
             order={order}
             estimate={estimate}
           />
-          <div className="flex flex-wrap items-end justify-between gap-3 xl:justify-end">
-            <div className="min-w-0 xl:text-right">
-              <p className="text-xs text-muted-foreground">
-                {t('customer.orders.total')}
-              </p>
-              <p className="mt-1 text-lg font-bold tabular-nums text-primary">
-                {formatCurrency(order.finalAmount)}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
+          <OrderPaymentAction
+            order={order}
+            compact
+            secondaryAction={(
               <Button
                 render={<Link to={CUSTOMER_ROUTES.ORDER_DETAIL.replace(':orderId', order.id)} />}
                 nativeButton={false}
                 variant="secondary"
-                className="h-11 rounded-xl text-base px-4"
+                className="h-11 shrink-0 rounded-xl px-4 text-base"
               >
                 {t('customer.orders.details')}
               </Button>
-              {!paymentBlockReason(order) && (
-                <Button
-                  onClick={() => setPaymentOpen(true)}
-                  className="h-11 rounded-xl text-base px-4"
-                >
-                  {t('customer.orders.pay')}
-                </Button>
-              )}
-            </div>
-          </div>
+            )}
+          />
         </div>
       </div>
-      {paymentOpen && (
-        <Suspense fallback={null}>
-          <PaymentDialog
-            orderId={order.id}
-            pendingRequests={pendingPayments}
-            onClose={() => setPaymentOpen(false)}
-          />
-        </Suspense>
-      )}
+
     </Reveal>
   )
 }

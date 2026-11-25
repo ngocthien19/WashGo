@@ -1,6 +1,8 @@
 import authorizedAxios from '~/utils/http/authorizedAxios'
 import { CUSTOMER_API_ENDPOINTS } from '~/utils/config/constants'
 import { customerOrderApi } from './customerOrderApi'
+import { validOutcome } from '~/pages/customer/Payment/paymentOutcome'
+import { validSummary } from '~/pages/customer/Payment/combinedPaymentModel'
 
 const unwrap = ({ data }) => {
   if (data?.succeeded !== true || !data.data) {
@@ -17,6 +19,22 @@ const validOrder = (order) => {
 }
 
 export const customerPaymentApi = {
+  getSummary: async (orderId, pointsToRedeem = 0, signal) => {
+    const value = await authorizedAxios.get(`/payment/orders/${encodeURIComponent(orderId)}/summary`, { params: { pointsToRedeem }, signal }).then(unwrap)
+    if (!validSummary(value, orderId)) {
+      throw new Error('customer.payment.invalidResponse')
+    }
+    return value
+  },
+  checkout: (orderId, paymentMethod, pointsToRedeem, expectedQuoteToken) => authorizedAxios.post(`/payment/orders/${encodeURIComponent(orderId)}/checkout`, { paymentMethod, pointsToRedeem, expectedQuoteToken }).then(unwrap),
+  getResult: async (context, signal) => {
+    const { orderId, ...params } = context
+    const value = await authorizedAxios.get(`/payment/orders/${encodeURIComponent(orderId)}/result`, { params, signal }).then(unwrap)
+    if (!validOutcome(value, context)) {
+      throw new Error('customer.payment.invalidResponse')
+    }
+    return value
+  },
   getActiveSession: async (orderId, purpose, signal) => {
     const { data } = await authorizedAxios.get(`/payment/orders/${encodeURIComponent(orderId)}/active-session`, { params: { purpose }, signal })
     if (data?.succeeded !== true || data.data !== null && (!data.data || data.data.orderId !== orderId || data.data.purpose !== purpose || typeof data.data.canVerify !== 'boolean' || typeof data.data.requiresReconciliation !== 'boolean')) {

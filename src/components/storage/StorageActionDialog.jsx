@@ -1,4 +1,5 @@
 import ShipperSelection from '~/components/shippers/ShipperSelection'
+import { customerPaymentApi } from '~/apis/customer/customerPaymentApi'
 import { canAssignShipper, isShipperCapacityConflict } from '~/utils/orders/shipperCapacity'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -46,10 +47,23 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
       if (recovery) {
         await storageApi[recovery](order.id)
       } else {
-        if (action === 'return-request' && (!quote || Date.parse(quote.expiresAt) <= Date.now())) {
+        if (action === 'return-request' && (!quote || role !== 'Customer' && Date.parse(quote.expiresAt) <= Date.now())) {
           throw new Error('storage.quoteExpired')
         }
         const body = { reason: values.reason || undefined }
+        if (action === 'return-request' && role === 'Customer') {
+          const latest = await customerPaymentApi.getOrder(order.id)
+          const summary = await customerPaymentApi.getSummary(order.id)
+          const lockerId = summary.returnLockerId
+          if (!summary.canRequestStorageReturn || latest.status !== 13 || !lockerId || quote.lockerId !== lockerId || latest.revision !== (cycle?.orderRevision ?? order.revision)) {
+            throw new Error('storageCustomer.paymentFirst')
+          }
+          const freshQuote = await storageApi.quote(order.id, lockerId)
+          if (freshQuote.outstanding !== 0) {
+            throw new Error('storageCustomer.paymentFirst')
+          }
+          body.quoteToken = freshQuote.quoteToken
+        }
         if (action === 'assign') {
           const candidates = await storageApi.shippers(order.id)
           if (!candidates.some(row => row.id === values.shipperId && canAssignShipper(row))) {
@@ -60,7 +74,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
         if (action === 'verify-legacy') {
           Object.assign(body, { confirmedAtCurrentShop: true, verificationReference: values.verificationReference })
         }
-        if (quote) {
+        if (quote && !body.quoteToken) {
           body.quoteToken = quote.quoteToken
         }
         if (credential) {
@@ -77,7 +91,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
       setAttempts({ remaining: metadata.remainingAttempts, until: metadata.lockoutUntil })
       const pending = storageApi.hasPending(order.id)
       setUnknown(pending)
-      setError(pending ? 'storage.unknown' : role === 'Customer' ? 'storage.customerError' : getApiError(failure))
+      setError(pending ? 'storage.unknown' : failure.message === 'storageCustomer.paymentFirst' ? failure.message : role === 'Customer' ? 'storage.customerError' : getApiError(failure))
       if (!pending) {
         setBlocked(true)
       }

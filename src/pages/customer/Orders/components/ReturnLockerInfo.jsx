@@ -16,7 +16,7 @@ export default function ReturnLockerInfo({ order, animate = false }) {
   const href = getLockerMapLink({ latitude: order.returnLockerLatitude, longitude: order.returnLockerLongitude })
   return (
     <Section className="grid gap-2 rounded-xl border border-primary/15 bg-primary/5 p-4 text-sm">
-      <h3 className="flex items-center gap-2 font-bold">
+      <h3 className="flex items-center gap-2 text-lg font-bold">
         <MapPin
           size={18}
           className="text-primary"
@@ -29,7 +29,7 @@ export default function ReturnLockerInfo({ order, animate = false }) {
           name={order.returnLockerName}
         />
         <div className="min-w-0 space-y-2">
-          <p className="break-words font-semibold">
+          <p className="break-words text-base font-semibold">
             {order.returnLockerName}
             {order.returnBoxNumber ? ` · ${t('customer.order.box', { number: order.returnBoxNumber })}` : ''}
           </p>

@@ -19,6 +19,11 @@ export const paymentBlockReason = (order) => {
 export const onlinePaymentMethod = (value) => [ORDER_PAYMENT_METHODS.VNPAY, ORDER_PAYMENT_METHODS.MOMO].includes(value)
 
 // Gateway references locate an order only. They never prove that a payment succeeded.
+export const returnedOrderId = params => {
+  const id = params.get('orderId') || ''
+  return /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(id) && ['1', '2', '3'].includes(params.get('purpose')) ? id : ''
+}
+
 export const returnedOrderCode = (params) => {
   const reference = params.get('vnp_TxnRef') || params.get('orderId') || ''
   return /^WG-(?:PAY|FEE|CANCEL)-([A-Za-z0-9]+)-[a-f0-9]{16}(?:[a-f0-9]{16})?$/i.exec(reference)?.[1] || ''
@@ -36,6 +41,9 @@ export const paymentRedirectUrl = (value) => {
 }
 
 export const returnedFee = (params) => {
+  if (returnedOrderId(params)) {
+    return ['2', '3'].includes(params.get('purpose'))
+  }
   const reference = params.get('vnp_TxnRef') || params.get('orderId') || ''
   return !!returnedOrderCode(params) && /^WG-(?:FEE|CANCEL)-/.test(reference)
 }

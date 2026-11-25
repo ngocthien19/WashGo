@@ -1,3 +1,4 @@
+import { safePaymentReturn } from '~/pages/customer/Payment/paymentOutcome'
 import { useTranslation } from 'react-i18next'
 import { AUTH_ROUTES, CUSTOMER_ROUTES, USER_ROLES, UI_TRANSITIONS } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
@@ -52,9 +53,11 @@ export default function LoginPage() {
     && Object.values(CUSTOMER_ROUTES).some(path => matchPath({ path, end: true }, state.returnTo.split(/[?#]/)[0]))
     && !state.returnTo.includes('\\')
     ? state.returnTo : null
-  const paymentReturn = auth.user?.role === USER_ROLES.CUSTOMER && typeof state?.paymentReturn === 'string'
-    && (state.paymentReturn === CUSTOMER_ROUTES.PAYMENT_RETURN || state.paymentReturn.startsWith(`${CUSTOMER_ROUTES.PAYMENT_RETURN}?`))
-    ? state.paymentReturn : null
+  const paymentReturn = auth.user?.role === USER_ROLES.CUSTOMER
+    ? safePaymentReturn(state?.paymentReturn) || (typeof state?.paymentReturn === 'string'
+      && (state.paymentReturn === CUSTOMER_ROUTES.PAYMENT_RETURN || state.paymentReturn.startsWith(`${CUSTOMER_ROUTES.PAYMENT_RETURN}?`))
+      ? state.paymentReturn : null)
+    : null
   const completeLogin = useCallback((data) => {
     if (!getRoleHome(data.user?.role)) {
       throw new Error('auth.yourAccountDoesNotHaveASupportedRolePlease')
