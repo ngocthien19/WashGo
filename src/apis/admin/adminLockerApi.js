@@ -15,6 +15,25 @@ const unwrapWrite = async (method, path, body, validate, guard = {}, action = 'U
 }
 const fields = ['name', 'address', 'ward', 'district', 'city', 'latitude', 'longitude', 'lockerType', 'description', 'imageUrls', 'merchantIds', 'serviceAreaId']
 export const adminLockerApi = {
+  eligibleMerchants: async (filter, signal) => {
+    const rows = [], take = 100
+    let page = 1, total = Infinity
+    while (rows.length < total) {
+      const { data } = await authorizedAxios.get('/locker/eligible-merchants', { params: { ...filter, includeIneligible: false, page, take }, signal })
+      if (data?.succeeded !== true || !Array.isArray(data.list) || !Number.isInteger(data.total) || data.total < 0 || data.list.some(row => !isId(row.merchantId) || typeof row.eligible !== 'boolean') || !data.list.length && rows.length < data.total) {
+        throw invalid()
+      }
+      rows.push(...data.list); total = data.total; page++
+    }
+    return rows
+  },
+  coverageIssues: async (page, signal) => {
+    const { data } = await authorizedAxios.get('/locker/coverage-issues', { params: { page, take: 20 }, signal })
+    if (data?.succeeded !== true || !Array.isArray(data.list) || !Number.isInteger(data.total) || data.total < 0 || data.list.some(row => !isId(row.lockerId) || !isId(row.merchantId))) {
+      throw invalid()
+    }
+    return { ...data, currentPage: page, totalPages: Math.ceil(data.total / 20) }
+  },
   summary: merchantLockerApi.summary,
   detail: merchantLockerApi.detail,
   history: merchantLockerApi.history,

@@ -1,3 +1,4 @@
+import { readSchedule, scheduleSchema } from '~/components/OpeningSchedule/scheduleModel'
 import * as yup from 'yup'
 import { validDay, vietnamToday } from '~/utils/format/dateRange'
 
@@ -29,7 +30,7 @@ export const merchantSchema = yup.object({
   taxCode: yup.string().trim().max(20), businessLicense: yup.string().trim().max(2000),
   address: yup.string().trim().required().max(500), city: yup.string().trim().required().max(100), district: yup.string().trim().max(100),
   latitude: yup.number().required().min(-90).max(90), longitude: yup.number().required().min(-180).max(180),
-  openingHours: yup.string().trim().max(1000),
+  openingHours: yup.string().trim().max(1000), openingSchedule: scheduleSchema,
   depositAmount: yup.number().required().min(0).max(100000000000).test('precision', '', (value) => value == null || Math.abs(value * 100 - Math.round(value * 100)) < 0.00001),
   commissionRate: optionalNumber().min(0).max(100).test('precision', '', (value) => value == null || Math.abs(value * 100 - Math.round(value * 100)) < 0.00001),
   serviceRadiusKm: yup.number().required().integer().min(1).max(100), maxCapacity: yup.number().required().integer().min(1).max(100000),
@@ -41,7 +42,7 @@ export const merchantSchema = yup.object({
 }).test('coordinates', 'admin.merchants.invalidLocation', (value) => value.latitude !== 0 || value.longitude !== 0)
 
 export function merchantDefaults(value) {
-  return { businessName: value?.businessName || '', email: value?.email || '', phone: value?.phone || '', taxCode: value?.taxCode || '', businessLicense: displayJsonText(value?.businessLicense), address: value?.address || '', district: value?.district || '', city: value?.city || '', latitude: value?.latitude ?? '', longitude: value?.longitude ?? '', openingHours: displayJsonText(value?.openingHours), depositAmount: value?.depositAmount ?? 1000000, commissionRate: value?.commissionRate ?? '', serviceRadiusKm: value?.serviceRadiusKm ?? 5, maxCapacity: value?.maxCapacity ?? 50, contractStartDate: contractDay(value?.contractStartDate), contractEndDate: contractDay(value?.contractEndDate) }
+  return { businessName: value?.businessName || '', email: value?.email || '', phone: value?.phone || '', taxCode: value?.taxCode || '', businessLicense: displayJsonText(value?.businessLicense), address: value?.address || '', district: value?.district || '', city: value?.city || '', latitude: value?.latitude ?? '', longitude: value?.longitude ?? '', openingHours: displayJsonText(value?.openingHours), openingSchedule: readSchedule(value?.openingSchedule), depositAmount: value?.depositAmount ?? 1000000, commissionRate: value?.commissionRate ?? '', serviceRadiusKm: value?.serviceRadiusKm ?? 5, maxCapacity: value?.maxCapacity ?? 50, contractStartDate: contractDay(value?.contractStartDate), contractEndDate: contractDay(value?.contractEndDate) }
 }
 export function merchantPayload(values, original, imageUrls) {
   const body = Object.fromEntries(Object.keys(merchantDefaults()).map((key) => [key, typeof values[key] === 'string' ? values[key].trim() : values[key]]))
@@ -57,7 +58,7 @@ export function merchantPayload(values, original, imageUrls) {
 }
 export const merchantSnapshot = (value) => JSON.stringify([value.version, merchantDefaults(value), value.status, value.imageUrls || [], [...(value.serviceAreaIds || [])].sort()])
 export const requestSnapshot = (value) => JSON.stringify([value.version, value.id, value.status, value.current, value.proposed, value.changedFields])
-export const profileStillCurrent = (current, value) => ['businessName', 'address', 'phone', 'city', 'latitude', 'longitude', 'openingHours', 'imageUrls', ...(current.documentsSnapshotIncluded ? ['taxCode', 'businessLicenseDocumentId'] : [])].every((key) => {
+export const profileStillCurrent = (current, value) => ['businessName', 'address', 'phone', 'city', 'latitude', 'longitude', 'openingHours', 'openingSchedule', 'imageUrls', ...(current.documentsSnapshotIncluded ? ['taxCode', 'businessLicenseDocumentId'] : [])].every((key) => {
   if (current[key] == null && ['city', 'latitude', 'longitude'].includes(key)) {
     return true
   }

@@ -24,6 +24,13 @@ export async function setupAdminLockers(page, options = {}) {
     if (await adminUpgradeMocks(route, state, [])) {
       return
     }
+    if (path === '/locker/coverage-issues') {
+      return list(state.coverageIssues || [], Object.fromEntries(url.searchParams))
+    }
+    if (path === '/locker/eligible-merchants') {
+      state.eligibilityCalls ??= []; state.eligibilityCalls.push(Object.fromEntries(url.searchParams))
+      return list(state.eligibleMerchants || state.merchants.map(row => ({ merchantId: row.id, businessName: row.businessName, status: row.status, eligible: row.status === 1, withinServiceRadius: true, serviceRadiusKm: 5, distanceKm: 1, blockedReasonCode: row.status === 1 ? null : 'MerchantInactive' })), Object.fromEntries(url.searchParams))
+    }
     if (path === '/auth/me') {
       return ok({ id: 'admin-test', fullName: 'Test Admin', role: 'Admin', email: 'admin@example.test' })
     }

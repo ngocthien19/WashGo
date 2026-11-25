@@ -7,6 +7,44 @@ const menu = async (page, action) => {
 }
 const save = dialog => dialog.getByRole('button', { name: 'Save locker', exact: true }).click()
 
+test('Locker tabs separate coverage issues and preserve list filters with an underline active state', async ({ page }) => {
+  await setup(page)
+  await page.goto('/admin/lockers?city=Other+City')
+  const list = page.getByRole('tab', { name: 'Locker list', exact: true })
+  await expect(list).toHaveAttribute('aria-selected', 'true')
+  await expect(list).toHaveCSS('border-bottom-width', '2px')
+  await expect(page.getByRole('table')).toContainText('Locker 13')
+  await page.getByRole('tab', { name: 'Coverage issues', exact: true }).click()
+  await expect(page.getByRole('table')).toHaveCount(0)
+  await expect(page.getByRole('status')).toHaveText('No Merchant–locker coverage issues to resolve.')
+  await list.click()
+  await expect(page.getByRole('table')).toContainText('Locker 13')
+  await expect(page).toHaveURL(/city=Other\+City/)
+})
+
+test('coverage keeps an invalid linked Merchant visible and requires removing it before reordering links', async ({ page }) => {
+  const state = await setup(page)
+  state.eligibleMerchants = state.merchants.slice(0, 2).map((row, index) => ({ merchantId: row.id, businessName: row.businessName, status: 1, eligible: index === 0, withinServiceRadius: index === 0, serviceRadiusKm: 5, distanceKm: 5, isLinked: true, linkPriority: index + 1, blockedReasonCode: index ? 'MerchantOutsideServiceRadius' : null }))
+  state.coverageIssues = [{ lockerId, lockerCode: 'LK-1', lockerName: 'Central Locker', merchantId: state.merchants[1].id, businessName: 'Second Laundry', distanceKm: 5, serviceRadiusKm: 5, reasonCode: 'MerchantOutsideServiceRadius', lockerStillServed: true }]
+  await page.goto('/admin/lockers')
+  await page.getByRole('tab', { name: 'Coverage issues', exact: true }).click()
+  await expect(page.getByRole('table')).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Merchant–locker coverage issues', exact: true })).toHaveCount(0)
+  await expect(page.getByText('Central Locker', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Edit assignment', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('tab', { name: 'Responsible merchants', exact: true }).click()
+  await expect(dialog.getByText('Outside service radius', { exact: true })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Increase priority for Second Laundry', exact: true }).click()
+  await save(dialog)
+  await expect(dialog).toBeVisible()
+  expect(state.writes).toHaveLength(0)
+  await dialog.getByRole('button', { name: 'Remove Second Laundry from the list', exact: true }).click()
+  await save(dialog)
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes[0].body.merchantIds).toEqual([merchantId])
+})
+
 test('Locker server validation opens the matching tab and marks the actual input', async ({ page }) => {
   const state = await setup(page)
   let rejected = false
@@ -323,7 +361,7 @@ test('create selects a map point and active Merchant then sends supported box co
   await dialog.getByRole('tab', { name: 'Responsible merchants', exact: true }).click()
   await dialog.getByRole('combobox', { name: 'Select a merchant to add', exact: true }).click()
   await expect(page.getByRole('option', { name: 'Suspended Laundry', exact: true })).toHaveCount(0)
-  await page.getByRole('option', { name: 'Central Laundry', exact: true }).click()
+  await page.getByRole('option', { name: 'Central Laundry (1 km / 5 km)', exact: true }).click()
   await dialog.getByRole('tab', { name: 'Compartments', exact: true }).click()
   await dialog.getByLabel('Total compartments', { exact: true }).fill('8')
   await save(dialog)

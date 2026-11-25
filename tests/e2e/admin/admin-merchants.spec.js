@@ -8,6 +8,7 @@ const menu = async (page, action, name = 'Ben Thanh Laundry') => {
 }
 async function fillCreate(page) {
   const dialog = page.getByRole('dialog')
+  await dialog.getByLabel('Open 24/7', { exact: true }).check()
   await dialog.getByLabel('Business name', { exact: true }).fill('New Laundry')
   await dialog.getByLabel('Sign-in email', { exact: true }).fill('new@example.test')
   await dialog.getByLabel('Phone number', { exact: true }).fill('0901234567')
@@ -17,6 +18,76 @@ async function fillCreate(page) {
   }
   return dialog
 }
+
+test('daily opening hours save all seven days while custom controls stay collapsed', async ({ page }) => {
+  const state = await setup(page)
+  state.merchants[0].openingSchedule = null
+  await page.goto('/admin/merchants')
+  await menu(page, 'Edit merchant')
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByLabel('Monday', { exact: true })).not.toBeVisible()
+  await dialog.getByLabel('Opening time', { exact: true }).fill('08:00')
+  await dialog.getByLabel('Closing time', { exact: true }).fill('20:00')
+  await dialog.getByRole('button', { name: 'Save information', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes[0].body.openingSchedule).toEqual({ timeZone: 'Asia/Ho_Chi_Minh', alwaysOpen: false, weekly: Array.from({ length: 7 }, (_, index) => ({ dayOfWeek: index + 1, shifts: [{ open: '08:00', close: '20:00' }] })), closedDates: [] })
+})
+
+test('existing custom hours and holidays remain intact when editing merchant information', async ({ page }) => {
+  const state = await setup(page)
+  const schedule = { timeZone: 'Asia/Ho_Chi_Minh', alwaysOpen: false, weekly: [{ dayOfWeek: 1, shifts: [{ open: '08:00', close: '12:00' }, { open: '13:00', close: '20:00' }] }], closedDates: ['2026-12-25'] }
+  state.merchants[0].openingSchedule = schedule
+  await page.goto('/admin/merchants')
+  await menu(page, 'Edit merchant')
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByLabel('Monday Opening time 1')).toHaveValue('08:00')
+  await expect(dialog.getByLabel('Monday Opening time 2')).toHaveValue('13:00')
+  await expect(dialog.getByRole('textbox', { name: 'Special closed dates (YYYY-MM-DD, one per line)', exact: true })).toHaveValue('2026-12-25')
+  await dialog.getByLabel('Business name', { exact: true }).fill('Updated Laundry')
+  await dialog.getByRole('button', { name: 'Save information', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes[0].body.openingSchedule).toEqual(schedule)
+})
+
+test('a legacy Merchant must supply a valid structured opening schedule before saving', async ({ page }) => {
+  const state = await setup(page)
+  state.merchants[0].openingSchedule = null
+  await page.goto('/admin/merchants')
+  await menu(page, 'Edit merchant')
+  const dialog = page.getByRole('dialog')
+  await dialog.getByLabel('Business name', { exact: true }).fill('Updated Laundry')
+  await dialog.getByRole('button', { name: 'Save information', exact: true }).click()
+  await expect(dialog.getByText(/Select at least one open day/)).toBeVisible()
+  expect(state.writes).toHaveLength(0)
+  await dialog.getByText('Different hours by day', { exact: true }).click()
+  await dialog.getByLabel('Monday', { exact: true }).check()
+  await dialog.getByLabel('Monday Opening time 1').fill('08:00')
+  await dialog.getByLabel('Monday Closing time 1').fill('20:00')
+  await dialog.getByRole('button', { name: 'Save information', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes[0].body.openingSchedule).toEqual({ timeZone: 'Asia/Ho_Chi_Minh', alwaysOpen: false, weekly: [{ dayOfWeek: 1, shifts: [{ open: '08:00', close: '20:00' }] }], closedDates: [] })
+})
+
+test('a rejected service radius change shows affected lockers and retains the entered value', async ({ page }) => {
+  await setup(page)
+  let attempts = 0
+  await page.route('**/api/merchant', async route => {
+    if (route.request().method() !== 'PUT') {
+      return route.fallback()
+    }
+    attempts++
+    return route.fulfill({ status: 409, json: { succeeded: false, message: 'Coverage would exclude assigned lockers.', meta: { code: 'MerchantCoverageWouldExcludeLockers', lockers: [{ lockerId: '50000000-0000-4000-8000-000000000001', code: 'LK-TEST', name: 'Affected Locker', distanceKm: 3, serviceRadiusKm: 1 }] } } })
+  })
+  await page.goto('/admin/merchants')
+  await menu(page, 'Edit merchant')
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('tab', { name: 'Location & service area', exact: true }).click()
+  await dialog.getByLabel('Service radius (km)', { exact: true }).fill('1')
+  await dialog.getByRole('button', { name: 'Save information', exact: true }).click()
+  await expect(dialog.getByText(/LK-TEST/)).toBeVisible()
+  await expect(dialog.getByLabel('Service radius (km)', { exact: true })).toHaveValue('1')
+  expect(attempts).toBe(1)
+})
 
 test('backend sync: Admin uploads a private Merchant license and preserves version and other documents', async ({ page }) => {
   const state = await setup(page)

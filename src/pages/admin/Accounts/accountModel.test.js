@@ -2,6 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { accountQuery, accountSchema, accountPayload } from './accountModel'
 const customer = { role: 'Customer', fullName: 'Test Customer', email: 'test@example.test', phone: '0901234567', vehicleType: 1 }
 describe('account filters and payloads', () => {
+  it('requires structured opening hours when creating a Merchant through account management', async () => {
+    const merchant = { ...customer, role: 'Merchant', address: '123 Street', city: 'City', latitude: 10, longitude: 106 }
+    await expect(accountSchema(false).validate(merchant)).rejects.toThrow('schedule.invalid')
+    const openingSchedule = { timeZone: 'Asia/Ho_Chi_Minh', alwaysOpen: true, weekly: [], closedDates: [] }
+    const values = await accountSchema(false).validate({ ...merchant, openingSchedule })
+    expect(accountPayload(values, false).merchant.openingSchedule).toEqual(openingSchedule)
+    expect(await accountSchema(false).validate({ ...customer, openingSchedule })).not.toHaveProperty('openingSchedule')
+  })
   it('validates server filters and inclusive Vietnam date bounds', () => {
     const value = accountQuery(new URLSearchParams('role=Unknown&page=-3&deleted=bad&sortBy=deletedAt&from=2026-11-21&to=2026-11-21'))
     expect(value).toMatchObject({ page: 1, take: 20, role: undefined, deleted: 'Exclude', sortBy: 'createdAt' })

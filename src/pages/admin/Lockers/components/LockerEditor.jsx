@@ -1,4 +1,6 @@
-import { lazy, Suspense, useRef, useState } from 'react'
+import useCatalogResource from '~/hooks/useCatalogResource'
+import { hasCoordinates } from '~/utils/format/formats'
+import { lazy, Suspense, useCallback, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useTranslation } from 'react-i18next'
@@ -17,7 +19,7 @@ import LockerDialogHeader from './LockerDialogHeader'
 
 const AddressPicker = lazy(() => import('~/components/maps/AddressPickerDialog'))
 const locationKey = value => JSON.stringify(['address', 'city', 'latitude', 'longitude'].map(key => String(value[key]).trim()))
-export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
+export default function LockerEditor({ locker, onClose, onSaved }) {
   const { t } = useTranslation()
   const originalIds = [...(locker?.merchants || [])].sort((a, b) => a.priority - b.priority).map(row => row.merchantId)
   const [ids, setIds] = useState(originalIds), [mapOpen, setMapOpen] = useState(false)
@@ -27,6 +29,13 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
   const images = useImages(1, locker?.imageUrls || [])
   const { register, handleSubmit, setValue, getValues, control, setError: setFieldError, clearErrors, formState: { errors } } = useForm({ resolver: yupResolver(lockerSchema), defaultValues: lockerDefaults(locker) })
   const values = useWatch({ control })
+  const latitude = Number(values.latitude), longitude = Number(values.longitude)
+  const lockerId = locker?.id
+  const loadEligible = useCallback(signal => hasCoordinates({ latitude, longitude }) && (latitude !== 0 || longitude !== 0)
+    ? adminLockerApi.eligibleMerchants({ latitude, longitude, lockerId }, signal) : Promise.resolve([]), [latitude, longitude, lockerId])
+  const candidates = useCatalogResource(loadEligible)
+  const merchants = (candidates.data || []).map(row => ({ ...row, id: row.merchantId, name: row.businessName }))
+
   const close = () => {
     if (!locked.current) {
       onClose()
@@ -40,7 +49,8 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
       setTab('basic'); setError('admin.lockers.mapRequired'); return
     }
     const changedIds = JSON.stringify(ids) !== JSON.stringify(originalIds)
-    if ((!locker || changedIds) && (!ids.length || ids.some(id => !merchants.some(m => m.id === id && m.status === 1)))) {
+    const needsCoverage = !locker || changedIds || Number(values.latitude) !== locker.latitude || Number(values.longitude) !== locker.longitude
+    if (needsCoverage && (candidates.loading || candidates.error || !ids.length || ids.some(id => !merchants.some(m => m.id === id && m.eligible)))) {
       setTab('merchants'); setError('admin.lockers.merchantsRequired'); return
     }
     locked.current = true; setPending(true); setError(''); clearErrors()
@@ -223,7 +233,34 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
                   <p className="text-sm leading-6 text-muted-foreground">
                     {t('admin.lockers.priorityHint')}
                   </p>
+                  <p className="text-sm text-muted-foreground">
+                    {t('coverage.hint')}
+                  </p>
+                  {candidates.loading && (
+                    <p role="status">
+                      {t('coverage.loading')}
+                    </p>
+                  )}
+                  {candidates.error && (
+                    <div role="alert">
+                      <p>
+                        {t(candidates.error)}
+                      </p>
+                      <Button
+                        type="button"
+                        onClick={candidates.retry}
+                      >
+                        {t('common.tryAgain')}
+                      </Button>
+                    </div>
+                  )}
+                  {!candidates.loading && !candidates.error && !merchants.some(row => row.eligible) && (
+                    <p role="status">
+                      {t('coverage.none')}
+                    </p>
+                  )}
                   <SelectField
+                    disabled={candidates.loading || !!candidates.error}
                     label={t('admin.lockers.addMerchant')}
                     value=""
                     onValueChange={id => {
@@ -231,7 +268,7 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
                         setIds([...ids, id])
                       }
                     }}
-                    options={[{ value: '', label: t('admin.lockers.addMerchant') }, ...merchants.filter(m => m.status === 1 && !ids.includes(m.id)).map(m => ({ value: m.id, label: m.name }))]}
+                    options={[{ value: '', label: t('admin.lockers.addMerchant') }, ...merchants.filter(m => m.eligible && !ids.includes(m.id)).map(m => ({ value: m.id, label: `${m.name} (${m.distanceKm ?? '-'} km / ${m.serviceRadiusKm} km)` }))]}
                   />
                   <ol className="space-y-3">
                     {ids.map((id, index) => {
@@ -246,6 +283,22 @@ export default function LockerEditor({ locker, merchants, onClose, onSaved }) {
                           </span>
                           <span className="min-w-0 flex-1 basis-32 break-words font-semibold">
                             {merchant?.name || existing?.businessName || id}
+                            {merchant && (
+                              <span className="block text-sm font-normal text-muted-foreground">
+                                {merchant.distanceKm ?? '—'}
+                                {' '}
+                                km /
+                                {' '}
+                                {merchant.serviceRadiusKm}
+                                {' '}
+                                km
+                              </span>
+                            )}
+                            {merchant && !merchant.eligible && (
+                              <span className="block text-sm font-normal text-destructive">
+                                {t(`coverage.reasons.${merchant.blockedReasonCode}`, { defaultValue: t('coverage.invalid') })}
+                              </span>
+                            )}
                           </span>
                           <Button
                             type="button"

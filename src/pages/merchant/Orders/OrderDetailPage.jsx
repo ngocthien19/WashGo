@@ -1,3 +1,4 @@
+import CollectionWindow from '~/components/orders/CollectionWindow'
 import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
 import Reveal from '~/components/motion/Reveal'
 import { useCallback, useEffect, useState } from 'react'
@@ -140,6 +141,7 @@ export default function OrderDetailPage() {
               onUpdated={done}
             />
           )}
+          <CollectionWindow order={order} />
           <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
             <div className="min-w-0 space-y-6">
               <Panel

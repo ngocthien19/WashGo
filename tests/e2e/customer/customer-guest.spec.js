@@ -423,7 +423,8 @@ test('Home shows general lockers and all-locker view switches between all and ne
   const rows = [0.02, 0.04, 0.08, 0.12].map((delta, index) => ({ ...locker, id: `near-${index}`, name: `Nearby Station ${index + 1}`, latitude: 10 + delta, longitude: 106, distanceKm: delta * 111.2 }))
   await page.route(/\/api\/customer\/lockers(?:\?|$)/, route => {
     const query = Object.fromEntries(new URL(route.request().url()).searchParams); calls.push(query)
-    return route.fulfill({ json: { succeeded: true, list: rows, total: 4, currentPage: 1, totalPages: 1 } })
+    const filtered = query.radiusKm ? rows.filter(row => row.distanceKm <= Number(query.radiusKm)) : rows
+    return route.fulfill({ json: { succeeded: true, list: filtered, total: filtered.length, currentPage: 1, totalPages: 1 } })
   })
   await page.goto('/')
   const home = page.locator('#lockers')
@@ -452,8 +453,8 @@ test('Home shows general lockers and all-locker view switches between all and ne
     await page.getByRole('option', { name: radius, exact: true }).click()
     await expect(bottom.getByText(expected, { exact: true })).toBeVisible()
   }
-  expect(calls.filter(query => query.take !== '4')).toHaveLength(mainCalls)
-  expect(calls.some(query => 'radiusKm' in query)).toBe(false)
+  expect(calls.filter(query => query.take !== '4').length).toBeGreaterThan(mainCalls)
+  expect(calls.some(query => query.radiusKm === '10' && query.take === '6')).toBe(true)
   await expect(page.getByRole('region', { name: 'Locker location map', exact: true })).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Use my location', exact: true })).toHaveCount(1)
   await page.getByRole('combobox', { name: 'Search radius', exact: true }).click()
@@ -464,17 +465,47 @@ test('Home shows general lockers and all-locker view switches between all and ne
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
 
+test('radius results keep server totals and paging beyond the old four-locker preview', async ({ page }) => {
+  await page.context().grantPermissions(['geolocation'])
+  await page.context().setGeolocation({ latitude: 10, longitude: 106 })
+  await setup(page)
+  const calls = []
+  const rows = Array.from({ length: 8 }, (_, index) => ({ ...locker, id: `radius-${index}`, name: `Radius Station ${index + 1}`, latitude: 10 + (index + 1) * 0.001, longitude: 106, distanceKm: (index + 1) * 0.111 }))
+  await page.route(/\/api\/customer\/lockers(?:\?|$)/, route => {
+    const query = Object.fromEntries(new URL(route.request().url()).searchParams); calls.push(query)
+    const currentPage = Number(query.page || 1), take = Number(query.take || 6)
+    return route.fulfill({ json: { succeeded: true, list: rows.slice((currentPage - 1) * take, currentPage * take), total: rows.length, currentPage, totalPages: Math.ceil(rows.length / take) } })
+  })
+  await page.goto('/lockers')
+  await page.getByRole('button', { name: 'Use my location', exact: true }).click()
+  await page.getByRole('combobox', { name: 'Search radius', exact: true }).click()
+  await page.getByRole('option', { name: '3 km', exact: true }).click()
+  const results = page.getByRole('region', { name: 'Locker search results', exact: true })
+  await expect(results.getByText('Radius Station 6', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Next page', exact: true }).click()
+  await expect(results.getByText('Radius Station 8', { exact: true })).toBeVisible()
+  await expect(results.getByText('Radius Station 1', { exact: true })).toHaveCount(0)
+  expect(calls.some(query => query.page === '2' && query.radiusKm === '3' && query.take === '6')).toBe(true)
+})
+
 test('empty nearby radius offers explicit expansion without showing far lockers as nearby', async ({ page }) => {
   await page.context().grantPermissions(['geolocation'])
   await page.context().setGeolocation({ latitude: 10, longitude: 106 })
   await setup(page)
-  await page.route(/\/api\/customer\/lockers(?:\?|$)/, route => route.fulfill({ json: { succeeded: true, list: [{ ...locker, latitude: 10.04, longitude: 106 }], total: 1, currentPage: 1, totalPages: 1 } }))
+  await page.route(/\/api\/customer\/lockers(?:\?|$)/, route => {
+    const radius = new URL(route.request().url()).searchParams.get('radiusKm')
+    const list = radius === '3' ? [] : [{ ...locker, latitude: 10.04, longitude: 106 }]
+    return route.fulfill({ json: { succeeded: true, list, total: list.length, currentPage: 1, totalPages: list.length ? 1 : 0 } })
+  })
   await page.goto('/lockers')
   const nearby = page.getByRole('region', { name: 'Locker search results', exact: true })
   await page.getByRole('button', { name: 'Use my location', exact: true }).click()
   await page.getByRole('combobox', { name: 'Search radius', exact: true }).click()
   await page.getByRole('option', { name: '3 km', exact: true }).click()
   await expect(nearby.getByRole('status').filter({ hasText: 'No available' })).toHaveText('No available lockers within 3 km of your location.')
+  await expect(nearby.getByRole('status').filter({ hasText: 'No available' }).locator('..')).toHaveCSS('text-align', 'center')
+  await expect(nearby).not.toContainText('Distances are straight-line estimates.')
+  await expect(nearby.getByRole('button', { name: 'Expand to 5 km', exact: true })).toHaveCSS('height', '48px')
   await expect(nearby.getByText('Guest locker', { exact: true })).toHaveCount(0)
   await nearby.getByRole('button', { name: 'Expand to 5 km', exact: true }).click()
   await expect(nearby.getByText('Guest locker', { exact: true })).toBeVisible()
