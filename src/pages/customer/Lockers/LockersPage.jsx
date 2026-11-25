@@ -4,7 +4,7 @@ import { SelectField } from '~/components/ui/select'
 import { useTranslation } from 'react-i18next'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOutletContext, useSearchParams } from 'react-router-dom'
-import { ArrowDownAZ, Check, ChevronDown, LocateFixed, MapPinned } from 'lucide-react'
+import { ArrowDownAZ, Check, ChevronDown, LocateFixed, MapPinned, MapPinOff } from 'lucide-react'
 import SectionHeading from '~/components/customer/SectionHeading/SectionHeading'
 import LockerResultSummary from './components/LockerResultSummary'
 import { Button } from '~/components/ui/button'
@@ -40,15 +40,12 @@ export default function LockersPage() {
       page: Number.isSafeInteger(page) && page > 0 ? page : CUSTOMER_CATALOG.INITIAL_PAGE
     }
   }, [params])
-  const load = useCallback((signal) => nearby && position ? customerCatalogApi.getNearbyLockers({
-    ...position, radiusKm, keyword: query.keyword, city: query.city
-  }, signal) : customerCatalogApi.getLockers({
-    page: query.page,
-    take: CUSTOMER_CATALOG.PAGE_SIZE,
-    keyword: query.keyword || undefined,
-    city: query.city || undefined,
-    ...(sort === 'nearest' ? position : {})
-  }, signal), [query, sort, position, nearby, radiusKm])
+  const load = useCallback((signal) => customerCatalogApi.getLockers({
+    page: query.page, take: CUSTOMER_CATALOG.PAGE_SIZE,
+    keyword: query.keyword || undefined, city: query.city || undefined,
+    ...(sort === 'nearest' ? position : {}),
+    ...(position && radiusKm !== null ? { radiusKm } : {})
+  }, signal), [query, sort, position, radiusKm])
   const { data, loading, error, retry } = useCatalogResource(load)
   const areas = useCatalogResource(customerCatalogApi.getLockerAreas)
   const lockers = data?.list || []
@@ -197,7 +194,6 @@ export default function LockersPage() {
             loading={loading}
             error={error}
             query={query}
-            nearby={nearby}
             sortControl={sortControl}
             radiusControl={(
               <div className="flex flex-wrap items-center gap-2.5">
@@ -234,20 +230,26 @@ export default function LockersPage() {
             })}
             onClearFilters={() => setQuery({ keyword: '', city: '', page: CUSTOMER_CATALOG.INITIAL_PAGE })}
           />
-          {nearby && (
-            <p className="text-sm text-muted-foreground">
-              {t('nearbyLockers.description', { radius: radiusKm })}
-            </p>
-          )}
           {!loading && !error && nearby && !lockers.length ? (
-            <div className="space-y-4 rounded-2xl border border-dashed border-primary/20 bg-card p-6">
-              <p role="status">
+            <div className="flex min-h-64 flex-col items-center justify-center gap-5 rounded-2xl border border-dashed border-primary/20 bg-card px-6 py-10 text-center">
+              <span className="grid size-16 place-items-center rounded-2xl bg-primary/10 text-primary">
+                <MapPinOff
+                  className="size-8"
+                  aria-hidden="true"
+                />
+              </span>
+              <p
+                role="status"
+                className="max-w-xl text-base font-medium leading-7"
+              >
                 {t('nearbyLockers.empty', { radius: radiusKm })}
               </p>
               {nextRadius && (
                 <Button
-                  variant="outline"
-                  onClick={() => setRadiusKm(nextRadius)}
+                  className="h-12 rounded-xl px-6 text-base font-semibold"
+                  onClick={() => {
+                    setRadiusKm(nextRadius); setQuery({ page: CUSTOMER_CATALOG.INITIAL_PAGE })
+                  }}
                 >
                   {t('nearbyLockers.expand', { radius: nextRadius })}
                 </Button>
@@ -267,7 +269,7 @@ export default function LockersPage() {
               position={position}
             />
           )}
-          {!nearby && !loading && !error && data?.totalPages > 0 && (
+          {!loading && !error && data?.totalPages > 0 && (
             <Pagination
               className="pt-5"
               currentPage={data.currentPage}

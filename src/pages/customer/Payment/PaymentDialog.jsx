@@ -6,7 +6,7 @@ import { customerPaymentApi } from '~/apis/customer/customerPaymentApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import PaymentCheckout from './PaymentCheckout'
 
-export default function PaymentDialog({ orderId, onClose, pendingRequests: pending }) {
+export default function PaymentDialog({ orderId, onClose, pendingRequests: pending, initialMethod }) {
   const { t } = useTranslation()
   const localPending = useRef(new Set())
   const resource = useCatalogResource(useCallback(signal => customerPaymentApi.getOrder(orderId, signal), [orderId]))
@@ -45,6 +45,7 @@ export default function PaymentDialog({ orderId, onClose, pendingRequests: pendi
             order={order}
             refresh={resource.retry}
             pendingRequests={pending || localPending}
+            initialMethod={initialMethod}
             modal
             onClose={onClose}
           />

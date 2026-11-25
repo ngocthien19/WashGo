@@ -4,11 +4,13 @@ const uuid = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i
 export const isOrderCode = value => typeof value === 'string' && /^WG[A-Z0-9-]+$/i.test(value)
 export const isNewOrderNotification = item => item.messageKey === 'orderEvent.OrderCreated' || item.messageKey === 'orderCreated.admin'
   || item.type === 1 && !item.messageKey?.endsWith('.customer')
+export const isStorageNotification = item => ['storage.customer.private', 'paymentSucceeded.storage.customer'].includes(item.messageKey)
 
 // Resolve only the order explicitly linked by the notification. Do not guess from message text.
 export async function resolveNotificationOrders(items, signal) {
   const ids = [...new Set(items.filter(item => item.linkType === 'order' && uuid.test(item.linkId || '')
-    && (isNewOrderNotification(item) && (!item.messageArgs?.lockerName || !item.messageArgs?.boxNumber)
+    && (isStorageNotification(item) && !isOrderCode(item.messageArgs?.orderCode)
+      || isNewOrderNotification(item) && (!item.messageArgs?.lockerName || !item.messageArgs?.boxNumber)
       || !isOrderCode(item.messageArgs?.orderCode) && `${item.title} ${item.content} ${item.messageArgs?.orderCode || ''}`.toLowerCase().includes(item.linkId.toLowerCase()))).map(item => item.linkId))]
   const codes = new Map()
   const summaries = new Map()

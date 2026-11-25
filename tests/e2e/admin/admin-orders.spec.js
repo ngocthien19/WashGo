@@ -1,6 +1,14 @@
 import { expect, test } from '@playwright/test'
 import { setupAdminOrders, orderId, merchantId, serviceId } from '../helpers/adminOrderSession'
 
+test('Admin order header omits status descriptions while keeping deadline controls', async ({ page }) => {
+  await setupAdminOrders(page, { status: 8, merchant: true })
+  await page.goto(`/admin/orders/${orderId}`)
+  await expect(page.getByRole('heading', { name: 'WG-ADMIN-01', exact: true })).toBeVisible()
+  await expect(page.getByText('Processing is finished. Await confirmed customer payment for laundry charges.', { exact: true })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Order deadlines', exact: true })).toBeVisible()
+})
+
 test('backend sync: expired deposit cancellation reviews fees and sends guarded reason once', async ({ page }) => {
   const state = await setupAdminOrders(page, { status: 1 })
   state.orders[0].isDepositExpired = true

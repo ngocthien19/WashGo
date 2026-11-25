@@ -57,28 +57,12 @@ describe('customer catalog API', () => {
 })
 
 
-describe('nearby locker preview from the globally nearest prefix', () => {
-  const position = { latitude: 10, longitude: 106 }
-  const nearest = [0.02, 0.04, 0.08, 0.12].map((delta, index) => ({ id: String(index), latitude: 10 + delta, longitude: 106, distanceKm: 0 }))
-  it('uses only supported parameters and returns the first four in-radius options without rounding the boundary', async () => {
-    authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, list: nearest } })
-    expect((await customerCatalogApi.getNearbyLockers({ ...position, radiusKm: 3 })).list.map(item => item.id)).toEqual(['0'])
-    expect((await customerCatalogApi.getNearbyLockers({ ...position, radiusKm: 5 })).list.map(item => item.id)).toEqual(['0', '1'])
-    expect((await customerCatalogApi.getNearbyLockers({ ...position, radiusKm: 10 })).list.map(item => item.id)).toEqual(['0', '1', '2'])
-    expect(authorizedAxios.get.mock.calls[0][1].params).toEqual({ page: 1, take: 4, ...position })
-    await customerCatalogApi.getNearbyLockers({ ...position, radiusKm: 3, keyword: 'Central', city: 'City A' })
-    expect(authorizedAxios.get.mock.calls.at(-1)[1].params).toEqual({ page: 1, take: 4, ...position, keyword: 'Central', city: 'City A' })
-    const outside = { latitude: 10 + 3.004 / 6371 * 180 / Math.PI, longitude: 106, distanceKm: 3 }
-    authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, list: [outside] } })
-    expect((await customerCatalogApi.getNearbyLockers({ ...position, radiusKm: 3 })).list).toEqual([])
-  })
-  it('rejects missing coordinates, unsupported radii and unsorted or unverifiable data', async () => {
-    await expect(customerCatalogApi.getNearbyLockers({ radiusKm: 3 })).rejects.toThrow()
-    await expect(customerCatalogApi.getNearbyLockers({ ...position, radiusKm: 7 })).rejects.toThrow()
-    expect(authorizedAxios.get).not.toHaveBeenCalled()
-    for (const list of [[nearest[1], nearest[0]], [{ id: 'missing' }], [...nearest, nearest[0]]]) {
-      authorizedAxios.get.mockResolvedValue({ data: { succeeded: true, list } })
-      await expect(customerCatalogApi.getNearbyLockers({ ...position, radiusKm: 3 })).rejects.toThrow()
-    }
+describe('server radius paging', () => {
+  it('sends coordinates, radius and filters together and retains global totals across pages', async () => {
+    const response = { succeeded: true, list: [{ id: 'boundary', distanceKm: 3 }], total: 19, currentPage: 2, totalPages: 4 }
+    authorizedAxios.get.mockResolvedValue({ data: response })
+    const params = { page: 2, take: 6, latitude: 10, longitude: 106, radiusKm: 3, keyword: 'Central', city: 'City A' }
+    await expect(customerCatalogApi.getLockers(params)).resolves.toBe(response)
+    expect(authorizedAxios.get).toHaveBeenCalledWith('/customer/lockers', { params, signal: undefined })
   })
 })

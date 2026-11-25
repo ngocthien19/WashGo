@@ -285,6 +285,7 @@ test('partner creation nests Merchant and Shipper profiles instead of creating o
   await page.getByRole('button', { name: 'Add account', exact: true }).click()
   let dialog = page.getByRole('dialog')
   await choose(page, 'Role', 'Laundry partner', dialog)
+  await dialog.getByLabel('Open 24/7', { exact: true }).check()
   await dialog.getByRole('textbox', { name: 'Business name', exact: false }).fill('New Laundry Partner')
   await dialog.getByRole('textbox', { name: 'Email', exact: false }).fill('new-partner@example.test')
   await dialog.getByRole('textbox', { name: 'Phone number', exact: false }).fill('0901234567')

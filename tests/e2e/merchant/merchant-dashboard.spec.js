@@ -61,7 +61,7 @@ async function setup(page, options = {}) {
       return list(options.reviewRows || [], options.reviewRows?.length || 0)
     }
     if (path === '/merchant-profile') {
-      return state.profileError ? fail() : data({ version: 'profile-version-1', id: 'merchant-test', businessName: 'WashGo Ben Thanh', address: '123 Test Street', city: 'Ho Chi Minh City', phone: '0901234567', email: 'shop@example.test', openingHours: '08:00–20:00', rating: 4.8, totalOrders: 28, status: 1, contractStartDate: '2023-03-15T00:00:00Z', pendingRequest: state.submitted, ...options.profile })
+      return state.profileError ? fail() : data({ version: 'profile-version-1', id: 'merchant-test', businessName: 'WashGo Ben Thanh', address: '123 Test Street', city: 'Ho Chi Minh City', phone: '0901234567', email: 'shop@example.test', openingHours: '08:00–20:00', openingSchedule: { timeZone: 'Asia/Ho_Chi_Minh', alwaysOpen: false, weekly: [{ dayOfWeek: 1, shifts: [{ open: '08:00', close: '20:00' }] }], closedDates: [] }, rating: 4.8, totalOrders: 28, status: 1, contractStartDate: '2023-03-15T00:00:00Z', pendingRequest: state.submitted, ...options.profile })
     }
     if (path === '/merchant-reports/lifetime') {
       return data(options.lifetime || { currency: 'VND', grossLaundryRevenue: 9000000, refunds: 1000000, netRevenue: 8000000, commission: 1600000, merchantPayout: 6400000, feesCollected: 10000, paidOrderCount: 10, commissionComplete: true, ordersWithoutCommissionSnapshot: 0, uncoveredNetAmount: 0, generatedAt: '2026-11-10T01:00:00Z' })
@@ -91,7 +91,7 @@ async function setup(page, options = {}) {
     if (path === '/merchant-profile/update-requests') {
       state.updates++
       const body = request.postDataJSON()
-      expect(Object.keys(body).every((key) => ['address', 'businessName', 'city', 'imageUrls', 'openingHours', 'phone', 'latitude', 'longitude', 'taxCode', 'businessLicenseDocumentId', 'removeBusinessLicenseDocument', 'operationId', 'expectedMerchantVersion'].includes(key))).toBe(true)
+      expect(Object.keys(body).every((key) => ['address', 'businessName', 'city', 'imageUrls', 'openingHours', 'openingSchedule', 'phone', 'latitude', 'longitude', 'taxCode', 'businessLicenseDocumentId', 'removeBusinessLicenseDocument', 'operationId', 'expectedMerchantVersion'].includes(key))).toBe(true)
       expect(body.expectedMerchantVersion).toBe('profile-version-1')
       expect(body.operationId).toMatch(/^[a-f0-9-]{36}$/)
       if (state.updateError) {
@@ -312,7 +312,8 @@ test('profile edit uploads photos and submits a pending request without replacin
   await dialog.getByRole('button', { name: 'Submit for approval', exact: true }).click()
   await expect(dialog.getByRole('alert')).toHaveText('You have not changed any information.')
   await dialog.getByLabel('Business name').fill('Updated store name')
-  await dialog.getByLabel('Opening hours').fill('09:00 - 21:00')
+  await dialog.getByLabel('Monday Opening time 1').fill('09:00')
+  await dialog.getByLabel('Monday Closing time 1').fill('21:00')
   await dialog.getByLabel('Add photos').setInputFiles({ name: 'store.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aCGsAAAAASUVORK5CYII=', 'base64') })
   await dialog.getByRole('button', { name: 'Submit for approval', exact: true }).click()
   await expect(dialog).toHaveCount(0)

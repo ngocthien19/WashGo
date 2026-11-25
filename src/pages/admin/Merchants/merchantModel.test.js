@@ -3,7 +3,7 @@ import { merchantDefaults, merchantPayload, merchantSchema, merchantSnapshot, pr
 import { adminNotificationHref } from '~/utils/notifications/adminNotifications'
 
 const id = '10000000-0000-4000-8000-000000000001'
-const row = { id, ...merchantDefaults(), businessName: 'Store', email: 'owner@example.test', phone: '0901234567', address: '123 Street', city: 'HCM', latitude: 10.77, longitude: 106.7, status: 1, commissionRate: 0, imageUrls: ['/uploads/store.png'], serviceAreaIds: ['area-1'], contractStartDate: '2026-11-07T17:00:00Z' }
+const row = { id, ...merchantDefaults(), openingSchedule: { timeZone: 'Asia/Ho_Chi_Minh', alwaysOpen: false, weekly: [{ dayOfWeek: 1, shifts: [{ open: '08:00', close: '20:00' }] }], closedDates: [] }, businessName: 'Store', email: 'owner@example.test', phone: '0901234567', address: '123 Street', city: 'HCM', latitude: 10.77, longitude: 106.7, status: 1, commissionRate: 0, imageUrls: ['/uploads/store.png'], serviceAreaIds: ['area-1'], contractStartDate: '2026-11-07T17:00:00Z' }
 it('validates location, financial bounds, dates and phone before sending', async () => {
   expect(await merchantSchema.isValid(merchantDefaults(row))).toBe(true)
   for (const patch of [{ latitude: 0, longitude: 0 }, { latitude: 91 }, { commissionRate: 101 }, { commissionRate: 15.123 }, { depositAmount: -1 }, { serviceRadiusKm: 0 }, { maxCapacity: 1.5 }, { phone: 'not-a-number' }, { contractStartDate: '2026-11-08', contractEndDate: '2026-11-07' }, { contractEndDate: '2026-02-31' }]) {
@@ -30,7 +30,7 @@ it('keeps Merchant and profile-request server filters separate', () => {
   expect(invalid).toMatchObject({ page: 1, tab: 'merchants', state: '', merchantId: '' })
 })
 it('detects current profile changes that approval would otherwise overwrite', () => {
-  const current = { businessName: row.businessName, address: row.address, phone: row.phone, city: row.city, latitude: row.latitude, longitude: row.longitude, openingHours: '"08:00-20:00"', imageUrls: row.imageUrls }
+  const current = { businessName: row.businessName, address: row.address, phone: row.phone, city: row.city, latitude: row.latitude, longitude: row.longitude, openingHours: '"08:00-20:00"', imageUrls: row.imageUrls, openingSchedule: row.openingSchedule }
   expect(profileStillCurrent(current, { ...row, openingHours: '08:00-20:00' })).toBe(true)
   expect(profileStillCurrent(current, { ...row, address: 'Changed address' })).toBe(false)
   expect(merchantSnapshot(row)).not.toBe(merchantSnapshot({ ...row, maxCapacity: 100 }))

@@ -1,3 +1,5 @@
+import OpeningScheduleEditor from '~/components/OpeningSchedule/OpeningScheduleEditor'
+import { readSchedule } from '~/components/OpeningSchedule/scheduleModel'
 import ResourceImage from '~/components/ResourceThumbnail/ResourceImage'
 import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -6,7 +8,7 @@ import { privateDocumentApi } from '~/apis/files/privateDocumentApi'
 import BusinessLicenseField from '~/components/documents/BusinessLicenseField'
 import { lazy, Suspense, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Send, ImagePlus, X, PencilLine, Store, MapPin, Phone, Clock, Building2, MapPinned, Hash } from 'lucide-react'
+import { Send, ImagePlus, X, PencilLine, Store, MapPin, Phone, Building2, MapPinned, Hash } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -18,12 +20,12 @@ import { merchantProfileApi } from '~/apis/merchant/merchantProfileApi'
 
 import { displayOpeningHours, merchantProfileSchema, profileSnapshot } from '../profileModel'
 
-const fieldIcons = { businessName: Store, address: MapPin, phone: Phone, openingHours: Clock, city: Building2 }
+const fieldIcons = { businessName: Store, address: MapPin, phone: Phone, city: Building2 }
 const AddressPickerDialog = lazy(() => import('~/components/maps/AddressPickerDialog'))
 
 export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
   const { t } = useTranslation()
-  const { control, register, setValue, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(merchantProfileSchema(shop.taxCode || '')), defaultValues: { businessName: shop.businessName || '', address: shop.address || '', city: shop.city || '', phone: shop.phone || '', openingHours: displayOpeningHours(shop.openingHours), taxCode: shop.taxCode || '' } })
+  const { control, register, setValue, handleSubmit, setError: setFieldError, formState: { errors } } = useForm({ resolver: yupResolver(merchantProfileSchema(shop.taxCode || '')), defaultValues: { businessName: shop.businessName || '', address: shop.address || '', city: shop.city || '', phone: shop.phone || '', openingHours: displayOpeningHours(shop.openingHours), openingSchedule: readSchedule(shop.openingSchedule), taxCode: shop.taxCode || '' } })
   const values = useWatch({ control })
   const [license, setLicense] = useState(null)
   const [removeLicense, setRemoveLicense] = useState(false)
@@ -42,14 +44,14 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
     if (locked.current || uncertain || documentBusy) {
       return
     }
-    const payload = Object.fromEntries(Object.entries(formValues).map(([key, value]) => [key, value.trim()]))
+    const payload = Object.fromEntries(Object.entries(formValues).map(([key, value]) => [key, typeof value === 'string' ? value.trim() : value]))
     const locationChanged = payload.address !== (shop.address || '').trim() || payload.city !== (shop.city || '').trim()
     if (locationChanged && !hasCoordinates(mapCenter)) {
       setError('merchant.sync.chooseLocation')
       return
     }
     const coordinatesChanged = hasCoordinates(mapCenter) && (mapCenter.latitude !== shop.latitude || mapCenter.longitude !== shop.longitude)
-    const changed = coordinatesChanged || Object.keys(payload).some((key) => payload[key] !== (key === 'openingHours' ? displayOpeningHours(shop[key]) : shop[key] || '').trim()) || images.images.length || JSON.stringify(existing) !== JSON.stringify(shop.imageUrls || [])
+    const changed = coordinatesChanged || Object.keys(payload).some((key) => key === 'openingSchedule' ? JSON.stringify(payload[key]) !== JSON.stringify(readSchedule(shop[key])) : payload[key] !== (key === 'openingHours' ? displayOpeningHours(shop[key]) : shop[key] || '').trim()) || images.images.length || JSON.stringify(existing) !== JSON.stringify(shop.imageUrls || [])
     if (!changed && !license && !removeLicense) {
       setError('merchant.shop.noChanges'); return
     }
@@ -71,6 +73,9 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
       notify.success('merchant.shop.submitted')
       onSubmitted(request)
     } catch (failure) {
+      if (failure.response?.data?.meta?.code?.startsWith('OpeningHours')) {
+        setFieldError('openingSchedule', { type: 'server', message: 'schedule.invalid' })
+      }
       const unknown = submitting && (failure.uncertain || !failure.response || failure.response.status >= 500)
       setUncertain(unknown)
       setError(unknown ? 'merchant.shop.uncertain' : getApiError(failure))
@@ -118,7 +123,7 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
               disabled={pending || uncertain || documentBusy}
               className="grid gap-5 rounded-2xl border border-border/70 bg-muted/20 p-4 sm:grid-cols-2 sm:p-5"
             >
-              {['businessName', 'address', 'city', 'phone', 'openingHours'].map((key) => {
+              {['businessName', 'address', 'city', 'phone'].map((key) => {
                 const Icon = fieldIcons[key]
                 return (
                   <div
@@ -187,6 +192,7 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
                   </div>
                 )
               })}
+              <OpeningScheduleEditor control={control} />
               <section
                 aria-labelledby="merchant-profile-legal-title"
                 className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:col-span-2 sm:grid-cols-2"

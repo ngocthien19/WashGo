@@ -1,3 +1,4 @@
+import { scheduleSchema } from '~/components/OpeningSchedule/scheduleModel'
 import * as yup from 'yup'
 import { dateRangeFilter, validRange } from '~/utils/format/dateRange'
 import { getApiError } from '~/utils/http/apiError'
@@ -37,6 +38,7 @@ export const accountSchema = editing => yup.object({
     }
     return editing || ['Customer', 'Admin'].includes(this.parent.role) ? /^0\d{9}$/.test(value || '') : /^\+?[0-9 ()\-.]+$/.test(value || '') && /^\d{9,11}$/.test((value || '').replace(/\D/g, ''))
   }),
+  openingSchedule: yup.mixed().when('role', { is: role => !editing && role === 'Merchant', then: () => scheduleSchema, otherwise: schema => schema.strip() }),
   address: yup.string().when('role', { is: role => !editing && role === 'Merchant', then: () => required.max(500, 'accounts.validation.length') }),
   city: yup.string().when('role', { is: role => !editing && role === 'Merchant', then: () => required.max(100, 'accounts.validation.length') }),
   latitude: optionalNumber().when('role', { is: role => !editing && role === 'Merchant', then: schema => schema.required('accounts.validation.required').min(-90, 'accounts.validation.coordinate').max(90, 'accounts.validation.coordinate') }),
@@ -56,7 +58,7 @@ export function accountPayload(values, editing, avatarUrl) {
   }
   const email = values.email.trim()
   if (values.role === 'Merchant') {
-    const merchant = { businessName: common.fullName, email, phone: common.phone, address: values.address.trim(), city: values.city.trim(), latitude: values.latitude, longitude: values.longitude }
+    const merchant = { openingSchedule: values.openingSchedule, businessName: common.fullName, email, phone: common.phone, address: values.address.trim(), city: values.city.trim(), latitude: values.latitude, longitude: values.longitude }
     for (const key of ['depositAmount', 'commissionRate', 'serviceRadiusKm', 'maxCapacity']) {
       if (values[key] !== undefined) {
         merchant[key] = values[key]
@@ -74,7 +76,7 @@ export const applyAccountFieldErrors = (error, setError) => {
   for (const [key, messages] of Object.entries(error.response?.data?.errors || {})) {
     const name = key.replace(/^(merchant|shipper)\./i, '').replace(/^businessName$/i, 'fullName')
     const field = name.charAt(0).toLowerCase() + name.slice(1)
-    if (['fullName', 'email', 'phone', 'avatarUrl', 'address', 'city', 'latitude', 'longitude', 'merchantId', 'vehiclePlate', 'vehicleType', 'depositAmount', 'commissionRate', 'serviceRadiusKm', 'maxCapacity', 'newEmail', 'code', 'password', 'reason'].includes(field)) {
+    if (['fullName', 'email', 'phone', 'avatarUrl', 'address', 'city', 'latitude', 'longitude', 'merchantId', 'vehiclePlate', 'vehicleType', 'depositAmount', 'commissionRate', 'serviceRadiusKm', 'maxCapacity', 'openingSchedule', 'newEmail', 'code', 'password', 'reason'].includes(field)) {
       setError(field, { type: 'server', message: Array.isArray(messages) ? messages[0] : messages }); applied = true
     }
   }

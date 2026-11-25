@@ -1,3 +1,5 @@
+import OpeningScheduleEditor from '~/components/OpeningSchedule/OpeningScheduleEditor'
+import { emptySchedule } from '~/components/OpeningSchedule/scheduleModel'
 import { lazy, Suspense, useCallback, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -23,7 +25,7 @@ export default function AccountEditor({ account, manageAdmins, onClose, onSaved 
   const editing = Boolean(account)
   const form = useForm({ resolver: yupResolver(accountSchema(editing)), defaultValues: {
     role: account?.role || 'Customer', fullName: account?.fullName || '', email: account?.email || '', phone: account?.phone || '',
-    address: '', city: '', latitude: '', longitude: '', merchantId: '', vehicleType: 1, vehiclePlate: '', depositAmount: '', commissionRate: '', serviceRadiusKm: '', maxCapacity: ''
+    openingSchedule: emptySchedule(), address: '', city: '', latitude: '', longitude: '', merchantId: '', vehicleType: 1, vehiclePlate: '', depositAmount: '', commissionRate: '', serviceRadiusKm: '', maxCapacity: ''
   } })
   const role = useWatch({ control: form.control, name: 'role' })
   const fullName = useWatch({ control: form.control, name: 'fullName' })
@@ -99,6 +101,9 @@ export default function AccountEditor({ account, manageAdmins, onClose, onSaved 
             <h3 className="font-semibold">
               {t('accounts.partnerProfile')}
             </h3>
+            <fieldset disabled={disabled}>
+              <OpeningScheduleEditor control={form.control} />
+            </fieldset>
             {field('address', 'text', true)}
             <div className="grid gap-5 sm:grid-cols-2">
               {field('city', 'text', true)}

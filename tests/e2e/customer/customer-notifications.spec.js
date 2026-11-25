@@ -4,6 +4,7 @@ import { setupNotifications as setup, orderId, notificationId } from '../helpers
 test('customer can search safe order notification content and totals without raw storage details', async ({ page }) => {
   const state = await setup(page)
   state.items = [{ ...state.items[0], title: 'Order storage update', content: 'WashGo is keeping your items. View the order to check payments, storage fees and request redelivery to a locker.', messageKey: 'storage.customer.private', messageArgs: {}, type: 13 }]
+  await page.route(`**/api/wash-order/${orderId}`, route => route.fulfill({ json: { succeeded: true, data: { id: orderId, orderCode: 'WG2611241234' } } }))
   await page.goto('/notifications')
   const input = page.getByRole('combobox', { name: 'Search notification titles or content...', exact: true })
   await input.fill('STORAGE FEES')
@@ -12,6 +13,8 @@ test('customer can search safe order notification content and totals without raw
   await input.press('Enter')
   await expect(page.getByRole('status').filter({ hasText: '1 notification found' })).toBeVisible()
   await expect(page.getByRole('main')).toContainText('storage fees')
+  await expect(page.getByRole('main')).toContainText('WG2611241234')
+  await expect(page.getByRole('main').getByRole('heading', { name: 'Storage update', exact: true })).not.toContainText('WG2611241234')
   expect(state.filters.at(-1).keyword).toBe('storage fees')
   expect(state.writes).toHaveLength(0)
 })

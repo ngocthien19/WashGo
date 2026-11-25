@@ -9,7 +9,7 @@ async function setup(page, role, options = {}) {
     writes: [], queries: [], taskType: 3, unknown: false, recover: false, conflict: false,
     profile: { id: 'shipper-domain', fullName: 'Driver Example', email: 'driver@example.test', vehicleType: 1, status: 1, isActive: true, totalDeliveries: 0, revision: 'profile-v1', canChangeWorkStatus: true, canGoOffline: true },
     cycle: { id: 'cycle-1', orderId, orderCode: 'WG-STORAGE', orderRevision: 7, state: 3, basis: 'Workflow', taskId, shopAddress: 'INTERNAL SHOP ADDRESS', receiptReference: 'INTERNAL RECEIPT', exceptionNote: 'INTERNAL EXCEPTION', feeTotal: 100000, feePaid: 20000, outstanding: 80000, canAssign: role !== 'Customer', canCancelAssignment: false, canRequestReturn: role === 'Customer', canCancelReturn: false },
-    order: { id: orderId, revision: 7, storageWorkflowVersion: 1, status: 13, orderCode: 'WG-STORAGE', createdOn: 1794391200, paymentStatus: 2, paymentMethod: 2, finalAmount: 80000, totalAmount: 80000, discountAmount: 0, weightSurchargeAmount: 0, overdueFeeTotal: 100000, storageFeeTotal: 20000, lockerName: 'Test locker', items: [], timeline: [] }
+    order: { id: orderId, revision: 7, storageWorkflowVersion: 1, status: 13, orderCode: 'WG-STORAGE', createdOn: 1794391200, paymentStatus: 2, paymentMethod: 2, finalAmount: 80000, totalAmount: 80000, discountAmount: 0, weightSurchargeAmount: 0, overdueFeeTotal: 100000, storageFeeTotal: 20000, lockerId, returnLockerId: lockerId, lockerName: 'Test locker', items: [], timeline: [] }
   }
   const task = () => ({ taskId, orderId, orderCode: 'WG-STORAGE', orderRevision: state.cycle.orderRevision, status: 1, taskType: state.taskType, orderStatus: state.taskType === 3 ? 14 : 15, assignmentVersion: taskId, canCollect: false, canReturn: false, canStorageDepart: !!state.cycle.canDepart, canStoragePlace: !!state.cycle.canPlace, canStorageCollect: !!state.cycle.canCollect, canStorageHandover: !!state.cycle.canHandover, taskLockerName: 'Test locker', taskLockerAddress: 'Public locker address', storageShopAddress: 'INTERNAL SHOP ADDRESS', order: { shipperId: state.profile.id, items: [] } })
   await page.route('**/api/**', async route => {
@@ -51,7 +51,7 @@ async function setup(page, role, options = {}) {
       return ok([{ id: 'shipper-domain', fullName: 'Driver Example', phone: '0901234567', activeTaskCount: 1, maxActiveTasks: 3, remainingTaskCapacity: 2, canAssign: true }])
     }
     if (path === `/storage/${orderId}/quote`) {
-      return ok({ orderId, lockerId: url.searchParams.get('lockerId'), feeTotal: 100000, outstanding: 80000, quoteToken: 'server-quote', expiresAt: '2099-01-01T00:00:00Z' })
+      return ok({ orderId, lockerId: url.searchParams.get('lockerId'), feeTotal: 100000, outstanding: Math.max(0, 100000 - state.order.storageFeeTotal), quoteToken: 'server-quote', expiresAt: '2099-01-01T00:00:00Z' })
     }
     if (path.startsWith(`/storage/${orderId}/operations/`)) {
       return state.recover ? ok(state.cycle) : missing()
@@ -97,6 +97,13 @@ async function setup(page, role, options = {}) {
     }
     if (path === `/wash-order/${orderId}`) {
       return ok(state.order)
+    }
+    if (path === `/payment/orders/${orderId}/summary`) {
+      const service = state.order.paymentStatus === 2 ? 0 : state.order.finalAmount
+      const storage = Math.max(0, 100000 - state.order.storageFeeTotal)
+      return ok({ orderId, orderCode: state.order.orderCode, currency: 'VND', outstanding: service + storage, settled: service + storage === 0, canRequestStorageReturn: service + storage === 0 && state.order.status === 13, returnLockerId: state.order.returnLockerId,
+        obligations: [{ purpose: 1, due: state.order.finalAmount, paid: state.order.paymentStatus === 2 ? state.order.finalAmount : 0, outstanding: service }, { purpose: 2, due: 100000, paid: state.order.storageFeeTotal, outstanding: storage }],
+        quote: { orderId, purpose: 4, cashAmount: service + storage, pointsToRedeem: 0, maximumPoints: 0, canCreate: service + storage > 0, quoteToken: 'payment-quote', methods: [{ paymentMethod: 2, enabled: true }, { paymentMethod: 3, enabled: true }] } })
     }
     if (path === `/rating/order/${orderId}`) {
       return ok(null)
@@ -218,15 +225,43 @@ test('unknown storage assignment survives closing and only checks the original o
   expect(state.writes).toHaveLength(1)
 })
 
-test('Customer accepts a quote for locker redelivery without seeing internal custody information', async ({ page }) => {
+test('Customer sees unpaid laundry plus storage fees and cannot confirm redelivery before both are paid', async ({ page }) => {
   const state = await setup(page, 'Customer')
+  state.order.paymentStatus = 1
+  await page.goto(`/orders/${orderId}`)
+  const balance = page.getByRole('region', { name: 'Outstanding charges', exact: true })
+  await expect(balance.getByText('Total outstanding').locator('..')).toContainText('160,000')
+  await expect(page.getByRole('button', { name: 'Confirm redelivery request', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Get quote', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Choose a return locker / Refresh quote', exact: true })).toHaveCount(0)
+  await page.setViewportSize({ width: 390, height: 844 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  expect(state.writes).toHaveLength(0)
+})
+
+test('Customer redelivery rechecks payment before submitting even after the confirmation opens', async ({ page }) => {
+  const state = await setup(page, 'Customer')
+  state.order.storageFeeTotal = 100000
+  state.cycle.outstanding = 0
+  await page.goto(`/orders/${orderId}`)
+  await page.getByRole('button', { name: 'Confirm redelivery request', exact: true }).click()
+  state.order.storageFeeTotal = 20000
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('checkbox').check()
+  await dialog.getByRole('button', { name: 'Confirm redelivery request', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toHaveText('Pay the service amount and storage fees in full before confirming redelivery.')
+  expect(state.writes).toHaveLength(0)
+})
+
+test('Customer confirms redelivery to the chosen locker only after payment without seeing internal custody information', async ({ page }) => {
+  const state = await setup(page, 'Customer')
+  state.order.storageFeeTotal = 100000
+  state.cycle.outstanding = 0
+  state.cycle.feePaid = 100000
   await page.goto(`/orders/${orderId}`)
   await expect(page.getByText('INTERNAL SHOP ADDRESS')).toHaveCount(0)
   await expect(page.getByText('INTERNAL RECEIPT')).toHaveCount(0)
   await expect(page.getByText('INTERNAL EXCEPTION')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Choose a return locker / Refresh quote' }).click()
-  await page.getByRole('button', { name: /Return Locker Public Paris Street/ }).click()
-  await page.getByRole('button', { name: 'Get quote', exact: true }).click()
   await page.getByRole('button', { name: 'Confirm redelivery request', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('checkbox').check()
@@ -356,7 +391,7 @@ test('Customer can read closed storage history after redelivery without requesti
   Object.assign(state.cycle, { state: 5, canRequestReturn: false, canCancelReturn: false, returnState: 4, frozenLockerFee: 20000, frozenWarehouseFee: 80000 })
   await page.goto(`/orders/${orderId}`)
   await page.getByRole('button', { name: 'Storage and redelivery history', exact: true }).click()
-  await expect(page.getByText('Frozen storage fees for this cycle', { exact: true })).toBeVisible()
+  await expect(page.getByText('Frozen storage fees for this cycle', { exact: true })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Confirm redelivery request', exact: true })).toHaveCount(0)
   await expect(page.getByText('INTERNAL SHOP ADDRESS')).toHaveCount(0)
   expect(state.writes).toHaveLength(0)

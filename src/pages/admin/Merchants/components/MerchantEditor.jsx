@@ -1,3 +1,5 @@
+import CoverageBlockedNotice from '~/components/orders/CoverageBlockedNotice'
+import OpeningScheduleEditor from '~/components/OpeningSchedule/OpeningScheduleEditor'
 import ResourceImage from '~/components/ResourceThumbnail/ResourceImage'
 import BusinessLicenseField from '~/components/documents/BusinessLicenseField'
 import { lazy, Suspense, useRef, useState } from 'react'
@@ -18,7 +20,7 @@ import MerchantDialogHeader from './MerchantDialogHeader'
 
 const AddressPicker = lazy(() => import('~/components/maps/AddressPickerDialog'))
 const fields = {
-  basic: ['businessName', 'email', 'phone', 'taxCode', 'openingHours'],
+  basic: ['businessName', 'email', 'phone', 'taxCode', 'openingSchedule'],
   contract: ['depositAmount', 'commissionRate', 'maxCapacity', 'contractStartDate', 'contractEndDate'],
   region: ['address', 'city', 'latitude', 'longitude', 'serviceRadiusKm']
 }
@@ -31,14 +33,15 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
   const [tab, setTab] = useState('basic'), [mapOpen, setMapOpen] = useState(false)
   const [pending, setPending] = useState(false), [uncertain, setUncertain] = useState(false), [error, setError] = useState('')
   const [documents, setDocuments] = useState({}), [documentBusy, setDocumentBusy] = useState(false)
+  const [excluded, setExcluded] = useState([])
   const locked = useRef(false)
   const images = useImages(1, merchant?.imageUrls || [])
-  const { register, handleSubmit, getValues, setValue, formState: { errors } } = useForm({ resolver: yupResolver(merchantSchema), defaultValues: merchantDefaults(merchant) })
+  const { register, handleSubmit, getValues, setValue, control, setError: setFieldError, formState: { errors } } = useForm({ resolver: yupResolver(merchantSchema), defaultValues: merchantDefaults(merchant) })
   const submit = async (values) => {
     if (locked.current || uncertain || documentBusy) {
       return
     }
-    locked.current = true; setPending(true); setError('')
+    locked.current = true; setPending(true); setError(''); setExcluded([])
     let writing = false
     try {
       if (merchant && merchantSnapshot(await adminMerchantApi.detail(merchant.id)) !== merchantSnapshot(merchant)) {
@@ -63,6 +66,11 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
       notify.success(merchant ? 'admin.merchants.updated' : 'admin.sync.merchantCreated', { delivery: t(`admin.sync.delivery.${saved.credentialDelivery ?? 0}`) })
       onSaved(saved)
     } catch (failure) {
+      if (failure.response?.data?.meta?.code?.startsWith('OpeningHours')) {
+        setFieldError('openingSchedule', { type: 'server', message: 'schedule.invalid' })
+        setTab('basic')
+      }
+      setExcluded(failure.response?.data?.meta?.lockers || [])
       const unknown = writing && unknownWrite(failure)
       setUncertain(unknown)
       setError(unknown ? 'admin.merchants.uncertain' : getApiError(failure))
@@ -105,6 +113,7 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
           data-dialog-layout
         >
           <div data-dialog-body>
+            <CoverageBlockedNotice lockers={excluded} />
             <div
               role="tablist"
               aria-label={t('admin.merchants.edit')}
@@ -129,7 +138,7 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
               disabled={pending || uncertain || documentBusy}
               className="grid gap-4 sm:grid-cols-2"
             >
-              {fields[tab].map((key) => (
+              {fields[tab].filter(key => key !== 'openingSchedule').map((key) => (
                 <label
                   key={key}
                   className={`flex min-w-0 flex-col gap-3 text-sm font-medium ${['businessName', 'businessLicense', 'address', 'slaDocUrl'].includes(key) ? 'sm:col-span-2' : ''}`}
@@ -160,6 +169,7 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
                   )}
                 </label>
               ))}
+              {tab === 'basic' && <OpeningScheduleEditor control={control} />}
               {tab === 'basic' && (
                 <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4 sm:col-span-2">
                   <h3 className="font-semibold">

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { merchantProfileSchema, profileSnapshot } from './profileModel'
-const values = { businessName: 'Store', address: '123 Test', city: 'City', phone: '0901234567', openingHours: '', taxCode: '' }
+const values = { businessName: 'Store', address: '123 Test', city: 'City', phone: '0901234567', openingHours: '', openingSchedule: { timeZone: 'Asia/Ho_Chi_Minh', alwaysOpen: true, weekly: [], closedDates: [] }, taxCode: '' }
 it('validates edited tax codes while allowing unchanged legacy values and explicit clearing', async () => {
   for (const taxCode of ['', '1234567890', '1234567890-001']) {
     await expect(merchantProfileSchema().validate({ ...values, taxCode })).resolves.toMatchObject({ taxCode })

@@ -1,3 +1,4 @@
+import { vi as syncVi, en as syncEn } from './backendSyncMessages'
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import { AUTH_LIMITS, PROFILE_LIMITS, IMAGE_UPLOAD, OTP_CONFIG, DEFAULT_LANGUAGE, LANGUAGE_OPTIONS } from '~/utils/config/constants'
@@ -5,8 +6,8 @@ import vi from './locales/vi.json'
 import en from './locales/en.json'
 
 const resources = {
-  vi: { translation: vi },
-  en: { translation: en }
+  vi: { translation: { ...vi, ...syncVi } },
+  en: { translation: { ...en, ...syncEn } }
 }
 
 i18n.use(initReactI18next).init({

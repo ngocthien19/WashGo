@@ -1,6 +1,7 @@
+import { paymentId } from './paymentOutcome'
+import PaymentResultPage from './PaymentResultPage'
 import PaymentDialog from './PaymentDialog'
 import PaymentCheckout from './PaymentCheckout'
-import PaymentReturnMonitor from './PaymentReturnMonitor'
 import { useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -9,12 +10,16 @@ import { Button } from '~/components/ui/button'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { customerPaymentApi } from '~/apis/customer/customerPaymentApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
-import { CUSTOMER_ROUTES, PAYMENT_STATUSES } from '~/utils/config/constants'
+import { CUSTOMER_ROUTES } from '~/utils/config/constants'
 import { returnedOrderCode, returnedFee } from './paymentModel'
 
 export default function PaymentPage() {
   const { orderId } = useParams()
   const navigate = useNavigate()
+  const [query] = useSearchParams()
+  if (!orderId && (query.has('purpose') || paymentId(query.get('orderId')))) {
+    return <PaymentResultPage />
+  }
   return orderId ? (
     <PaymentDialog
       orderId={orderId}
@@ -66,13 +71,6 @@ function PaymentReturnPage() {
           </section>
         ) : (
           <>
-            {order.paymentStatus === PAYMENT_STATUSES.UNPAID && (
-              <PaymentReturnMonitor
-                key={order.id}
-                orderId={order.id}
-                onConfirmed={resource.retry}
-              />
-            )}
             <PaymentCheckout
               key={`${order.id}:${order.paymentStatus}:${order.status}`}
               order={order}

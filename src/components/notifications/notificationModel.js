@@ -4,7 +4,7 @@ import { validDay, validRange, dateRangeFilter } from '~/utils/format/dateRange'
 import { CUSTOMER_ROUTES } from '~/utils/config/constants'
 import { NOTIFICATION_CATEGORIES, notificationTypesFor } from './notificationCatalog'
 import { eventKey } from '~/utils/orders/orderEvents'
-import { isOrderCode, isNewOrderNotification } from '~/apis/notifications/notificationOrders'
+import { isOrderCode, isNewOrderNotification, isStorageNotification } from '~/apis/notifications/notificationOrders'
 
 export function notificationText(item, t) {
   const code = isOrderCode(item.displayOrderCode) ? item.displayOrderCode : item.messageArgs?.orderCode
@@ -15,7 +15,9 @@ export function notificationText(item, t) {
     return resolved.replace(/#(?=WG[A-Z0-9-]+)/gi, '')
   }
   const result = translatedNotificationText(item.displayOrderCode ? { ...item, messageArgs: { ...item.messageArgs, orderCode: code } } : item, t)
-  return { title: format(result.title), content: format(result.content) }
+  const content = format(result.content)
+  return { title: format(result.title), content: isStorageNotification(item) && isOrderCode(code) && !content.includes(code)
+    ? t('storageCustomer.orderNotice', { code, content }) : content }
 }
 
 function translatedNotificationText(item, t) {

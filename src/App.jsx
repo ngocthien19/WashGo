@@ -43,6 +43,7 @@ const AdminComplaintDetailPage = lazy(() => import('~/pages/admin/Complaints/Com
 const AdminFinancePage = lazy(() => import('~/pages/admin/Finance/FinancePage'))
 const AdminSystemSettingsPage = lazy(() => import('~/pages/admin/SystemSettings/SystemSettingsPage'))
 const AdminOrderDetailPage = lazy(() => import('~/pages/admin/Orders/OrderDetailPage'))
+const PaymentResultPage = lazy(() => import('~/pages/customer/Payment/PaymentResultPage'))
 const AdminLayout = lazy(() => import('~/layouts/admin/AdminLayout'))
 const AdminProfilePage = lazy(() => import('~/pages/admin/Profile/ProfilePage'))
 const AdminNotificationsPage = lazy(() => import('~/pages/admin/Notifications/NotificationsPage'))
@@ -117,6 +118,18 @@ export default function App() {
               <Route
                 path={CUSTOMER_ROUTES.PAYMENT}
                 element={<CustomerPaymentPage />}
+              />
+              <Route
+                path={CUSTOMER_ROUTES.PAYMENT_SUCCESS}
+                element={<PaymentResultPage />}
+              />
+              <Route
+                path={CUSTOMER_ROUTES.PAYMENT_FAILED}
+                element={<PaymentResultPage />}
+              />
+              <Route
+                path={CUSTOMER_ROUTES.PAYMENT_CANCELLED}
+                element={<PaymentResultPage />}
               />
               <Route
                 path={CUSTOMER_ROUTES.PAYMENT_RETURN}

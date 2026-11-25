@@ -18,7 +18,7 @@ const progressColors = {
   [ORDER_STATUSES.READY_TO_RETURN]: 'bg-violet-500 dark:bg-violet-400',
   [ORDER_STATUSES.RETURNED]: 'bg-teal-500 dark:bg-teal-400',
   [ORDER_STATUSES.COMPLETED]: 'bg-emerald-500 dark:bg-emerald-400',
-  [ORDER_STATUSES.MOVED_TO_STORAGE]: 'bg-orange-400 dark:bg-orange-400',
+  [ORDER_STATUSES.MOVED_TO_STORAGE]: 'bg-teal-500 dark:bg-teal-400',
   [ORDER_STATUSES.CANCELLED]: 'bg-red-400 dark:bg-red-400'
 }
 

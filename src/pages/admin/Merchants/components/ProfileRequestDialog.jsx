@@ -1,3 +1,5 @@
+import OpeningScheduleSummary from '~/components/OpeningSchedule/OpeningScheduleSummary'
+import CoverageBlockedNotice from '~/components/orders/CoverageBlockedNotice'
 import { privateDocumentApi } from '~/apis/files/privateDocumentApi'
 import PrivateDocumentCard from '~/components/documents/PrivateDocumentCard'
 import { useCallback, useRef, useState } from 'react'
@@ -11,11 +13,12 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminMerchantApi } from '~/apis/admin/adminMerchantApi'
 import { notify } from '~/utils/notifications/notifications'
 import { getApiError } from '~/utils/http/apiError'
-import { displayJsonText, requestSnapshot, profileStillCurrent, unknownWrite } from '../merchantModel'
+import { requestSnapshot, profileStillCurrent, unknownWrite } from '../merchantModel'
 import MerchantDialogHeader from './MerchantDialogHeader'
 
 export default function ProfileRequestDialog({ id, onClose, onSaved }) {
   const { t } = useTranslation()
+  const [excluded, setExcluded] = useState([])
   const load = useCallback(async signal => {
     const request = await adminMerchantApi.request(id, signal)
     const ids = [...new Set([request.current.businessLicenseDocumentId, request.proposed.businessLicenseDocumentId].filter(Boolean))]
@@ -30,7 +33,7 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
     if (lock.current || blocked || !value || value.status !== 1 || !approve && (!reason.trim() || reason.trim().length > 1000)) {
       return
     }
-    lock.current = true; setPending(true); setError('')
+    lock.current = true; setPending(true); setError(''); setExcluded([])
     let writing = false
     try {
       const latest = await adminMerchantApi.request(id)
@@ -44,6 +47,7 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
       await adminMerchantApi.review(id, approve, reason.trim(), value.version)
       notify.success(approve ? 'admin.merchants.approved' : 'admin.merchants.rejected'); onSaved()
     } catch (failure) {
+      setExcluded(failure.response?.data?.meta?.lockers || [])
       const unknown = writing && unknownWrite(failure)
       setBlocked(unknown || failure.response?.status === 409)
       const message = unknown ? 'admin.merchants.uncertain' : getApiError(failure)
@@ -52,7 +56,7 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
       lock.current = false; setPending(false)
     }
   }
-  const keys = ['businessName', 'address', 'city', 'phone', 'openingHours', 'latitude', 'longitude', 'taxCode']
+  const keys = ['businessName', 'address', 'city', 'phone', 'openingSchedule', 'latitude', 'longitude', 'taxCode']
   return (
     <Dialog
       open
@@ -78,6 +82,7 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
         </MerchantDialogHeader>
         {resource.loading || resource.error || !value ? (
           <div data-dialog-body>
+            <CoverageBlockedNotice lockers={excluded} />
             <ResourceFeedback
               {...resource}
               loadingText="admin.loading"
@@ -113,13 +118,13 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
                         className={value.changedFields.some((field) => field.toLowerCase() === key.toLowerCase()) ? 'bg-primary/5' : ''}
                       >
                         <th className="p-3 font-semibold">
-                          {t(`admin.merchants.fields.${key}`)}
+                          {t(key === 'openingSchedule' ? 'schedule.title' : `admin.merchants.fields.${key}`)}
                         </th>
                         <td className="max-w-64 whitespace-pre-wrap break-words p-3 text-muted-foreground">
-                          {key === 'openingHours' ? displayJsonText(value.current[key]) || '—' : String(value.current[key] ?? '—')}
+                          {key === 'openingSchedule' ? <OpeningScheduleSummary value={value.current[key]} /> : String(value.current[key] ?? '—')}
                         </td>
                         <td className="max-w-64 whitespace-pre-wrap break-words p-3 font-semibold">
-                          {key === 'openingHours' ? displayJsonText(value.proposed[key]) || '—' : String(value.proposed[key] ?? '—')}
+                          {key === 'openingSchedule' ? <OpeningScheduleSummary value={value.proposed[key]} /> : String(value.proposed[key] ?? '—')}
                         </td>
                       </tr>
                     ))}

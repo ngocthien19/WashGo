@@ -1,3 +1,4 @@
+import { safePaymentReturn } from '~/pages/customer/Payment/paymentOutcome'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -69,9 +70,11 @@ export default function ProtectedRoleRoute({ role, allowGuestPaths = [] }) {
     return (
       <Navigate
         to={AUTH_ROUTES.LOGIN}
-        state={location.pathname === CUSTOMER_ROUTES.PAYMENT_RETURN
-          ? { paymentReturn: `${location.pathname}${location.search}`, loginRequired: true }
-          : allowGuestPaths.length ? { returnTo: `${location.pathname}${location.search}`, loginRequired: true } : undefined}
+        state={safePaymentReturn(`${location.pathname}${location.search}`)
+          ? { paymentReturn: safePaymentReturn(`${location.pathname}${location.search}`), loginRequired: true }
+          : location.pathname === CUSTOMER_ROUTES.PAYMENT_RETURN
+            ? { paymentReturn: `${location.pathname}${location.search}`, loginRequired: true }
+            : allowGuestPaths.length ? { returnTo: `${location.pathname}${location.search}`, loginRequired: true } : undefined}
         replace
       />
     )

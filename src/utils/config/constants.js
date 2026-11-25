@@ -45,6 +45,9 @@ export const CUSTOMER_ROUTES = {
   ORDER_RECEIPT: '/orders/:orderId/receipt',
   PAYMENT: '/orders/:orderId/payment',
   PAYMENT_RETURN: '/payment/return',
+  PAYMENT_SUCCESS: '/payment/success',
+  PAYMENT_FAILED: '/payment/failed',
+  PAYMENT_CANCELLED: '/payment/cancelled',
   PROFILE: '/profile',
   COMPLAINTS: '/complaints',
   NOTIFICATIONS: '/notifications',
@@ -95,7 +98,7 @@ export const ORDER_STATUS_OPTIONS = [
   ['PENDING', 'slate'], ['DEPOSITED', 'sky'], ['MERCHANT_ASSIGNED', 'indigo'], ['COLLECTION_SHIPPER_ASSIGNED', 'yellow'], ['COLLECTED', 'cyan'], ['WASHING', 'blue'],
   ['DRYING', 'orange'], ['IRONING', 'violet'], ['FOLDING', 'fuchsia'], ['AWAITING_PAYMENT', 'amber'],
   ['PAID', 'teal'], ['READY_FOR_RETURN_DISPATCH', 'lime'], ['RETURN_SHIPPER_ASSIGNED', 'purple'], ['READY_TO_RETURN', 'green'], ['RETURNED', 'stone'], ['COMPLETED', 'emerald'],
-  ['MOVED_TO_STORAGE', 'rose'], ['TRANSFERRING_TO_STORAGE', 'pink'], ['RETURNING_FROM_STORAGE', 'zinc'], ['CANCELLED', 'red']
+  ['MOVED_TO_STORAGE', 'teal'], ['TRANSFERRING_TO_STORAGE', 'pink'], ['RETURNING_FROM_STORAGE', 'zinc'], ['CANCELLED', 'red']
 ].map(([name, color]) => ({ value: String(ORDER_STATUSES[name]), label: `customer.orders.status.${name}`, color }))
 export const ORDER_STATUS_COLORS = {
   indigo: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300',

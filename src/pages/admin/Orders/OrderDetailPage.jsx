@@ -1,4 +1,4 @@
-import OrderStatusDescription from '~/components/orders/OrderStatusDescription'
+import CollectionWindow from '~/components/orders/CollectionWindow'
 import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
 import OrderDeadlines from './components/OrderDeadlines.jsx'
 import OrderCommission from '~/components/orders/OrderCommission'
@@ -174,9 +174,7 @@ export default function OrderDetailPage() {
               <OrderReceiptAction order={order} />
             </div>
           </header>
-          <p className="text-sm leading-6 text-muted-foreground">
-            <OrderStatusDescription status={order.status} />
-          </p>
+          <CollectionWindow order={order} />
           <OrderDeadlines order={order} />
           {([10, 13, 14, 15].includes(order.status) || order.storageWorkflowVersion >= 1 && [11, 12, 99].includes(order.status)) && (
             <StorageOrderPanel
@@ -294,7 +292,7 @@ export default function OrderDetailPage() {
                           <p className="mt-1 break-words font-semibold">
                             {slot.name || '—'}
                           </p>
-                          <p className="mt-2 break-words text-base leading-6 text-muted-foreground">
+                          <p className="mt-2 break-words text-sm leading-6 text-muted-foreground">
                             {slot.address || '—'}
                           </p>
                         </div>
