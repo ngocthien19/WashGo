@@ -364,14 +364,18 @@ test('finance filters are readable and aligned while preview identifies its Merc
   await expect(services).toHaveClass(/bg-primary\/5/)
   await page.getByRole('tab', { name: 'Settlements', exact: true }).click()
   const inputs = ['Merchant', 'Status', 'Date basis']
-  const boxes = []
   for (const name of inputs) {
     const input = filters.getByRole('combobox', { name, exact: true })
     expect(await input.evaluate(el => getComputedStyle(el).fontSize)).toBe('14px')
-    boxes.push(await input.boundingBox())
   }
-  expect(boxes[0].y).toBeCloseTo(boxes[1].y, 0)
-  expect(boxes[1].y).toBeCloseTo(boxes[2].y, 0)
+  await expect.poll(() => filters.getByRole('combobox').evaluateAll((elements, labels) => {
+    const controls = labels.map(label => elements.find(element => element.getAttribute('aria-label') === label))
+    if (controls.some(control => !control)) {
+      return Infinity
+    }
+    const tops = controls.map(control => control.getBoundingClientRect().top)
+    return Math.max(...tops) - Math.min(...tops)
+  }, inputs)).toBeLessThan(1)
   const search = filters.locator('input[name="keyword"]')
   expect(await search.evaluate(el => getComputedStyle(el).fontSize)).toBe('14px')
   await search.fill('bank-reference')

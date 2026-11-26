@@ -228,6 +228,7 @@ test('Admin profile stale data and unknown writes block duplicate saves', async 
   await expect(dialog.getByRole('alert')).toContainText('profile has changed')
   expect(state.saves).toBe(0)
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click()
   await page.getByRole('button', { name: 'Edit information', exact: true }).click()
   dialog = page.getByRole('dialog')
   state.unknownSave = true

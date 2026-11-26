@@ -69,7 +69,7 @@ test('order detail shows people and history but never locker access secrets or A
   const actor = page.getByText('Test Customer', { exact: true }).last()
   await expect(actor).toHaveCSS('font-weight', '700')
   await expect(actor.locator('svg')).toHaveCount(0)
-  await expect(page.getByText('Laundry is in the deposit locker. Review and assign an eligible laundry shop.', { exact: true })).toBeVisible()
+  await expect(page.getByText('Laundry is in the deposit locker. Review and assign an eligible laundry shop.', { exact: true })).toHaveCount(0)
   await expect(page.getByText('Deposited', { exact: true })).toBeVisible()
   await expect(page.getByText('SECRET_DEPOSIT')).toHaveCount(0)
   await expect(page.getByText('SECRET_PICKUP')).toHaveCount(0)

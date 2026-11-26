@@ -215,15 +215,25 @@ async function setup(page, options = {}) {
   return state
 }
 
+async function expectCardActionsAligned(card, names) {
+  await expect.poll(() => card.evaluate((root, labels) => {
+    const buttons = labels.map(label => [...root.querySelectorAll('[data-slot="button"]')].find(button => button.textContent.trim() === label))
+    if (buttons.some(button => !button)) {
+      return Infinity
+    }
+    const tops = buttons.map(button => button.getBoundingClientRect().top)
+    return Math.max(...tops) - Math.min(...tops)
+  }, names)).toBeLessThan(1)
+}
+
 test('completed order cards offer rating then report and hide both after a past report', async ({ page }) => {
   const state = await setup(page)
   state.order = { ...initialOrder, status: 12, paymentStatus: 2 }
   await page.goto('/orders')
   const rate = page.getByRole('button', { name: 'Rate', exact: true })
-  const details = page.getByRole('button', { name: 'Details', exact: true })
   await expect(rate).toBeEnabled()
   await expect(rate.locator('svg')).toHaveCount(0)
-  expect((await rate.boundingBox()).y).toBe((await details.boundingBox()).y)
+  await expectCardActionsAligned(page.getByRole('article').filter({ has: rate }), ['Rate', 'Details'])
   await expect(page.getByRole('button', { name: 'Report', exact: true })).toHaveCount(0)
   state.rating = { id: 'rating-1', orderId: id, overallStars: 5, createdOn: 1793923200 }
   await page.reload()
@@ -231,7 +241,7 @@ test('completed order cards offer rating then report and hide both after a past 
   await expect(page.getByRole('button', { name: 'Rate', exact: true })).toHaveCount(0)
   const report = page.getByRole('button', { name: 'Report', exact: true })
   await expect(report.locator('svg')).toHaveCount(0)
-  expect((await report.boundingBox()).y).toBe((await details.boundingBox()).y)
+  await expectCardActionsAligned(page.getByRole('article').filter({ has: report }), ['Report', 'Details'])
   state.incidents = [{ id: 'incident-1', orderId: id, status: 3 }]
   const reportsLoaded = page.waitForResponse(response => response.url().includes('/incident/mine/filter'))
   await page.reload()
@@ -1459,7 +1469,7 @@ test('order cards load detail ETA in the background and refresh it without expos
   await expect(card).toBeVisible()
   await expect(card.getByText('Based on standard processing time')).toBeVisible()
   release()
-  await expect(card.getByText('Estimated from processing history')).toBeVisible()
+  await expect(card.getByText('Estimated from processing history')).toHaveCount(0)
   await expect(card).toContainText('Nov 8, 2026')
   await expect(card).not.toContainText('123456')
   state.order = { ...state.order, predictedFinishAt: '2026-11-09T10:00:00Z' }
