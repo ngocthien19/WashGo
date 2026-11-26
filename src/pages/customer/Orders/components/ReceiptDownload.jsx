@@ -11,8 +11,8 @@ export default function ReceiptDownload({ orderId, disabled }) {
   const lock = useRef(false)
   return (
     <Button
-      className="h-11 px-4"
-      variant="outline"
+      className="h-12 rounded-xl px-4 text-base"
+      variant="outline-violet"
       disabled={disabled || busy}
       onClick={async () => {
         if (lock.current) {

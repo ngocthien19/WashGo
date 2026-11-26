@@ -1,3 +1,4 @@
+import useOrderRealtime from '~/hooks/useOrderRealtime'
 import ReceiptDownload from './ReceiptDownload'
 import { useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -30,7 +31,8 @@ function ReceiptPrintCopy({ order }) {
 export default function OrderReceiptDialog({ orderId, onClose }) {
   const { t } = useTranslation()
   const load = useCallback((signal) => customerReceiptApi.get(orderId, signal), [orderId])
-  const resource = useCatalogResource(load)
+  const liveRevision = useOrderRealtime(orderId)
+  const resource = useCatalogResource(load, liveRevision)
   const order = resource.data
   const printable = !!order
   return (
@@ -49,10 +51,12 @@ export default function OrderReceiptDialog({ orderId, onClose }) {
         <div className="flex max-h-[85dvh] flex-col" >
           <div
             data-dialog-header
-            className="shrink-0 border-b border-border px-5 py-5 pr-14 sm:px-7"
+            className="shrink-0 border-b border-primary/15 bg-primary/5 px-5 py-5 pr-14 sm:px-7"
           >
-            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
-              <ReceiptText className="size-5 text-primary" />
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                <ReceiptText className="size-5" />
+              </span>
               {t('customer.orders.receipt.action')}
             </DialogTitle>
             <DialogDescription className="mt-1 text-sm font-semibold">
@@ -76,7 +80,7 @@ export default function OrderReceiptDialog({ orderId, onClose }) {
               </p>
             )}
           </div>
-          <div className="flex shrink-0 flex-wrap justify-end gap-2 border-t border-border bg-card px-5 py-4 sm:px-7" >
+          <div className="flex shrink-0 flex-wrap justify-end gap-3 border-t border-border bg-card px-5 py-4 sm:px-7" >
             <ReceiptDownload
               orderId={orderId}
               disabled={!printable || resource.loading || !!resource.error}
