@@ -10,7 +10,7 @@ import { notify } from '~/utils/notifications/notifications'
 import { resolveMessage } from '~/i18n/messages'
 import FormError from '~/components/ui/FormError'
 
-export default function ShipperAccountAction({ action: initialAction, shippers, bulk, onClose }) {
+export default function ShipperAccountAction({ action: initialAction, shippers, bulk, onClose, onSaved }) {
   const { t } = useTranslation()
   const [action, setAction] = useState(initialAction)
   const tabsId = useId()
@@ -47,11 +47,11 @@ export default function ShipperAccountAction({ action: initialAction, shippers, 
         } else {
           notify.success('merchant.shipperSync.batchResult', { succeeded: result.succeeded, failed: result.failed })
         }
-        onClose()
+        onSaved()
       } else {
         await merchantShipperApi.account(action, shippers[0].id, note || null)
         notify.success(`merchant.shipperSync.success.${action}`)
-        onClose()
+        onSaved()
       }
     } catch (failure) {
       const uncertain = failure.uncertain || !failure.response || failure.response.status >= 500

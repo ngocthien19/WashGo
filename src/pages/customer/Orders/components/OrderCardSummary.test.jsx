@@ -22,7 +22,7 @@ it('keeps an active order estimate explicitly labelled under its current stage',
   />)
   expect(screen.getByText('Deposited · Awaiting collection')).toBeVisible()
   expect(screen.getByText(/^Estimated: /)).toBeVisible()
-  expect(screen.getByText('Estimated from processing history')).toBeVisible()
+  expect(screen.queryByText('Estimated from processing history')).not.toBeInTheDocument()
 })
 it('uses the actual order completion milestone, never the laundry ETA, as completion time', () => {
   const recordedAt = 1794132000

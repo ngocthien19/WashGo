@@ -1,3 +1,4 @@
+import { expectQuietDismissal } from '../helpers/modalDismissal'
 import { expect, test } from '@playwright/test'
 import { setupAdminOrders, orderId, merchantId, serviceId } from '../helpers/adminOrderSession'
 
@@ -249,14 +250,31 @@ test('captured timeline preserves server sequence and displays assignment snapsh
   state.orders[0].timeline = [
     { id: 'deposit', eventType: 'Deposited', basis: 'Captured', sequence: 1, status: 2, fromStatus: 1, timestamp: 1794009600 },
     { id: 'assign', eventType: 'MerchantAssigned', basis: 'Captured', sequence: 2, status: 2, fromStatus: 2, timestamp: 1793000000, merchantName: 'Historical shop', actorName: 'Admin actor' },
-    { id: 'reassign', eventType: 'ShipperReassigned', basis: 'Captured', sequence: 3, status: 2, fromStatus: 2, timestamp: 1793000000, shipperName: 'Snapshot driver', taskType: 1 }
+    { id: 'reassign', eventType: 'ShipperReassigned', basis: 'Captured', sequence: 3, status: 2, fromStatus: 2, timestamp: 1793000000, shipperName: 'Snapshot driver', taskType: 1 },
+    { id: 'drying', eventType: 'StatusChanged', basis: 'Captured', sequence: 4, status: 5, fromStatus: 4, timestamp: 1794009700 }
   ]
   await page.goto(`/admin/orders/${orderId}`)
   await expect(page.getByText('Historical shop', { exact: true })).toBeVisible()
   const history = page.locator('ol').filter({ has: page.getByText('Historical shop', { exact: true }) })
-  await expect(history.locator('li').nth(0)).toContainText('Laundry dropped off')
-  await expect(history.locator('li').nth(1)).toContainText('Laundry shop assigned')
-  await expect(history.locator('li').nth(2)).toContainText('Shipper reassigned')
+  await expect(history.locator('li').nth(0)).toContainText('Dropped off')
+  await expect(history.locator('li').nth(1)).toContainText('Shop assigned.')
+  await expect(history.locator('li').nth(2)).toContainText('Shipper changed.')
+  await expect(history.locator('strong')).toHaveCount(0)
   await expect(history.getByText('Snapshot driver', { exact: true })).toBeVisible()
+  await expect(history.getByText('Changed from “Washing” to “Drying”.', { exact: true })).toBeVisible()
+  for (const name of ['Historical shop', 'Snapshot driver']) {
+    const difference = await history.getByText(name, { exact: true }).evaluate(element => {
+      return Math.abs(element.getBoundingClientRect().top - element.parentElement.querySelector('dt').getBoundingClientRect().top)
+    })
+    expect(difference).toBeLessThan(2)
+  }
   expect(state.writes).toHaveLength(0)
+})
+
+ test('modal dismissal does not reload the page or its data', async ({ page }) => {
+  const state = await setupAdminOrders(page, { status: 1 }); state.orders[0].isDepositExpired = true
+  await page.goto(`/admin/orders/${orderId}`)
+  await expectQuietDismissal(page, async () => {
+    await page.getByRole('button', { name: 'Cancel expired order', exact: true }).click()
+  })
 })

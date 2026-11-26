@@ -1,4 +1,3 @@
-import OrderStatusDescription from '~/components/orders/OrderStatusDescription'
 import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useOutletContext, useParams } from 'react-router-dom'
@@ -104,11 +103,6 @@ function Details({ id }) {
           )}
         </div>
       </header>
-      {order && (
-        <p className="text-sm leading-6 text-muted-foreground">
-          <OrderStatusDescription status={order.status} />
-        </p>
-      )}
       {result && (
         <p
           role="status"
@@ -291,7 +285,7 @@ function Details({ id }) {
           shipperId={profile.data?.id}
           onUnknown={() => setUnknown(true)}
           onClose={() => {
-            setActing(false); resource.retry()
+            setActing(false)
           }}
           onSaved={(value) => {
             setResult({ ...value, type }); setActing(false); resource.retry(); profile.retry()

@@ -5,6 +5,7 @@ import { X } from 'lucide-react'
 import { Button } from './button'
 import { cn } from '~/lib/utils'
 import { UI_MOTION } from '~/utils/config/constants'
+import { DialogLoadingContext } from './dialogLoadingContext'
 
 export const Dialog = DialogPrimitive.Root
 export const DialogTitle = DialogPrimitive.Title
@@ -74,7 +75,9 @@ export function DialogContent({ children, className, closeLabel = 'common.closeS
             <X size={18} />
           </DialogPrimitive.Close>
         )}
-        {children}
+        <DialogLoadingContext.Provider value={true}>
+          {children}
+        </DialogLoadingContext.Provider>
       </DialogPrimitive.Popup>
     </DialogPrimitive.Portal>
   )

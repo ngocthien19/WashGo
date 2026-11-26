@@ -4,9 +4,9 @@ import { seedSeenTerms } from '../helpers/serviceTerms'
 
 const orderId = '11111111-1111-4111-8111-111111111111', sessionId = '22222222-2222-4222-8222-222222222222'
 const pages = { Succeeded: 'success', Failed: 'failed', Cancelled: 'cancelled', Pending: null, RequiresReview: null }
-async function setup(page, { status = 'Pending', purpose = 1, paymentMethod = 2, superseded = false, guest = false } = {}) {
+async function setup(page, { status = 'Pending', purpose = 1, paymentMethod = 2, superseded = false, guest = false, dark = false } = {}) {
   if (!guest) {
-    await merchantSession(page, { role: 'Customer' })
+    await merchantSession(page, { role: 'Customer', dark })
   } else {
     await page.addInitScript(() => {
       if (!localStorage.getItem('persist:root')) {
@@ -61,6 +61,25 @@ async function setup(page, { status = 'Pending', purpose = 1, paymentMethod = 2,
     return route.fulfill({ status: 404, json: { succeeded: false } })
   })
   return state
+}
+for (const [width, dark] of [[375, false], [1280, true]]) {
+  test(`payment result uses a tinted header and large actions (width=${width}, dark=${dark})`, async ({ page }) => {
+    await setup(page, { status: 'Succeeded', dark })
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto(`/payment/success?orderId=${orderId}&purpose=1&sessionId=${sessionId}`)
+    const heading = page.getByRole('heading', { name: 'Payment successful', exact: true })
+    await expect(heading).toBeVisible({ timeout: 15000 })
+    const header = heading.locator('..').locator('..')
+    await expect(header).toHaveCSS('border-bottom-width', '1px')
+    expect(await header.evaluate(element => getComputedStyle(element).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)')
+    for (const name of ['View order', 'My orders']) {
+      const button = page.getByRole('button', { name, exact: true })
+      await expect(button).toBeVisible()
+      expect((await button.boundingBox()).height).toBe(48)
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await page.screenshot({ path: `tests/ci/results/payment-result-${width}.png`, fullPage: true })
+  })
 }
 for (const paymentMethod of [2, 3]) {
   for (const [status, heading] of [['Succeeded', 'Payment successful'], ['Failed', 'Payment failed'], ['Cancelled', 'Payment cancelled'], ['RequiresReview', 'Payment needs review']]) {

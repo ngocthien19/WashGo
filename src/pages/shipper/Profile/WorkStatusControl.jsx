@@ -71,7 +71,7 @@ export default function WorkStatusControl({ profile, onUpdated }) {
           disabled={blocked}
           error={error}
           onClose={() => {
-            setOpen(false); onUpdated()
+            setOpen(false)
           }}
           confirmLabel={t(unknown ? 'admin.sync.checkResult' : status === 1 ? 'storage.goAvailable' : 'storage.goOffline')}
           onConfirm={() => unknown ? submit() : form.handleSubmit(submit)()}

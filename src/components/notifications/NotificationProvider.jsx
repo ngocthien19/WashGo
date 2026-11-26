@@ -10,6 +10,10 @@ import { notify } from '~/utils/notifications/notifications'
 import i18n from '~/i18n'
 import { notificationText } from './notificationModel'
 import { NOTIFICATION_CATEGORIES } from './notificationCatalog'
+import { createOrderRealtimeStore } from '~/utils/orders/orderRealtime'
+import { OrderRealtimeContext } from '~/hooks/useOrderRealtime'
+import { orderManagementApi } from '~/apis/orders/orderManagementApi'
+import useFilePickerActivity from '~/hooks/useFilePickerActivity'
 
 export default function NotificationProvider({ children, listHref, resolveHref }) {
   const store = useStore()
@@ -30,6 +34,8 @@ export default function NotificationProvider({ children, listHref, resolveHref }
 }
 
 function NotificationSession({ children, store, role, listHref, resolveHref, categories }) {
+  const filePickerActive = useFilePickerActivity()
+  const [orders] = useState(createOrderRealtimeStore)
   const [revision, setRevision] = useState(0)
   const [unread, setUnread] = useState(null)
   const [live, setLive] = useState(false)
@@ -54,12 +60,13 @@ function NotificationSession({ children, store, role, listHref, resolveHref, cat
       return
     }
     const timer = setInterval(() => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && !filePickerActive.current) {
         refresh()
+        orders.revalidate()
       }
     }, NOTIFICATION_CONFIG.RETRY_MS)
     return () => clearInterval(timer)
-  }, [live, refresh])
+  }, [live, refresh, orders, filePickerActive])
   useEffect(() => {
     const controller = new AbortController()
     const current = ++generation.current
@@ -112,6 +119,8 @@ function NotificationSession({ children, store, role, listHref, resolveHref, cat
       }
     }
     connection.on('notificationState', stateChanged)
+    connection.on('orderChanged', orders.changed)
+    connection.on('orderScopeChanged', orders.scopeChanged)
     const start = async () => {
       if (disposed) {
         return
@@ -119,7 +128,7 @@ function NotificationSession({ children, store, role, listHref, resolveHref, cat
       try {
         await connection.start()
         if (!disposed) {
-          setLive(true); refresh()
+          setLive(true); refresh(); orders.revalidate()
         }
       } catch {
         if (!disposed) {
@@ -136,7 +145,7 @@ function NotificationSession({ children, store, role, listHref, resolveHref, cat
     })
     connection.onreconnected(() => {
       if (!disposed) {
-        setLive(true); refresh()
+        setLive(true); refresh(); orders.revalidate()
       }
     })
     connection.onclose(() => {
@@ -148,21 +157,39 @@ function NotificationSession({ children, store, role, listHref, resolveHref, cat
         retryTimer = setTimeout(start, NOTIFICATION_CONFIG.RETRY_MS)
       }
     })
-    const focus = () => refresh()
+    const focus = () => {
+      if (filePickerActive.current) {
+        return
+      }
+      refresh(); orders.revalidate()
+    }
+    const visible = () => {
+      if (document.visibilityState === 'visible') {
+        focus()
+      }
+    }
     window.addEventListener('focus', focus)
+    document.addEventListener('visibilitychange', visible)
     start()
     return () => {
       disposed = true
       clearTimeout(retryTimer)
       window.removeEventListener('focus', focus)
+      document.removeEventListener('visibilitychange', visible)
       connection.off(NOTIFICATION_CONFIG.EVENT, received)
       connection.off('notificationState', stateChanged)
+      connection.off('orderChanged', orders.changed)
+      connection.off('orderScopeChanged', orders.scopeChanged)
+      orders.dispose()
+      orderManagementApi.clearActualsSession()
       connection.stop().catch(() => {})
     }
-  }, [store, refresh, suppress])
+  }, [store, refresh, suppress, orders, filePickerActive])
   return (
     <NotificationContext.Provider value={{ unread, live, revision, refresh, suppress, listHref, resolveHref, categories, role }}>
-      {children}
+      <OrderRealtimeContext.Provider value={orders}>
+        {children}
+      </OrderRealtimeContext.Provider>
     </NotificationContext.Provider>
   )
 }

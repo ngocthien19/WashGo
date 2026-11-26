@@ -1,3 +1,7 @@
+import OrderActualsInfo from '~/components/orders/OrderActualsInfo'
+import OrderItemActuals from '~/components/orders/OrderItemActuals'
+import { actualQuantity, actualSubTotal } from '~/utils/orders/orderActuals'
+import useOrderRealtime from '~/hooks/useOrderRealtime'
 import CollectionWindow from '~/components/orders/CollectionWindow'
 import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
 import Reveal from '~/components/motion/Reveal'
@@ -16,6 +20,7 @@ import { MERCHANT_ROUTES } from '~/utils/config/constants'
 import { formatCurrency, formatDateTime } from '~/utils/format/formats'
 import { processingSteps, canWeigh, assignmentTask } from './orderModel'
 import OrderActionDialog from './components/OrderActionDialog'
+import OrderActualsDialog from '~/components/orders/OrderActualsDialog'
 import OrderCommission from '~/components/merchant/OrderCommission'
 import PaymentStatus from '~/components/orders/PaymentStatus'
 import ResourceThumbnail from '~/components/ResourceThumbnail/ResourceThumbnail'
@@ -41,7 +46,8 @@ export default function OrderDetailPage() {
   const { t } = useTranslation()
   const [action, setAction] = useState(null)
   const load = useCallback((signal) => /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(orderId || '') ? merchantOrderApi.detail(orderId, signal) : Promise.reject(new Error('merchant.invalidResponse')), [orderId])
-  const resource = useCatalogResource(load)
+  const liveRevision = useOrderRealtime(orderId)
+  const resource = useCatalogResource(load, liveRevision, true)
   const order = resource.data
   const depositImages = order?.lockerImageUrls || []
   const returnImages = order?.returnLockerImageUrls || (!order?.returnLockerId || order.returnLockerId === order?.lockerId ? depositImages : []) || []
@@ -73,7 +79,7 @@ export default function OrderDetailPage() {
           {t('customer.orders.refresh')}
         </Button>
       </div>
-      {!order || resource.loading || resource.error ? (
+      {!order || resource.error ? (
         <ResourceFeedback
           {...resource}
           loadingText="customer.orders.loadingDetail"
@@ -93,6 +99,16 @@ export default function OrderDetailPage() {
             <div className="flex flex-wrap items-center gap-3">
               <OrderStatus status={order.status} />
               {' '}
+              {(order.allowedActions?.canConfirmActuals === true || merchantOrderApi.pendingActuals(order.id)) && (
+                <Button
+                  className="h-11 gap-2 px-4 text-base"
+                  variant="outline-violet"
+                  onClick={() => setAction('actuals')}
+                >
+                  <Scale size={18} />
+                  {t('actuals.title')}
+                </Button>
+              )}
               {canWeigh(order) && (
                 <Button
                   className="h-11 gap-2 px-4 text-base"
@@ -115,7 +131,7 @@ export default function OrderDetailPage() {
               {['returnReady', 'unassign'].filter(action => order.allowedActions?.[action === 'returnReady' ? 'canConfirmReturnReady' : 'canUnassignShipper'] === true).map(action => (
                 <Button
                   key={action}
-                  variant="outline"
+                  variant={action === 'returnReady' ? 'outline-violet' : 'outline'}
                   className="h-11 px-4 text-base"
                   onClick={() => setAction(action)}
                 >
@@ -134,6 +150,11 @@ export default function OrderDetailPage() {
               )}
             </div>
           </header>
+          {order.allowedActions?.statusOptions?.some(item => item.reasonCode === 'ActualsRequired') && (
+            <p className="rounded-xl bg-amber-500/10 p-4 text-sm text-amber-700 dark:text-amber-300">
+              {t('actuals.errors.ActualsRequired')}
+            </p>
+          )}
           {([10, 13, 14, 15].includes(order.status) || order.storageWorkflowVersion >= 1 && [11, 12, 99].includes(order.status)) && (
             <StorageOrderPanel
               order={order}
@@ -190,12 +211,13 @@ export default function OrderDetailPage() {
                             {item.serviceName}
                           </p>
                           <p className="mt-2 text-sm text-muted-foreground">
-                            {t('customer.orders.quantity', { count: item.quantity })}
+                            {t('customer.orders.quantity', { count: actualQuantity(item) })}
                             {' '}
                             ·
                             {' '}
                             {formatCurrency(item.unitPrice)}
                           </p>
+                          <OrderItemActuals item={item} />
                           {item.note && (
                             <p className="mt-2 break-words text-sm text-muted-foreground">
                               {item.note}
@@ -204,11 +226,12 @@ export default function OrderDetailPage() {
                         </div>
                       </div>
                       <strong className="text-base font-semibold">
-                        {formatCurrency(item.subTotal)}
+                        {formatCurrency(actualSubTotal(item))}
                       </strong>
                     </li>
                   ))}
                 </ul>
+                <OrderActualsInfo order={order} />
               </Panel>
               <Panel
                 icon={ReceiptText}
@@ -283,12 +306,18 @@ export default function OrderDetailPage() {
               </Panel>
             </div>
           </div>
-          {action && (
+          {action === 'actuals' ? (
+            <OrderActualsDialog
+              order={order}
+              onClose={() => setAction(null)}
+              onSaved={done}
+            />
+          ) : action && (
             <OrderActionDialog
               key={`${order.id}-${action}`}
               action={action}
               order={order}
-              onClose={done}
+              onClose={() => setAction(null)}
               onSaved={done}
             />
           )}

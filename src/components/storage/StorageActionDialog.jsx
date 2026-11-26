@@ -1,3 +1,4 @@
+import { useOrderChangedSinceOpen } from '~/hooks/useOrderRealtime'
 import ShipperSelection from '~/components/shippers/ShipperSelection'
 import { customerPaymentApi } from '~/apis/customer/customerPaymentApi'
 import { canAssignShipper, isShipperCapacityConflict } from '~/utils/orders/shipperCapacity'
@@ -20,6 +21,7 @@ import QrScanInput from '~/components/customer/orders/QrScanInput'
 
 export default function StorageActionDialog({ order, cycle, action, role, taskId, quote, onClose, onSaved }) {
   const { t } = useTranslation()
+  const liveStale = useOrderChangedSinceOpen(order.id)
   const credential = ['collect', 'handover', 'depart', 'place'].includes(action)
   const [mode, setMode] = useState('pin')
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [blocked, setBlocked] = useState(false)
@@ -39,7 +41,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
   const shipperId = useWatch({ control, name: 'shipperId' })
   const shippers = useCatalogResource(useCallback(signal => action === 'assign' ? storageApi.shippers(order.id, signal) : Promise.resolve([]), [order.id, action]))
   const execute = async (values, recovery) => {
-    if (lock.current || blocked && !recovery) {
+    if (lock.current || (blocked || liveStale) && !recovery) {
       return
     }
     lock.current = true; setBusy(true); setError('')
@@ -124,7 +126,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
         >
           <div data-dialog-body>
             <FormError>
-              {error}
+              {liveStale && !unknown ? 'orderLive.changed' : error}
             </FormError>
             {Number.isInteger(attempts?.remaining) && (
               <p className="text-sm text-destructive">
@@ -142,7 +144,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
               </p>
             )}
             <fieldset
-              disabled={busy || unknown || blocked}
+              disabled={busy || unknown || blocked || liveStale}
               className="space-y-4"
             >
               {action === 'assign' && (
@@ -150,7 +152,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
                   <ShipperSelection
                     resource={shippers}
                     value={shipperId}
-                    disabled={busy || unknown || blocked}
+                    disabled={busy || unknown || blocked || liveStale}
                     onChange={row => {
                       setValue('shipperId', row?.id || '', { shouldValidate: true }); setValue('confirmed', false)
                     }}
@@ -276,7 +278,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
               disabled={busy}
               onClick={onClose}
             >
-              {t(blocked ? 'storage.reload' : 'common.close')}
+              {t(blocked || liveStale ? 'storage.reload' : 'common.close')}
             </Button>
             {unknown ? (
               <>
@@ -300,7 +302,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
               <Button
                 type="submit"
                 className="h-11 px-5"
-                disabled={busy || blocked || action === 'assign' && (shippers.loading || shippers.error)}
+                disabled={busy || blocked || liveStale || action === 'assign' && (shippers.loading || shippers.error)}
               >
                 {t(`storage.actions.${action}`)}
               </Button>

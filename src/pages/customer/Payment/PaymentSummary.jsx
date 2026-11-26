@@ -21,11 +21,13 @@ export default function PaymentSummary({ summary }) {
               {t('combined.paid')}
               :
               {' '}
-              {formatCurrency(row.paid)}
-              {' '}
-              /
-              {' '}
-              {formatCurrency(row.due)}
+              <span className="font-semibold tabular-nums text-foreground">
+                {formatCurrency(row.paid)}
+                {' '}
+                /
+                {' '}
+                {formatCurrency(row.due)}
+              </span>
             </dd>
           </div>
         ))}

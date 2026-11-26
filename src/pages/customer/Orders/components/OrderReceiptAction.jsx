@@ -23,12 +23,7 @@ export default function OrderReceiptAction({ order }) {
         {t('customer.orders.receipt.action')}
       </Button>
       {open && (
-        <Suspense fallback={(
-          <p role="status">
-            {t('customer.orders.loadingDetail')}
-          </p>
-        )}
-        >
+        <Suspense fallback={null}>
           <OrderReceiptDialog
             orderId={order.id}
             onClose={() => setOpen(false)}

@@ -29,7 +29,8 @@ const summaryColors = [['border-l-primary', 'bg-primary/10 text-primary'], ['bor
 export default function MerchantsPage() {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
-  const query = useMemo(() => readMerchantQuery(params), [params])
+  const queryKey = JSON.stringify(readMerchantQuery(params))
+  const query = useMemo(() => JSON.parse(queryKey), [queryKey])
   const [revision, setRevision] = useState(0), [selected, setDialog] = useState(null)
   const dialog = selected || (isId(params.get('request')) ? { kind: 'request', id: params.get('request') } : isId(params.get('merchant')) ? { kind: 'detail', id: params.get('merchant') } : null)
   const merchants = query.tab === 'merchants'
@@ -62,9 +63,13 @@ export default function MerchantsPage() {
   const close = () => {
     setDialog(null)
     if (params.has('request') || params.has('merchant')) {
-      update({ request: '', merchant: '' })
+      const next = new URLSearchParams(params)
+      next.delete('request'); next.delete('merchant')
+      setParams(next, { replace: true })
     }
-    reload()
+  }
+  const saved = () => {
+    close(); reload()
   }
   const disabled = resource.loading
   const actions = (row) => (
@@ -397,14 +402,14 @@ export default function MerchantsPage() {
       {dialog?.kind === 'create' && (
         <MerchantEditor
           onClose={close}
-          onSaved={close}
+          onSaved={saved}
         />
       )}
       {dialog?.kind === 'request' && (
         <ProfileRequestDialog
           id={dialog.id}
           onClose={close}
-          onSaved={close}
+          onSaved={saved}
         />
       )}
       {dialog && !['create', 'request'].includes(dialog.kind) && (
@@ -412,7 +417,7 @@ export default function MerchantsPage() {
           key={`${dialog.kind}:${dialog.id}`}
           {...dialog}
           onClose={close}
-          onSaved={close}
+          onSaved={saved}
         />
       )}
     </Reveal>

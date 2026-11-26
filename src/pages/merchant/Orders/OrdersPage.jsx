@@ -1,3 +1,4 @@
+import useOrderRealtime from '~/hooks/useOrderRealtime'
 import Reveal from '~/components/motion/Reveal'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -36,8 +37,9 @@ export default function OrdersPage() {
   const query = useMemo(() => readMerchantOrdersQuery(params), [params])
   const load = useCallback((signal) => merchantOrderApi.list(buildMerchantOrdersFilter(query), signal), [query])
   const loadSummary = useCallback((signal) => merchantOrderApi.summary(orderScopeFilter({ keyword: query.keyword, paymentStatus: query.paymentStatus, from: query.from, to: query.to }), signal), [query.keyword, query.paymentStatus, query.from, query.to])
-  const summary = useCatalogResource(loadSummary)
-  const resource = useCatalogResource(load)
+  const liveRevision = useOrderRealtime()
+  const summary = useCatalogResource(loadSummary, liveRevision, true)
+  const resource = useCatalogResource(load, liveRevision, true)
   const [assignment, setAssignment] = useState(null)
   const [openingAssignment, setOpeningAssignment] = useState(false)
   const openAssignment = async (id) => {
@@ -175,7 +177,7 @@ export default function OrdersPage() {
             />
           </div>
         </div>
-        {loading || error || !data?.list.length ? (
+        {(loading && !data) || error || !data?.list.length ? (
           <ResourceFeedback
             {...resource}
             loadingText="customer.orders.loading"

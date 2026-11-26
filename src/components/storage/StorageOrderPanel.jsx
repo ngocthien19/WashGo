@@ -1,3 +1,4 @@
+import useOrderRealtime from '~/hooks/useOrderRealtime'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Warehouse } from 'lucide-react'
@@ -9,10 +10,9 @@ import { Button } from '~/components/ui/button'
 import StorageCycleCard from './StorageCycleCard'
 import StorageActionDialog from './StorageActionDialog'
 
-function LoadedStorageOrderPanel({ order, role, onUpdated, taskId }) {
+function LoadedStorageOrderPanel({ order, role, onUpdated, taskId, resource, page, setPage }) {
   const { t } = useTranslation()
-  const [page, setPage] = useState(1), [action, setAction] = useState(null)
-  const resource = useCatalogResource(useCallback(signal => storageApi.cycles(order.id, page, signal), [order.id, page]), order.revision)
+  const [action, setAction] = useState(null)
   const done = () => {
     setAction(null); resource.retry(); onUpdated?.()
   }
@@ -76,7 +76,7 @@ function LoadedStorageOrderPanel({ order, role, onUpdated, taskId }) {
             action={action.name}
             taskId={taskId}
             role={role}
-            onClose={done}
+            onClose={() => setAction(null)}
             onSaved={done}
           />
         )}
@@ -88,7 +88,18 @@ function LoadedStorageOrderPanel({ order, role, onUpdated, taskId }) {
 export default function StorageOrderPanel(props) {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
+  const [page, setPage] = useState(1)
+  const liveRevision = useOrderRealtime(props.order.id)
+  const resource = useCatalogResource(useCallback(signal => storageApi.cycles(props.order.id, page, signal), [props.order.id, page]), `${props.order.revision}:${liveRevision}`)
   const historyOnly = props.role !== 'Shipper' && ![10, 13, 14, 15].includes(props.order.status)
+  if (historyOnly) {
+    if (resource.loading || resource.error) {
+      return <ResourceFeedback {...resource} />
+    }
+    if (!resource.data?.list.length) {
+      return null
+    }
+  }
   if (historyOnly && !expanded) {
     return (
       <Button
@@ -100,5 +111,12 @@ export default function StorageOrderPanel(props) {
       </Button>
     )
   }
-  return <LoadedStorageOrderPanel {...props} />
+  return (
+    <LoadedStorageOrderPanel
+      {...props}
+      resource={resource}
+      page={page}
+      setPage={setPage}
+    />
+  )
 }

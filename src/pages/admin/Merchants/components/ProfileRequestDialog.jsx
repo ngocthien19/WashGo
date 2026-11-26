@@ -77,7 +77,7 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
             {t('admin.merchants.requestDetails')}
           </DialogTitle>
           <DialogDescription className="mt-3 text-sm leading-6">
-            {value?.merchantName || t('admin.loading')}
+            {value?.merchantName || ''}
           </DialogDescription>
         </MerchantDialogHeader>
         {resource.loading || resource.error || !value ? (

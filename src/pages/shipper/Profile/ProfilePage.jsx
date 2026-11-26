@@ -257,7 +257,7 @@ export default function ProfilePage() {
         <ProfileEditor
           profile={user}
           onClose={() => {
-            setEditing(false); profile.retry()
+            setEditing(false)
           }}
           onSaved={(updated) => {
             dispatch(setUser({ ...authUser, fullName: updated.fullName, phone: updated.phone, avatar: updated.avatarUrl })); setEditing(false); profile.retry()

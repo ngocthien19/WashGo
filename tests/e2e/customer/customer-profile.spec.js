@@ -78,28 +78,30 @@ const signIn = async (page) => {
   await expect(page).toHaveURL('/')
 }
 
-test('wallet separates available and held points and loads signed history on demand', async ({ page }) => {
+test('profile shows static reward points with colored statistics and no wallet section', async ({ page }) => {
   await mockCustomer(page)
-  const ledgerRequests = []
+  const walletRequests = []
   page.on('request', request => {
-    if (request.url().includes('/customer/loyalty/history')) {
-      ledgerRequests.push(request.url())
+    if (request.url().includes('/customer/loyalty/')) {
+      walletRequests.push(request.url())
     }
   })
   await signIn(page)
   await page.goto('/profile')
-  const wallet = page.getByRole('region', { name: 'WashGo points', exact: true })
-  await expect(wallet.getByText('100', { exact: true })).toBeVisible()
-  await expect(wallet.getByText('20', { exact: true })).toBeVisible()
-  expect(ledgerRequests).toHaveLength(0)
-  await wallet.getByRole('button', { name: 'Points history', exact: true }).click()
-  await expect(wallet.getByRole('cell', { name: 'Recover rewards', exact: true })).toBeVisible()
-  await expect(wallet.getByRole('cell', { name: '-30', exact: true })).toBeVisible()
-  expect(ledgerRequests).toHaveLength(1)
-  expect(new URL(ledgerRequests[0]).searchParams.get('take')).toBe('20')
-  await expect(wallet.getByRole('link', { name: 'Details', exact: true })).toHaveAttribute('href', `/orders/${initialProfile.id}`)
-  await page.setViewportSize({ width: 375, height: 900 })
-  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  const stats = page.locator('dl').filter({ has: page.getByText('Loyalty points', { exact: true }) })
+  await expect(stats.locator('dt')).toHaveCount(3)
+  await expect(stats.getByText('120', { exact: true })).toBeVisible()
+  await expect(stats.getByRole('button')).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'WashGo points', exact: true })).toHaveCount(0)
+  const borders = await stats.locator(':scope > div').evaluateAll(cards => cards.map(card => ({ width: getComputedStyle(card).borderLeftWidth, color: getComputedStyle(card).borderLeftColor })))
+  expect(borders.every(border => border.width === '4px')).toBe(true)
+  expect(new Set(borders.map(border => border.color)).size).toBe(3)
+  await page.getByRole('button', { name: 'Switch to dark mode', exact: true }).click()
+  for (const width of [320, 375, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 })
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  }
+  expect(walletRequests).toHaveLength(0)
 })
 
 const mapAddress = {

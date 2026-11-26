@@ -1,3 +1,4 @@
+import { useOrderChangedSinceOpen } from '~/hooks/useOrderRealtime'
 import { useCallback, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -22,8 +23,9 @@ export default function CancelExpiredDialog({ id, onClose, onSaved }) {
   const resource = useCatalogResource(load), quote = resource.data
   const [busy, setBusy] = useState(false), [blocked, setBlocked] = useState(false), [error, setError] = useState('')
   const { register, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(schema), defaultValues: { reason: '', confirmed: false } })
+  const liveStale = useOrderChangedSinceOpen(id)
   const submit = async values => {
-    if (lock.current || blocked || !quote?.canCancel) {
+    if (lock.current || blocked || liveStale || !quote?.canCancel) {
       return
     }
     lock.current = true; setBusy(true); setError('')
@@ -118,7 +120,7 @@ export default function CancelExpiredDialog({ id, onClose, onSaved }) {
                 </p>
               )}
               <fieldset
-                disabled={busy || blocked || !quote.canCancel}
+                disabled={busy || blocked || liveStale || !quote.canCancel}
                 className="space-y-4"
               >
                 <label className="grid gap-2">
@@ -156,7 +158,7 @@ export default function CancelExpiredDialog({ id, onClose, onSaved }) {
                 </FormError>
               </fieldset>
               <FormError>
-                {error}
+                {liveStale ? 'orderLive.changed' : error}
               </FormError>
             </div>
             <footer
@@ -175,7 +177,7 @@ export default function CancelExpiredDialog({ id, onClose, onSaved }) {
               <Button
                 type="submit"
                 variant="destructive"
-                disabled={busy || blocked || !quote.canCancel}
+                disabled={busy || blocked || liveStale || !quote.canCancel}
                 className="h-11 px-5 text-base"
               >
                 {t('admin.sync.cancelExpired')}

@@ -15,7 +15,7 @@ export default function OrderEstimate({ order, compact = false, loading = false,
       <p className={cn(compact ? 'text-base font-bold' : 'text-lg font-semibold', statusTextColors[order.status] || 'text-foreground')}>
         {status === 'notApplicable' ? t('customer.sync.prediction.notApplicable') : date ? showEstimateLabel ? t('customer.sync.cardEstimatedAt', { date: formatDateTime(date) }) : formatDateTime(date) : t(loading ? 'customer.sync.etaLoading' : 'customer.sync.etaUnavailable')}
       </p>
-      {['predicted', 'rule', 'done'].includes(status) && (
+      {['predicted', 'rule', 'done'].includes(status) && !(compact && status === 'predicted') && (
         <p className={compact ? 'text-xs text-muted-foreground' : 'text-sm text-muted-foreground'}>
           {t(`customer.sync.${compact ? 'estimateLabels' : 'prediction'}.${status}`)}
         </p>

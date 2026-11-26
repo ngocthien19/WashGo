@@ -68,6 +68,32 @@ label:has([data-slot="checkbox"][data-disabled]) {
   font-weight: 500;
 }
 
+input[type="file"]:not(:disabled),
+input[type="file"]:not(:disabled)::file-selector-button,
+label:has(input[type="file"]:not(:disabled)),
+input[type="file"]:not(:disabled) + label {
+  cursor: pointer;
+}
+
+input[type="file"]:not(:disabled)::file-selector-button {
+  transition: background-color 150ms, color 150ms;
+}
+
+input[type="file"]:not(:disabled):hover::file-selector-button,
+input[type="file"]:not(:disabled):focus-visible::file-selector-button,
+label:has(input[type="file"]:not(:disabled)):hover,
+input[type="file"]:not(:disabled) + label:hover {
+  background-color: color-mix(in srgb, var(--primary) 18%, var(--card));
+  color: var(--primary);
+}
+
+input[type="file"]:disabled,
+input[type="file"]:disabled::file-selector-button,
+label:has(input[type="file"]:disabled),
+input[type="file"]:disabled + label {
+  cursor: not-allowed;
+}
+
 .workspace-sidebar-label {
   display: inline-block;
   overflow: hidden;

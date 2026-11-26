@@ -368,7 +368,8 @@ export default function ShippersPage() {
       {accountAction && (
         <ShipperAccountAction
           {...accountAction}
-          onClose={() => {
+          onClose={() => setAccountAction(null)}
+          onSaved={() => {
             setAccountAction(null); setSelection({ source: null, ids: [] }); resource.retry(); summary.retry()
           }}
         />
@@ -387,7 +388,7 @@ export default function ShippersPage() {
         <ShipperEditor
           id={editor.loadingId}
           shipper={editor.id ? editor : null}
-          onClose={closeEditor}
+          onClose={() => setEditor(null)}
           onSaved={closeEditor}
         />
       )}

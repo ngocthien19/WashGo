@@ -1,4 +1,6 @@
 export const vi = {
+  receiptUi: { rate: 'Đánh giá', report: 'Báo cáo' },
+  paymentResultDetails: { orderCode: 'Mã đơn hàng', amount: 'Số tiền giao dịch' },
   combined: {
     title: 'Thanh toán đơn hàng', total: 'Tổng còn phải thanh toán', paid: 'Đã thanh toán',
     cancellationBasis: 'Giá trị tính phí hủy', offset: 'Đã cấn trừ phí hủy', points: 'điểm',
@@ -44,6 +46,8 @@ export const vi = {
   }
 }
 export const en = {
+  receiptUi: { rate: 'Rate', report: 'Report' },
+  paymentResultDetails: { orderCode: 'Order code', amount: 'Transaction amount' },
   combined: {
     title: 'Order payment', total: 'Total outstanding', paid: 'Paid',
     cancellationBasis: 'Cancellation fee basis', offset: 'Cancellation offset applied', points: 'points',

@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { PackageSearch, RefreshCw } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import Spinner from '~/components/ui/spinner'
+import { useContext } from 'react'
+import { DialogLoadingContext } from '~/components/ui/dialogLoadingContext'
 
 export default function CatalogFeedback({
   loading,
@@ -12,6 +14,7 @@ export default function CatalogFeedback({
   loadingText = 'customer.loadingServices'
 }) {
   const { t } = useTranslation()
+  const inDialog = useContext(DialogLoadingContext)
   if (loading) {
     return (
       <div
@@ -23,7 +26,9 @@ export default function CatalogFeedback({
             decorative
             className="size-5 text-primary"
           />
-          {t(loadingText)}
+          <span className={inDialog ? 'sr-only' : undefined}>
+            {t(loadingText)}
+          </span>
         </div>
       </div>
     )

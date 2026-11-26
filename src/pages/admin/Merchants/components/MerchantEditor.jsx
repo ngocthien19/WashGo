@@ -295,12 +295,7 @@ export default function MerchantEditor({ merchant, onClose, onSaved }) {
           </div>
         </form>
         {mapOpen && (
-          <Suspense fallback={(
-            <p role="status">
-              {t('customer.addressMap.loading')}
-            </p>
-          )}
-          >
+          <Suspense fallback={null}>
             <AddressPicker
               initialCenter={Number.isFinite(Number(getValues('latitude'))) && Number.isFinite(Number(getValues('longitude'))) && (Number(getValues('latitude')) !== 0 || Number(getValues('longitude')) !== 0) ? { latitude: Number(getValues('latitude')), longitude: Number(getValues('longitude')) } : null}
               onClose={() => setMapOpen(false)}

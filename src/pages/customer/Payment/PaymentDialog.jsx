@@ -1,12 +1,12 @@
 import { useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogHeader } from '~/components/ui/dialog'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { customerPaymentApi } from '~/apis/customer/customerPaymentApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import PaymentCheckout from './PaymentCheckout'
 
-export default function PaymentDialog({ orderId, onClose, pendingRequests: pending, initialMethod }) {
+export default function PaymentDialog({ orderId, onClose, onUpdated, pendingRequests: pending, initialMethod }) {
   const { t } = useTranslation()
   const localPending = useRef(new Set())
   const resource = useCatalogResource(useCallback(signal => customerPaymentApi.getOrder(orderId, signal), [orderId]))
@@ -30,9 +30,6 @@ export default function PaymentDialog({ orderId, onClose, pendingRequests: pendi
               <DialogTitle className="pr-8 text-2xl font-bold">
                 {t('customer.payment.title')}
               </DialogTitle>
-              <DialogDescription>
-                {t('customer.payment.loading')}
-              </DialogDescription>
             </DialogHeader>
             <CatalogFeedback
               {...resource}
@@ -43,7 +40,9 @@ export default function PaymentDialog({ orderId, onClose, pendingRequests: pendi
           <PaymentCheckout
             key={`${order.id}:${order.paymentStatus}:${order.status}`}
             order={order}
-            refresh={resource.retry}
+            refresh={() => {
+              resource.retry(); onUpdated?.()
+            }}
             pendingRequests={pending || localPending}
             initialMethod={initialMethod}
             modal

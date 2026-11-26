@@ -174,7 +174,7 @@ function ReturnRequest({ order, onUpdated }) {
           action={action}
           role="Customer"
           quote={action === 'return-request' ? quote : undefined}
-          onClose={done}
+          onClose={() => setAction(null)}
           onSaved={done}
         />
       )}
@@ -190,9 +190,7 @@ function ReturnRequest({ order, onUpdated }) {
   )
 }
 export default function StoragePickup(props) {
-  const { t } = useTranslation()
-  const [expanded, setExpanded] = useState(false)
-  if ([13, 14, 15].includes(props.order.status) || expanded) {
+  if (props.order.status === 13) {
     return (
       <ReturnRequest
         key={props.order.id}
@@ -200,13 +198,5 @@ export default function StoragePickup(props) {
       />
     )
   }
-  return props.order.storageWorkflowVersion >= 1 && [10, 11, 12, 99].includes(props.order.status) ? (
-    <Button
-      variant="outline"
-      className="h-11"
-      onClick={() => setExpanded(true)}
-    >
-      {t('storage.history')}
-    </Button>
-  ) : null
+  return null
 }

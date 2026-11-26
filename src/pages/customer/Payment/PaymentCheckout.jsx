@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux'
 import { clearUncertainPayment, paymentIsUncertain, rememberUncertainPayment } from './paymentAttemptMemory'
 import { customerPaymentApi } from '~/apis/customer/customerPaymentApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
+import { useOrderChangedSinceOpen } from '~/hooks/useOrderRealtime'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { Button } from '~/components/ui/button'
 import { DialogTitle, DialogDescription } from '~/components/ui/dialog'
@@ -26,12 +27,19 @@ export default function PaymentCheckout(props) {
 
 function CombinedCheckout({ order, modal, onClose, refresh, pendingRequests, initialMethod }) {
   const { t } = useTranslation()
+  const liveStale = useOrderChangedSinceOpen(order.id)
   const userId = useSelector(state => state.auth.user?.id)
   const [points, setPoints] = useState(0), [method, setMethod] = useState([2, 3].includes(initialMethod) ? initialMethod : 2)
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [changed, setChanged] = useState(null)
   const [uncertain, setUncertain] = useState(pendingRequests.current.has(order.id) || paymentIsUncertain(userId, order.id))
   const resource = useCatalogResource(useCallback(signal => customerPaymentApi.getSummary(order.id, points, signal), [order.id, points]))
-  const summary = changed || resource.data
+  const [lastSummary, setLastSummary] = useState(null)
+  // Keep the current form mounted while the server recalculates a points quote.
+  // CombinedCheckout is keyed by order ID, so this cache cannot cross orders.
+  if (resource.data && resource.data !== lastSummary) {
+    setLastSummary(resource.data)
+  }
+  const summary = changed || resource.data || lastSummary
   const session = summary?.quote.activeSession
   const blockedUncertain = uncertain && !session?.canContinue
   const lock = useRef(false), mounted = useRef(false)
@@ -43,7 +51,7 @@ function CombinedCheckout({ order, modal, onClose, refresh, pendingRequests, ini
   const quote = summary?.quote
   const selected = quote?.methods.find(row => row.paymentMethod === method)
   const pay = async () => {
-    if (lock.current || !summary || blockedUncertain || resource.loading || (!session?.canContinue && (!quote.canCreate || !selected?.enabled))) {
+    if (lock.current || liveStale || !summary || blockedUncertain || resource.loading || resource.error || (!session?.canContinue && (!quote.canCreate || !selected?.enabled))) {
       return
     }
     lock.current = true; setBusy(true); setError(''); pendingRequests.current.add(order.id)
@@ -136,7 +144,7 @@ function CombinedCheckout({ order, modal, onClose, refresh, pendingRequests, ini
         </Description>
       </header>
       <div className="min-h-0 space-y-5 overflow-y-auto p-6">
-        {resource.loading || resource.error ? <ResourceFeedback {...resource} /> : summary && (
+        {resource.error || resource.loading && !summary ? <ResourceFeedback {...resource} /> : summary && (
           <>
             <PaymentSummary summary={summary} />
             {summary.outstanding === 0 && (
@@ -154,7 +162,7 @@ function CombinedCheckout({ order, modal, onClose, refresh, pendingRequests, ini
                     type="checkbox"
                     className="size-5 shrink-0 accent-primary"
                     checked={points > 0}
-                    disabled={busy || uncertain || !quote.maximumPoints}
+                    disabled={busy || uncertain || resource.loading || !quote.maximumPoints}
                     onChange={event => {
                       setChanged(null); setError(''); setPoints(event.target.checked ? quote.maximumPoints : 0)
                     }}
@@ -166,7 +174,7 @@ function CombinedCheckout({ order, modal, onClose, refresh, pendingRequests, ini
                   )
                 </label>
                 <fieldset
-                  disabled={busy || uncertain}
+                  disabled={busy || uncertain || resource.loading}
                   className="grid gap-3 sm:grid-cols-2"
                 >
                   <legend className="mb-3 font-medium">
@@ -221,6 +229,24 @@ function CombinedCheckout({ order, modal, onClose, refresh, pendingRequests, ini
         )}
       </div>
       <footer className="flex flex-wrap justify-end gap-3 border-t bg-card p-6">
+        {liveStale && (
+          <div className="w-full space-y-3">
+            <p
+              role="alert"
+              className="text-sm text-destructive"
+            >
+              {t('orderLive.changed')}
+            </p>
+            <Button
+              variant="outline"
+              className="h-12 rounded-xl px-6 text-base"
+              disabled={busy}
+              onClick={refresh}
+            >
+              {t('orderLive.review')}
+            </Button>
+          </div>
+        )}
         <Button
           variant="secondary"
           className="h-12 rounded-xl px-6 text-base"
@@ -232,7 +258,7 @@ function CombinedCheckout({ order, modal, onClose, refresh, pendingRequests, ini
         {summary && !summary.settled && summary.outstanding > 0 && (
           <Button
             className="h-12 rounded-xl px-6 text-base"
-            disabled={busy || blockedUncertain || resource.loading || (!session?.canContinue && (!quote.canCreate || !selected?.enabled))}
+            disabled={busy || liveStale || blockedUncertain || resource.loading || !!resource.error || (!session?.canContinue && (!quote.canCreate || !selected?.enabled))}
             onClick={pay}
           >
             {t(busy ? 'customer.payment.redirecting' : session?.canContinue ? 'combined.continue' : changed ? 'combined.confirmAgain' : 'customer.orders.pay')}

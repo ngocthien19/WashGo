@@ -171,7 +171,7 @@ export default function StorageWorkspace({ role }) {
           cycle={action.row}
           role={role}
           action={action.name}
-          onClose={done}
+          onClose={() => setAction(null)}
           onSaved={done}
         />
       )}

@@ -1,3 +1,4 @@
+import useOrderRealtime from '~/hooks/useOrderRealtime'
 import { lazy, Suspense, useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { customerPaymentApi } from '~/apis/customer/customerPaymentApi'
@@ -12,14 +13,15 @@ export default function OrderPaymentAction({ order, onUpdated, autoOpen = false,
   const { t } = useTranslation()
   const [open, setOpen] = useState(autoOpen)
   const pending = useRef(new Set())
-  const resource = useCatalogResource(useCallback(signal => customerPaymentApi.getSummary(order.id, 0, signal), [order.id]), order.revision)
+  const liveRevision = useOrderRealtime(order.id)
+  const resource = useCatalogResource(useCallback(signal => customerPaymentApi.getSummary(order.id, 0, signal), [order.id]), `${order.revision}:${liveRevision}`, true)
   const summary = resource.data
   const close = () => {
-    setOpen(false); resource.retry(); onUpdated?.(); onClose?.()
+    setOpen(false); onClose?.()
   }
   return (
     <div className={compact ? 'min-w-0 space-y-3' : 'space-y-5'}>
-      {resource.loading || resource.error ? <ResourceFeedback {...resource} /> : summary && (
+      {resource.error || resource.loading && !summary ? <ResourceFeedback {...resource} /> : summary && (
         <>
           {!compact ? <PaymentSummary summary={summary} /> : (
             <>
@@ -38,8 +40,8 @@ export default function OrderPaymentAction({ order, onUpdated, autoOpen = false,
           )}
         </>
       )}
-      <div className={compact ? 'flex items-center justify-end gap-2' : ''}>
-        {!resource.loading && !resource.error && summary && (summary.outstanding > 0 || summary.quote.activeSession) && (
+      <div className={compact ? 'flex flex-wrap items-center justify-end gap-2' : ''}>
+        {!resource.error && summary && (summary.outstanding > 0 || summary.quote.activeSession) && (
           <Button
             onClick={() => setOpen(true)}
             className={compact ? 'h-11 shrink-0 rounded-xl px-4 text-base' : 'h-12 w-full rounded-xl text-base font-medium'}
@@ -56,6 +58,9 @@ export default function OrderPaymentAction({ order, onUpdated, autoOpen = false,
             pendingRequests={pending}
             initialMethod={initialMethod}
             onClose={close}
+            onUpdated={() => {
+              resource.retry(); onUpdated?.()
+            }}
           />
         </Suspense>
       )}

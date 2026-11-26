@@ -1,3 +1,4 @@
+import useOrderRealtime from '~/hooks/useOrderRealtime'
 import CancelExpiredDialog from './components/CancelExpiredDialog'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -65,7 +66,8 @@ export default function OrdersPage() {
   const waiting = query.tab === 'waiting'
   const [cancelId, setCancelId] = useState(null), [revision, setRevision] = useState(0), [selection, setSelection] = useState({ data: null, ids: [] }), [assignment, setAssignment] = useState(null)
   const load = useCallback(signal => waiting ? adminOrderApi.waiting(waitingFilter(query), signal) : adminOrderApi.list(listFilter(query), signal), [query, waiting])
-  const resource = useCatalogResource(load, revision)
+  const liveRevision = useOrderRealtime()
+  const resource = useCatalogResource(load, `${revision}:${liveRevision}`, true)
   const loadMerchants = useCallback(signal => adminOrderApi.lookup('/merchant/filter', 'businessName', signal), [])
   const loadLockers = useCallback(signal => adminOrderApi.lookup('/locker/filter', 'name', signal), [])
   const merchants = useCatalogResource(loadMerchants, revision)
@@ -76,7 +78,7 @@ export default function OrdersPage() {
   const { keyword, paymentStatus, from, to, merchantId, lockerId, depositExpired } = query
   const summaryFilter = useMemo(() => scopeFilter({ keyword, paymentStatus, from, to, merchantId, lockerId, depositExpired }), [keyword, paymentStatus, from, to, merchantId, lockerId, depositExpired])
   const loadSummary = useCallback(signal => adminOrderApi.summary(summaryFilter, signal), [summaryFilter])
-  const summary = useCatalogResource(loadSummary, revision)
+  const summary = useCatalogResource(loadSummary, `${revision}:${liveRevision}`, true)
   const rows = resource.data?.list || []
   const selected = waiting && selection.data === resource.data && !resource.loading ? selection.ids : []
   const update = (patch) => setParams(writeAdminOrdersQuery({ ...query, ...patch, page: patch.page || 1 }))
@@ -282,7 +284,7 @@ export default function OrdersPage() {
             />
           )}
         </div>
-        {resource.loading || resource.error || !rows.length ? (
+        {(resource.loading && !resource.data) || resource.error || !rows.length ? (
           <ResourceFeedback
             {...resource}
             loadingText="admin.loading"
@@ -528,7 +530,7 @@ export default function OrdersPage() {
         <MerchantAssignmentDialog
           {...assignment}
           onClose={() => {
-            setAssignment(null); refresh()
+            setAssignment(null)
           }}
           onSaved={() => {
             setAssignment(null); refresh()

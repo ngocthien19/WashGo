@@ -1,3 +1,4 @@
+import { expectQuietDismissal } from '../helpers/modalDismissal'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { QRCodeSVG } from 'qrcode.react'
@@ -423,4 +424,12 @@ test('denied location leaves the locker map and directions usable without a fake
   await expect(dialog.getByText(/About .* km away in a straight line/)).toHaveCount(0)
   await expect(dialog.getByRole('link', { name: 'Directions on Google Maps', exact: true })).toHaveAttribute('href', /destination=10.77%2C106.69&travelmode=driving/)
   expect(await page.evaluate(() => window.locationRequests)).toBe(1)
+})
+
+ test('modal dismissal does not reload the page or its data', async ({ page }) => {
+  await setup(page)
+  await page.goto(`/shipper/tasks/${collectId}`)
+  await expectQuietDismissal(page, async () => {
+    await page.getByRole('button', { name: 'Confirm collection', exact: true }).click()
+  })
 })

@@ -13,6 +13,7 @@ import { orderManagementApi as merchantOrderApi } from '~/apis/orders/orderManag
 import { notify } from '~/utils/notifications/notifications'
 import { getApiError } from '~/utils/http/apiError'
 import { processingSteps, canWeigh, assignmentTask, validWeight, sameOrderState, statusLabel } from '~/utils/orders/orderManagement'
+import { useOrderChangedSinceOpen } from '~/hooks/useOrderRealtime'
 
 function ShipperSelection({ id, value, onChange, disabled }) {
   const load = useCallback(signal => merchantOrderApi.shippers(id, signal), [id])
@@ -27,8 +28,11 @@ function ShipperSelection({ id, value, onChange, disabled }) {
   )
 }
 
-export default function OrderActionDialog({ action, order, onClose, onSaved }) {
+export default function OrderActionDialog({ action, order: currentOrder, onClose, onSaved }) {
   const { t } = useTranslation()
+  const [order] = useState(currentOrder)
+  const changed = useOrderChangedSinceOpen(order.id)
+  const liveStale = changed || currentOrder.revision !== order.revision
   const [weight, setWeight] = useState(order.actualWeightKg == null ? '' : String(order.actualWeightKg))
   const [next, setNext] = useState(String(processingSteps(order)[0] || ''))
   const [shipper, setShipper] = useState(null)
@@ -45,6 +49,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
   const [validation, setValidation] = useState({})
   const lock = useRef(false)
   const intent = useRef(null)
+  const [hasIntent, setHasIntent] = useState(false)
   const operation = { weigh: 'UpdateWeight', process: 'UpdateStatus', assign: 'AssignShipper', returnReady: 'ConfirmReturnReady', unassign: 'UnassignShipper' }[action]
   const complete = () => {
     notify.success('merchant.orders.saved'); onSaved()
@@ -68,7 +73,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
   }
   const submit = async (event) => {
     event.preventDefault()
-    if (lock.current || uncertain && !canRetry) {
+    if (lock.current || uncertain && !canRetry || liveStale && !intent.current) {
       return
     }
     if (!intent.current) {
@@ -101,6 +106,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
           }
         }
         intent.current = { weight: Number(weight), next: Number(next), shipper, note: note.trim() || null, guard: { expectedRevision: order.revision, expectedStatus: order.status, operationId: crypto.randomUUID() } }
+        setHasIntent(true)
       }
       const request = intent.current
       setCanRetry(false)
@@ -120,7 +126,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
       complete()
     } catch (failure) {
       if (action === 'assign' && isShipperCapacityConflict(failure)) {
-        intent.current = null; setShipper(null); setShipperReload(value => value + 1)
+        intent.current = null; setHasIntent(false); setShipper(null); setShipperReload(value => value + 1)
         setUncertain(false); setCanRetry(false); setCanCheck(false); setError('shipperCapacity.changed'); return
       }
       const unknown = writing && (failure.uncertain || !failure.response || failure.response.status >= 500)
@@ -129,6 +135,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
       setCanCheck(unknown)
       if (!unknown && !conflict) {
         intent.current = null
+        setHasIntent(false)
       }
       setError(conflict ? 'merchant.orderSync.conflict' : unknown ? 'merchant.orders.uncertain' : getApiError(failure))
     } finally {
@@ -149,7 +156,10 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
         className="max-w-xl border-primary/15"
         data-dialog-fixed
       >
-        <div data-dialog-header>
+        <div
+          data-dialog-header
+          style={action === 'returnReady' ? { paddingBottom: '0.75rem' } : undefined}
+        >
           <DialogTitle className="-mx-6 -mt-6 flex items-center gap-3 border-b border-primary/10 bg-primary/5 px-6 py-5 pr-12 text-2xl font-semibold sm:-mx-8 sm:-mt-8 sm:px-8">
             {action === 'assign' && (
               <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
@@ -158,7 +168,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
             )}
             {t(`merchant.orders.${action}`)}
           </DialogTitle>
-          <DialogDescription className="mt-2 border-b border-border pb-5 text-base text-muted-foreground">
+          <DialogDescription className={`mt-2 text-base text-muted-foreground ${action === 'returnReady' ? '' : 'border-b border-border pb-5'}`}>
             <span className="mr-2 inline-flex rounded-lg border border-primary/20 bg-primary/10 px-3 py-1 font-semibold text-primary">
               {order.orderCode}
             </span>
@@ -209,7 +219,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
             )}
 
             <fieldset
-              disabled={pending || uncertain}
+              disabled={pending || uncertain || liveStale}
               className="space-y-4"
             >
               {action === 'weigh' && (
@@ -274,9 +284,10 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
                 {validation.shipper ? 'forms.invalidValue' : ''}
               </FormError>
               {needsConfirmation && (
-                <label className="flex items-start gap-3 text-sm">
+                <label className="flex items-start gap-3 text-base leading-6">
                   <input
                     type="checkbox"
+                    className="mt-0.5 size-5 shrink-0 accent-primary"
                     checked={confirmed}
                     onChange={event => {
                       setConfirmed(event.target.checked); setValidation(current => ({ ...current, confirmed: false }))
@@ -316,12 +327,12 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
                 </label>
               )}
             </fieldset>
-            {error && (
+            {(error || liveStale) && (
               <p
                 role="alert"
                 className="text-base text-destructive"
               >
-                {t(error)}
+                {t(liveStale && !hasIntent ? 'orderLive.changed' : error)}
               </p>
             )}
             {canCheck && (
@@ -340,6 +351,17 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
             className="flex flex-wrap justify-end gap-3 border-t border-border pt-4"
             data-dialog-footer
           >
+            {liveStale && !hasIntent && (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 px-4 text-base"
+                disabled={pending}
+                onClick={onSaved}
+              >
+                {t('orderLive.review')}
+              </Button>
+            )}
             <Button
               type="button"
               variant="secondary"
@@ -352,7 +374,7 @@ export default function OrderActionDialog({ action, order, onClose, onSaved }) {
             <Button
               type="submit"
               className="h-11 px-4 text-base"
-              disabled={pending || uncertain && !canRetry || (action === 'assign' && !shipper)}
+              disabled={pending || uncertain && !canRetry || liveStale && !hasIntent || (action === 'assign' && !shipper)}
             >
               {action === 'assign' && <CircleCheck size={18} />}
               {t(pending ? 'merchant.orders.saving' : canRetry ? 'merchant.orderSync.retrySame' : 'merchant.orders.confirm')}

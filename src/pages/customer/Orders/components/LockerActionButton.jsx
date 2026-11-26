@@ -27,12 +27,7 @@ export default function LockerActionButton({ order, onUpdated }) {
         {t(deposit ? 'customer.orders.scan.deposit' : 'customer.orders.scan.pickup')}
       </Button>
       {open && (
-        <Suspense fallback={(
-          <p role="status">
-            {t('customer.orders.scan.loading')}
-          </p>
-        )}
-        >
+        <Suspense fallback={null}>
           <LockerActionDialog
             order={order}
             deposit={deposit}

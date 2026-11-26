@@ -297,7 +297,7 @@ export default function AccountSecurity({ revision = 0 }) {
           open
           onOpenChange={open => {
             if (!open && !lock.current) {
-              setTarget(null); refresh()
+              setTarget(null)
             }
           }}
         >
@@ -328,7 +328,7 @@ export default function AccountSecurity({ revision = 0 }) {
                 variant="secondary"
                 disabled={busy}
                 onClick={() => {
-                  setTarget(null); refresh()
+                  setTarget(null)
                 }}
                 className="h-11 px-5 text-base"
               >

@@ -235,7 +235,7 @@ export default function CategoriesPage() {
         <CategoryDialog
           modal={modal}
           onClose={() => {
-            setModal(null); refresh()
+            setModal(null)
           }}
           onSaved={refresh}
           onPending={() => setPendingRevision(value => value + 1)}

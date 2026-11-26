@@ -119,7 +119,7 @@ export function IncidentActions({ incident: summary, onSaved, menu = false }) {
           order={{ id: incident.orderId, orderCode: incident.orderCode }}
           onSaved={onSaved}
           onClose={() => {
-            setAction(null); onSaved()
+            setAction(null)
           }}
         />
       )}
@@ -128,7 +128,7 @@ export function IncidentActions({ incident: summary, onSaved, menu = false }) {
           open
           onOpenChange={(open) => {
             if (!open && !busy) {
-              setAction(null); onSaved()
+              setAction(null)
             }
           }}
         >
@@ -189,7 +189,7 @@ export function IncidentActions({ incident: summary, onSaved, menu = false }) {
                   variant="secondary"
                   disabled={busy}
                   onClick={() => {
-                    setAction(null); onSaved()
+                    setAction(null)
                   }}
                 >
                   {t('common.close')}

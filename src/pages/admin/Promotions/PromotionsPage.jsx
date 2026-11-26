@@ -29,7 +29,8 @@ const headerBg = 'bg-[color-mix(in_srgb,var(--primary)_8%,var(--muted))] dark:bg
 export default function PromotionsPage() {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams(), [modal, setModal] = useState(null), [opening, setOpening] = useState(false)
-  const query = useMemo(() => readQuery(params), [params])
+  const queryKey = JSON.stringify(readQuery(params))
+  const query = useMemo(() => JSON.parse(queryKey), [queryKey])
   const load = useCallback(signal => adminPromotionApi.list(filter(query), signal), [query])
   const resource = useCatalogResource(load), summary = useCatalogResource(adminPromotionApi.summary)
   const [selection, setSelection] = useState({ source: null, ids: [] })

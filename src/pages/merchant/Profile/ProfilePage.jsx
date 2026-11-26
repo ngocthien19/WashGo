@@ -253,7 +253,7 @@ export default function ProfilePage() {
         <EditProfileDialog
           shop={shop}
           onClose={() => {
-            setEditing(false); profile.retry()
+            setEditing(false)
           }}
           onSubmitted={() => {
             setEditing(false); profile.retry()
