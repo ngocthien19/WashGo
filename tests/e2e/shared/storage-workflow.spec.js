@@ -385,12 +385,12 @@ test('Merchant reports an in-transit exception without changing custody or cance
   expect(state.cycle.taskId).toBe(taskId)
 })
 
-test('Customer can read closed storage history after redelivery without requesting another trip', async ({ page }) => {
+test('Customer hides storage history outside stored order status', async ({ page }) => {
   const state = await setup(page, 'Customer')
   state.order.status = 10
   Object.assign(state.cycle, { state: 5, canRequestReturn: false, canCancelReturn: false, returnState: 4, frozenLockerFee: 20000, frozenWarehouseFee: 80000 })
   await page.goto(`/orders/${orderId}`)
-  await page.getByRole('button', { name: 'Storage and redelivery history', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Storage and redelivery history', exact: true })).toHaveCount(0)
   await expect(page.getByText('Frozen storage fees for this cycle', { exact: true })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Confirm redelivery request', exact: true })).toHaveCount(0)
   await expect(page.getByText('INTERNAL SHOP ADDRESS')).toHaveCount(0)

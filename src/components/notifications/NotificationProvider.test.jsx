@@ -1,4 +1,5 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import useOrderRealtime from '~/hooks/useOrderRealtime'
 import { Provider } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
 import { expect, it, vi } from 'vitest'
@@ -54,6 +55,75 @@ function Status() {
     </p>
   )
 }
+function FilePickerDraft() {
+  const revision = useOrderRealtime()
+  return (
+    <>
+      <output data-testid="order-revision">
+        {revision}
+      </output>
+      <input
+        type="file"
+        aria-label="Choose media"
+      />
+      <textarea
+        aria-label="Draft"
+        defaultValue="Keep this draft"
+      />
+    </>
+  )
+}
+
+it.each(['Customer', 'Admin', 'Merchant', 'Shipper'])('does not resync %s on return from a file picker but still resyncs normal focus', async role => {
+  vi.useFakeTimers()
+  mock.start.mockResolvedValue()
+  mock.unread.mockResolvedValue(2)
+  const store = configureStore({ reducer: { auth: (state = { user: { id: `file-${role}`, role }, accessToken: 'token' }) => state } })
+  let view
+  try {
+    view = render(<Provider store={store}>
+      <NotificationProvider>
+        <FilePickerDraft />
+      </NotificationProvider>
+    </Provider>)
+    await act(async () => {})
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(250)
+    })
+    const before = mock.unread.mock.calls.length
+    const revision = screen.getByTestId('order-revision').textContent
+    const draft = screen.getByRole('textbox', { name: 'Draft' })
+    for (const eventType of ['cancel', 'change']) {
+      fireEvent.click(screen.getByLabelText('Choose media'))
+      act(() => {
+        // Both browser event orderings must leave the same form intact.
+        if (eventType === 'cancel') {
+          screen.getByLabelText('Choose media').dispatchEvent(new Event(eventType, { bubbles: true }))
+        }
+        window.dispatchEvent(new Event('focus'))
+        if (eventType === 'change') {
+          screen.getByLabelText('Choose media').dispatchEvent(new Event(eventType, { bubbles: true }))
+        }
+      })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(250)
+      })
+      expect(mock.unread.mock.calls.length).toBe(before)
+      expect(screen.getByTestId('order-revision')).toHaveTextContent(revision)
+      expect(screen.getByRole('textbox', { name: 'Draft' })).toBe(draft)
+      expect(draft).toHaveValue('Keep this draft')
+    }
+    act(() => window.dispatchEvent(new Event('focus')))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(250)
+    })
+    expect(mock.unread.mock.calls.length).toBeGreaterThan(before)
+    expect(screen.getByTestId('order-revision').textContent).not.toBe(revision)
+  } finally {
+    view?.unmount()
+    vi.useRealTimers()
+  }
+})
 it('reconciles counts on realtime events and reconnect, uses current token and cleans up', async () => {
   mock.unread.mockResolvedValue(2)
   const store = configureStore({ reducer: { auth: (state = { user: { id: 'a' }, accessToken: 'old' }, action) => action.type === 'token' ? { ...state, accessToken: 'new' } : state } })
@@ -90,6 +160,8 @@ it('reconciles counts on realtime events and reconnect, uses current token and c
   await waitFor(() => expect(mock.stop).toHaveBeenCalled())
   expect(mock.handlers.notification).toBeUndefined()
   expect(mock.handlers.notificationState).toBeUndefined()
+  expect(mock.handlers.orderChanged).toBeUndefined()
+  expect(mock.handlers.orderScopeChanged).toBeUndefined()
 })
 it('routes only supported internal targets with valid identifiers', () => {
   const id = '11111111-1111-4111-8111-111111111111'

@@ -1,3 +1,4 @@
+import useOrderRealtime from '~/hooks/useOrderRealtime'
 import { useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -22,7 +23,8 @@ export default function OrdersPage() {
   const [params, setParams] = useSearchParams()
   const query = useMemo(() => readOrdersQuery(params), [params])
   const load = useCallback((signal) => customerOrderApi.list(buildOrdersFilter(query), signal), [query])
-  const resource = useCatalogResource(load)
+  const liveRevision = useOrderRealtime()
+  const resource = useCatalogResource(load, liveRevision, true)
   const { data, loading, error, retry } = resource
   const estimates = useOrderEstimates(data?.list)
   const setQuery = (patch) => setParams(writeOrdersQuery({ ...query, ...patch, page: patch.page || 1 }))
@@ -128,7 +130,7 @@ export default function OrdersPage() {
           <h2 className="border-b-2 border-border pb-4 pt-2 text-center text-lg font-semibold">
             {t('customer.orders.listTitle')}
           </h2>
-          {loading || error || !data?.list.length ? (
+          {(loading && !data) || error || !data?.list.length ? (
             <CatalogFeedback
               {...resource}
               loadingText="customer.orders.loading"

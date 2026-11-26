@@ -1,3 +1,4 @@
+import { useOrderChangedSinceOpen } from '~/hooks/useOrderRealtime'
 import { useCallback, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -29,6 +30,7 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled, payIm
   const [method, setMethod] = useState(ORDER_PAYMENT_METHODS.VNPAY)
   const pending = useRef(false)
   const load = useCallback((signal) => customerOrderApi.cancellationQuote(orderId, signal), [orderId])
+  const liveStale = useOrderChangedSinceOpen(orderId)
   const quote = useCatalogResource(load)
   const amount = quote.data?.feeOutstanding
   const onlineAvailable = [2, 3].some(value => paymentEligibility(value, amount).allowed)
@@ -36,7 +38,7 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled, payIm
   const amountAllowed = paymentEligibility(method, amount).allowed
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({ resolver: yupResolver(schema), defaultValues: { reason: '' } })
   const cancel = (event) => handleSubmit(async ({ reason }) => {
-    if (pending.current || withPayment && !amountAllowed || !quote.data?.canCancel || unknown) {
+    if (liveStale || pending.current || withPayment && !amountAllowed || !quote.data?.canCancel || unknown) {
       return
     }
     pending.current = true
@@ -152,7 +154,7 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled, payIm
                     rows={3}
                     maxLength={ORDER_LIST.REASON_MAX}
                     required
-                    disabled={isSubmitting || unknown || !quote.data.canCancel}
+                    disabled={isSubmitting || liveStale || unknown || !quote.data.canCancel}
                     aria-invalid={!!errors.reason}
                     aria-describedby={errors.reason ? 'cancel-reason-error' : undefined}
                     className="w-full resize-y rounded-xl border border-input bg-background p-3 outline-none transition-[border-color,box-shadow] delay-0 duration-200 ease-in-out focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/20"
@@ -172,7 +174,7 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled, payIm
                     <PaymentMethodPicker
                       value={method}
                       onChange={setMethod}
-                      disabled={isSubmitting || unknown || !quote.data.canCancel}
+                      disabled={isSubmitting || liveStale || unknown || !quote.data.canCancel}
                       onlineOnly
                       amount={amount}
                     />
@@ -184,7 +186,7 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled, payIm
               </>
             )}
             <FormError>
-              {error}
+              {liveStale ? 'orderLive.changed' : error}
             </FormError>
           </div>
           <div
@@ -204,7 +206,7 @@ export default function CancelOrderDialog({ orderId, onClose, onCancelled, payIm
               className="h-12 text-base px-4"
               type="submit"
               variant="destructive"
-              disabled={isSubmitting || withPayment && !amountAllowed || unknown || quote.loading || !!quote.error || !quote.data?.canCancel}
+              disabled={isSubmitting || liveStale || withPayment && !amountAllowed || unknown || quote.loading || !!quote.error || !quote.data?.canCancel}
             >
               {t(isSubmitting ? 'customer.orders.cancel.submitting' : withPayment ? 'customer.orders.cancel.confirmAndPay' : 'customer.orders.cancel.confirm')}
             </Button>

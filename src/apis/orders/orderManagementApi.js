@@ -2,6 +2,12 @@ import authorizedAxios from '~/utils/http/authorizedAxios'
 import { orderStatusCounts } from '~/utils/orders/orderGroups'
 
 const invalid = () => new Error('merchant.invalidResponse')
+const pendingActuals = new Map()
+const actualsFields = value => ({
+  actualWeightKg: value.actualWeightKg ?? null,
+  items: value.items.map(({ orderItemId, actualQuantity }) => ({ orderItemId, actualQuantity })),
+  note: value.note?.trim() || null
+})
 const detail = (data, id) => {
   if (data?.succeeded !== true || data.data?.id !== id || !data.data.orderCode || !Array.isArray(data.data.items)) {
     throw invalid()
@@ -31,6 +37,53 @@ const mutate = async (path, body, id, verify, guard, method = 'put') => {
   }
 }
 export const orderManagementApi = {
+  pendingActuals: id => pendingActuals.get(id),
+  clearActualsSession: () => pendingActuals.clear(),
+  previewActuals: async (id, values, signal) => {
+    const body = actualsFields(values)
+    const { data } = await authorizedAxios.post(`/wash-order/${encodeURIComponent(id)}/actuals/preview`, body, { signal })
+    const quote = data?.data
+    if (data?.succeeded !== true || !Number.isSafeInteger(quote?.revision) || quote.revision < 0 || !Number.isInteger(quote.status)
+      || !['previousFinalAmount', 'totalAmount', 'weightSurchargeAmount', 'discountAmount', 'finalAmount'].every(key => Number.isFinite(quote[key]) && quote[key] >= 0)
+      || typeof quote.promotionRemoved !== 'boolean' || !Array.isArray(quote.items) || quote.items.length !== body.items.length
+      || new Set(quote.items.map(row => row.orderItemId)).size !== body.items.length
+      || quote.items.some(row => !body.items.some(item => item.orderItemId === row.orderItemId && item.actualQuantity === row.actualQuantity)
+        || !Number.isInteger(row.quantity) || ![row.unitPrice, row.amount].every(amount => Number.isFinite(amount) && amount >= 0))) {
+      throw invalid()
+    }
+    return quote
+  },
+  confirmActuals: async (id, values, guard) => {
+    const body = { ...actualsFields(values), expectedFinalAmount: values.expectedFinalAmount }
+    const fields = guardFields(guard)
+    if (pendingActuals.has(id) && JSON.stringify(pendingActuals.get(id)) !== JSON.stringify({ body, guard: fields })) {
+      throw new Error('actuals.uncertain')
+    }
+    pendingActuals.set(id, { body, guard: fields })
+    try {
+      const order = await mutate(`/wash-order/${encodeURIComponent(id)}/actuals`, body, id, result => !!result.actualsConfirmedAt
+        && result.finalAmount === body.expectedFinalAmount
+        && body.items.every(line => result.items.some(item => item.id === line.orderItemId && item.actualQuantity === line.actualQuantity)), fields)
+      pendingActuals.delete(id)
+      return order
+    } catch (error) {
+      if (!(error.uncertain || !error.response || error.response.status >= 500 || error.response.status === 408)) {
+        pendingActuals.delete(id)
+      }
+      throw error
+    }
+  },
+  resolveActuals: async id => {
+    const pending = pendingActuals.get(id)
+    if (!pending) {
+      return null
+    }
+    const result = await orderManagementApi.operation(id, pending.guard.operationId, 'ConfirmOrderActuals')
+    if (result) {
+      pendingActuals.delete(id)
+    }
+    return result
+  },
   detail: (id, signal) => authorizedAxios.get(`/wash-order/${encodeURIComponent(id)}`, { signal }).then(({ data }) => detail(data, id)),
   summary: async ({ keyword, paymentStatus, fromDate, toDate }, signal) => {
     const { data } = await authorizedAxios.post('/wash-order/summary', { keyword, paymentStatus, fromDate, toDate }, { signal })

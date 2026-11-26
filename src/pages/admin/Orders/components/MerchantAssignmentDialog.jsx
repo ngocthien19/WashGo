@@ -1,3 +1,4 @@
+import { useOrderChangedSinceOpen } from '~/hooks/useOrderRealtime'
 import { useCallback, useRef, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Store, WandSparkles } from 'lucide-react'
@@ -15,6 +16,7 @@ import { notify } from '~/utils/notifications/notifications'
 export default function MerchantAssignmentDialog({ id, ids, onClose, onSaved }) {
   const { t } = useTranslation()
   const bulk = !!ids
+  const liveStale = useOrderChangedSinceOpen(bulk ? undefined : id)
   const [selected, setSelected] = useState(''), [pending, setPending] = useState(false), [blocked, setBlocked] = useState(false), [error, setError] = useState('')
   const lock = useRef(false)
   const load = useCallback(async signal => {
@@ -34,7 +36,7 @@ export default function MerchantAssignmentDialog({ id, ids, onClose, onSaved }) 
   const suggestions = bulk && value ? value : []
   const pairs = bulk ? suggestions.filter(item => item.suggested).map(item => ({ orderId: item.orderId, merchantId: item.suggested.merchantId })) : selected ? [{ orderId: id, merchantId: selected }] : []
   const submit = async () => {
-    if (lock.current || blocked || !pairs.length || resource.loading) {
+    if (lock.current || blocked || liveStale || !pairs.length || resource.loading) {
       return
     }
     lock.current = true; setPending(true); setError('')
@@ -151,7 +153,7 @@ export default function MerchantAssignmentDialog({ id, ids, onClose, onSaved }) 
               </p>
             ) : (
               <fieldset
-                disabled={pending || blocked}
+                disabled={pending || blocked || liveStale}
                 className="space-y-3"
               >
                 <legend className="mb-4 w-full border-b border-border pb-3 font-medium">
@@ -219,12 +221,12 @@ export default function MerchantAssignmentDialog({ id, ids, onClose, onSaved }) 
                 ))}
               </fieldset>
             )}
-            {error && (
+            {(error || liveStale) && (
               <p
                 role="alert"
                 className="text-sm leading-6 text-destructive"
               >
-                {t(error)}
+                {t(liveStale ? 'orderLive.changed' : error)}
               </p>
             )}
           </div>
@@ -242,7 +244,7 @@ export default function MerchantAssignmentDialog({ id, ids, onClose, onSaved }) 
             </Button>
             <Button
               className="h-11 px-6 text-base"
-              disabled={pending || blocked || resource.loading || !!resource.error || !pairs.length}
+              disabled={pending || blocked || liveStale || resource.loading || !!resource.error || !pairs.length}
               onClick={submit}
             >
               {t(pending ? 'admin.orderManagement.saving' : bulk ? 'admin.orderManagement.confirmBatch' : 'admin.orderManagement.confirmAssign', { count: pairs.length })}

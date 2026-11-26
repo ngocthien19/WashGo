@@ -196,7 +196,7 @@ function NormalTaskActionDialog({ order, shipperId, onClose, onSaved, onUnknown 
                   )}
                 </>
               )}
-              <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+              <label className="flex cursor-pointer items-start gap-3 text-base leading-6">
                 <input
                   aria-invalid={!!errors['confirmed']}
                   aria-describedby={errors['confirmed'] ? `taskactiondialog-${'confirmed'}-error` : undefined}

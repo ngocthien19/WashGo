@@ -1,3 +1,7 @@
+import OrderActualsInfo from '~/components/orders/OrderActualsInfo'
+import OrderItemActuals from '~/components/orders/OrderItemActuals'
+import { actualQuantity, actualSubTotal } from '~/utils/orders/orderActuals'
+import useOrderRealtime from '~/hooks/useOrderRealtime'
 import OrderEstimate from './components/OrderEstimate'
 import ReturnLockerInfo from './components/ReturnLockerInfo'
 import StoragePickup from './components/StoragePickup'
@@ -58,7 +62,8 @@ function OrderDetailContent() {
   const { t } = useTranslation()
   const { orderId } = useParams()
   const load = useCallback((signal) => customerOrderApi.get(orderId, signal), [orderId])
-  const resource = useCatalogResource(load)
+  const liveRevision = useOrderRealtime(orderId)
+  const resource = useCatalogResource(load, liveRevision, true)
   const [cancelOrderId, setCancelOrderId] = useState(null)
   const order = resource.data
   const deadline = useDepositDeadline(order)
@@ -70,7 +75,7 @@ function OrderDetailContent() {
     <div className="min-h-[70dvh] overflow-x-clip bg-muted/30">
       <div className="mx-auto max-w-7xl space-y-7 px-4 py-8 sm:px-6 lg:px-8">
         <Breadcrumb items={[{ label: t('common.home'), to: CUSTOMER_ROUTES.HOME }, { label: t('common.myOrders'), to: CUSTOMER_ROUTES.ORDERS }, { label: order?.orderCode || t('customer.orders.details') }]} />
-        {resource.loading || resource.error ? (
+        {(resource.loading && !order) || resource.error ? (
           <CatalogFeedback
             {...resource}
             loadingText="customer.orders.loadingDetail"
@@ -150,11 +155,12 @@ function OrderDetailContent() {
                             <p className="break-words font-medium">
                               {item.serviceName}
                             </p>
+                            <OrderItemActuals item={item} />
                             <p className="mt-1 text-xs text-muted-foreground">
                               {t('customer.orders.receipt.quantity')}
                               {': '}
                               <strong className="font-bold text-foreground">
-                                {item.quantity}
+                                {actualQuantity(item)}
                               </strong>
                               {' / '}
                               {t('customer.orders.unitPrice')}
@@ -176,11 +182,12 @@ function OrderDetailContent() {
                           </div>
                         </div>
                         <p className="shrink-0 font-bold tabular-nums">
-                          {formatCurrency(item.subTotal)}
+                          {formatCurrency(actualSubTotal(item))}
                         </p>
                       </li>
                     ))}
                   </ul>
+                  <OrderActualsInfo order={order} />
                   <div className="flex gap-3 rounded-2xl border border-primary/10 bg-primary/5 p-4">
                     <ResourceThumbnail
                       urls={order.lockerImageUrls}

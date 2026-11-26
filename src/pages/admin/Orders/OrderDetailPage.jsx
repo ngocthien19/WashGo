@@ -1,3 +1,7 @@
+import OrderActualsInfo from '~/components/orders/OrderActualsInfo'
+import OrderItemActuals from '~/components/orders/OrderItemActuals'
+import { actualQuantity, actualSubTotal } from '~/utils/orders/orderActuals'
+import useOrderRealtime from '~/hooks/useOrderRealtime'
 import CollectionWindow from '~/components/orders/CollectionWindow'
 import StorageOrderPanel from '~/components/storage/StorageOrderPanel'
 import OrderDeadlines from './components/OrderDeadlines.jsx'
@@ -66,7 +70,8 @@ export default function OrderDetailPage() {
   const { orderId } = useParams(), { t } = useTranslation()
   const [action, setAction] = useState(null)
   const load = useCallback(signal => isId(orderId) ? adminOrderApi.detail(orderId, signal) : Promise.reject(new Error('admin.invalidResponse')), [orderId])
-  const resource = useCatalogResource(load)
+  const liveRevision = useOrderRealtime(orderId)
+  const resource = useCatalogResource(load, liveRevision, true)
   const order = resource.data
   const media = useOrderMedia(order)
   const merchantImages = order?.merchantImageUrls || media[mediaKey('merchant', order?.merchantId)]?.imageUrls || []
@@ -183,9 +188,9 @@ export default function OrderDetailPage() {
               onUpdated={done}
             />
           )}
-          {order.allowedActions?.statusOptions?.some(item => item.reasonCode === 'WeightRequired') && (
+          {order.allowedActions?.statusOptions?.some(item => ['WeightRequired', 'ActualsRequired'].includes(item.reasonCode)) && (
             <p className="rounded-xl bg-amber-500/10 p-4 text-sm text-amber-700 dark:text-amber-300">
-              {t('merchant.orders.weightRequired')}
+              {t(order.allowedActions.statusOptions.some(item => item.reasonCode === 'ActualsRequired') ? 'actuals.errors.ActualsRequired' : 'merchant.orders.weightRequired')}
             </p>
           )}
           <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
@@ -344,12 +349,13 @@ export default function OrderDetailPage() {
                             {item.serviceName}
                           </p>
                           <p className="mt-2 text-sm font-semibold text-muted-foreground">
-                            {t('customer.orders.quantity', { count: item.quantity })}
+                            {t('customer.orders.quantity', { count: actualQuantity(item) })}
                             {' '}
                             ·
                             {' '}
                             {formatCurrency(item.unitPrice)}
                           </p>
+                          <OrderItemActuals item={item} />
                           {item.note && (
                             <p className="mt-2 break-words text-sm font-semibold text-muted-foreground">
                               {item.note}
@@ -358,11 +364,12 @@ export default function OrderDetailPage() {
                         </div>
                       </div>
                       <strong className="font-semibold">
-                        {formatCurrency(item.subTotal)}
+                        {formatCurrency(actualSubTotal(item))}
                       </strong>
                     </li>
                   ))}
                 </ul>
+                <OrderActualsInfo order={order} />
               </Panel>
               <Panel
                 title={t('merchant.orders.payment')}
@@ -407,14 +414,14 @@ export default function OrderDetailPage() {
           {action === 'merchant' && (
             <MerchantAssignmentDialog
               id={order.id}
-              onClose={done}
+              onClose={() => setAction(null)}
               onSaved={done}
             />
           )}
           {action === 'cancelExpired' && (
             <CancelExpiredDialog
               id={order.id}
-              onClose={done}
+              onClose={() => setAction(null)}
               onSaved={done}
             />
           )}
@@ -422,7 +429,7 @@ export default function OrderDetailPage() {
             <OrderActionDialog
               action={action}
               order={order}
-              onClose={done}
+              onClose={() => setAction(null)}
               onSaved={done}
             />
           )}

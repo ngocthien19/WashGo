@@ -1,3 +1,4 @@
+import { expectQuietDismissal } from '../helpers/modalDismissal'
 import { mockOrderActions, mockStatusCounts } from '../helpers/merchantOrderData'
 import { expect, test } from '@playwright/test'
 import { merchantSession } from '../helpers/merchantSession'
@@ -490,8 +491,8 @@ test('Merchant uses enriched order images and actual finances without catalog or
   await page.getByRole('link', { name: 'WG-ORDER-123', exact: true }).click()
   await expect(page.getByText('assigned@example.test', { exact: true })).toBeVisible()
   await expect(page.locator('dd').filter({ hasText: 'assigned@example.test' })).toHaveCSS('font-size', '14px')
-  await expect(page.getByText('The customer is preparing to deposit laundry. Shop intake and processing have not started.', { exact: true })).toBeVisible()
-  await expect(page.getByText('The customer deposited laundry. WashGo is assigning the responsible shop.', { exact: true })).toBeVisible()
+  await expect(page.getByText('The customer is preparing to deposit laundry. Shop intake and processing have not started.', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('The customer deposited laundry. WashGo is assigning the responsible shop.', { exact: true })).toHaveCount(0)
   const actor = page.getByText('Collection staff', { exact: true })
   await expect(actor).toHaveCSS('font-weight', '700')
   await expect(actor.locator('svg')).toHaveCount(0)
@@ -505,4 +506,12 @@ test('Merchant uses enriched order images and actual finances without catalog or
   await expect(page.getByText('Earnings on collections after refunds', { exact: true }).locator('..')).toContainText('30,000')
   expect(state.calls.some(path => path.startsWith('/locker/') || path.startsWith('/merchant-service/') || path.startsWith('/shipper/'))).toBe(false)
   expect(state.writes).toHaveLength(0)
+})
+
+ test('modal dismissal does not reload the page or its data', async ({ page }) => {
+  await setup(page, { status: 9, paymentStatus: 2 })
+  await page.goto(`/merchant/orders/${id}`)
+  await expectQuietDismissal(page, async () => {
+    await page.getByRole('button', { name: 'Confirm ready for dispatch', exact: true }).click()
+  })
 })

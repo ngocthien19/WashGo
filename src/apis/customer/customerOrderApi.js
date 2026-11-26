@@ -6,7 +6,7 @@ export const customerOrderView = value => {
   if (!value || !value.orderCode) {
     return value
   }
-  const result = Object.fromEntries(Object.entries(value).filter(([key]) => !/^(merchant|shipper|storageLocation|storageReference|storageShop|receiptReference|exceptionNote|taskId)/i.test(key)))
+  const result = Object.fromEntries(Object.entries(value).filter(([key]) => !/^(merchant|shipper|storageLocation|storageReference|storageShop|receiptReference|exceptionNote|taskId|actualsConfirmedBy)/i.test(key)))
   if (Array.isArray(result.timeline)) {
     result.timeline = result.timeline.map(row => {
       const safe = Object.fromEntries(Object.entries(row).filter(([key]) => !/^(merchant|shipper|previousShipper|assignmentMode|task|storageCycle|returnRequest|storageReference|storageLocation|receiptReference)/i.test(key)))
