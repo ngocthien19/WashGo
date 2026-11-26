@@ -56,7 +56,7 @@ function AuditDetail({ id, onClose, resourceContext }) {
             {t('admin.workspaceSync.auditDetail')}
           </DialogTitle>
           <DialogDescription className="mt-4">
-            {row ? `${row.module} · ${row.action}` : t('admin.loading')}
+            {row ? `${row.module} · ${row.action}` : ''}
           </DialogDescription>
         </DialogHeader>
         <div data-dialog-body>

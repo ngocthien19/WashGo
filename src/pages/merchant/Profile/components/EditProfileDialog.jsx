@@ -330,15 +330,7 @@ export default function EditProfileDialog({ shop, onClose, onSubmitted }) {
           </div>
         </form>
         {mapOpen && (
-          <Suspense fallback={(
-            <p
-              role="status"
-              className="mt-4 text-sm text-muted-foreground"
-            >
-              {t('customer.addressMap.loading')}
-            </p>
-          )}
-          >
+          <Suspense fallback={null}>
             <AddressPickerDialog
               initialCenter={mapCenter}
               onClose={() => setMapOpen(false)}

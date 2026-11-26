@@ -173,7 +173,7 @@ export default function ProfilePage() {
         <ProfileEditor
           user={user}
           onClose={() => {
-            setEditing(false); profile.retry()
+            setEditing(false)
           }}
           onSaved={saved => {
             if (authUser?.id === saved.id) {

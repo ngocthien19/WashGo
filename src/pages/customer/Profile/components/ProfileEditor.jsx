@@ -272,12 +272,7 @@ export default function ProfileEditor({ profile }) {
         </ScrollSection>
       </div>
       {mapOpen && (
-        <Suspense fallback={(
-          <p role="status">
-            {t('customer.addressMap.loading')}
-          </p>
-        )}
-        >
+        <Suspense fallback={null}>
           <AddressPickerDialog
             initialCenter={mapCenter}
             onClose={() => setMapOpen(false)}

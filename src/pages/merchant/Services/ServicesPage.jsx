@@ -366,7 +366,7 @@ export default function ServicesPage() {
       {editor && (
         <ProposalEditor
           service={editor.id ? editor : null}
-          onClose={closeEditor}
+          onClose={() => setEditor(null)}
           onSaved={() => {
             closeEditor(); update({ tab: 'proposals', categoryId: '', keyword: '', state: '', type: '', sort: 'name', serviceId: '' })
           }}

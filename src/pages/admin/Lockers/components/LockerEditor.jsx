@@ -237,7 +237,10 @@ export default function LockerEditor({ locker, onClose, onSaved }) {
                     {t('coverage.hint')}
                   </p>
                   {candidates.loading && (
-                    <p role="status">
+                    <p
+                      role="status"
+                      className="sr-only"
+                    >
                       {t('coverage.loading')}
                     </p>
                   )}
@@ -416,12 +419,7 @@ export default function LockerEditor({ locker, onClose, onSaved }) {
           </footer>
         </form>
         {mapOpen && (
-          <Suspense fallback={(
-            <p className="py-4">
-              {t('merchant.loading')}
-            </p>
-          )}
-          >
+          <Suspense fallback={null}>
             <AddressPicker
               initialCenter={Number.isFinite(Number(values.latitude)) && Number.isFinite(Number(values.longitude)) && (Number(values.latitude) !== 0 || Number(values.longitude) !== 0) ? { latitude: Number(values.latitude), longitude: Number(values.longitude) } : null}
               onClose={() => setMapOpen(false)}

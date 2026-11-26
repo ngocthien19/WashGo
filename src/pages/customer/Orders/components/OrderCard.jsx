@@ -10,6 +10,7 @@ import useDepositDeadline from '~/hooks/customer/useDepositDeadline'
 import { formatDateTime, formatNumber } from '~/utils/format/formats'
 import OrderPaymentAction from '~/pages/customer/Payment/OrderPaymentAction'
 import OrderCardSummary from './OrderCardSummary'
+import OrderRatingAction from './OrderRatingAction'
 
 
 export default function OrderCard({ order, estimate }) {
@@ -97,14 +98,20 @@ export default function OrderCard({ order, estimate }) {
             order={order}
             compact
             secondaryAction={(
-              <Button
-                render={<Link to={CUSTOMER_ROUTES.ORDER_DETAIL.replace(':orderId', order.id)} />}
-                nativeButton={false}
-                variant="secondary"
-                className="h-11 shrink-0 rounded-xl px-4 text-base"
-              >
-                {t('customer.orders.details')}
-              </Button>
+              <div className="flex shrink-0 items-center justify-end gap-2">
+                <OrderRatingAction
+                  order={order}
+                  compact
+                />
+                <Button
+                  render={<Link to={CUSTOMER_ROUTES.ORDER_DETAIL.replace(':orderId', order.id)} />}
+                  nativeButton={false}
+                  variant="secondary"
+                  className="h-11 shrink-0 rounded-xl px-4 text-base"
+                >
+                  {t('customer.orders.details')}
+                </Button>
+              </div>
             )}
           />
         </div>

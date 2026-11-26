@@ -31,7 +31,8 @@ const headerBg = 'bg-[color-mix(in_srgb,var(--primary)_8%,var(--muted))] dark:bg
 export default function ServicesPage() {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
-  const query = useMemo(() => readQuery(params), [params]), catalog = query.tab === 'catalog'
+  const queryKey = JSON.stringify(readQuery(params))
+  const query = useMemo(() => JSON.parse(queryKey), [queryKey]), catalog = query.tab === 'catalog'
   const load = useCallback(signal => adminServiceApi[query.tab](filter(query), signal), [query])
   const loadMerchants = useCallback(signal => catalog ? Promise.resolve([]) : adminServiceApi.merchants(signal), [catalog])
   const resource = useCatalogResource(load), summary = useCatalogResource(adminServiceApi.summary), merchants = useCatalogResource(loadMerchants)

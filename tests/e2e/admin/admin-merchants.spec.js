@@ -312,3 +312,23 @@ test('workspace typography and plain Merchant name link open a bounded detail mo
     await page.screenshot({ path: 'test-results/workspace-admin-dialog.png' })
   }
 })
+
+test('closing a linked profile request preserves the list without reloading', async ({ page }) => {
+  await setup(page)
+  await page.goto(`/admin/merchants?tab=requests&request=${requestId}`)
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByText('Updated Ben Thanh Laundry', { exact: true })).toBeVisible()
+  const requests = []
+  const capture = request => {
+    if (request.url().includes('/api/') && request.method() !== 'OPTIONS') {
+      requests.push(request.url())
+    }
+  }
+  page.on('request', capture)
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await expect(dialog).toHaveCount(0)
+  await expect(page).not.toHaveURL(/request=/)
+  await page.waitForTimeout(350)
+  page.off('request', capture)
+  expect(requests).toEqual([])
+})

@@ -1,3 +1,4 @@
+import { expectQuietDismissal } from '../helpers/modalDismissal'
 import { test, expect } from '@playwright/test'
 import { expectFixedDialog } from '../helpers/dialogLayout'
 import { chooseMobileDisplay } from '../helpers/customerDisplay'
@@ -214,6 +215,33 @@ async function setup(page, options = {}) {
   return state
 }
 
+test('completed order cards offer rating then report and hide both after a past report', async ({ page }) => {
+  const state = await setup(page)
+  state.order = { ...initialOrder, status: 12, paymentStatus: 2 }
+  await page.goto('/orders')
+  const rate = page.getByRole('button', { name: 'Rate', exact: true })
+  const details = page.getByRole('button', { name: 'Details', exact: true })
+  await expect(rate).toBeEnabled()
+  await expect(rate.locator('svg')).toHaveCount(0)
+  expect((await rate.boundingBox()).y).toBe((await details.boundingBox()).y)
+  await expect(page.getByRole('button', { name: 'Report', exact: true })).toHaveCount(0)
+  state.rating = { id: 'rating-1', orderId: id, overallStars: 5, createdOn: 1793923200 }
+  await page.reload()
+  await expect(page.getByRole('button', { name: 'Report', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Rate', exact: true })).toHaveCount(0)
+  const report = page.getByRole('button', { name: 'Report', exact: true })
+  await expect(report.locator('svg')).toHaveCount(0)
+  expect((await report.boundingBox()).y).toBe((await details.boundingBox()).y)
+  state.incidents = [{ id: 'incident-1', orderId: id, status: 3 }]
+  const reportsLoaded = page.waitForResponse(response => response.url().includes('/incident/mine/filter'))
+  await page.reload()
+  await reportsLoaded
+  await expect(page.getByRole('button', { name: 'Details', exact: true })).toBeVisible()
+  await expect.poll(() => page.locator('[aria-busy="true"]').count()).toBe(0)
+  await expect(page.getByRole('button', { name: 'Report', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Rate', exact: true })).toHaveCount(0)
+})
+
 test('receipt appears only in details and rechecks payment eligibility before printing', async ({ page }) => {
   const state = await setup(page)
   state.order = { ...initialOrder, status: 12, paymentStatus: 2 }
@@ -252,6 +280,8 @@ test('receipt modal stays usable on mobile in both themes and prints long docume
     await expect(print).toBeEnabled()
     await expect(print).toBeInViewport()
     await expect(print).toHaveCSS('height', '48px')
+    await expect(dialog.locator('article img')).toBeVisible()
+    await expect(dialog.getByText('This is not an electronic or tax invoice.', { exact: true })).toHaveCount(0)
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.emulateMedia({ media: 'print' })
     const copy = page.locator('[data-receipt-print]')
@@ -738,7 +768,7 @@ test('pickup uses a private two-step session, then unlocks a safe printable rece
   const receipt = page.getByRole('dialog', { name: 'Payment printout', exact: true })
   await expect(page).toHaveURL(`/orders/${id}`)
   await expect(receipt.getByRole('heading', { name: 'Payment receipt', exact: true })).toBeVisible()
-  await expect(receipt.getByText('This is not an electronic or tax invoice.', { exact: false })).toBeVisible()
+  await expect(receipt.getByText('This is not an electronic or tax invoice.', { exact: false })).toHaveCount(0)
   await page.getByRole('button', { name: 'Print receipt', exact: true }).click()
   expect(await page.evaluate(() => window.__printCalls)).toBe(1)
   await page.emulateMedia({ media: 'print' })
@@ -1462,3 +1492,53 @@ for (const width of [375, 1280]) {
     expect(state.lockerCalls).toHaveLength(0)
   })
 }
+
+test('modal dismissal does not reload the page or its data', async ({ page }) => {
+  await setup(page)
+  await page.goto(`/orders/${id}`)
+  await expectQuietDismissal(page, async () => {
+    await page.getByRole('button', { name: 'Cancel order', exact: true }).click()
+  })
+})
+
+test('cancelling media selection keeps the rating draft and upload controls have hover feedback', async ({ page }) => {
+  const state = await setup(page)
+  state.order = { ...initialOrder, status: 12, paymentStatus: 2 }
+  await page.goto(`/orders/${id}`)
+  await page.getByRole('button', { name: 'Rate service', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  const comment = dialog.getByRole('textbox', { name: 'Share your experience (optional)', exact: true })
+  await comment.fill('Keep my unsaved review')
+  const photos = dialog.getByRole('button', { name: 'Add photos', exact: true }).and(dialog.locator('button'))
+  await expect(photos).toHaveCSS('cursor', 'pointer')
+  const photoBackground = await photos.evaluate(element => getComputedStyle(element).backgroundColor)
+  await photos.hover()
+  await expect.poll(() => photos.evaluate(element => getComputedStyle(element).backgroundColor)).not.toBe(photoBackground)
+  const video = dialog.locator('input[type="file"][accept*=".mp4"]')
+  await expect(video).toHaveCSS('cursor', 'pointer')
+  const videoBackground = await video.evaluate(element => getComputedStyle(element, '::file-selector-button').backgroundColor)
+  await video.hover()
+  await expect.poll(() => video.evaluate(element => getComputedStyle(element, '::file-selector-button').backgroundColor)).not.toBe(videoBackground)
+  const requests = []
+  const capture = request => {
+    if (request.url().includes('/api/')) {
+      requests.push(request.url())
+    }
+  }
+  page.on('request', capture)
+  for (const input of [dialog.getByLabel('Add photos', { exact: true }), video]) {
+    // Simulate native chooser cancellation and focus return without accessing local files.
+    await input.evaluate(element => {
+      element.addEventListener('click', event => event.preventDefault(), { once: true })
+      element.click()
+      element.dispatchEvent(new Event('cancel', { bubbles: true }))
+      window.dispatchEvent(new Event('focus'))
+    })
+    await page.waitForTimeout(350)
+    await expect(comment).toHaveValue('Keep my unsaved review')
+    await expect(dialog).toBeVisible()
+  }
+  page.off('request', capture)
+  expect(requests).toEqual([])
+  expect(state.ratingCalls).toHaveLength(0)
+})

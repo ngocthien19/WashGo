@@ -9,12 +9,31 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import { customerIncidentApi } from '~/apis/customer/customerIncidentApi'
 import { ORDER_STATUSES, CUSTOMER_ROUTES } from '~/utils/config/constants'
 const IncidentReportDialog = lazy(() => import('./IncidentReportDialog'))
-function EligibleAction({ order }) {
+function EligibleAction({ order, compact }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
-  const load = useCallback((signal) => customerIncidentApi.eligibility(order.id, signal), [order.id])
+  const load = useCallback(async signal => {
+    const eligibility = await customerIncidentApi.eligibility(order.id, signal)
+    if (!compact || !eligibility.canReport) {
+      return eligibility
+    }
+    let page = 1
+    while (true) {
+      const reports = await customerIncidentApi.filter({ keyword: order.orderCode, page, take: 50 }, signal)
+      if (reports.list.some(report => report.orderId === order.id)) {
+        return { ...eligibility, canReport: false }
+      }
+      if (page >= reports.totalPages) {
+        return eligibility
+      }
+      page++
+    }
+  }, [order.id, order.orderCode, compact])
   const resource = useCatalogResource(load)
   const data = resource.data
+  if (compact && (resource.loading || resource.error || !data?.canReport || data.pendingIncidentId)) {
+    return null
+  }
   if (resource.error) {
     return <ResourceFeedback {...resource} />
   }
@@ -22,12 +41,12 @@ function EligibleAction({ order }) {
     <div className="grid gap-3">
       <Button
         variant="outline"
-        className="h-11 w-full text-rose-700 dark:text-rose-300"
+        className={`h-11 rounded-xl px-4 ${compact ? 'shrink-0 text-base' : 'w-full'} text-rose-700 dark:text-rose-300`}
         disabled={resource.loading || !data?.canReport}
         onClick={() => setOpen(true)}
       >
-        <ShieldAlert size={17} />
-        {t('customer.incidents.report')}
+        {!compact && <ShieldAlert size={17} />}
+        {t(compact ? 'receiptUi.report' : 'customer.incidents.report')}
       </Button>
       {data && !data.canReport && (
         <p className="text-sm text-muted-foreground">
@@ -43,17 +62,13 @@ function EligibleAction({ order }) {
         </Link>
       )}
       {open && (
-        <Suspense fallback={(
-          <p role="status">
-            {t('customer.incidents.loading')}
-          </p>
-        )}
-        >
+        <Suspense fallback={null}>
           <IncidentReportDialog
             order={order}
             eligibility={data}
+            onSaved={resource.retry}
             onClose={() => {
-              setOpen(false); resource.retry()
+              setOpen(false)
             }}
           />
         </Suspense>
@@ -61,11 +76,12 @@ function EligibleAction({ order }) {
     </div>
   )
 }
-export default function IncidentReportAction({ order }) {
+export default function IncidentReportAction({ order, compact = false }) {
   return order.status === ORDER_STATUSES.COMPLETED ? (
     <EligibleAction
       key={order.id}
       order={order}
+      compact={compact}
     />
   ) : null
 }
