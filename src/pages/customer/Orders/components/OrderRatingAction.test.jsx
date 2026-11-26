@@ -13,7 +13,7 @@ it('checks an existing rating before offering an action, including after remount
   }))
   const view = render(<OrderRatingAction order={{ id: 'one', status: 12 }} />)
   expect(screen.getByRole('button')).toBeDisabled()
-  expect(screen.queryByRole('button', { name: 'Đánh giá dịch vụ', exact: true })).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Đánh giá dịch vụ', exact: true })).toHaveAttribute('aria-busy', 'true')
   await act(async () => resolve({ id: 'rating-one' }))
   expect(screen.getByRole('button', { name: 'Xem đánh giá của bạn', exact: true })).toBeEnabled()
   view.unmount()

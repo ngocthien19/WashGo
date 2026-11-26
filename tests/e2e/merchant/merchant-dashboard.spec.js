@@ -340,7 +340,11 @@ test('uncertain submission locks resubmission until the profile is checked again
   expect(state.updates).toBe(1)
   const reads = state.calls.filter((path) => path === '/merchant-profile').length
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.calls.filter(path => path === '/merchant-profile')).toHaveLength(reads)
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click()
   await expect.poll(() => state.calls.filter((path) => path === '/merchant-profile').length).toBeGreaterThan(reads)
+  expect(state.updates).toBe(1)
 })
 
 test('city is required and address changes need a confirmed map location before submission', async ({ page }) => {

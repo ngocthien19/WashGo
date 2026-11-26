@@ -430,6 +430,7 @@ test('revision-only changes and server conflicts require a fresh review rather t
   await expect(dialog.getByRole('alert')).toContainText('This order has changed.')
   expect(state.writes).toHaveLength(0)
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click()
   await page.getByRole('button', { name: 'Weigh and confirm price', exact: true }).click()
   dialog = page.getByRole('dialog')
   state.conflict = true
