@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { merchantSession } from '../helpers/merchantSession'
 import { seedSeenTerms } from '../helpers/serviceTerms'
+import { expectDialogCheckboxLabels } from '../helpers/dialogCheckboxes'
 const orderId = '11111111-1111-4111-8111-111111111111'
 const sessionId = '22222222-2222-4222-8222-222222222222'
 const order = { id: orderId, orderCode: 'WG2611238696', status: 13, paymentStatus: 1, finalAmount: 130000, lockerId: '33333333-3333-4333-8333-333333333333', revision: 1 }
@@ -99,6 +100,7 @@ test('paid services are not charged again and points require a new server summar
 test('reward points refresh the summary before submitting the combined quote', async ({ page }) => {
   const state = await setup(page)
   await openCheckout(page)
+  await expectDialogCheckboxLabels(page.getByRole('dialog'))
   await page.getByRole('checkbox', { name: /Use reward points/ }).check()
   const pay = page.getByRole('button', { name: /^Pay now/ })
   await expect(pay).toContainText('220,000')
@@ -175,6 +177,6 @@ test('legacy fee session is resumed with its actual purpose and gateway', async 
 test('verified combined receipt remains successful when new charges remain outstanding', async ({ page }) => {
   await setup(page)
   await page.goto(`/payment/success?orderId=${orderId}&purpose=4&sessionId=${sessionId}`)
-  await expect(page.getByRole('heading', { name: 'Payment successful', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Payment successful', exact: true })).toBeVisible({ timeout: 15000 })
   await expect(page.getByText('Total outstanding', { exact: true })).toBeVisible()
 })

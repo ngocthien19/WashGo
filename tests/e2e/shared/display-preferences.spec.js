@@ -265,13 +265,53 @@ test('Auth header keeps the logo and display controls at the same top position a
     await expect(header.getByRole('button', { name: /Switch to .* mode/ })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Change language', exact: true })).toHaveCount(1)
     const bounds = await header.boundingBox()
-    expect(bounds.y).toBe(32)
+    expect(bounds.y).toBe(path === '/forgot-password' ? 32 : 0)
     for (const control of await header.locator('a, button').all()) {
       const rect = await control.boundingBox()
       expect(rect.y + rect.height).toBeLessThan(bounds.y + bounds.height)
       expect(rect.x + rect.width).toBeLessThanOrEqual(320)
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  }
+})
+
+test('auth display toolbar stays above the scrolling registration form', async ({ page }) => {
+  await page.goto('/login')
+  await chooseEnglish(page)
+  for (const width of [1280, 768, 390]) {
+    await page.setViewportSize({ width, height: 600 })
+    for (const dark of [false, true]) {
+      await page.goto('/register')
+      await page.evaluate(dark => document.documentElement.classList.toggle('dark', dark), dark)
+      const toolbar = page.getByTestId('auth-display-toolbar')
+      const panel = page.getByTestId('auth-form-panel')
+      const language = toolbar.getByRole('button', { name: 'Change language', exact: true })
+      await expect(language).toBeVisible()
+      const before = await toolbar.boundingBox()
+      if (width >= 768) {
+        const panelBox = await panel.boundingBox()
+        expect(panelBox.y).toBeGreaterThanOrEqual(before.y + before.height)
+        await panel.evaluate(element => {
+          element.scrollTop = element.scrollHeight
+        })
+        await expect.poll(() => panel.evaluate(element => element.scrollTop)).toBeGreaterThan(0)
+      } else {
+        await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }))
+        await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
+      }
+      await expect(language).toBeInViewport()
+      await expect(toolbar.getByRole('button', { name: /Switch to .* mode/ })).toBeInViewport()
+      const after = await toolbar.boundingBox()
+      if (width >= 768) {
+        expect(after.y).toBe(before.y)
+      } else {
+        expect(after.y).toBe(0)
+      }
+      await language.click()
+      await expect(page.getByRole('menuitem', { name: 'English', exact: true })).toBeVisible()
+      await page.keyboard.press('Escape')
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    }
   }
 })
 

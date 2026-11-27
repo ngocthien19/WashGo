@@ -1,6 +1,8 @@
 export const vi = {
+  storageList: { results: 'đơn lưu giữ tìm thấy', details: 'Chi tiết lưu giữ', actions: 'Thao tác đơn {{code}}', info: 'Thông tin lưu giữ', milestones: 'Các mốc giao nhận' },
   orderLive: { changed: 'Đơn hàng đã thay đổi. Vui lòng xem lại dữ liệu trước khi xác nhận.', review: 'Xem lại đơn hàng' },
   actuals: {
+    cardTitle: 'Số lượng thực tế', orderWeight: 'Khối lượng cả đơn', unconfirmed: 'Chưa xác nhận', retryCard: 'Tải lại số lượng',
     package: 'gói', cash: 'Tiền mặt',
     title: 'Xác nhận đồ thực tế', description: 'Kiểm đếm từng dịch vụ và xem giá trước khi xác nhận.',
     ordered: 'Đã đặt', actual: 'Thực tế', units: { item: 'cái', pair: 'đôi', kg: 'kg', unknown: 'đơn vị' },
@@ -20,8 +22,10 @@ export const vi = {
   }
 }
 export const en = {
+  storageList: { results: 'storage orders found', details: 'Storage details', actions: 'Actions for order {{code}}', info: 'Storage information', milestones: 'Handover milestones' },
   orderLive: { changed: 'This order has changed. Review the latest data before confirming.', review: 'Review updated order' },
   actuals: {
+    cardTitle: 'Actual quantities', orderWeight: 'Total order weight', unconfirmed: 'Not confirmed', retryCard: 'Retry quantities',
     package: 'packages', cash: 'Cash',
     title: 'Confirm received items', description: 'Check each service quantity and preview the price before confirming.',
     ordered: 'Ordered', actual: 'Actual', units: { item: 'items', pair: 'pairs', kg: 'kg', unknown: 'units' },

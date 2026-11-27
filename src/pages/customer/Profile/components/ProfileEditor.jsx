@@ -183,7 +183,7 @@ export default function ProfileEditor({ profile }) {
                 <Input
                   id="profile-email"
                   value={saved.email}
-                  readOnly
+                  disabled
                   aria-describedby="profile-email-hint"
                   className="h-12 rounded-lg bg-muted/50 px-3.5 text-muted-foreground"
                 />

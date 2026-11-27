@@ -1,16 +1,11 @@
 import { useTranslation } from 'react-i18next'
 import { MapPin, Store, Hash, CalendarClock, ReceiptText, PackageCheck, Clock3, Wallet, CircleCheck, CircleDollarSign } from 'lucide-react'
-import { Button } from '~/components/ui/button'
+import StorageCycleActions from './StorageCycleActions'
 import { formatCurrency, formatDateTime } from '~/utils/format/formats'
 
 export default function StorageCycleCard({ row, role, taskId, onAction, disabled, current = true }) {
   const { t } = useTranslation()
   const admin = role === 'Admin'
-  const coordinator = ['Admin', 'Merchant'].includes(role)
-  const actions = coordinator
-    ? [['assign', row.canAssign], ['cancel-assignment', row.canCancelAssignment], ['exception', current && ![5, 6].includes(row.state)]]
-    : role === 'Shipper' && row.taskId === taskId
-      ? [['collect', row.canCollect], ['handover', row.canHandover], ['depart', row.canDepart], ['place', row.canPlace]] : []
   return (
     <article className={admin ? 'space-y-5 rounded-2xl border border-teal-500/20 bg-card p-5 shadow-sm sm:p-6' : 'space-y-4 rounded-xl border border-border p-4'}>
       <div className="flex flex-wrap justify-between gap-3">
@@ -210,17 +205,14 @@ export default function StorageCycleCard({ row, role, taskId, onAction, disabled
         </p>
       )}
       <div className={admin ? 'flex flex-wrap gap-3 border-t border-border pt-4' : 'flex flex-wrap gap-3'}>
-        {actions.filter(([, enabled]) => enabled).map(([name]) => (
-          <Button
-            key={name}
-            disabled={disabled}
-            className={admin && name === 'exception' ? 'h-10 text-sm text-muted-foreground hover:text-foreground' : 'h-11'}
-            variant={name === 'assign' ? 'default' : 'outline'}
-            onClick={() => onAction(name)}
-          >
-            {t(`storage.actions.${name}`)}
-          </Button>
-        ))}
+        <StorageCycleActions
+          row={row}
+          role={role}
+          taskId={taskId}
+          onAction={onAction}
+          disabled={disabled}
+          current={current}
+        />
       </div>
     </article>
   )

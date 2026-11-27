@@ -62,6 +62,23 @@ label:has([data-slot="checkbox"][data-disabled]) {
   cursor: not-allowed;
 }
 
+/* Keep native and component checkbox labels consistent inside every modal.
+   Switch controls retain their own track and thumb layout. */
+[data-dialog-popup] label:has(> :is(input[type="checkbox"]:not([role="switch"]), [data-slot="checkbox"])) {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 16px;
+  line-height: 1.5;
+}
+[data-dialog-popup] label > :is(input[type="checkbox"]:not([role="switch"]), [data-slot="checkbox"]) {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  align-self: center;
+  margin-block: 0;
+}
+
 .workspace-filters {
   --workspace-filter-text: #25324a;
   color: var(--workspace-filter-text);

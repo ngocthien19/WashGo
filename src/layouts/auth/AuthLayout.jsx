@@ -35,9 +35,11 @@ export default function AuthLayout() {
       isSplitLayout && 'md:h-dvh md:overflow-hidden'
     )}
     >
-      <div className="absolute right-8 top-8 z-30 hidden md:block">
-        <DisplayControls variant="inline" />
-      </div>
+      {!isSplitLayout && (
+        <div className="absolute right-8 top-8 z-30 hidden md:block">
+          <DisplayControls variant="inline" />
+        </div>
+      )}
       {!isSplitLayout && (
         <div className="absolute left-8 top-8 hidden md:block">
           <AuthBrand />
@@ -53,30 +55,37 @@ export default function AuthLayout() {
         <div
           className={cn(
             isSplitLayout
-              ? 'flex min-h-dvh min-w-0 flex-col items-center px-6 py-8 sm:px-10 md:h-dvh md:min-h-0 md:overflow-y-auto md:overscroll-contain md:px-10 md:pb-10 md:pt-28 lg:px-16'
+              ? 'flex min-h-dvh min-w-0 flex-col md:h-dvh md:min-h-0 md:overflow-hidden'
               : 'w-full max-w-[440px]'
           )}
-          data-testid={isSplitLayout ? 'auth-form-panel' : undefined}
         >
-          <header className={cn('mb-7 flex w-full shrink-0 items-center justify-between gap-3 border-b border-border pb-5 md:hidden', isSplitLayout && 'max-w-[420px]')}>
+          <header
+            data-testid={isSplitLayout ? 'auth-display-toolbar' : undefined}
+            className={cn('flex w-full shrink-0 items-center justify-between gap-3 border-b border-border bg-background', isSplitLayout ? 'sticky top-0 z-30 px-6 py-2 sm:px-10 md:static md:justify-end lg:px-16' : 'mb-7 pb-5 md:hidden')}
+          >
             <div className={isSplitLayout ? 'md:hidden' : undefined}>
               <AuthBrand />
             </div>
             <DisplayControls variant="inline" />
           </header>
-          <motion.section
-            key={pathname}
-            className={cn(
-              'w-full',
-              isSplitLayout ? 'my-auto max-w-[420px] shrink-0' : 'rounded-2xl border border-border/50 bg-card px-6 py-9 shadow-sm sm:px-9'
-            )}
-            aria-label={t('auth.accountVerification')}
-            initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
+          <div
+            data-testid={isSplitLayout ? 'auth-form-panel' : undefined}
+            className={isSplitLayout ? 'flex min-w-0 flex-1 flex-col items-center px-6 py-8 sm:px-10 md:min-h-0 md:overflow-y-auto md:overscroll-contain md:pb-10 lg:px-16' : undefined}
           >
-            <Outlet context={{ flow, setFlow }} />
-          </motion.section>
+            <motion.section
+              key={pathname}
+              className={cn(
+                'w-full',
+                isSplitLayout ? 'my-auto max-w-[420px] shrink-0' : 'rounded-2xl border border-border/50 bg-card px-6 py-9 shadow-sm sm:px-9'
+              )}
+              aria-label={t('auth.accountVerification')}
+              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+            >
+              <Outlet context={{ flow, setFlow }} />
+            </motion.section>
+          </div>
         </div>
       </main>
     </div>
