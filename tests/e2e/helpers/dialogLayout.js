@@ -3,6 +3,8 @@ import { expect } from '@playwright/test'
 export async function expectFixedDialog(dialog) {
   const header = dialog.locator('[data-dialog-header]').first()
   await expect(header).toBeVisible()
+  // The opening scale/translation moves both controls until the popup settles.
+  await expect(dialog).toHaveCSS('transform', 'none')
   const footer = dialog.locator('[data-dialog-footer]').last()
   const beforeHeader = await header.boundingBox()
   const beforeFooter = await footer.count() ? await footer.boundingBox() : null

@@ -34,6 +34,9 @@ async function setup(page, { status = 'Pending', purpose = 1, paymentMethod = 2,
     if (path === '/policy/customer') {
       return ok({ terms: { version: 'v1', content: 'Terms' }, accepted: true, requiresAcceptance: false })
     }
+    if (path === '/wash-order/mine' && request.method() === 'POST') {
+      return route.fulfill({ json: { succeeded: true, list: [], total: 0, currentPage: 1, totalPages: 0 } })
+    }
     if (path === `/wash-order/${orderId}`) {
       return ok({ id: orderId, orderCode: 'WG2611238696', status: 8, paymentStatus: 1, finalAmount: 80000, items: [], timeline: [], lockerName: 'Locker' })
     }
@@ -134,6 +137,7 @@ test('a return without safe identifiers opens orders without claiming success', 
   const state = await setup(page)
   await page.goto('/payment/success?resultCode=0&vnp_ResponseCode=00')
   await expect(page).toHaveURL('/orders')
+  await expect(page.getByRole('heading', { name: 'My orders', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Confirming payment', exact: true })).toHaveCount(0)
   expect(state.reads).toEqual([])
   expect(state.writes).toEqual([])
