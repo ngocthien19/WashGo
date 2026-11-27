@@ -7,10 +7,11 @@ import OrderProgress from '~/components/customer/orders/OrderProgress'
 import { Button } from '~/components/ui/button'
 import { CUSTOMER_ROUTES, ORDER_STATUSES } from '~/utils/config/constants'
 import useDepositDeadline from '~/hooks/customer/useDepositDeadline'
-import { formatDateTime, formatNumber } from '~/utils/format/formats'
+import { formatDateTime } from '~/utils/format/formats'
 import OrderPaymentAction from '~/pages/customer/Payment/OrderPaymentAction'
 import OrderCardSummary from './OrderCardSummary'
 import OrderRatingAction from './OrderRatingAction'
+import OrderCardActuals from './OrderCardActuals'
 
 
 export default function OrderCard({ order, estimate }) {
@@ -71,14 +72,10 @@ export default function OrderCard({ order, estimate }) {
             {order.boxNumber || '\u2014'}
           </p>
         </div>
-        <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">
-            {t('customer.orders.actualWeight')}
-          </p>
-          <p className="text-sm font-bold">
-            {order.actualWeightKg != null ? `${formatNumber(order.actualWeightKg)} kg` : t('customer.orders.notWeighed')}
-          </p>
-        </div>
+        <OrderCardActuals
+          key={order.id}
+          order={order}
+        />
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">
             {t('customer.orders.orderStatus')}

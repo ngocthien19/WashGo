@@ -23,7 +23,7 @@ export default function IncidentFilters({ params, change }) {
           label={t('customer.sync.searchIncidents')}
           placeholder={t('customer.sync.searchIncidents')}
         />
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           <SelectField
             showLabel
             label={t('customer.incidents.statusLabel')}
@@ -37,14 +37,6 @@ export default function IncidentFilters({ params, change }) {
             value={params.get('type') || ''}
             onValueChange={(type) => change({ type })}
             options={[{ value: '', label: t('common.all') }, ...[1, 2, 3].map((value) => ({ value: String(value), label: t(`customer.incidents.types.${value}`) }))]}
-          />
-          <SelectField
-            showLabel
-            labelPosition="left"
-            label={t('customer.sync.sort')}
-            value={params.get('sort') || 'newest'}
-            onValueChange={(sort) => change({ sort })}
-            options={['newest', 'oldest', 'status'].map((value) => ({ value, label: t(`customer.sync.sorts.${value}`) }))}
           />
         </div>
       </div>

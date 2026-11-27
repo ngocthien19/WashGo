@@ -3,7 +3,7 @@ import { IncidentActions } from './components/IncidentSelfService'
 import { useCallback, useEffect, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { MessageSquareWarning, RefreshCw, Plus } from 'lucide-react'
+import { MessageSquareWarning, Plus } from 'lucide-react'
 import Breadcrumb from '~/components/Breadcrumb/Breadcrumb'
 import SectionHeading from '~/components/customer/SectionHeading/SectionHeading'
 import CatalogFeedback from '~/components/ResourceFeedback/ResourceFeedback'
@@ -11,6 +11,7 @@ import CatalogResultSummary from '~/components/customer/catalog/CatalogResultSum
 import Pagination from '~/components/Pagination/Pagination'
 import Reveal from '~/components/motion/Reveal'
 import { Button } from '~/components/ui/button'
+import { SelectField } from '~/components/ui/select'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '~/components/ui/table'
 import CustomerImageStack from '~/components/customer/CustomerImageStack'
 import useCatalogResource from '~/hooks/useCatalogResource'
@@ -76,15 +77,16 @@ export default function ComplaintsPage() {
           title={t(loading ? 'customer.incidents.loading' : error ? 'customer.incidents.title' : 'customer.incidents.foundLabel', { count: data?.total || 0 })}
           range={!loading && !error && data?.list.length ? t('customer.showing', { firstResult: first, lastResult: first + data.list.length - 1, total: data.total }) : undefined}
           actions={(
-            <Button
-              variant="outline"
-              className="h-11 rounded-xl px-4"
-              onClick={retry}
-              disabled={loading}
-            >
-              <RefreshCw size={16} />
-              {t('customer.orders.refresh')}
-            </Button>
+            <div className="w-full sm:w-64">
+              <SelectField
+                showLabel
+                labelPosition="left"
+                label={t('customer.sync.sort')}
+                value={query.sort}
+                onValueChange={(sort) => change({ sort })}
+                options={['newest', 'oldest', 'status'].map((value) => ({ value, label: t(`customer.sync.sorts.${value}`) }))}
+              />
+            </div>
           )}
         />
         {loading || error || !data?.list.length ? (
