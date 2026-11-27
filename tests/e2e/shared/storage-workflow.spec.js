@@ -1,12 +1,13 @@
 import { expect, test } from '@playwright/test'
 import { merchantSession } from '../helpers/merchantSession'
+import { expectDialogCheckboxLabels } from '../helpers/dialogCheckboxes'
 
 const orderId = '10000000-0000-4000-8000-000000000001', taskId = '20000000-0000-4000-8000-000000000001', lockerId = '30000000-0000-4000-8000-000000000001'
 const photo = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" fill="blue"/></svg>')}`
 async function setup(page, role, options = {}) {
   await merchantSession(page, { role, dark: options.dark })
   const state = {
-    writes: [], queries: [], taskType: 3, unknown: false, recover: false, conflict: false,
+    writes: [], queries: [], summaryReads: 0, taskType: 3, unknown: false, recover: false, conflict: false,
     profile: { id: 'shipper-domain', fullName: 'Driver Example', email: 'driver@example.test', vehicleType: 1, status: 1, isActive: true, totalDeliveries: 0, revision: 'profile-v1', canChangeWorkStatus: true, canGoOffline: true },
     cycle: { id: 'cycle-1', orderId, orderCode: 'WG-STORAGE', orderRevision: 7, state: 3, basis: 'Workflow', taskId, shopAddress: 'INTERNAL SHOP ADDRESS', receiptReference: 'INTERNAL RECEIPT', exceptionNote: 'INTERNAL EXCEPTION', feeTotal: 100000, feePaid: 20000, outstanding: 80000, canAssign: role !== 'Customer', canCancelAssignment: false, canRequestReturn: role === 'Customer', canCancelReturn: false },
     order: { id: orderId, revision: 7, storageWorkflowVersion: 1, status: 13, orderCode: 'WG-STORAGE', createdOn: 1794391200, paymentStatus: 2, paymentMethod: 2, finalAmount: 80000, totalAmount: 80000, discountAmount: 0, weightSurchargeAmount: 0, overdueFeeTotal: 100000, storageFeeTotal: 20000, lockerId, returnLockerId: lockerId, lockerName: 'Test locker', items: [], timeline: [] }
@@ -36,6 +37,7 @@ async function setup(page, role, options = {}) {
       return ok(state.profile)
     }
     if (path === '/storage/summary') {
+      state.summaryReads++
       return ok({ MovedToStorage: 1 })
     }
     if (path === '/storage/filter') {
@@ -119,7 +121,63 @@ async function setup(page, role, options = {}) {
   return state
 }
 
+async function storageMenuAction(page, name) {
+  await page.getByRole('button', { name: 'Actions for order WG-STORAGE', exact: true }).click()
+  await page.getByRole('menuitem', { name, exact: true }).click()
+}
+
 for (const role of ['Admin', 'Merchant']) {
+  test(`${role} storage table shows fees and opens details without reloading on close`, async ({ page }) => {
+    const state = await setup(page, role, { dark: true })
+    state.cycle.storageReference = 'ST0617'
+    state.cycle.merchantName = 'Test storage shop'
+    state.cycle.currentLocation = 'AtShop'
+    state.cycle.intakeAt = '2026-11-24T12:44:00Z'
+    state.cycle.frozenLockerFee = 0
+    state.cycle.frozenWarehouseFee = 0
+    await page.setViewportSize({ width: 1440, height: 1000 })
+    await page.goto(`/${role.toLowerCase()}/storage`)
+    const table = page.getByRole('table', { name: 'Storage and redelivery' })
+    await expect(table).toBeVisible()
+    await expect(table.getByRole('columnheader')).toHaveCount(9)
+    await expect(table.getByText('ST0617')).toBeVisible()
+    await expect(table.getByText('Test storage shop')).toBeVisible()
+    const row = table.getByRole('row').nth(1)
+    await expect(row.getByRole('cell').nth(5)).toContainText('100')
+    await expect(row.getByRole('cell').nth(6)).toContainText('20')
+    await expect(row.getByRole('cell').nth(7)).toContainText('80')
+    await expect(page.getByText('storage orders found', { exact: false })).toContainText('1')
+    expect(state.summaryReads).toBe(0)
+    await storageMenuAction(page, 'Details')
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toContainText('INTERNAL SHOP ADDRESS')
+    await expect(dialog).toContainText('INTERNAL RECEIPT')
+    await expect(dialog).not.toContainText('Frozen locker fees for this cycle')
+    await expect(dialog).not.toContainText('Frozen storage fees for this cycle')
+    await expect(dialog).not.toContainText('Fees show the current obligation')
+    const footerButtons = await dialog.locator('[data-dialog-footer]').getByRole('button').evaluateAll(buttons => buttons.map(button => ({ text: button.textContent, x: button.getBoundingClientRect().x, right: button.getBoundingClientRect().right, height: button.offsetHeight, width: button.offsetWidth })))
+    const closeButton = footerButtons.find(button => button.text === 'Close')
+    const reportButton = footerButtons.find(button => button.text === 'Report an exception')
+    expect(closeButton.x).toBeLessThan(reportButton.x)
+    expect(reportButton.x - closeButton.right).toBeLessThanOrEqual(13)
+    expect(reportButton.height).toBeGreaterThanOrEqual(48)
+    expect(reportButton.width).toBeGreaterThanOrEqual(160)
+    const reads = state.queries.length
+    await dialog.getByRole('button', { name: 'Close', exact: true }).click()
+    await expect(dialog).not.toBeVisible()
+    expect(state.queries).toHaveLength(reads)
+    expect(state.writes).toHaveLength(0)
+    for (const dark of [false, true]) {
+      await page.evaluate(dark => document.documentElement.classList.toggle('dark', dark), dark)
+      await page.setViewportSize({ width: 390, height: 844 })
+      await expect(table).toBeVisible()
+      expect(await table.getByRole('columnheader').evaluateAll(headers => new Set(headers.map(header => getComputedStyle(header).backgroundColor)).size)).toBe(1)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+      const region = page.getByRole('region', { name: 'Storage and redelivery' })
+      expect(await region.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true)
+    }
+  })
+
   test(`${role} storage search suggests all pages and selects a matching order`, async ({ page }) => {
     const state = await setup(page, role)
     await page.route('**/api/storage/filter', async route => {
@@ -179,9 +237,10 @@ for (const role of ['Admin', 'Merchant']) {
     const state = await setup(page, role, { dark: true })
     state.cycle.state = 1
     await page.goto(`/${role.toLowerCase()}/storage`)
-    await page.getByRole('button', { name: 'Assign Shipper', exact: true }).click()
+    await storageMenuAction(page, 'Assign Shipper')
     const dialog = page.getByRole('dialog')
     await dialog.getByRole('radio', { name: 'Driver Example', exact: true }).check()
+    await expectDialogCheckboxLabels(dialog)
     if (role === 'Admin') {
       await dialog.getByRole('textbox', { name: 'Reason', exact: true }).fill('Support merchant dispatch')
     }
@@ -197,7 +256,7 @@ for (const role of ['Admin', 'Merchant']) {
 test('storage capacity conflict refreshes candidates without replaying assignment', async ({ page }) => {
   const state = await setup(page, 'Merchant'); state.capacityRace = true
   await page.goto('/merchant/storage')
-  await page.getByRole('button', { name: 'Assign Shipper', exact: true }).click()
+  await storageMenuAction(page, 'Assign Shipper')
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('radio', { name: 'Driver Example', exact: true }).check()
   await dialog.getByRole('checkbox').check()
@@ -211,14 +270,14 @@ test('storage capacity conflict refreshes candidates without replaying assignmen
 test('unknown storage assignment survives closing and only checks the original operation', async ({ page }) => {
   const state = await setup(page, 'Merchant'); state.unknown = true
   await page.goto('/merchant/storage')
-  await page.getByRole('button', { name: 'Assign Shipper', exact: true }).click()
+  await storageMenuAction(page, 'Assign Shipper')
   let dialog = page.getByRole('dialog')
   await dialog.getByRole('radio', { name: 'Driver Example', exact: true }).check()
   await dialog.getByRole('checkbox').check()
   await dialog.getByRole('button', { name: 'Assign Shipper', exact: true }).click()
   await expect(dialog.getByRole('button', { name: 'Replay the same request' })).toBeVisible()
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
-  await page.getByRole('button', { name: 'Check result', exact: true }).click()
+  await storageMenuAction(page, 'Check result')
   dialog = page.getByRole('dialog'); state.recover = true
   await dialog.getByRole('button', { name: 'Check result', exact: true }).click()
   await expect(dialog).not.toBeVisible()
@@ -300,9 +359,11 @@ test('Shipper confirms collection and a separate shop handover using task creden
 
 test('Shipper self-status requires confirmation and uses the dedicated guarded endpoint', async ({ page }) => {
   const state = await setup(page, 'Shipper')
+  await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/shipper/profile')
   await page.getByRole('button', { name: 'Go offline', exact: true }).click()
   const dialog = page.getByRole('dialog')
+  await expectDialogCheckboxLabels(dialog)
   await dialog.getByRole('checkbox').check()
   await dialog.getByRole('button', { name: 'Go offline', exact: true }).click()
   await expect(dialog).not.toBeVisible()
@@ -372,10 +433,16 @@ test('Merchant reports an in-transit exception without changing custody or cance
   const state = await setup(page, 'Merchant')
   Object.assign(state.cycle, { state: 2, canAssign: false, canCancelAssignment: false })
   await page.goto('/merchant/storage')
-  await expect(page.getByRole('button', { name: 'Assign Shipper', exact: true })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Cancel assignment', exact: true })).toHaveCount(0)
-  await page.getByRole('button', { name: 'Report an exception', exact: true }).click()
+  await page.getByRole('button', { name: 'Actions for order WG-STORAGE', exact: true }).click()
+  await expect(page.getByRole('menuitem', { name: 'Assign Shipper', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('menuitem', { name: 'Cancel assignment', exact: true })).toHaveCount(0)
+  await page.getByRole('menuitem', { name: 'Report an exception', exact: true }).click()
   const dialog = page.getByRole('dialog')
+  await expect(dialog.locator('[data-dialog-header]')).toHaveAttribute('data-tone', 'danger')
+  await expect(dialog.getByRole('heading', { name: 'Report an exception', exact: true }).locator('svg')).toBeVisible()
+  for (const name of ['Close', 'Report an exception']) {
+    expect(await dialog.getByRole('button', { name, exact: true }).evaluate(button => getComputedStyle(button).fontSize)).toBe('16px')
+  }
   await dialog.getByRole('textbox', { name: 'Reason', exact: true }).fill('Unable to complete handover; requesting coordination')
   await dialog.getByRole('checkbox').check()
   await dialog.getByRole('button', { name: 'Report an exception', exact: true }).click()

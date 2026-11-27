@@ -1,5 +1,4 @@
 import { useCallback, useId, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Warehouse, RefreshCw, ListFilter } from 'lucide-react'
 import { storageApi } from '~/apis/storage/storageApi'
@@ -8,13 +7,12 @@ import CatalogToolbar from '~/components/CatalogToolbar/CatalogToolbar'
 import DateRangeFilter from '~/components/DateRangeFilter/DateRangeFilter'
 import ClearFiltersButton from '~/components/ClearFiltersButton'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import Pagination from '~/components/Pagination/Pagination'
+import TablePagination from '~/components/Pagination/TablePagination'
 import { SelectField } from '~/components/ui/select'
 import { Button } from '~/components/ui/button'
-import { ADMIN_ROUTES, MERCHANT_ROUTES } from '~/utils/config/constants'
 import { dateRangeFilter } from '~/utils/format/dateRange'
 import { loadSuggestionPages } from '~/utils/search/searchSuggestions'
-import StorageCycleCard from './StorageCycleCard'
+import StorageTable from './StorageTable'
 import StorageActionDialog from './StorageActionDialog'
 
 export default function StorageWorkspace({ role }) {
@@ -29,15 +27,13 @@ export default function StorageWorkspace({ role }) {
     return rows.map(row => ({ id: row.orderId, label: row.orderCode, fields: [row.orderCode, t(`storage.states.${row.state}`)] }))
   }, [key, t])
   const resource = useCatalogResource(useCallback(signal => storageApi.filter(JSON.parse(key), signal), [key]), revision)
-  const summary = useCatalogResource(useCallback(signal => storageApi.summary(signal), []), revision)
   const update = values => setQuery(current => ({ ...current, ...values, page: 1 }))
   const refresh = () => setRevision(value => value + 1)
   const done = () => {
     setAction(null); refresh()
   }
-  const routes = role === 'Admin' ? ADMIN_ROUTES : MERCHANT_ROUTES
   return (
-    <div className="mx-auto max-w-[1500px] space-y-6">
+    <div className="mx-auto min-w-0 max-w-[1500px] space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="flex items-center gap-3 text-[30px] font-bold">
           <Warehouse className="text-primary" />
@@ -52,23 +48,6 @@ export default function StorageWorkspace({ role }) {
           {t('customer.orders.refresh')}
         </Button>
       </header>
-      {summary.loading || summary.error ? <ResourceFeedback {...summary} /> : (
-        <dl className="grid gap-3 sm:grid-cols-4">
-          {Object.entries(summary.data || {}).map(([status, count]) => (
-            <div
-              key={status}
-              className="rounded-xl border border-border bg-card p-4"
-            >
-              <dt className="text-sm text-muted-foreground">
-                {t(`storage.orderStates.${status}`)}
-              </dt>
-              <dd className="mt-2 text-2xl font-bold text-primary">
-                {count}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )}
       <section className="workspace-filters min-w-0 space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
         <h2 className="flex items-center gap-2 font-semibold">
           <ListFilter
@@ -124,43 +103,36 @@ export default function StorageWorkspace({ role }) {
       </section>
       <section
         data-pagination-scope
-        className="space-y-4"
+        className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
       >
+        <div className="border-b border-border p-5">
+          <p className="text-base text-muted-foreground">
+            {!resource.loading && !resource.error && (
+              <strong className="mr-2 text-2xl text-foreground">
+                {resource.data?.total || 0}
+              </strong>
+            )}
+            {t('storageList.results')}
+          </p>
+        </div>
         {resource.loading || resource.error ? <ResourceFeedback {...resource} /> : (
           <>
             {!resource.data.list.length && <ResourceFeedback empty="storage.empty" />}
-            {resource.data.list.map(row => (
-              <div
-                key={row.orderId}
-                className="space-y-3 rounded-2xl border border-border bg-card p-5"
-              >
-                <Link
-                  className="text-lg font-bold text-primary hover:underline"
-                  to={`${routes.ORDERS}/${row.orderId}`}
-                >
-                  {row.orderCode}
-                </Link>
-                <StorageCycleCard
-                  row={row}
-                  role={role}
-                  disabled={storageApi.hasPending(row.orderId)}
-                  onAction={name => setAction({ name, row })}
-                />
-                {storageApi.hasPending(row.orderId) && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setAction({ name: 'exception', row })}
-                  >
-                    {t('admin.sync.checkResult')}
-                  </Button>
-                )}
-              </div>
-            ))}
+            {resource.data.list.length > 0 && (
+              <StorageTable
+                rows={resource.data.list}
+                role={role}
+                onAction={(name, row) => setAction({ name, row })}
+              />
+            )}
           </>
         )}
-        <Pagination
+        <TablePagination
           currentPage={query.page}
           totalPages={resource.data?.totalPages || 0}
+          total={resource.data?.total || 0}
+          pageSize={filter.take}
+          rowCount={resource.data?.list.length || 0}
           disabled={resource.loading}
           onPageChange={page => setQuery(current => ({ ...current, page }))}
         />

@@ -4,6 +4,7 @@ import { customerPaymentApi } from '~/apis/customer/customerPaymentApi'
 import { canAssignShipper, isShipperCapacityConflict } from '~/utils/orders/shipperCapacity'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ShieldAlert } from 'lucide-react'
 import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -110,8 +111,9 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
         className="max-w-xl"
         data-dialog-fixed
       >
-        <DialogHeader>
-          <DialogTitle className="pr-8 text-2xl font-bold">
+        <DialogHeader tone={action === 'exception' ? 'danger' : 'info'}>
+          <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-bold">
+            {action === 'exception' && <ShieldAlert aria-hidden="true" />}
             {t(`storage.actions.${action}`)}
           </DialogTitle>
           <DialogDescription className="mt-3">
@@ -274,7 +276,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
             <Button
               type="button"
               variant="secondary"
-              className="h-11 px-5"
+              className="h-12 rounded-xl px-5 text-base"
               disabled={busy}
               onClick={onClose}
             >
@@ -284,6 +286,8 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
               <>
                 <Button
                   type="button"
+                  className="h-12 rounded-xl px-5 text-base"
+                  variant={action === 'exception' ? 'destructive' : 'default'}
                   disabled={busy}
                   onClick={() => execute(null, 'check')}
                 >
@@ -292,6 +296,7 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
                 <Button
                   type="button"
                   variant="outline"
+                  className="h-12 rounded-xl px-5 text-base"
                   disabled={busy}
                   onClick={() => execute(null, 'replay')}
                 >
@@ -301,7 +306,8 @@ export default function StorageActionDialog({ order, cycle, action, role, taskId
             ) : (
               <Button
                 type="submit"
-                className="h-11 px-5"
+                className="h-12 min-w-40 rounded-xl px-5 text-base"
+                variant={action === 'exception' ? 'destructive' : 'default'}
                 disabled={busy || blocked || liveStale || action === 'assign' && (shippers.loading || shippers.error)}
               >
                 {t(`storage.actions.${action}`)}
