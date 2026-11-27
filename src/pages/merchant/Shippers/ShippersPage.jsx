@@ -241,17 +241,19 @@ export default function ShippersPage() {
                           className="size-11 text-sm"
                         />
                         <div>
-                          <RecordLink
-                            className="font-bold"
-                            onClick={() => setSelected(shipper.id)}
-                          >
-                            {shipper.fullName}
-                          </RecordLink>
-                          {shipper.accountActive === false && (
-                            <span className="mt-1 inline-block rounded-full badge-inactive px-2 py-0.5 text-xs font-semibold">
-                              {t('merchant.shipperSync.locked')}
-                            </span>
-                          )}
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <RecordLink
+                              className="font-bold"
+                              onClick={() => setSelected(shipper.id)}
+                            >
+                              {shipper.fullName}
+                            </RecordLink>
+                            {shipper.accountActive === false && (
+                              <span className="inline-block rounded-full badge-inactive px-2 py-0.5 text-xs font-semibold">
+                                {t('merchant.shipperSync.locked')}
+                              </span>
+                            )}
+                          </div>
                           <p className="mt-1 text-sm text-muted-foreground">
                             {shipper.phone || '—'}
                           </p>

@@ -1,10 +1,10 @@
-import ResourceImage from '~/components/ResourceThumbnail/ResourceImage'
+import ImagePicker from '~/components/ImagePicker'
 import CategorySelect from '~/components/categories/CategorySelect'
 import { useRef, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useTranslation } from 'react-i18next'
-import { Send, FilePenLine, ImagePlus, X } from 'lucide-react'
+import { Send, FilePenLine } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
@@ -13,7 +13,6 @@ import { merchantServiceApi } from '~/apis/merchant/merchantServiceApi'
 import { notify } from '~/utils/notifications/notifications'
 import { getApiError } from '~/utils/http/apiError'
 import { resolveMessage } from '~/i18n/messages'
-import { getImageUrl } from '~/utils/format/formats'
 import { proposalSchema, serviceSnapshot, proposalBlockedMessage } from '../serviceModel'
 
 export default function ProposalEditor({ service, onClose, onSaved }) {
@@ -203,62 +202,13 @@ export default function ProposalEditor({ service, onClose, onSaved }) {
                   )}
                 </div>
               ))}
-              <div className="grid gap-3 rounded-2xl border border-border bg-muted/20 p-4 sm:col-span-2">
-                <label
-                  htmlFor="service-images"
-                  className="flex items-center gap-2 font-semibold"
-                >
-                  <ImagePlus
-                    size={19}
-                    className="text-primary"
-                  />
-                  {t('merchant.services.images')}
-                </label>
-                <p className="text-sm text-muted-foreground">
-                  {t('merchant.shop.imagesHint')}
-                </p>
-                <Input
-                  id="service-images"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  disabled={images.images.length >= 1}
-                  className="h-auto py-2 text-base"
-                  onChange={(event) => {
-                    images.addFiles(Array.from(event.target.files || [])); event.target.value = ''
-                  }}
+              <div className="sm:col-span-2">
+                <ImagePicker
+                  selection={images}
+                  disabled={pending || uncertain}
+                  title={t('merchant.services.images')}
+                  help={t('merchant.shop.imagesHint')}
                 />
-                <div className="flex flex-wrap gap-3">
-                  {images.images.map((image, index) => (
-                    <div
-                      key={image.url}
-                      className="relative"
-                    >
-                      <ResourceImage
-                        src={getImageUrl(image.url)}
-                        alt={t('merchant.services.image', { number: index + 1 })}
-                        className="size-20 rounded-xl object-cover"
-                      />
-                      <Button
-                        type="button"
-                        size="icon-xs"
-                        variant="destructive"
-                        aria-label={t('merchant.services.removeImage')}
-                        className="absolute -right-2 -top-2"
-                        onClick={() => images.removeImage(image)}
-                      >
-                        <X size={14} />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-                {images.error && (
-                  <p
-                    role="alert"
-                    className="text-sm text-destructive"
-                  >
-                    {t(images.error)}
-                  </p>
-                )}
               </div>
             </fieldset>
             {error && (
