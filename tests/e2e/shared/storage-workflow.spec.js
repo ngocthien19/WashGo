@@ -183,7 +183,7 @@ for (const role of ['Admin', 'Merchant']) {
     await page.route('**/api/storage/filter', async route => {
       const body = route.request().postDataJSON()
       state.queries.push(body)
-      const rows = Array.from({ length: body.page === 2 ? 1 : 6 }, (_, index) => ({ ...state.cycle, orderId: `order-${body.page}-${index}`, orderCode: `WG-${body.page}-${index}` }))
+      const rows = Array.from({ length: body.page === 2 ? 1 : 6 }, (_, index) => ({ ...state.cycle, id: `cycle-${body.page}-${index}`, orderId: `order-${body.page}-${index}`, orderCode: `WG-${body.page}-${index}` }))
       await route.fulfill({ json: { succeeded: true, list: rows, total: 7, currentPage: body.page, totalPages: 2 } })
     })
     await page.goto(`/${role.toLowerCase()}/storage`)
@@ -212,7 +212,7 @@ for (const role of ['Admin', 'Merchant']) {
     const status = page.getByRole('combobox', { name: 'Storage state', exact: true })
     await expect(search).toBeVisible()
     await expect(status).toBeVisible()
-    await expect(page.getByText('Storage state', { exact: true })).toBeVisible()
+    await expect(page.locator('label').filter({ hasText: /^Storage state$/ })).toBeVisible()
     let searchBox = await searchForm.boundingBox(), statusBox = await status.boundingBox()
     expect(statusBox.x).toBeGreaterThan(searchBox.x + searchBox.width)
     expect(Math.abs(statusBox.y - searchBox.y)).toBeLessThan(6)
