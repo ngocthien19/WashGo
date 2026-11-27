@@ -10,9 +10,9 @@ import Brand from '~/components/Brand/Brand'
 import { cn } from '~/lib/utils'
 
 const socialLinks = [
-  { label: 'customer.facebook', icon: FaFacebookF },
-  { label: 'customer.instagram', icon: FaInstagram },
-  { label: 'customer.tiktok', icon: FaTiktok }
+  { label: 'customer.facebook', icon: FaFacebookF, color: 'border-blue-400/50 text-blue-400 hover:border-blue-300 hover:bg-blue-400/15 hover:text-blue-300 hover:shadow-[0_4px_18px_#60a5fa26] focus-visible:ring-blue-400/40' },
+  { label: 'customer.instagram', icon: FaInstagram, color: 'border-pink-400/50 text-pink-400 hover:border-pink-300 hover:bg-pink-400/15 hover:text-pink-300 hover:shadow-[0_4px_18px_#f472b626] focus-visible:ring-pink-400/40' },
+  { label: 'customer.tiktok', icon: FaTiktok, color: 'border-white/30 bg-black/30 text-white hover:border-white/60 hover:bg-black/50 hover:text-white hover:shadow-[0_4px_18px_#ffffff14] focus-visible:ring-white/40' }
 ]
 
 const showPendingContent = () => notify.info('customer.thisContentIsBeingUpdated')
@@ -44,17 +44,17 @@ export default function CustomerFooter({ onOpenTerms }) {
             {t('customer.aSmartLaundryPlatformWithAutomatedLockersMakingEveryday')}
           </p>
           <div className="mt-6 flex gap-3">
-            {socialLinks.map(({ label, icon: Icon }) => (
+            {socialLinks.map(({ label, icon: Icon, color }) => (
               <Button
                 key={t(label)}
                 size="icon"
                 variant="ghost"
-                className="size-9 rounded-full text-white hover:bg-white/10 hover:text-primary"
+                className={cn('size-11 rounded-xl border bg-transparent transition-[color,background-color,border-color,box-shadow] duration-200', color)}
                 aria-label={t(label)}
                 tooltip={t(label)}
                 onClick={showPendingContent}
               >
-                <Icon className="size-4" />
+                <Icon className="size-5" />
               </Button>
             ))}
           </div>
