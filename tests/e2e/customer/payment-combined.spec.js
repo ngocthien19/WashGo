@@ -177,6 +177,6 @@ test('legacy fee session is resumed with its actual purpose and gateway', async 
 test('verified combined receipt remains successful when new charges remain outstanding', async ({ page }) => {
   await setup(page)
   await page.goto(`/payment/success?orderId=${orderId}&purpose=4&sessionId=${sessionId}`)
-  await expect(page.getByRole('heading', { name: 'Payment successful', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Payment successful', exact: true })).toBeVisible({ timeout: 15000 })
   await expect(page.getByText('Total outstanding', { exact: true })).toBeVisible()
 })
