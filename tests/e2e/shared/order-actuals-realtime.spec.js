@@ -90,6 +90,44 @@ async function setup(page, role) {
 const detailPath = role => `${role === 'Customer' ? '' : `/${role.toLowerCase()}`}/orders/${id}`
 const listPath = role => `${role === 'Customer' ? '' : `/${role.toLowerCase()}`}/orders`
 
+test('Customer keeps result count, range, refresh and pagination stable during focus revalidation', async ({ page }) => {
+  const state = await setup(page, 'Customer')
+  let blocked = false, total = 22, release
+  const pending = new Promise(resolve => {
+    release = resolve
+  })
+  await page.route('**/api/wash-order/mine', async route => {
+    state.listReads++
+    if (blocked) {
+      await pending
+    }
+    const list = Array.from({ length: 6 }, (_, index) => ({ ...state.order, id: index ? `order-${index}` : id, orderCode: `WG-LIST-${index}` }))
+    await route.fulfill({ json: { succeeded: true, list, currentPage: 1, pageSize: 6, total, totalPages: Math.ceil(total / 6) } })
+  })
+  await page.goto('/orders')
+  const summary = page.getByRole('status').filter({ hasText: 'orders found' })
+  const range = page.getByText('Showing 1–6 / 22', { exact: true })
+  const refresh = page.getByRole('button', { name: 'Refresh', exact: true })
+  const pagination = page.getByRole('navigation', { name: 'Pagination', exact: true })
+  await expect(summary).toContainText('22')
+  await expect(range).toBeVisible()
+  await expect(refresh).toBeEnabled()
+  await expect(pagination).toBeVisible()
+  await expect.poll(() => state.connected && state.listReads >= 2).toBe(true)
+  const before = state.listReads
+  blocked = true
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')))
+  await expect.poll(() => state.listReads).toBeGreaterThan(before)
+  await expect(summary).toContainText('22')
+  await expect(range).toBeVisible()
+  await expect(refresh).toBeEnabled()
+  await expect(pagination).toBeVisible()
+  total = 23
+  release()
+  await expect(summary).toContainText('23')
+  await expect(page.getByText('Showing 1–6 / 23', { exact: true })).toBeVisible()
+})
+
 test('Merchant confirms mixed actuals with a price preview on mobile and sees billed quantities', async ({ page }) => {
   const state = await setup(page, 'Merchant')
   await page.setViewportSize({ width: 390, height: 844 })
