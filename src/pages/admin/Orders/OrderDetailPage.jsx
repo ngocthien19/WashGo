@@ -1,3 +1,4 @@
+import OrderPaymentOverview from '~/components/orders/OrderPaymentOverview'
 import OrderActualsInfo from '~/components/orders/OrderActualsInfo'
 import OrderItemActuals from '~/components/orders/OrderItemActuals'
 import { actualQuantity, actualSubTotal } from '~/utils/orders/orderActuals'
@@ -372,33 +373,11 @@ export default function OrderDetailPage() {
                 <OrderActualsInfo order={order} />
               </Panel>
               <Panel
-                title={t('merchant.orders.payment')}
+                title={t('orderPaymentOverview.title')}
                 icon={Wallet}
               >
                 <PaymentStatus status={order.paymentStatus} />
-                <dl className="mt-5 space-y-4">
-                  {[['totalAmount', order.totalAmount], ['discountAmount', order.discountAmount], ['weightSurchargeAmount', order.weightSurchargeAmount], ['cancelFeeAmount', order.cancelFeeAmount], ['overdueFeeTotal', order.overdueFeeTotal], ['storageFeeTotal', order.storageFeeTotal]].map(([key, value]) => (
-                    <div
-                      key={key}
-                      className="flex justify-between gap-3 text-sm"
-                    >
-                      <dt className="text-muted-foreground">
-                        {t(`admin.orderManagement.${key}`)}
-                      </dt>
-                      <dd className="font-semibold">
-                        {Number.isFinite(value) ? formatCurrency(value) : '—'}
-                      </dd>
-                    </div>
-                  ))}
-                  <div className="flex justify-between gap-3 border-t border-border pt-4">
-                    <dt className="font-semibold">
-                      {t('merchant.orders.total')}
-                    </dt>
-                    <dd className="text-xl font-semibold text-primary">
-                      {formatCurrency(order.finalAmount)}
-                    </dd>
-                  </div>
-                </dl>
+                <OrderPaymentOverview order={order} />
                 <OrderCommission order={order} />
                 {(order.overdueTypes || []).map(type => (
                   <p

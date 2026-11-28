@@ -1,3 +1,4 @@
+import OrderPaymentOverview from '~/components/orders/OrderPaymentOverview'
 import OrderActualsInfo from '~/components/orders/OrderActualsInfo'
 import OrderItemActuals from '~/components/orders/OrderItemActuals'
 import { actualQuantity, actualSubTotal } from '~/utils/orders/orderActuals'
@@ -235,7 +236,7 @@ export default function OrderDetailPage() {
               </Panel>
               <Panel
                 icon={ReceiptText}
-                title={t('merchant.orders.payment')}
+                title={t('orderPaymentOverview.title')}
               >
                 <OrderCommission order={order} />
                 <dl className="my-5 space-y-3">
@@ -261,29 +262,7 @@ export default function OrderDetailPage() {
                 <div className="mb-5">
                   <PaymentStatus status={order.paymentStatus} />
                 </div>
-                <dl className="space-y-4">
-                  {[['baseAmount', order.totalAmount], ['discount', order.discountAmount], ['surcharge', order.weightSurchargeAmount]].map(([key, value]) => (
-                    <div
-                      key={key}
-                      className="flex justify-between gap-3 text-base"
-                    >
-                      <dt className="text-muted-foreground">
-                        {t(`merchant.orders.${key}`)}
-                      </dt>
-                      <dd className="font-semibold">
-                        {formatCurrency(value)}
-                      </dd>
-                    </div>
-                  ))}
-                  <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
-                    <dt className="text-base font-semibold">
-                      {t('merchant.orders.total')}
-                    </dt>
-                    <dd className="text-2xl font-bold text-primary">
-                      {formatCurrency(order.finalAmount)}
-                    </dd>
-                  </div>
-                </dl>
+                <OrderPaymentOverview order={order} />
               </Panel>
               <Panel
                 icon={Package}
