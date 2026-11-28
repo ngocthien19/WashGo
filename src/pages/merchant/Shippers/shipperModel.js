@@ -5,7 +5,7 @@ export const SHIPPER_TAKE = 12
 export const SHIPPER_TASK_LIMIT = { min: 1, max: 20, default: 3 }
 export const shipperSchema = yup.object({
   fullName: yup.string().trim().required().max(100),
-  phone: yup.string().trim().required().max(20).matches(/^\+?[0-9 ()\-.]+$/).test('digits', '', (value) => /^[0-9]{9,11}$/.test((value || '').replace(/\D/g, ''))),
+  phone: yup.string().trim().required().matches(/^0[0-9]{9}$/),
   email: yup.string().trim().lowercase().email().required().max(100),
   vehicleType: yup.number().required().oneOf([1, 2, 3]),
   vehiclePlate: yup.string().trim().uppercase().max(20).when('vehicleType', { is: (value) => value !== 3, then: (schema) => schema.required().matches(/^[0-9A-Z][0-9A-Z.\- ]{3,19}$/) }),

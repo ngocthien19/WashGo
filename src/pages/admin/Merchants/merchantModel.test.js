@@ -41,10 +41,26 @@ it('uses the merchant snapshot version without false schedule conflicts and reje
   expect(profileStillCurrent(current, { ...row, version: 'merchant-v2' })).toBe(false)
 })
 it('handles uncaptured legacy schedules without ignoring changed contact information', () => {
-  const current = { ...row, openingSchedule: null }
+  const current = { ...row, openingSchedule: null, baseMerchantVersion: 'legacy-v1' }
   expect(profileStillCurrent(current, row)).toBe(true)
   expect(profileStillCurrent(current, { ...row, phone: '0907654321' })).toBe(false)
   expect(profileStillCurrent(row, { ...row, openingSchedule: { ...row.openingSchedule, alwaysOpen: true } })).toBe(false)
+})
+it('honors captured null schedules and blocks legacy requests without historical evidence', () => {
+  expect(profileStillCurrent({ ...row, openingSchedule: null }, row)).toBe(false)
+  expect(profileStillCurrent({ ...row, openingScheduleSnapshotIncluded: true, openingSchedule: null }, row)).toBe(false)
+  expect(profileStillCurrent({ ...row, baseMerchantVersion: 'v1', openingScheduleSnapshotIncluded: true, openingSchedule: null }, { ...row, version: 'v1' })).toBe(false)
+})
+it('compares structured schedules by business values instead of JSON ordering', () => {
+  const schedule = { timeZone: 'Asia/Ho_Chi_Minh', alwaysOpen: false, weekly: [
+    { dayOfWeek: 1, shifts: [{ open: '08:00', close: '12:00' }, { open: '14:00', close: '20:00' }] },
+    { dayOfWeek: 2, shifts: [{ open: '08:00', close: '20:00' }] }
+  ], closedDates: ['2026-12-02', '2026-12-01'] }
+  const current = { ...row, openingScheduleSnapshotIncluded: true, openingSchedule: schedule }
+  const reordered = { closedDates: ['2026-12-01', '2026-12-02'], weekly: [...schedule.weekly].reverse().map(day => ({ shifts: [...day.shifts].reverse(), dayOfWeek: day.dayOfWeek })), alwaysOpen: false, timeZone: schedule.timeZone }
+  expect(profileStillCurrent(current, { ...row, openingSchedule: reordered })).toBe(true)
+  expect(profileStillCurrent(current, { ...row, openingSchedule: { ...schedule, closedDates: [] } })).toBe(false)
+  expect(profileStillCurrent(current, { ...row, openingSchedule: { ...schedule, timeZone: 'UTC' } })).toBe(false)
 })
 it('allows document links only with safe schemes or local upload paths', () => {
   for (const value of ['https://example.test/sla.pdf', '/uploads/docs/sla.pdf', '']) {

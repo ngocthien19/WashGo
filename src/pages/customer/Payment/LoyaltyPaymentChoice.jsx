@@ -5,6 +5,7 @@ import { customerLoyaltyApi } from '~/apis/customer/customerLoyaltyApi'
 import useCatalogResource from '~/hooks/useCatalogResource'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { formatCurrency, formatNumber } from '~/utils/format/formats'
+import PointsRedemptionRow from './PointsRedemptionRow'
 
 export default function LoyaltyPaymentChoice({ orderId, disabled, onChange }) {
   const { t } = useTranslation()
@@ -54,6 +55,9 @@ export default function LoyaltyPaymentChoice({ orderId, disabled, onChange }) {
           <p className="text-sm text-muted-foreground">
             {t('loyalty.quoteLimit', { available: formatNumber(quote.availablePoints), maximum: formatNumber(quote.maximumPoints) })}
           </p>
+          <dl>
+            <PointsRedemptionRow points={quote.pointsToRedeem} />
+          </dl>
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-muted-foreground">

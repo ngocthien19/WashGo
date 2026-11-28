@@ -51,6 +51,10 @@ it('keeps the payment form mounted while applying and removing points and blocks
     await act(async () => resolveQuote(summary(points)))
     await waitFor(() => expect(toggle).toBeEnabled())
     expect(screen.getByRole('button', { name: /^Pay / })).toHaveTextContent(formatCurrency(185000 - points))
+    const total = screen.getByText('Total outstanding', { exact: true }).closest('div')
+    expect(total).toHaveTextContent(formatCurrency(185000 - points))
+    const redeemed = screen.getByText(`Reward points used (${points.toLocaleString('en-US')} points)`).closest('div')
+    expect(redeemed).toHaveTextContent(`${points ? '−' : ''}${formatCurrency(points)}`)
   }
   customerPaymentApi.getSummary.mockRejectedValueOnce(new Error('customer.payment.invalidResponse'))
   await user.click(toggle)
@@ -58,4 +62,24 @@ it('keeps the payment form mounted while applying and removing points and blocks
   expect(screen.getByRole('button', { name: /^Pay / })).toBeDisabled()
   expect(customerPaymentApi.checkout).not.toHaveBeenCalled()
   expect(refresh).not.toHaveBeenCalled()
+})
+
+it.each([true, false])('shows existing session amounts when canContinue is %s', async canContinue => {
+  const value = summary(0)
+  value.quote.activeSession = { orderId: 'order-1', purpose: 4, paymentMethod: 2, amount: 184200, pointsToRedeem: 800, canContinue }
+  customerPaymentApi.getSummary.mockResolvedValue(value)
+  render(<PaymentCheckout
+    order={{ id: 'order-1', orderCode: 'WG-1' }}
+    pendingRequests={{ current: new Set() }}
+  />)
+  const total = (await screen.findByText('Total outstanding', { exact: true })).closest('div')
+  expect(total).toHaveTextContent(formatCurrency(184200))
+  expect(screen.getByText('Reward points used (800 points)').closest('div')).toHaveTextContent(`−${formatCurrency(800)}`)
+  const pay = screen.getByRole('button', { name: canContinue ? /^Continue/ : /^Pay / })
+  expect(pay).toHaveTextContent(formatCurrency(184200))
+  if (!canContinue) {
+    expect(pay).toBeDisabled()
+    await userEvent.setup().click(pay)
+    expect(customerPaymentApi.checkout).not.toHaveBeenCalled()
+  }
 })

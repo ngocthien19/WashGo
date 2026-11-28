@@ -23,7 +23,7 @@ it('returns null only for an absent request and surfaces lookup service errors',
   await expect(customerIncidentApi.request('key')).rejects.toMatchObject({ response: { status: 500 } })
 })
 it('whitelists customer edits and messages without submitting identity or status', async () => {
-  const fields = { type: 1, severity: 2, description: 'Damaged', imageUrls: ['/uploads/photo.png'], videoUrls: ['/uploads/video.mp4'] }
+  const fields = { itemValue: 180000, type: 1, severity: 2, description: 'Damaged', imageUrls: ['/uploads/photo.png'], videoUrls: ['/uploads/video.mp4'] }
   authorizedAxios.put.mockResolvedValue(wrap({ id: 'incident', orderId: 'own', status: 1 }))
   await customerIncidentApi.update('incident', { ...fields, customerId: 'attacker', status: 2, orderId: 'other' })
   expect(authorizedAxios.put).toHaveBeenCalledWith('/incident/incident', fields)

@@ -2,6 +2,25 @@ import { expectQuietDismissal } from '../helpers/modalDismissal'
 import { expect, test } from '@playwright/test'
 import { setupAdminOrders, orderId, merchantId, serviceId } from '../helpers/adminOrderSession'
 
+test('Admin payment overview distinguishes recorded fees from unavailable cash and points', async ({ page }) => {
+  const state = await setupAdminOrders(page, { status: 8, merchant: true })
+  Object.assign(state.orders[0], { finalAmount: 240000, overdueFeeTotal: 400000, storageFeeTotal: 100000 })
+  const paymentCalls = []
+  page.on('request', request => {
+    if (request.url().includes('/payment/')) {
+      paymentCalls.push(request.url())
+    }
+  })
+  await page.goto(`/admin/orders/${orderId}`)
+  const panel = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Payment summary', exact: true }) })
+  await expect(panel.getByText('Service amount before points')).toBeVisible({ timeout: 20000 })
+  await expect(panel.getByText('Recorded overdue/storage fees')).toBeVisible()
+  await expect(panel.getByText('Not confirmed', { exact: true })).toHaveCount(2)
+  await expect(panel.getByText('— / —')).toBeVisible()
+  expect(paymentCalls).toEqual([])
+  expect(state.writes).toHaveLength(0)
+})
+
 test('Admin order header omits status descriptions while keeping deadline controls', async ({ page }) => {
   await setupAdminOrders(page, { status: 8, merchant: true })
   await page.goto(`/admin/orders/${orderId}`)

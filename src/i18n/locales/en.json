@@ -61,7 +61,7 @@
     "batchDone": "Bulk action results", "batchSummary": "Changed: {{changed}} · Unchanged: {{unchanged}} · Skipped: {{skipped}} · Failed: {{failed}}", "outcomes": { "Changed": "Changed", "Unchanged": "Unchanged", "Skipped": "Skipped", "Failed": "Failed" },
     "unknown": "The outcome of this operation is not yet known.", "processing": "The operation is still processing. Check again later.", "recoveryHint": "Actions on affected accounts are temporarily locked to prevent duplicate requests. Look up the result before continuing.", "checkOperation": "Check result", "actionUnavailable": "This action is no longer available. Close this window and refresh the list.",
     "currentEmail": "Current email", "sendCode": "Send verification code", "codeSent": "A code was sent to {{email}}. It expires at {{expires}}.", "resend": "Resend code", "resendAfter": "Resend in {{seconds}} seconds", "expiredCode": "The code has expired. Request a new code.", "emailChallengeUnknown": "Email delivery could not be confirmed. Check the inbox and wait until the code expires before requesting another.",
-    "validation": { "required": "Please enter this information.", "name": "Enter a name between 2 and 100 characters.", "email": "Enter a valid email of at most 100 characters.", "phone": "Account phone numbers must contain 10 digits starting with 0. New partner profiles accept 9–11 digits.", "number": "Enter a valid number within the allowed range.", "coordinate": "Invalid coordinates.", "length": "This value exceeds the maximum length.", "reason": "Enter a reason of at most 500 characters.", "confirm": "Confirm that you have reviewed the unfinished orders.", "code": "Enter a six-digit verification code." },
+    "validation": { "required": "Please enter this information.", "name": "Enter a name between 2 and 100 characters.", "email": "Enter a valid email of at most 100 characters.", "phone": "Phone number must contain exactly 10 digits starting with 0.", "number": "Enter a valid number within the allowed range.", "coordinate": "Invalid coordinates.", "length": "This value exceeds the maximum length.", "reason": "Enter a reason of at most 500 characters.", "confirm": "Confirm that you have reviewed the unfinished orders.", "code": "Enter a six-digit verification code." },
     "errors": { "ValidationFailed": "Please check the form fields.", "EmailAlreadyInUse": "This email is already in use.", "PhoneAlreadyInUse": "This phone number is already in use.", "IdentityAlreadyInUse": "The email or Google identity is already used by another account.", "UseEmailChangeFlow": "Use Change email to verify the new address.", "RevisionConflict": "This account has changed. Close this window and reload its information before continuing.", "OperationIdReused": "This request has already been used for different content. Reload the information.", "PermissionRequired": "You do not have permission for this action.", "ManageAdminsRequired": "Managing administrator accounts requires additional permission.", "ReauthenticationRequired": "Please authenticate again using your password.", "CannotModifySelf": "You cannot perform this action on your own account.", "ProtectedAccount": "This account is protected from this action.", "LastPrivilegedAdmin": "At least one active administrator with administrator-management permission must remain.", "AccountAlreadyDeleted": "This account has already been soft deleted.", "AccountNotDeleted": "This account has not been soft deleted.", "AccountHasOpenObligations": "This account has unfinished obligations. Review its details before soft deleting.", "ConfirmationRequired": "Confirm the unfinished orders before locking this account.", "HasActiveTasks": "This shipper still has active tasks.", "PartnerNotActive": "The partner profile is not active. Check the partner management page.", "PartnerProfileDeleted": "The partner profile has been deleted.", "RestoreNotSupportedForPartner": "Restoring partner accounts is not supported here.", "NotAdminAccount": "Only administrators have additional account permissions.", "OtpThrottled": "Please wait before requesting another code.", "EmailDeliveryFailed": "The verification email could not be sent. Try again later.", "TooManyAttempts": "Too many attempts. Try again later.", "WrongPassword": "The confirmation password is incorrect.", "NotFound": "Account not found.", "OpenOrders": "Unfinished orders remain.", "ActiveTasks": "Active tasks remain." },
     "audit": { "Login": "Sign in", "Logout": "Sign out", "Reauthenticate": "Reauthenticate", "Create": "Create account", "Update": "Edit account", "Lock": "Lock account", "Unlock": "Unlock account", "SoftDelete": "Soft delete account", "Restore": "Restore account", "Permissions": "Change permissions", "EmailChange": "Change email", "Success": "Successful", "Succeeded": "Successful", "Failed": "Failed", "Denied": "Denied" }
   },
@@ -113,6 +113,7 @@
     "note": "Time is based on the backend clock; refresh for the latest order state. These are order deadlines, not a VNPay session's 15-minute expiry. Without server time, only supplied dates and flags are shown."
   },
   "loyalty": {
+    "paymentPoints": "Reward points used ({{points}} points)",
     "switchApplied": "Using {{points}} points for this order.",
     "title": "WashGo points",
     "availablePoints": "Available points",
@@ -816,7 +817,7 @@
     "pleaseEnterYourFullName": "Please enter your full name.",
     "pleaseEnterYourPhoneNumber": "Please enter your phone number.",
     "pleaseEnterAValidPhoneNumber": "Please enter a valid phone number.",
-    "phoneNumberMustContainDigits": "Phone number must contain {{PHONE_MIN}}–{{PHONE_MAX}} digits.",
+    "phoneNumberMustContainDigits": "Phone number must contain exactly 10 digits starting with 0.",
     "pleaseConfirmYourPassword": "Please confirm your password.",
     "thePasswordsDoNotMatch": "The passwords do not match.",
     "pleaseEnterTheOtp": "Please enter the OTP.",
@@ -1395,6 +1396,7 @@
         "phone": "Phone number",
         "taxCode": "Tax code",
         "businessLicense": "Business license number / link",
+        "openingSchedule": "Opening hours",
         "openingHours": "Opening hours",
         "address": "Store address",
         "city": "City / Province",
@@ -2567,7 +2569,7 @@
       "uncertain": "The save outcome is unknown. Close this window and check the list before trying again.",
       "invalid": {
         "fullName": "Enter a name, up to 100 characters.",
-        "phone": "Enter a valid phone number with 9–11 digits.",
+        "phone": "Phone number must contain exactly 10 digits starting with 0.",
         "email": "Enter a valid email, up to 100 characters.",
         "vehiclePlate": "Enter a valid vehicle plate (4–20 characters); optional for bicycles.",
         "identityNumber": "Use 9 or 12 digits, or leave blank."
@@ -2680,7 +2682,7 @@
       "submitted": "Profile submitted. Please wait for approval.",
       "hoursPlaceholder": "For example: 07:00 - 22:00 daily",
       "restricted": "Tax code and business license updates are not available here yet. Contact an administrator to add them.",
-      "invalidFields": "Check the business name, address, city / province, phone number (9–11 digits) and opening hours.",
+      "invalidFields": "Check the business name, address, city / province, phone number (10 digits starting with 0) and opening hours.",
       "noChanges": "You have not changed any information.",
       "uncertain": "The submission outcome is unknown. Close this window and refresh your profile to check before submitting again."
     },
@@ -3100,6 +3102,10 @@
       "descriptionRequired": "Please describe the issue.",
       "descriptionMax": "The description must not exceed 2000 characters.",
       "imagesRequired": "Add at least one supporting photo.",
+      "itemValueLabel": "Declared item value (VND)",
+      "itemValuePlaceholder": "Enter the item value, e.g. 250000",
+      "itemValueRequired": "Enter the declared item value.",
+      "itemValueInvalid": "Enter a value from 0 to 100,000,000 VND with up to two decimal places.",
       "imageHelp": "At least 1 photo is required, up to 5 JPG, PNG or WEBP photos, no more than 5MB each.",
       "windowHint": "Submit within 3 days of collecting your items. WashGo checks the deadline and order eligibility when you submit.",
       "deadline": "You can report until {{date}} (within 3 days of collection).",
@@ -3867,7 +3873,7 @@
     "invalidResponse": "Invalid Shipper data. Please reload.",
     "validation": {
       "fullName": "Enter a name of 1–100 characters.",
-      "phone": "Enter a valid phone with 9–11 digits, up to 20 characters.",
+      "phone": "Phone number must contain exactly 10 digits starting with 0.",
       "vehiclePlate": "Plate: up to 20 characters; required and at least 4 characters for motorbikes/cars."
     },
     "taskTypes": {

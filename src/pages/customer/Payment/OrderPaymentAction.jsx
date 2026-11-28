@@ -6,6 +6,7 @@ import useCatalogResource from '~/hooks/useCatalogResource'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { Button } from '~/components/ui/button'
 import { formatCurrency } from '~/utils/format/formats'
+import { orderPaymentAmounts } from './combinedPaymentModel'
 import PaymentSummary from './PaymentSummary'
 const PaymentDialog = lazy(() => import('./PaymentDialog'))
 
@@ -16,20 +17,26 @@ export default function OrderPaymentAction({ order, onUpdated, autoOpen = false,
   const liveRevision = useOrderRealtime(order.id)
   const resource = useCatalogResource(useCallback(signal => customerPaymentApi.getSummary(order.id, 0, signal), [order.id]), `${order.revision}:${liveRevision}`, true)
   const summary = resource.data
+  const amounts = summary ? orderPaymentAmounts(summary) : null
   const close = () => {
-    setOpen(false); onClose?.()
+    setOpen(false); resource.retry(); onClose?.()
   }
   return (
     <div className={compact ? 'min-w-0 space-y-3' : 'space-y-5'}>
       {resource.error || resource.loading && !summary ? <ResourceFeedback {...resource} /> : summary && (
         <>
-          {!compact ? <PaymentSummary summary={summary} /> : (
+          {!compact ? (
+            <PaymentSummary
+              summary={summary}
+              amounts={amounts.pointsToRedeem > 0 ? amounts : undefined}
+            />
+          ) : (
             <>
               <p className="text-sm text-muted-foreground">
                 {t('combined.total')}
               </p>
               <p className="text-lg font-semibold tabular-nums text-primary">
-                {formatCurrency(summary.outstanding)}
+                {formatCurrency(amounts.cashAmount)}
               </p>
             </>
           )}

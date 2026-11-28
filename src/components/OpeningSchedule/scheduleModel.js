@@ -49,3 +49,19 @@ export function validSchedule(value) {
   })
 }
 export const scheduleSchema = yup.mixed().required('schedule.invalid').test('schedule', 'schedule.invalid', validSchedule)
+
+export function equivalentSchedule(left, right) {
+  if (left == null || right == null) {
+    return left == null && right == null
+  }
+  if (!validSchedule(left) || !validSchedule(right)) {
+    return false
+  }
+  const normalize = value => ({
+    timeZone: value.timeZone,
+    alwaysOpen: value.alwaysOpen,
+    weekly: value.weekly.map(day => ({ dayOfWeek: day.dayOfWeek, shifts: day.shifts.map(({ open, close }) => ({ open, close })).sort((a, b) => a.open.localeCompare(b.open)) })).sort((a, b) => a.dayOfWeek - b.dayOfWeek),
+    closedDates: [...new Set(value.closedDates)].sort()
+  })
+  return JSON.stringify(normalize(left)) === JSON.stringify(normalize(right))
+}

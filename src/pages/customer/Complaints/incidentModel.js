@@ -10,6 +10,10 @@ export const incidentListFilter = (params) => {
 }
 
 export const incidentSchema = yup.object({
+  itemValue: yup.number().transform((value, original) => original === '' ? undefined : value)
+    .typeError('customer.incidents.itemValueInvalid').required('customer.incidents.itemValueRequired')
+    .min(0, 'customer.incidents.itemValueInvalid').max(INCIDENT_CONFIG.MAX_ITEM_VALUE, 'customer.incidents.itemValueInvalid')
+    .test('precision', 'customer.incidents.itemValueInvalid', value => value == null || Math.abs(value * 100 - Math.round(value * 100)) < 0.000001),
   type: yup.number().oneOf(INCIDENT_TYPES, 'customer.incidents.chooseType').required('customer.incidents.chooseType'),
   severity: yup.number().oneOf(INCIDENT_SEVERITIES, 'customer.incidents.chooseSeverity').required('customer.incidents.chooseSeverity'),
   description: yup.string().trim().required('customer.incidents.descriptionRequired').max(INCIDENT_CONFIG.DESCRIPTION_MAX, 'customer.incidents.descriptionMax')

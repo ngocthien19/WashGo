@@ -117,6 +117,7 @@ async function setup(page, options = {}) {
     }
     if (path === '/incident' && request.method() === 'POST') {
       const body = request.postDataJSON()
+      expect(body).toHaveProperty('itemValue', expect.any(Number))
       state.incidentCalls.push(body)
       const incident = { ...body, id: `22222222-2222-4222-8222-${String(state.incidentCalls.length).padStart(12, '0')}`, orderCode: state.order.orderCode, createdOn: Math.floor(Date.now() / 1000), status: 1, canEdit: true, compensationStatus: 0, compensationAmount: 0 }
       if (!state.incidentFailure || state.incidentFailure >= 500) {
@@ -451,6 +452,24 @@ test('payment and details stay aligned and the detail payment button fills its s
   const detailBox = await details.boundingBox()
   expect(detailBox.height).toBe(44)
   expect(detailBox.width).toBeLessThan(150)
+})
+
+test('order card and detail show held reward points and net outstanding from an existing payment', async ({ page }) => {
+  const state = await setup(page)
+  Object.assign(state.order, { status: 8, finalAmount: 240000, totalAmount: 240000 })
+  state.paymentSession = { orderId: id, purpose: 4, paymentMethod: 2, amount: 239200, pointsToRedeem: 800, canContinue: false }
+  await page.goto('/orders')
+  const card = page.locator('article').filter({ hasText: initialOrder.orderCode })
+  await expect(card.getByText(/239,200/)).toBeVisible({ timeout: 15000 })
+  await expect(card.getByText(/Reward points used/)).toHaveCount(0)
+  await card.getByRole('button', { name: 'Details', exact: true }).click()
+  const summary = page.getByRole('heading', { name: 'Payment summary', exact: true }).locator('..').locator('..')
+  await expect(summary.getByText('Total outstanding', { exact: true }).locator('..')).toContainText('239,200')
+  await expect(summary.getByText('Reward points used (800 points)', { exact: true }).locator('..')).toContainText(/−.*800/)
+  state.paymentSession = null
+  await page.reload()
+  await expect(summary.getByText('Total outstanding', { exact: true }).locator('..')).toContainText('240,000')
+  await expect(summary.getByText(/Reward points used/)).toHaveCount(0)
 })
 
 test('stored orders have a teal highlight distinct from cancelled orders', async ({ page }) => {
@@ -1021,7 +1040,9 @@ test('customer incident report validates evidence, submits allowed fields and op
   const dialog = page.getByRole('dialog', { name: 'Report an issue', exact: true })
   const submit = dialog.getByRole('button', { name: 'Submit report', exact: true })
   await submit.click()
-  await expect(dialog.getByRole('alert')).toContainText('Please describe the issue')
+  await expect(dialog.getByText('Please describe the issue.', { exact: true })).toBeVisible()
+  await expect(dialog.getByText('Enter the declared item value.', { exact: true })).toBeVisible()
+  await dialog.getByLabel('Declared item value (VND)', { exact: true }).fill('250000')
   await dialog.getByRole('textbox', { name: 'Describe the issue', exact: true }).fill('  My shirt was damaged.  ')
   await submit.click()
   await expect(dialog.getByRole('alert')).toContainText('Add at least one supporting photo')
@@ -1038,7 +1059,7 @@ test('customer incident report validates evidence, submits allowed fields and op
   await expect(page).toHaveURL(/\/complaints\/22222222-/)
   await expect(page.getByRole('heading', { name: 'Complaint details', exact: true })).toBeVisible()
   await expect(page).toHaveTitle(/Complaint details - WG2611061234/)
-  expect(state.incidentCalls).toEqual([{ orderId: id, type: 1, severity: 3, description: 'My shirt was damaged.', imageUrls: ['/uploads/customer-test/rating.png'], videoUrls: [], clientRequestId: expect.any(String) }])
+  expect(state.incidentCalls).toEqual([{ orderId: id, itemValue: 250000, type: 1, severity: 3, description: 'My shirt was damaged.', imageUrls: ['/uploads/customer-test/rating.png'], videoUrls: [], clientRequestId: expect.any(String) }])
   expect(state.uploadCalls).toBe(1)
   await expect(page.getByText('My shirt was damaged.', { exact: true })).toBeVisible()
   await expect(page.getByText('Pending review', { exact: true })).toBeVisible()
@@ -1087,6 +1108,7 @@ test('customer incident submission locks unknown results and preserves uploaded 
   await page.getByRole('button', { name: 'Report an issue', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Report an issue', exact: true })
   await dialog.getByRole('textbox', { name: 'Describe the issue', exact: true }).fill('Lost shirt')
+  await dialog.getByLabel('Declared item value (VND)', { exact: true }).fill('250000')
   await dialog.getByLabel('Add photos', { exact: true }).setInputFiles(incidentPhoto())
   state.incidentFailure = 400
   await dialog.getByRole('button', { name: 'Submit report', exact: true }).click()
@@ -1118,6 +1140,7 @@ test('customer incident modal supports mobile, languages and expiration without 
   await expect(dialog.getByRole('button', { name: 'Submit report', exact: true })).toBeInViewport()
   await expect(dialog.getByRole('heading', { name: 'Report an issue', exact: true })).toBeInViewport()
   await dialog.getByRole('textbox', { name: 'Describe the issue', exact: true }).fill('a'.repeat(2000))
+  await dialog.getByLabel('Declared item value (VND)', { exact: true }).fill('0')
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
   state.order = { ...completedForIncident(), timeline: [{ status: 12, timestamp: Math.floor(Date.now() / 1000) - 4 * 86400 }] }
@@ -1255,9 +1278,11 @@ test('pending complaint keeps evidence while editing, sends video messages, and 
   await page.getByRole('button', { name: 'Edit complaint', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Edit complaint', exact: true })
   await dialog.getByLabel('Describe the issue', { exact: true }).fill('Updated damaged shirt description')
+  await dialog.getByLabel('Declared item value (VND)', { exact: true }).fill('300000')
   await dialog.getByRole('button', { name: 'Save changes' }).click()
   await expect(dialog).toHaveCount(0)
   expect(state.incidents[0].imageUrls).toEqual(['/uploads/customer-test/rating.png'])
+  expect(state.incidents[0].itemValue).toBe(300000)
   const message = page.getByLabel('Message', { exact: true })
   await message.fill('Please check the video evidence')
   await page.locator('input[type="file"][accept*=".mp4"]').setInputFiles({ name: 'evidence.mp4', mimeType: 'video/mp4', buffer: Buffer.from('video fixture') })
@@ -1417,6 +1442,7 @@ test('server complaint eligibility remains authoritative when the device clock i
   await page.getByRole('button', { name: 'Report an issue', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('textbox', { name: 'Describe the issue', exact: true }).fill('Damaged shirt with a valid server deadline')
+  await dialog.getByLabel('Declared item value (VND)', { exact: true }).fill('250000')
   await dialog.getByLabel('Add photos', { exact: true }).setInputFiles(incidentPhoto())
   await dialog.getByRole('button', { name: 'Submit report', exact: true }).click()
   await expect.poll(() => state.incidentCalls.length).toBe(1)

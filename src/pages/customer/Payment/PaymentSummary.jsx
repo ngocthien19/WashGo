@@ -1,8 +1,14 @@
 import { useTranslation } from 'react-i18next'
 import { formatCurrency, formatNumber } from '~/utils/format/formats'
+import PointsRedemptionRow from './PointsRedemptionRow'
+import { checkoutAmounts } from './combinedPaymentModel'
 
-export default function PaymentSummary({ summary }) {
+export default function PaymentSummary({ summary, checkout = false, amounts }) {
   const { t } = useTranslation()
+  const displayedAmounts = amounts || (checkout ? checkoutAmounts(summary) : null)
+  const { pointsToRedeem: points, cashAmount } = displayedAmounts || {}
+  const paid = summary.obligations.reduce((total, row) => total + row.paid, 0)
+  const due = Math.max(0, summary.obligations.reduce((total, row) => total + row.due, 0) - (points || 0))
   return (
     <div className="min-w-0 space-y-4">
       <dl className="space-y-3">
@@ -17,26 +23,24 @@ export default function PaymentSummary({ summary }) {
             <dd className="font-semibold tabular-nums">
               {formatCurrency(row.outstanding)}
             </dd>
-            <dd className="w-full text-xs text-muted-foreground">
-              {t('combined.paid')}
-              :
-              {' '}
-              <span className="font-semibold tabular-nums text-foreground">
-                {formatCurrency(row.paid)}
-                {' '}
-                /
-                {' '}
-                {formatCurrency(row.due)}
-              </span>
-            </dd>
           </div>
         ))}
-        <div className="flex items-baseline justify-between gap-3 rounded-xl border border-primary/15 bg-primary/5 p-3 font-semibold">
+        {displayedAmounts && <PointsRedemptionRow points={points} />}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2 rounded-xl border border-primary/15 bg-primary/5 p-3 font-semibold">
           <dt className="min-w-0 text-sm">
             {t('combined.total')}
           </dt>
           <dd className="shrink-0 text-xl tabular-nums text-primary">
-            {formatCurrency(summary.outstanding)}
+            {formatCurrency(displayedAmounts ? cashAmount : summary.outstanding)}
+          </dd>
+          <dd className="w-full text-sm font-normal text-muted-foreground">
+            {t('combined.paid')}
+            {': '}
+            <span className="font-semibold tabular-nums text-foreground">
+              {formatCurrency(paid)}
+              {' / '}
+              {formatCurrency(due)}
+            </span>
           </dd>
         </div>
       </dl>

@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/compone
 import { Button } from '~/components/ui/button'
 import { SelectField } from '~/components/ui/select'
 import FormError from '~/components/ui/FormError'
+import { Input } from '~/components/ui/input'
 import CustomerImagePicker from '~/components/customer/CustomerImagePicker'
 import useCustomerImages from '~/hooks/customer/useCustomerImages'
 import { customerIncidentApi } from '~/apis/customer/customerIncidentApi'
@@ -33,7 +34,7 @@ export default function IncidentReportDialog({ order, onClose, eligibility, init
   const deadline = !initialIncident && eligibility?.reportDeadline ? Date.parse(eligibility.reportDeadline) : null
   // Eligibility is authoritative; a misconfigured device clock must not reject a valid report.
   const expired = !initialIncident && eligibility?.canReport === false
-  const { control, register, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(incidentSchema), defaultValues: { type: initialIncident?.type || 1, severity: initialIncident?.severity || 1, description: initialIncident?.description || '' } })
+  const { control, register, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(incidentSchema), defaultValues: { itemValue: initialIncident?.declaredItemValue ?? initialIncident?.itemValue ?? '', type: initialIncident?.type || 1, severity: initialIncident?.severity || 1, description: initialIncident?.description || '' } })
   const description = useWatch({ control, name: 'description' })
   const submit = async (values) => {
     if (lock.current || uncertain) {
@@ -54,7 +55,7 @@ export default function IncidentReportDialog({ order, onClose, eligibility, init
     try {
       if (initialIncident) {
         const fresh = await customerIncidentApi.get(initialIncident.id)
-        if (!fresh.canEdit || JSON.stringify([fresh.type, fresh.severity, fresh.description, fresh.imageUrls, fresh.videoUrls]) !== JSON.stringify([initialIncident.type, initialIncident.severity, initialIncident.description, initialIncident.imageUrls, initialIncident.videoUrls])) {
+        if (!fresh.canEdit || JSON.stringify([fresh.declaredItemValue ?? fresh.itemValue, fresh.type, fresh.severity, fresh.description, fresh.imageUrls, fresh.videoUrls]) !== JSON.stringify([initialIncident.declaredItemValue ?? initialIncident.itemValue, initialIncident.type, initialIncident.severity, initialIncident.description, initialIncident.imageUrls, initialIncident.videoUrls])) {
           throw new Error('customer.sync.incidentChanged')
         }
       } else {
@@ -139,12 +140,19 @@ export default function IncidentReportDialog({ order, onClose, eligibility, init
                       className="text-sm font-semibold"
                     >
                       {t(`customer.incidents.${name}`)}
+                      <span
+                        aria-hidden="true"
+                        className="ml-1 text-destructive"
+                      >
+                        *
+                      </span>
                     </label>
                     <Controller
                       name={name}
                       control={control}
                       render={({ field }) => (
                         <SelectField
+                          aria-required="true"
                           aria-invalid={!!errors[name]}
                           aria-describedby={errors[name] ? `incidentreportdialog-${name}-error` : undefined}
                           id={`incident-${name}`}
@@ -167,12 +175,53 @@ export default function IncidentReportDialog({ order, onClose, eligibility, init
               </div>
               <div className="space-y-2">
                 <label
+                  htmlFor="incident-item-value"
+                  className="text-sm font-semibold"
+                >
+                  {t('customer.incidents.itemValueLabel')}
+                  <span
+                    aria-hidden="true"
+                    className="ml-1 text-destructive"
+                  >
+                    *
+                  </span>
+                </label>
+                <Input
+                  id="incident-item-value"
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  max={INCIDENT_CONFIG.MAX_ITEM_VALUE}
+                  step="0.01"
+                  {...register('itemValue')}
+                  placeholder={t('customer.incidents.itemValuePlaceholder')}
+                  aria-required="true"
+                  aria-invalid={!!errors.itemValue}
+                  aria-describedby={errors.itemValue ? 'incident-item-value-error' : undefined}
+                  className="h-12 rounded-xl text-base"
+                />
+                <FormError
+                  id="incident-item-value-error"
+                  inline
+                >
+                  {errors.itemValue?.message}
+                </FormError>
+              </div>
+              <div className="space-y-2">
+                <label
                   htmlFor="incident-description"
                   className="text-sm font-semibold"
                 >
                   {t('customer.incidents.descriptionLabel')}
+                  <span
+                    aria-hidden="true"
+                    className="ml-1 text-destructive"
+                  >
+                    *
+                  </span>
                 </label>
                 <textarea
+                  aria-required="true"
                   aria-describedby={errors['description'] ? `incidentreportdialog-${'description'}-error` : undefined}
                   id="incident-description"
                   {...register('description')}
@@ -196,6 +245,7 @@ export default function IncidentReportDialog({ order, onClose, eligibility, init
                 </FormError>
               </div>
               <CustomerImagePicker
+                required
                 selection={selection}
                 disabled={busy || uncertain || expired}
                 help={t('customer.incidents.imageHelp')}

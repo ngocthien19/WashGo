@@ -196,7 +196,7 @@ export default function OrdersPage() {
                       key={key}
                       className={`${headerBg} ${key === 'locker' ? 'min-w-[340px]' : key === 'actions' ? 'sticky right-0 z-20 w-24 border-l border-border text-center' : ''}`}
                     >
-                      {t(key === 'commissionRate' ? 'merchant.orderView.commissionRate' : `merchant.orders.${key}`)}
+                      {t(key === 'total' ? 'orderPaymentOverview.serviceValue' : key === 'commissionRate' ? 'merchant.orderView.commissionRate' : `merchant.orders.${key}`)}
                     </TableHead>
                   ))}
                 </TableRow>

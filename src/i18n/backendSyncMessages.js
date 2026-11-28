@@ -1,4 +1,10 @@
 export const vi = {
+  orderPaymentOverview: {
+    title: 'Tóm tắt thanh toán', serviceValue: 'Tiền dịch vụ trước điểm thưởng',
+    recordedStorageFee: 'Phí quá hạn/lưu giữ đã ghi nhận', storagePaid: 'Phí quá hạn/lưu giữ đã thanh toán',
+    cancellationFee: 'Phí hủy', cancellationPaid: 'Phí hủy đã thanh toán', points: 'Điểm thưởng sử dụng', unknown: 'Chưa xác định',
+    incomplete: 'Chưa có bảng kê điểm thưởng và tiền mặt đầy đủ cho đơn này. Giá trị dịch vụ chưa phải tổng tiền còn phải thanh toán; phí lưu giữ có thể tiếp tục phát sinh.'
+  },
   receiptUi: { rate: 'Đánh giá', report: 'Báo cáo' },
   paymentResultDetails: { orderCode: 'Mã đơn hàng', amount: 'Số tiền giao dịch' },
   combined: {
@@ -8,6 +14,7 @@ export const vi = {
     settled: 'Đã thanh toán đủ các khoản hiện tại.', notDue: 'Chưa có khoản cần thanh toán tại thời điểm này.',
     paymentHint: 'Thanh toán một lần cho các khoản còn thiếu của đơn hàng.',
     existing: 'Tiếp tục phiên thanh toán hiện tại',
+    pendingSession: 'Phiên thanh toán hiện tại',
     unavailable: 'Chưa thể mở thanh toán lúc này. Vui lòng quay lại sau.',
     continue: 'Tiếp tục thanh toán', confirmAgain: 'Xác nhận lại và thanh toán', quoteChanged: 'Bảng kê đã thay đổi. Vui lòng kiểm tra số tiền mới và xác nhận lại.'
   },
@@ -18,6 +25,7 @@ export const vi = {
     paymentFirst: 'Cần thanh toán đủ tiền dịch vụ và phí lưu giữ trước khi xác nhận giao lại.', payService: 'Thanh toán tiền dịch vụ'
   },
   schedule: {
+    snapshotMissing: 'Yêu cầu cũ chưa lưu lịch mở cửa tại thời điểm gửi.',
     title: 'Giờ mở cửa', hint: 'Giờ Việt Nam (Asia/Ho_Chi_Minh). Hạn thu gom chỉ tính trong các ca mở cửa. Tối đa 4 ca/ngày; giờ kết thúc có thể là 24:00.',
     simpleHint: 'Giờ Việt Nam (Asia/Ho_Chi_Minh). Giờ kết thúc có thể là 24:00.',
     everyday: 'Áp dụng hằng ngày. Mở lịch riêng nếu có ngày nghỉ hoặc giờ khác.',
@@ -46,6 +54,12 @@ export const vi = {
   }
 }
 export const en = {
+  orderPaymentOverview: {
+    title: 'Payment summary', serviceValue: 'Service amount before points',
+    recordedStorageFee: 'Recorded overdue/storage fees', storagePaid: 'Overdue/storage fees paid',
+    cancellationFee: 'Cancellation fee', cancellationPaid: 'Cancellation fee paid', points: 'Points used', unknown: 'Not confirmed',
+    incomplete: 'A complete points and cash breakdown is not yet available for this order. The service amount is not the total outstanding balance; storage fees may continue to accrue.'
+  },
   receiptUi: { rate: 'Rate', report: 'Report' },
   paymentResultDetails: { orderCode: 'Order code', amount: 'Transaction amount' },
   combined: {
@@ -55,6 +69,7 @@ export const en = {
     settled: 'All current charges are settled.', notDue: 'No charges are currently payable.',
     paymentHint: 'Pay all outstanding order charges in one payment.',
     existing: 'Continue the current payment',
+    pendingSession: 'Current payment session',
     unavailable: 'Payment cannot be opened right now. Please return later.',
     continue: 'Continue payment', confirmAgain: 'Confirm updated payment', quoteChanged: 'The charges have changed. Review the updated amount and confirm again.'
   },
@@ -65,6 +80,7 @@ export const en = {
     paymentFirst: 'Pay the service amount and storage fees in full before confirming redelivery.', payService: 'Pay service amount'
   },
   schedule: {
+    snapshotMissing: 'This older request did not capture the opening schedule at submission.',
     title: 'Opening hours', hint: 'Vietnam time (Asia/Ho_Chi_Minh). Collection deadlines count working shifts only. Up to 4 shifts per day; closing time may be 24:00.',
     simpleHint: 'Vietnam time (Asia/Ho_Chi_Minh). Closing time can be 24:00.',
     everyday: 'Applies every day. Use a custom schedule for days off or different hours.',

@@ -6,6 +6,27 @@ import { merchantSession } from '../helpers/merchantSession'
 const id = '11111111-1111-4111-8111-111111111111'
 const shipperId = '22222222-2222-4222-8222-222222222222'
 
+test('Merchant payment overview distinguishes recorded fees from unavailable cash and points', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  const state = await setup(page, { status: 8 })
+  Object.assign(state.order, { finalAmount: 240000, overdueFeeTotal: 400000, storageFeeTotal: 100000 })
+  const paymentCalls = []
+  page.on('request', request => {
+    if (request.url().includes('/payment/')) {
+      paymentCalls.push(request.url())
+    }
+  })
+  await page.goto(`/merchant/orders/${id}`)
+  const panel = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Payment summary', exact: true }) })
+  await expect(panel.getByText('Service amount before points')).toBeVisible({ timeout: 20000 })
+  await expect(panel.getByText('Overdue/storage fees paid')).toBeVisible()
+  await expect(panel.getByText('Not confirmed', { exact: true })).toHaveCount(2)
+  await expect(panel.getByText('— / —')).toBeVisible()
+  expect(await panel.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true)
+  expect(paymentCalls).toEqual([])
+  expect(state.writes).toHaveLength(0)
+})
+
 test('dispatch accepts a busy queue below the limit and refreshes a capacity race without retry', async ({ page }) => {
   const state = await setup(page, { status: 18, paymentStatus: 2 })
   state.candidates = [

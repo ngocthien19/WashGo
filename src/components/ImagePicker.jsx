@@ -8,7 +8,7 @@ import FormError from '~/components/ui/FormError'
 import { IMAGE_UPLOAD } from '~/utils/config/constants'
 import { cn } from '~/lib/utils'
 
-export default function ImagePicker({ selection, disabled, help, title }) {
+export default function ImagePicker({ selection, disabled, help, title, required = false }) {
   const { t } = useTranslation()
   const input = useRef(null)
   const RemoveIcon = title ? X : Trash2
@@ -57,6 +57,14 @@ export default function ImagePicker({ selection, disabled, help, title }) {
         >
           <ImagePlus size={16} />
           {t('customer.imageUpload.add')}
+          {required && (
+            <span
+              aria-hidden="true"
+              className="text-destructive"
+            >
+              *
+            </span>
+          )}
         </Button>
         <span className="text-xs font-semibold tabular-nums text-muted-foreground">
           {selection.images.length}
@@ -75,6 +83,7 @@ export default function ImagePicker({ selection, disabled, help, title }) {
         tabIndex={-1}
         disabled={disabled}
         aria-label={t('customer.imageUpload.add')}
+        aria-required={required || undefined}
         onChange={(event) => {
           const files = Array.from(event.target.files || [])
           event.target.value = ''

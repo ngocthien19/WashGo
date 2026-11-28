@@ -312,7 +312,7 @@ export default function OrdersPage() {
                       key={key}
                       className={`${headerBg} py-4 ${key === 'locker' ? 'min-w-[340px]' : key === 'merchant' ? 'min-w-[250px]' : key === 'customer' ? 'min-w-[220px]' : ''}`}
                     >
-                      {t(key === 'commissionRate' ? 'merchant.sync.commissionRate' : `admin.orderManagement.columns.${key}`)}
+                      {t(key === 'amount' ? 'orderPaymentOverview.serviceValue' : key === 'commissionRate' ? 'merchant.sync.commissionRate' : `admin.orderManagement.columns.${key}`)}
                     </TableHead>
                   ))}
                   <TableHead className={`${headerBg} sticky right-0 z-20 w-24 border-l border-border text-center`}>
