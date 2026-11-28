@@ -63,6 +63,9 @@ async function setup(page, options = {}) {
     if (path === '/merchant-profile') {
       return state.profileError ? fail() : data({ version: 'profile-version-1', id: 'merchant-test', businessName: 'WashGo Ben Thanh', address: '123 Test Street', city: 'Ho Chi Minh City', phone: '0901234567', email: 'shop@example.test', openingHours: '08:00–20:00', openingSchedule: { timeZone: 'Asia/Ho_Chi_Minh', alwaysOpen: false, weekly: [{ dayOfWeek: 1, shifts: [{ open: '08:00', close: '20:00' }] }], closedDates: [] }, rating: 4.8, totalOrders: 28, status: 1, contractStartDate: '2023-03-15T00:00:00Z', pendingRequest: state.submitted, ...options.profile })
     }
+    if (path === `/merchant-profile-request/${orderId}`) {
+      return data(state.submitted)
+    }
     if (path === '/merchant-reports/lifetime') {
       return data(options.lifetime || { currency: 'VND', grossLaundryRevenue: 9000000, refunds: 1000000, netRevenue: 8000000, commission: 1600000, merchantPayout: 6400000, feesCollected: 10000, paidOrderCount: 10, commissionComplete: true, ordersWithoutCommissionSnapshot: 0, uncoveredNetAmount: 0, generatedAt: '2026-11-10T01:00:00Z' })
     }
@@ -97,7 +100,9 @@ async function setup(page, options = {}) {
       if (state.updateError) {
         return fail()
       }
-      state.submitted = { id: orderId, status: 1, proposed: body }
+      state.submitted = { id: orderId, merchantId: 'merchant-test', merchantName: 'WashGo Ben Thanh', status: 1,
+        current: { businessName: 'WashGo Ben Thanh', address: '123 Test Street', city: 'Ho Chi Minh City', phone: '0901234567', openingHours: '08:00–20:00', imageUrls: [] },
+        proposed: body, changedFields: ['businessName', 'openingHours', 'imageUrls'] }
       return data(state.submitted)
     }
     if (path === '/merchant/dashboard') {
@@ -322,6 +327,16 @@ test('profile edit uploads photos and submits a pending request without replacin
   await expect(page.locator('main').getByText('Updated store name', { exact: true })).toHaveCount(0)
   expect(state.submitted.proposed.businessName).toBe('Updated store name')
   expect(state.submitted.proposed.imageUrls).toEqual(['/uploads/mock/store.png'])
+  expect(state.updates).toBe(1)
+  const profileReads = state.calls.filter(path => path === '/merchant-profile').length
+  await page.getByRole('button', { name: 'View submitted changes', exact: true }).click()
+  const submitted = page.getByRole('dialog', { name: 'Profile update request', exact: true })
+  await expect(submitted.getByText('Updated store name', { exact: true })).toBeVisible()
+  await expect(submitted.getByRole('columnheader', { name: 'Proposed changes', exact: true })).toBeVisible()
+  await expect(submitted.getByRole('button', { name: /Approve|Reject|Submit for approval/ })).toHaveCount(0)
+  await submitted.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await expect(submitted).toHaveCount(0)
+  expect(state.calls.filter(path => path === '/merchant-profile')).toHaveLength(profileReads)
   expect(state.updates).toBe(1)
   await page.reload()
   await expect(page.getByRole('button', { name: 'Edit store profile', exact: true })).toBeDisabled()

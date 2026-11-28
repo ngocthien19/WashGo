@@ -58,15 +58,25 @@ export function merchantPayload(values, original, imageUrls) {
 }
 export const merchantSnapshot = (value) => JSON.stringify([value.version, merchantDefaults(value), value.status, value.imageUrls || [], [...(value.serviceAreaIds || [])].sort()])
 export const requestSnapshot = (value) => JSON.stringify([value.version, value.id, value.status, value.current, value.proposed, value.changedFields])
-export const profileStillCurrent = (current, value) => ['businessName', 'address', 'phone', 'city', 'latitude', 'longitude', 'openingHours', 'openingSchedule', 'imageUrls', ...(current.documentsSnapshotIncluded ? ['taxCode', 'businessLicenseDocumentId'] : [])].every((key) => {
-  if (current[key] == null && ['city', 'latitude', 'longitude'].includes(key)) {
-    return true
+export const profileStillCurrent = (current, value) => {
+  if (current.baseMerchantVersion && value.version) {
+    return current.baseMerchantVersion === value.version
   }
-  if (key === 'openingHours') {
-    return displayJsonText(current[key]) === displayJsonText(value[key])
-  }
-  return JSON.stringify(current[key] ?? '') === JSON.stringify(value[key] ?? '')
-})
+  return ['businessName', 'address', 'phone', 'city', 'latitude', 'longitude', 'openingHours', 'openingSchedule', 'imageUrls', ...(current.documentsSnapshotIncluded ? ['taxCode', 'businessLicenseDocumentId'] : [])].every((key) => {
+    if (current[key] == null && ['city', 'latitude', 'longitude'].includes(key)) {
+      return true
+    }
+    // Older snapshots did not capture the structured schedule. The server still
+    // validates the merchant version and current profile atomically on approval.
+    if (key === 'openingSchedule' && current[key] == null) {
+      return true
+    }
+    if (key === 'openingHours') {
+      return displayJsonText(current[key]) === displayJsonText(value[key])
+    }
+    return JSON.stringify(current[key] ?? '') === JSON.stringify(value[key] ?? '')
+  })
+}
 export function readMerchantQuery(params) {
   const page = Number(params.get('page'))
   return { tab: params.get('tab') === 'requests' ? 'requests' : 'merchants', page: Number.isSafeInteger(page) && page > 0 ? page : 1, keyword: (params.get('keyword') || '').trim().slice(0, 200), state: ['1', '2', '3'].includes(params.get('state')) ? params.get('state') : '', city: (params.get('city') || '').trim().slice(0, 100), district: '', merchantId: isId(params.get('merchantId')) ? params.get('merchantId') : '' }

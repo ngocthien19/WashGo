@@ -26,6 +26,8 @@ export default function OrdersPage() {
   const liveRevision = useOrderRealtime()
   const resource = useCatalogResource(load, liveRevision, true)
   const { data, loading, error, retry } = resource
+  const initialLoading = loading && !data
+  const hasResults = Boolean(data) && !error
   const estimates = useOrderEstimates(data?.list)
   const setQuery = (patch) => setParams(writeOrdersQuery({ ...query, ...patch, page: patch.page || 1 }))
   useEffect(() => {
@@ -96,7 +98,7 @@ export default function OrdersPage() {
             <Button
               variant="outline"
               className="h-11"
-              disabled={loading}
+              disabled={initialLoading}
               onClick={retry}
             >
               <RefreshCw size={16} />
@@ -111,9 +113,9 @@ export default function OrdersPage() {
         >
           <CatalogResultSummary
             icon={ClipboardList}
-            count={!loading && !error ? data?.total || 0 : undefined}
-            title={t(loading ? 'customer.orders.loading' : error ? 'common.myOrders' : 'customer.orders.foundLabel', { count: data?.total || 0 })}
-            range={!loading && !error && data?.list.length ? t('customer.showing', { firstResult, lastResult: firstResult + data.list.length - 1, total: data.total }) : undefined}
+            count={hasResults ? data.total : undefined}
+            title={t(initialLoading ? 'customer.orders.loading' : error ? 'common.myOrders' : 'customer.orders.foundLabel', { count: data?.total || 0 })}
+            range={hasResults && data.list.length ? t('customer.showing', { firstResult, lastResult: firstResult + data.list.length - 1, total: data.total }) : undefined}
             sortControl={(
               <SelectField
                 label={t('customer.orders.sort')}
@@ -143,7 +145,7 @@ export default function OrdersPage() {
               estimate={estimates[order.id]}
             />
           ))}
-          {!loading && !error && data?.totalPages > 0 && (
+          {hasResults && data.totalPages > 0 && (
             <Pagination
               currentPage={data.currentPage}
               totalPages={data.totalPages}

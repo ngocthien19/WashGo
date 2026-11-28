@@ -8,6 +8,7 @@ import { Button } from '~/components/ui/button'
 import AnimatedNumber from '~/components/motion/AnimatedNumber'
 import { displayOpeningHours, formatJoinedDate } from './profileModel'
 import EditProfileDialog from './components/EditProfileDialog'
+import PendingProfileRequestDialog from './components/PendingProfileRequestDialog'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
 import { formatCurrency } from '~/utils/format/formats'
 import useCatalogResource from '~/hooks/useCatalogResource'
@@ -20,6 +21,7 @@ const fieldIcons = { businessName: Store, taxCode: Hash, address: MapPin, city: 
 export default function ProfilePage() {
   const { profile } = useOutletContext()
   const [editing, setEditing] = useState(false)
+  const [viewingRequest, setViewingRequest] = useState(false)
   const [revision, setRevision] = useState(0)
   const lifetime = useCatalogResource(merchantInsightsApi.lifetime, revision)
   const { t, i18n } = useTranslation()
@@ -65,9 +67,18 @@ export default function ProfilePage() {
       {shop?.pendingRequest && (
         <div
           role="status"
-          className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-base text-amber-800 dark:text-amber-200"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-base text-amber-800 dark:text-amber-200"
         >
-          {t('merchant.shop.pending')}
+          <p className="min-w-0 flex-1">
+            {t('merchant.shop.pending')}
+          </p>
+          <Button
+            variant="outline"
+            className="h-11 shrink-0 border-amber-500/40 bg-amber-500/5 text-base text-amber-800 hover:bg-amber-500/15 dark:text-amber-200"
+            onClick={() => setViewingRequest(true)}
+          >
+            {t('merchant.shop.viewUpdate')}
+          </Button>
         </div>
       )}
       {!shop || profile.loading || profile.error ? (
@@ -248,6 +259,13 @@ export default function ProfilePage() {
             )}
           </section>
         </div>
+      )}
+      {viewingRequest && shop?.pendingRequest?.id && (
+        <PendingProfileRequestDialog
+          id={shop.pendingRequest.id}
+          merchantId={shop.id}
+          onClose={() => setViewingRequest(false)}
+        />
       )}
       {editing && (
         <EditProfileDialog
