@@ -6,7 +6,7 @@ import { FcGoogle } from 'react-icons/fc'
 import { Button } from '~/components/ui/button'
 import FormError from '~/components/ui/FormError'
 import { authApi } from '~/apis/auth/authApi'
-import { GOOGLE_SIGN_IN, THEME_MODES } from '~/utils/config/constants'
+import { DEFAULT_LANGUAGE, GOOGLE_SIGN_IN, THEME_MODES } from '~/utils/config/constants'
 import { loadGoogleIdentity, subscribeGoogleCredential } from '~/utils/auth/googleIdentity'
 import { getApiError } from '~/utils/http/apiError'
 import { useTheme } from '~/hooks/useTheme'
@@ -21,7 +21,8 @@ export default function GoogleSignInButton({ onSuccess, onError }) {
   const [renderedTheme, setRenderedTheme] = useState(null)
   const { theme } = useTheme()
   const configured = !!GOOGLE_SIGN_IN.CLIENT_ID
-  const ready = renderedTheme === `${theme}:${i18n.resolvedLanguage}`
+  const locale = i18n.resolvedLanguage || i18n.language || DEFAULT_LANGUAGE
+  const ready = renderedTheme === `${theme}:${locale}`
 
   const handleCredential = useCallback(async ({ credential }) => {
     if (pendingRef.current) {
@@ -56,7 +57,7 @@ export default function GoogleSignInButton({ onSuccess, onError }) {
     let observer
     const container = containerRef.current
 
-    loadGoogleIdentity().then((googleIdentity) => {
+    loadGoogleIdentity(locale).then((googleIdentity) => {
       if (!active) {
         return
       }
@@ -76,10 +77,10 @@ export default function GoogleSignInButton({ onSuccess, onError }) {
           size: 'medium',
           text: 'signin_with',
           shape: 'rectangular',
-          locale: i18n.resolvedLanguage,
+          locale,
           width
         })
-        setRenderedTheme(`${theme}:${i18n.resolvedLanguage}`)
+        setRenderedTheme(`${theme}:${locale}`)
       }
       render()
       observer = new ResizeObserver(render)
@@ -96,7 +97,7 @@ export default function GoogleSignInButton({ onSuccess, onError }) {
       observer?.disconnect()
       container.replaceChildren()
     }
-  }, [configured, theme, handleCredential, retry, i18n.resolvedLanguage])
+  }, [configured, theme, handleCredential, retry, locale])
 
   return (
     <div className="mt-6">

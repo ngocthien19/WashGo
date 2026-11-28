@@ -1,27 +1,47 @@
-import { GOOGLE_SIGN_IN } from '~/utils/config/constants'
+import { DEFAULT_LANGUAGE, GOOGLE_SIGN_IN } from '~/utils/config/constants'
 
 let sdkPromise = null
 let initializedClientId = null
 let credentialHandler = null
+let sdkLocale = null
+let sdkScript = null
+let loading = false
+let requestedLocale = null
 
-export const loadGoogleIdentity = () => {
-  if (window.google?.accounts?.id) {
-    return Promise.resolve(window.google.accounts.id)
-  }
-  if (sdkPromise) {
+export const loadGoogleIdentity = (language = DEFAULT_LANGUAGE) => {
+  const locale = language.toLowerCase().startsWith('en') ? 'en' : 'vi'
+  requestedLocale = locale
+  if (sdkPromise && sdkLocale === locale) {
     return sdkPromise
   }
+  // Finish the current load before replacing the SDK language. Concurrent
+  // locale scripts can otherwise overwrite each other's global Google API.
+  if (loading) {
+    return sdkPromise.catch(() => {}).then(() => loadGoogleIdentity(requestedLocale))
+  }
+
+  sdkScript?.remove()
+  sdkLocale = locale
+  initializedClientId = null
+  loading = true
 
   sdkPromise = new Promise((resolve, reject) => {
     const script = document.createElement('script')
+    sdkScript = script
     const fail = () => {
       clearTimeout(timer)
+      script.onload = null
+      script.onerror = null
       script.remove()
       sdkPromise = null
+      sdkLocale = null
+      loading = false
       reject(new Error('common.unableToConnectToGooglePleaseTryAgainOr'))
     }
     const timer = setTimeout(fail, GOOGLE_SIGN_IN.LOAD_TIMEOUT_MS)
-    script.src = GOOGLE_SIGN_IN.SCRIPT_URL
+    const url = new URL(GOOGLE_SIGN_IN.SCRIPT_URL)
+    url.searchParams.set('hl', locale)
+    script.src = url.toString()
     script.async = true
     script.defer = true
     script.onerror = fail
@@ -31,6 +51,7 @@ export const loadGoogleIdentity = () => {
         return
       }
       clearTimeout(timer)
+      loading = false
       resolve(window.google.accounts.id)
     }
     document.head.appendChild(script)
