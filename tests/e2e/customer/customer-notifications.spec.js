@@ -11,11 +11,12 @@ test('customer can search safe order notification content and totals without raw
   await expect(page.getByRole('option')).toHaveCount(1)
   await input.press('Escape')
   await input.press('Enter')
+  await expect(page).toHaveURL(/keyword=STORAGE\+FEES/)
   await expect(page.getByRole('status').filter({ hasText: '1 notification found' })).toBeVisible()
   await expect(page.getByRole('main')).toContainText('storage fees')
   await expect(page.getByRole('main')).toContainText('WG2611241234')
   await expect(page.getByRole('main').getByRole('heading', { name: 'Storage update', exact: true })).not.toContainText('WG2611241234')
-  expect(state.filters.at(-1).keyword).toBe('storage fees')
+  await expect.poll(() => state.filters.at(-1)?.keyword).toBe('STORAGE FEES')
   expect(state.writes).toHaveLength(0)
 })
 
