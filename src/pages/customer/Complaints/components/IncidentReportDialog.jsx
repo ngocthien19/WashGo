@@ -194,6 +194,7 @@ export default function IncidentReportDialog({ order, onClose, eligibility, init
                   max={INCIDENT_CONFIG.MAX_ITEM_VALUE}
                   step="0.01"
                   {...register('itemValue')}
+                  aria-label={t('customer.incidents.itemValueLabel')}
                   placeholder={t('customer.incidents.itemValuePlaceholder')}
                   aria-required="true"
                   aria-invalid={!!errors.itemValue}
@@ -221,6 +222,7 @@ export default function IncidentReportDialog({ order, onClose, eligibility, init
                   </span>
                 </label>
                 <textarea
+                  aria-label={t('customer.incidents.descriptionLabel')}
                   aria-required="true"
                   aria-describedby={errors['description'] ? `incidentreportdialog-${'description'}-error` : undefined}
                   id="incident-description"
