@@ -227,6 +227,7 @@ test('stale edit data is rejected before any write', async ({ page }) => {
 })
 test('profile requests show snapshots and approve with the current Merchant guarded', async ({ page }) => {
   const state = await setup(page)
+  state.requests[0].current.openingSchedule = null
   await page.goto(`/admin/merchants?tab=requests&request=${requestId}`)
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByText('Updated Ben Thanh Laundry', { exact: true })).toBeVisible()
@@ -245,9 +246,7 @@ test('approval cannot overwrite a changed profile and rejection requires a reaso
   await dialog.getByRole('button', { name: 'Approve', exact: true }).click()
   await expect(dialog.getByRole('alert')).toContainText('differs from the submitted snapshot')
   expect(state.writes).toHaveLength(0)
-  await dialog.getByText('Close', { exact: true }).click()
-  await menu(page, 'View details')
-  dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('button', { name: 'Approve', exact: true })).toBeDisabled()
   await dialog.getByRole('button', { name: 'Reject', exact: true }).click()
   await expect(dialog.getByRole('button', { name: 'Confirm rejection', exact: true })).toBeDisabled()
   await dialog.getByRole('textbox').fill('Please resubmit against the current profile')

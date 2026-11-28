@@ -35,6 +35,17 @@ it('detects current profile changes that approval would otherwise overwrite', ()
   expect(profileStillCurrent(current, { ...row, address: 'Changed address' })).toBe(false)
   expect(merchantSnapshot(row)).not.toBe(merchantSnapshot({ ...row, maxCapacity: 100 }))
 })
+it('uses the merchant snapshot version without false schedule conflicts and rejects stale versions', () => {
+  const current = { ...row, openingSchedule: null, baseMerchantVersion: 'merchant-v1' }
+  expect(profileStillCurrent(current, { ...row, version: 'merchant-v1' })).toBe(true)
+  expect(profileStillCurrent(current, { ...row, version: 'merchant-v2' })).toBe(false)
+})
+it('handles uncaptured legacy schedules without ignoring changed contact information', () => {
+  const current = { ...row, openingSchedule: null }
+  expect(profileStillCurrent(current, row)).toBe(true)
+  expect(profileStillCurrent(current, { ...row, phone: '0907654321' })).toBe(false)
+  expect(profileStillCurrent(row, { ...row, openingSchedule: { ...row.openingSchedule, alwaysOpen: true } })).toBe(false)
+})
 it('allows document links only with safe schemes or local upload paths', () => {
   for (const value of ['https://example.test/sla.pdf', '/uploads/docs/sla.pdf', '']) {
     expect(safeDocumentUrl(value)).toBe(true)

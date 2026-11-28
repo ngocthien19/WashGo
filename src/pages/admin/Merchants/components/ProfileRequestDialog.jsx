@@ -1,14 +1,15 @@
-import OpeningScheduleSummary from '~/components/OpeningSchedule/OpeningScheduleSummary'
+import ProfileRequestDetails from '~/components/merchant-profile/ProfileRequestDetails'
+import ProfileRequestStatus from '~/components/merchant-profile/ProfileRequestStatus'
 import CoverageBlockedNotice from '~/components/orders/CoverageBlockedNotice'
 import { privateDocumentApi } from '~/apis/files/privateDocumentApi'
-import PrivateDocumentCard from '~/components/documents/PrivateDocumentCard'
+
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, X, FileCheck } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import ResourceFeedback from '~/components/ResourceFeedback/ResourceFeedback'
-import ResourceGallery from '~/components/ResourceThumbnail/ResourceGallery'
+
 import useCatalogResource from '~/hooks/useCatalogResource'
 import { adminMerchantApi } from '~/apis/admin/adminMerchantApi'
 import { notify } from '~/utils/notifications/notifications'
@@ -27,10 +28,10 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
   }, [id])
   const resource = useCatalogResource(load)
   const value = resource.data
-  const [reason, setReason] = useState(''), [rejecting, setRejecting] = useState(false), [pending, setPending] = useState(false), [blocked, setBlocked] = useState(false), [error, setError] = useState('')
+  const [reason, setReason] = useState(''), [rejecting, setRejecting] = useState(false), [pending, setPending] = useState(false), [blocked, setBlocked] = useState(false), [approvalBlocked, setApprovalBlocked] = useState(false), [error, setError] = useState('')
   const lock = useRef(false)
   const review = async (approve) => {
-    if (lock.current || blocked || !value || value.status !== 1 || !approve && (!reason.trim() || reason.trim().length > 1000)) {
+    if (lock.current || blocked || approve && approvalBlocked || !value || value.status !== 1 || !approve && (!reason.trim() || reason.trim().length > 1000)) {
       return
     }
     lock.current = true; setPending(true); setError(''); setExcluded([])
@@ -41,7 +42,7 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
         setError('admin.merchants.changed'); setBlocked(true); return
       }
       if (approve && !profileStillCurrent(value.current, await adminMerchantApi.detail(value.merchantId))) {
-        setError('admin.merchants.profileConflict'); setBlocked(true); return
+        setError('admin.merchants.profileConflict'); setApprovalBlocked(true); return
       }
       writing = true
       await adminMerchantApi.review(id, approve, reason.trim(), value.version)
@@ -49,14 +50,18 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
     } catch (failure) {
       setExcluded(failure.response?.data?.meta?.lockers || [])
       const unknown = writing && unknownWrite(failure)
-      setBlocked(unknown || failure.response?.status === 409)
+      const profileConflict = failure.response?.data?.meta?.code === 'MerchantProfileChanged'
+      setBlocked(unknown || failure.response?.status === 409 && !profileConflict)
+      if (profileConflict) {
+        setApprovalBlocked(true)
+      }
       const message = unknown ? 'admin.merchants.uncertain' : getApiError(failure)
       setError(message); notify.error(message)
     } finally {
       lock.current = false; setPending(false)
     }
   }
-  const keys = ['businessName', 'address', 'city', 'phone', 'openingSchedule', 'latitude', 'longitude', 'taxCode']
+
   return (
     <Dialog
       open
@@ -68,15 +73,16 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
     >
       <DialogContent
         closeLabel="common.close"
-        className="max-w-4xl"
+        ready={!resource.loading}
+        className="max-w-5xl"
         data-dialog-fixed
       >
         <MerchantDialogHeader tone={rejecting ? 'danger' : 'info'}>
-          <DialogTitle className="flex items-center gap-3 pr-8 text-2xl font-semibold">
+          <DialogTitle className="flex items-center gap-3 pr-4 text-xl font-bold sm:text-2xl">
             <FileCheck className="text-primary" />
             {t('admin.merchants.requestDetails')}
           </DialogTitle>
-          <DialogDescription className="mt-3 text-sm leading-6">
+          <DialogDescription className="mt-3 text-base leading-6 text-muted-foreground">
             {value?.merchantName || ''}
           </DialogDescription>
         </MerchantDialogHeader>
@@ -94,96 +100,10 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
             data-dialog-layout
           >
             <div data-dialog-body>
-              <div className="rounded-xl bg-primary/5 px-4 py-3 text-sm font-semibold">
-                {t(`admin.merchants.requestStates.${value.status}`)}
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[460px] text-left text-sm">
-                  <thead className="bg-muted/40">
-                    <tr>
-                      {['field', 'before', 'proposed'].map((key) => (
-                        <th
-                          key={key}
-                          className="p-3 font-semibold"
-                        >
-                          {t(`admin.merchants.${key}`)}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {keys.map((key) => (
-                      <tr
-                        key={key}
-                        className={value.changedFields.some((field) => field.toLowerCase() === key.toLowerCase()) ? 'bg-primary/5' : ''}
-                      >
-                        <th className="p-3 font-semibold">
-                          {t(key === 'openingSchedule' ? 'schedule.title' : `admin.merchants.fields.${key}`)}
-                        </th>
-                        <td className="max-w-64 whitespace-pre-wrap break-words p-3 text-muted-foreground">
-                          {key === 'openingSchedule' ? <OpeningScheduleSummary value={value.current[key]} /> : String(value.current[key] ?? '—')}
-                        </td>
-                        <td className="max-w-64 whitespace-pre-wrap break-words p-3 font-semibold">
-                          {key === 'openingSchedule' ? <OpeningScheduleSummary value={value.proposed[key]} /> : String(value.proposed[key] ?? '—')}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <section>
-                  <h3 className="mb-2 text-sm font-bold">
-                    {t('admin.merchants.before')}
-                  </h3>
-                  <ResourceGallery
-                    urls={value.current.imageUrls || []}
-                    name={value.merchantName}
-                    thumbnails
-                  />
-                </section>
-                <section>
-                  <h3 className="mb-2 text-sm font-bold">
-                    {t('admin.merchants.proposed')}
-                  </h3>
-                  <ResourceGallery
-                    urls={value.proposed.imageUrls || []}
-                    name={value.merchantName}
-                    thumbnails
-                  />
-                </section>
-              </div>
-              {(value.current.documentsSnapshotIncluded || value.proposed.documentsSnapshotIncluded) && (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {['current', 'proposed'].map(key => (
-                    <section
-                      key={key}
-                      className="space-y-3"
-                    >
-                      <h3 className="font-semibold">
-                        {t(key === 'current' ? 'admin.merchants.before' : 'admin.merchants.proposed')}
-                      </h3>
-                      {value.documentMetadata?.[value[key].businessLicenseDocumentId] ? (
-                        <PrivateDocumentCard
-                          document={value.documentMetadata[value[key].businessLicenseDocumentId]}
-                          label={t('merchant.backendSync.businessLicense')}
-                        />
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          {t('merchant.backendSync.noDocument')}
-                        </p>
-                      )}
-                    </section>
-                  ))}
-                </div>
-              )}
-              {value.rejectionReason && (
-                <p className="rounded-xl bg-rose-500/10 p-4 text-sm font-semibold text-rose-700 dark:text-rose-300">
-                  {value.rejectionReason}
-                </p>
-              )}
+              <ProfileRequestStatus status={value.status} />
+              <ProfileRequestDetails value={value} />
               {value.status === 1 && rejecting && (
-                <label className="flex flex-col gap-3 text-sm font-semibold">
+                <label className="flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50/50 p-4 text-base font-semibold dark:border-rose-400/20 dark:bg-rose-400/5">
                   <span>
                     {t('admin.merchants.reason')}
                     {' '}
@@ -232,7 +152,7 @@ export default function ProfileRequestDialog({ id, onClose, onSaved }) {
                   </Button>
                   <Button
                     className="h-11 px-5 text-base font-semibold"
-                    disabled={pending || blocked}
+                    disabled={pending || blocked || approvalBlocked}
                     onClick={() => review(true)}
                   >
                     <Check size={17} />

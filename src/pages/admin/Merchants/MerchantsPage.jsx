@@ -1,4 +1,5 @@
 import RecordLink from '~/components/RecordLink'
+import ProfileRequestStatus from '~/components/merchant-profile/ProfileRequestStatus'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -305,12 +306,12 @@ export default function MerchantsPage() {
                   {(merchants ? ['businessName', 'region', 'status', 'totalOrders', 'unfinishedOrders'] : ['businessName', 'submittedAt', 'changedFields', 'status']).map((key) => (
                     <TableHead
                       key={key}
-                      className={`${tableHeaderBackground} px-5 py-4 font-semibold`}
+                      className={`${tableHeaderBackground} px-5 py-4 font-bold`}
                     >
                       {t(`admin.merchants.${key}`)}
                     </TableHead>
                   ))}
-                  <TableHead className={`${tableHeaderBackground} sticky right-0 z-20 w-24 border-l border-border px-5 py-4 text-center font-semibold`}>
+                  <TableHead className={`${tableHeaderBackground} sticky right-0 z-20 w-24 border-l border-border px-5 py-4 text-center font-bold`}>
                     {t('admin.merchants.actions')}
                   </TableHead>
                 </TableRow>
@@ -364,20 +365,21 @@ export default function MerchantsPage() {
                     ) : (
                       <>
                         <TableCell className="max-w-72 whitespace-normal px-5 py-5 font-bold">
-                          <RecordLink onClick={() => setDialog({ kind: 'request', id: row.id })}>
+                          <RecordLink
+                            className="text-base font-bold"
+                            onClick={() => setDialog({ kind: 'request', id: row.id })}
+                          >
                             {row.merchantName}
                           </RecordLink>
                         </TableCell>
                         <TableCell className="px-5 py-5 text-sm text-muted-foreground">
                           {formatDateTime(row.createdAt)}
                         </TableCell>
-                        <TableCell className="max-w-72 whitespace-normal px-5 py-5 text-xs leading-6">
+                        <TableCell className="max-w-72 whitespace-normal px-5 py-5 text-base leading-6">
                           {row.changedFields.map((key) => t(`admin.merchants.fields.${key.charAt(0).toLowerCase() + key.slice(1)}`, { defaultValue: key })).join(', ')}
                         </TableCell>
                         <TableCell className="px-5 py-5">
-                          <span className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
-                            {t(`admin.merchants.requestStates.${row.status}`)}
-                          </span>
+                          <ProfileRequestStatus status={row.status} />
                         </TableCell>
                       </>
                     )}

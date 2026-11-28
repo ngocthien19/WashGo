@@ -1,6 +1,14 @@
 import authorizedAxios from '~/utils/http/authorizedAxios'
 
 export const merchantProfileApi = {
+  request: async (id, merchantId, signal) => {
+    const { data } = await authorizedAxios.get(`/merchant-profile-request/${encodeURIComponent(id)}`, { signal })
+    const value = data?.data
+    if (data?.succeeded !== true || value?.id !== id || value.merchantId !== merchantId || ![1, 2, 3].includes(value.status) || !value.current || !value.proposed || !Array.isArray(value.changedFields) || value.changedFields.some(field => typeof field !== 'string')) {
+      throw new Error('merchant.invalidResponse')
+    }
+    return value
+  },
   requestUpdate: async (values) => {
     if (typeof values.expectedMerchantVersion !== 'string' || !values.expectedMerchantVersion.trim()) {
       throw new Error('merchant.backendSync.profileChanged')
