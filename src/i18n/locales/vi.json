@@ -66,7 +66,7 @@
     "batchDone": "Kết quả xử lý hàng loạt", "batchSummary": "Đã thay đổi: {{changed}} · Giữ nguyên: {{unchanged}} · Bỏ qua: {{skipped}} · Thất bại: {{failed}}", "outcomes": { "Changed": "Đã thay đổi", "Unchanged": "Giữ nguyên", "Skipped": "Đã bỏ qua", "Failed": "Thất bại" },
     "unknown": "Chưa xác định được kết quả thao tác.", "processing": "Thao tác vẫn đang được xử lý. Vui lòng tra cứu lại sau.", "recoveryHint": "Tài khoản liên quan đang tạm khóa thao tác để tránh gửi trùng. Hãy tra cứu kết quả trước khi tiếp tục.", "checkOperation": "Tra cứu kết quả", "actionUnavailable": "Thao tác không còn khả dụng. Đóng cửa sổ và cập nhật danh sách để kiểm tra lại.",
     "currentEmail": "Email hiện tại", "sendCode": "Gửi mã xác minh", "codeSent": "Mã đã được gửi đến {{email}}. Hết hạn lúc {{expires}}.", "resend": "Gửi lại mã", "resendAfter": "Gửi lại sau {{seconds}} giây", "expiredCode": "Mã đã hết hạn. Vui lòng gửi lại mã mới.", "emailChallengeUnknown": "Chưa xác định được kết quả gửi mã. Hãy kiểm tra hộp thư và chờ mã hết hạn trước khi yêu cầu lại.",
-    "validation": { "required": "Vui lòng nhập thông tin này.", "name": "Họ tên từ 2 đến 100 ký tự.", "email": "Email không hợp lệ hoặc vượt quá 100 ký tự.", "phone": "Số điện thoại tài khoản gồm 10 chữ số, bắt đầu bằng 0. Khi tạo đối tác, nhập 9–11 chữ số.", "number": "Vui lòng nhập số hợp lệ trong phạm vi cho phép.", "coordinate": "Tọa độ không hợp lệ.", "length": "Nội dung vượt quá độ dài cho phép.", "reason": "Vui lòng nhập lý do không quá 500 ký tự.", "confirm": "Vui lòng xác nhận đã kiểm tra các đơn còn mở.", "code": "Vui lòng nhập mã xác minh gồm 6 chữ số." },
+    "validation": { "required": "Vui lòng nhập thông tin này.", "name": "Họ tên từ 2 đến 100 ký tự.", "email": "Email không hợp lệ hoặc vượt quá 100 ký tự.", "phone": "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.", "number": "Vui lòng nhập số hợp lệ trong phạm vi cho phép.", "coordinate": "Tọa độ không hợp lệ.", "length": "Nội dung vượt quá độ dài cho phép.", "reason": "Vui lòng nhập lý do không quá 500 ký tự.", "confirm": "Vui lòng xác nhận đã kiểm tra các đơn còn mở.", "code": "Vui lòng nhập mã xác minh gồm 6 chữ số." },
     "errors": { "ValidationFailed": "Vui lòng kiểm tra các trường thông tin.", "EmailAlreadyInUse": "Email đã được sử dụng.", "PhoneAlreadyInUse": "Số điện thoại đã được sử dụng.", "IdentityAlreadyInUse": "Email hoặc liên kết Google đã được tài khoản khác sử dụng.", "UseEmailChangeFlow": "Hãy sử dụng chức năng đổi email để xác minh địa chỉ mới.", "RevisionConflict": "Tài khoản đã thay đổi. Đóng cửa sổ và tải lại thông tin trước khi tiếp tục.", "OperationIdReused": "Yêu cầu đã được sử dụng cho nội dung khác. Vui lòng tải lại thông tin.", "PermissionRequired": "Bạn chưa có quyền thực hiện thao tác này.", "ManageAdminsRequired": "Bạn cần quyền quản lý Admin để thực hiện thao tác này.", "ReauthenticationRequired": "Vui lòng xác thực lại bằng mật khẩu của bạn.", "CannotModifySelf": "Không thể thực hiện thao tác này với tài khoản của chính bạn.", "ProtectedAccount": "Tài khoản được bảo vệ khỏi thao tác này.", "LastPrivilegedAdmin": "Cần giữ ít nhất một Admin đang hoạt động có quyền quản lý Admin.", "AccountAlreadyDeleted": "Tài khoản đã được xóa mềm.", "AccountNotDeleted": "Tài khoản chưa bị xóa mềm.", "AccountHasOpenObligations": "Tài khoản còn nghĩa vụ chưa hoàn tất. Xem chi tiết trước khi xóa mềm.", "ConfirmationRequired": "Cần xác nhận các đơn chưa hoàn tất trước khi khóa.", "HasActiveTasks": "Shipper còn nhiệm vụ đang thực hiện.", "PartnerNotActive": "Hồ sơ đối tác chưa hoạt động. Kiểm tra tại trang quản lý đối tác.", "PartnerProfileDeleted": "Hồ sơ đối tác đã bị xóa.", "RestoreNotSupportedForPartner": "Chưa hỗ trợ khôi phục tài khoản đối tác tại đây.", "NotAdminAccount": "Chỉ tài khoản Admin mới có quyền cấp riêng.", "OtpThrottled": "Vui lòng chờ trước khi gửi lại mã.", "EmailDeliveryFailed": "Chưa gửi được email xác minh. Vui lòng thử lại sau.", "TooManyAttempts": "Đã thử quá nhiều lần. Vui lòng thử lại sau.", "WrongPassword": "Mật khẩu xác nhận không đúng.", "NotFound": "Không tìm thấy tài khoản.", "OpenOrders": "Còn đơn chưa hoàn tất.", "ActiveTasks": "Còn nhiệm vụ đang thực hiện." },
     "audit": { "Login": "Đăng nhập", "Logout": "Đăng xuất", "Reauthenticate": "Xác thực lại", "Create": "Tạo tài khoản", "Update": "Sửa tài khoản", "Lock": "Khóa tài khoản", "Unlock": "Mở khóa tài khoản", "SoftDelete": "Xóa mềm tài khoản", "Restore": "Khôi phục tài khoản", "Permissions": "Thay đổi quyền", "EmailChange": "Đổi email", "Success": "Thành công", "Succeeded": "Thành công", "Failed": "Thất bại", "Denied": "Bị từ chối" }
   },
@@ -186,6 +186,7 @@
     "note": "Thời gian được đối chiếu theo giờ BE; Cập nhật để lấy trạng thái mới nhất. Đây là thời hạn nghiệp vụ của đơn, không phải hạn 15 phút của phiên VNPay. Thiếu giờ BE thì chỉ hiển thị mốc và trạng thái được cung cấp."
   },
   "loyalty": {
+    "paymentPoints": "Điểm thưởng sử dụng ({{points}} điểm)",
     "switchApplied": "Đang dùng {{points}} xu cho đơn hàng này.",
     "title": "Điểm thưởng WashGo",
     "availablePoints": "Điểm khả dụng",
@@ -848,7 +849,7 @@
     "pleaseEnterYourFullName": "Vui lòng nhập họ tên.",
     "pleaseEnterYourPhoneNumber": "Vui lòng nhập số điện thoại.",
     "pleaseEnterAValidPhoneNumber": "Số điện thoại không hợp lệ.",
-    "phoneNumberMustContainDigits": "Số điện thoại cần từ {{PHONE_MIN}} đến {{PHONE_MAX}} chữ số.",
+    "phoneNumberMustContainDigits": "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.",
     "pleaseConfirmYourPassword": "Vui lòng xác nhận mật khẩu.",
     "thePasswordsDoNotMatch": "Mật khẩu xác nhận không khớp.",
     "pleaseEnterTheOtp": "Vui lòng nhập mã OTP.",
@@ -1435,6 +1436,7 @@
         "phone": "Số điện thoại",
         "taxCode": "Mã số thuế",
         "businessLicense": "Số giấy phép kinh doanh / liên kết",
+        "openingSchedule": "Giờ mở cửa",
         "openingHours": "Giờ mở cửa",
         "address": "Địa chỉ cửa hàng",
         "city": "Tỉnh / Thành phố",
@@ -2599,7 +2601,7 @@
       "uncertain": "Chưa xác định được kết quả lưu. Đóng cửa sổ và kiểm tra danh sách trước khi thử lại.",
       "invalid": {
         "fullName": "Nhập họ tên, tối đa 100 ký tự.",
-        "phone": "Nhập số điện thoại hợp lệ gồm 9–11 chữ số.",
+        "phone": "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.",
         "email": "Nhập email hợp lệ, tối đa 100 ký tự.",
         "vehiclePlate": "Nhập biển số hợp lệ (4–20 ký tự); xe đạp có thể để trống.",
         "identityNumber": "Nhập 9 hoặc 12 chữ số, hoặc để trống."
@@ -2712,7 +2714,7 @@
       "submitted": "Đã gửi hồ sơ. Vui lòng chờ phê duyệt.",
       "hoursPlaceholder": "Ví dụ: 07:00 - 22:00 hằng ngày",
       "restricted": "Mã số thuế và giấy phép kinh doanh hiện chưa hỗ trợ cập nhật tại đây. Vui lòng liên hệ quản trị viên để bổ sung.",
-      "invalidFields": "Vui lòng kiểm tra tên, địa chỉ, số điện thoại (9–11 chữ số) và giờ mở cửa.",
+      "invalidFields": "Vui lòng kiểm tra tên, địa chỉ, số điện thoại (10 chữ số, bắt đầu bằng 0) và giờ mở cửa.",
       "noChanges": "Bạn chưa thay đổi thông tin nào.",
       "uncertain": "Chưa xác định được kết quả gửi. Đóng cửa sổ và cập nhật hồ sơ để kiểm tra trước khi gửi lại."
     },
@@ -3120,6 +3122,10 @@
       "descriptionRequired": "Vui lòng mô tả sự cố.",
       "descriptionMax": "Mô tả không được vượt quá 2000 ký tự.",
       "imagesRequired": "Vui lòng thêm ít nhất một ảnh minh chứng.",
+      "itemValueLabel": "Giá trị món đồ khai báo (₫)",
+      "itemValuePlaceholder": "Nhập giá trị món đồ, ví dụ: 250000",
+      "itemValueRequired": "Vui lòng nhập giá trị món đồ khai báo.",
+      "itemValueInvalid": "Giá trị phải từ 0 đến 100.000.000 ₫, tối đa hai chữ số thập phân.",
       "imageHelp": "Bắt buộc ít nhất 1 ảnh, tối đa 5 ảnh JPG, PNG hoặc WEBP, mỗi ảnh không quá 5MB.",
       "windowHint": "Vui lòng gửi trong 3 ngày kể từ khi nhận đồ. WashGo sẽ kiểm tra thời hạn và tình trạng đơn khi bạn gửi báo cáo.",
       "deadline": "Bạn có thể báo cáo đến {{date}} (trong 3 ngày kể từ khi nhận đồ).",
@@ -3887,7 +3893,7 @@
     "invalidResponse": "Dữ liệu Shipper không hợp lệ. Vui lòng thử tải lại.",
     "validation": {
       "fullName": "Nhập họ tên từ 1–100 ký tự.",
-      "phone": "Nhập SĐT hợp lệ gồm 9–11 chữ số, tối đa 20 ký tự.",
+      "phone": "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.",
       "vehiclePlate": "Biển số tối đa 20 ký tự; bắt buộc và từ 4 ký tự với xe máy/ô tô."
     },
     "taskTypes": {

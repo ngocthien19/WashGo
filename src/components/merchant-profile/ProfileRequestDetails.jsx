@@ -22,7 +22,7 @@ export default function ProfileRequestDetails({ value }) {
     try {
       hours = JSON.parse(hours)
     } catch { /* Legacy hours can also be plain text. */ }
-    return typeof hours === 'string' && hours ? hours : '—'
+    return typeof hours === 'string' && hours ? hours : data.openingScheduleSnapshotIncluded ? '—' : t('schedule.snapshotMissing')
   }
   return (
     <>

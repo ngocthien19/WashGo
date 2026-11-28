@@ -1,4 +1,26 @@
 const money = value => Number.isFinite(value) && value >= 0
+export function checkoutAmounts(summary) {
+  const quote = summary.quote
+  const session = quote.activeSession
+  const hasSessionAmounts = session && [2, 3].includes(session.paymentMethod) && money(session.amount)
+    && Number.isSafeInteger(session.pointsToRedeem) && session.pointsToRedeem >= 0
+  return hasSessionAmounts
+    ? { cashAmount: session.amount, pointsToRedeem: session.pointsToRedeem }
+    : { cashAmount: quote.cashAmount, pointsToRedeem: quote.pointsToRedeem }
+}
+
+export function orderPaymentAmounts(summary) {
+  const session = summary.quote?.activeSession
+  const serviceDue = summary.obligations?.find(row => row.purpose === 1)?.outstanding ?? 0
+  const points = !summary.settled && [1, 4].includes(session?.purpose)
+    && [2, 3].includes(session.paymentMethod) && money(session.amount)
+    && Number.isSafeInteger(session.pointsToRedeem) && session.pointsToRedeem > 0 && session.pointsToRedeem <= serviceDue
+    ? session.pointsToRedeem : 0
+  // BE uses 1 point = 1 VND. Keep all outstanding fees, even when the
+  // existing session only covers the service portion of the order.
+  return { pointsToRedeem: points, cashAmount: Math.max(0, summary.outstanding - points) }
+}
+
 export function validSummary(value, orderId) {
   return value?.orderId === orderId && value.currency === 'VND' && money(value.outstanding)
     && typeof value.settled === 'boolean' && typeof value.canRequestStorageReturn === 'boolean'

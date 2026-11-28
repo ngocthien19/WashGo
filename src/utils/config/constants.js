@@ -84,7 +84,7 @@ export const RATING_CONFIG = {
   ENDPOINT: '/rating', MAX_STARS: 5, COMMENT_MAX: 1000, MAX_IMAGES: 5,
   CRITERIA: ['qualityStars', 'speedStars', 'attitudeStars', 'packagingStars']
 }
-export const INCIDENT_CONFIG = { ENDPOINT: '/incident', PAGE_SIZE: 6, DESCRIPTION_MAX: 2000, REPORT_WINDOW_DAYS: 3, MAX_IMAGES: 5 }
+export const INCIDENT_CONFIG = { ENDPOINT: '/incident', PAGE_SIZE: 6, DESCRIPTION_MAX: 2000, REPORT_WINDOW_DAYS: 3, MAX_IMAGES: 5, MAX_ITEM_VALUE: 100000000 }
 export const NOTIFICATION_CONFIG = { ENDPOINT: '/notification', HUB: '/hubs/notifications', EVENT: 'notification', PAGE_SIZE: 10, RETRY_MS: 30000, TOAST_HISTORY_LIMIT: 200 }
 export const INCIDENT_TYPES = [1, 2, 3]
 export const INCIDENT_SEVERITIES = [1, 2, 3]
@@ -269,8 +269,8 @@ export const AUTH_LIMITS = {
   EMAIL_MAX: 100,
   NAME_MIN: 2,
   NAME_MAX: 100,
-  PHONE_MIN: 9,
-  PHONE_MAX: 11,
+  PHONE_MIN: 10,
+  PHONE_MAX: 10,
   PASSWORD_MIN: 8,
   PASSWORD_MAX: 128
 }

@@ -27,7 +27,7 @@ export const customerIncidentApi = {
       return null
     } throw error
   }),
-  update: (id, { type, severity, description, imageUrls, videoUrls }) => authorizedAxios.put(`${INCIDENT_CONFIG.ENDPOINT}/${encodeURIComponent(id)}`, { type, severity, description, imageUrls, videoUrls }).then(unwrap).then((item) => {
+  update: (id, { itemValue, type, severity, description, imageUrls, videoUrls }) => authorizedAxios.put(`${INCIDENT_CONFIG.ENDPOINT}/${encodeURIComponent(id)}`, { itemValue, type, severity, description, imageUrls, videoUrls }).then(unwrap).then((item) => {
     if (item.id !== id) {
       throw invalid()
     } return item
@@ -63,7 +63,7 @@ export const customerIncidentApi = {
     }
     return item
   }),
-  create: ({ orderId, type, severity, description, imageUrls, videoUrls, clientRequestId }) => authorizedAxios.post(INCIDENT_CONFIG.ENDPOINT, { orderId, type, severity, description, imageUrls, videoUrls, clientRequestId })
+  create: ({ orderId, itemValue, type, severity, description, imageUrls, videoUrls, clientRequestId }) => authorizedAxios.post(INCIDENT_CONFIG.ENDPOINT, { orderId, itemValue, type, severity, description, imageUrls, videoUrls, clientRequestId })
     .then(unwrap).then((item) => {
       if (item.orderId !== orderId || item.status !== 1) {
         throw invalid()

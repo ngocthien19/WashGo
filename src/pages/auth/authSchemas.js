@@ -1,6 +1,5 @@
 import * as yup from 'yup'
 import { AUTH_LIMITS, OTP_CONFIG } from '~/utils/config/constants'
-import { normalizePhone } from '~/utils/format/formats'
 
 const email = yup.string()
   .trim()
@@ -34,11 +33,7 @@ export const registerSchema = yup.object({
   phone: yup.string()
     .trim()
     .required('auth.pleaseEnterYourPhoneNumber')
-    .matches(/^\+?[\d\s().-]+$/, 'auth.pleaseEnterAValidPhoneNumber')
-    .test('phone', 'auth.phoneNumberMustContainDigits', (value) => {
-      const digits = normalizePhone(value)
-      return digits.length >= AUTH_LIMITS.PHONE_MIN && digits.length <= AUTH_LIMITS.PHONE_MAX
-    }),
+    .matches(/^0[0-9]{9}$/, 'auth.phoneNumberMustContainDigits'),
   password,
   confirmPassword: yup.string()
     .required('auth.pleaseConfirmYourPassword')

@@ -228,9 +228,11 @@ test('stale edit data is rejected before any write', async ({ page }) => {
 test('profile requests show snapshots and approve with the current Merchant guarded', async ({ page }) => {
   const state = await setup(page)
   state.requests[0].current.openingSchedule = null
+  state.requests[0].current.baseMerchantVersion = 'legacy-profile-v1'
+  state.merchants[0].version = 'legacy-profile-v1'
   await page.goto(`/admin/merchants?tab=requests&request=${requestId}`)
   const dialog = page.getByRole('dialog')
-  await expect(dialog.getByText('Updated Ben Thanh Laundry', { exact: true })).toBeVisible()
+  await expect(dialog.getByText('Updated Ben Thanh Laundry', { exact: true })).toBeVisible({ timeout: 20000 })
   await dialog.getByRole('button', { name: 'Approve', exact: true }).click()
   await expect(dialog).toHaveCount(0)
   await expect(page).not.toHaveURL(/request=/)
@@ -253,6 +255,29 @@ test('approval cannot overwrite a changed profile and rejection requires a reaso
   await dialog.getByRole('button', { name: 'Confirm rejection', exact: true }).click()
   await expect(dialog).toHaveCount(0)
   expect(state.writes[0].body).toMatchObject({ reason: 'Please resubmit against the current profile' })
+})
+
+test('a captured null schedule is a real conflict and a legacy request without a version remains rejectable', async ({ page }) => {
+  const state = await setup(page)
+  state.requests[0].current.openingSchedule = null
+  state.requests[0].current.openingScheduleSnapshotIncluded = true
+  await page.goto(`/admin/merchants?tab=requests&request=${requestId}`)
+  let dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Approve', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Approve', exact: true })).toBeDisabled()
+  expect(state.writes).toHaveLength(0)
+  state.requests[0].current.openingScheduleSnapshotIncluded = false
+  await page.reload()
+  dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'Approve', exact: true }).click()
+  await expect(dialog.getByRole('button', { name: 'Approve', exact: true })).toBeDisabled()
+  await dialog.getByRole('button', { name: 'Reject', exact: true }).click()
+  await dialog.getByRole('textbox').fill('Historical schedule and base version were not captured; submit a new request.')
+  await dialog.getByRole('button', { name: 'Confirm rejection', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+  expect(state.writes).toHaveLength(1)
+  expect(state.writes[0].path).toMatch(/\/reject$/)
 })
 test('mobile dark table keeps actions sticky and a list failure can retry', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })

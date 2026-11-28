@@ -12,7 +12,7 @@ import { formatCurrency } from '~/utils/format/formats'
 import { getApiError } from '~/utils/http/apiError'
 import { validatePaymentSession } from '~/utils/orders/paymentSession'
 import { paymentRedirectUrl } from './paymentModel'
-import { validSummary } from './combinedPaymentModel'
+import { checkoutAmounts, validSummary } from './combinedPaymentModel'
 import PaymentSummary from './PaymentSummary'
 import LegacyPaymentCheckout from './LegacyPaymentCheckout'
 
@@ -49,9 +49,10 @@ function CombinedCheckout({ order, modal, onClose, refresh, pendingRequests, ini
     }
   }, [])
   const quote = summary?.quote
+  const displayedAmounts = summary ? checkoutAmounts(summary) : null
   const selected = quote?.methods.find(row => row.paymentMethod === method)
   const pay = async () => {
-    if (lock.current || liveStale || !summary || blockedUncertain || resource.loading || resource.error || (!session?.canContinue && (!quote.canCreate || !selected?.enabled))) {
+    if (lock.current || liveStale || !summary || blockedUncertain || resource.loading || resource.error || session && !session.canContinue || (!session?.canContinue && (!quote.canCreate || !selected?.enabled))) {
       return
     }
     lock.current = true; setBusy(true); setError(''); pendingRequests.current.add(order.id)
@@ -146,7 +147,10 @@ function CombinedCheckout({ order, modal, onClose, refresh, pendingRequests, ini
       <div className="min-h-0 space-y-5 overflow-y-auto p-6">
         {resource.error || resource.loading && !summary ? <ResourceFeedback {...resource} /> : summary && (
           <>
-            <PaymentSummary summary={summary} />
+            <PaymentSummary
+              summary={summary}
+              checkout
+            />
             {summary.outstanding === 0 && (
               <p
                 role="status"
@@ -206,7 +210,7 @@ function CombinedCheckout({ order, modal, onClose, refresh, pendingRequests, ini
             )}
             {session && (
               <p className="rounded-xl bg-amber-500/10 p-3 text-sm">
-                {t('combined.existing')}
+                {t(session.canContinue ? 'combined.existing' : 'combined.pendingSession')}
                 {' '}
                 ·
                 {' '}
@@ -258,12 +262,12 @@ function CombinedCheckout({ order, modal, onClose, refresh, pendingRequests, ini
         {summary && !summary.settled && summary.outstanding > 0 && (
           <Button
             className="h-12 rounded-xl px-6 text-base"
-            disabled={busy || liveStale || blockedUncertain || resource.loading || !!resource.error || (!session?.canContinue && (!quote.canCreate || !selected?.enabled))}
+            disabled={busy || liveStale || blockedUncertain || resource.loading || !!resource.error || !!session && !session.canContinue || (!session?.canContinue && (!quote.canCreate || !selected?.enabled))}
             onClick={pay}
           >
             {t(busy ? 'customer.payment.redirecting' : session?.canContinue ? 'combined.continue' : changed ? 'combined.confirmAgain' : 'customer.orders.pay')}
             {' '}
-            {formatCurrency(session?.canContinue ? session.amount : quote.cashAmount)}
+            {formatCurrency(displayedAmounts.cashAmount)}
           </Button>
         )}
       </footer>

@@ -1,4 +1,4 @@
-import { readSchedule, scheduleSchema } from '~/components/OpeningSchedule/scheduleModel'
+import { equivalentSchedule, readSchedule, scheduleSchema } from '~/components/OpeningSchedule/scheduleModel'
 import * as yup from 'yup'
 import { validDay, vietnamToday } from '~/utils/format/dateRange'
 
@@ -26,7 +26,7 @@ export const safeDocumentUrl = (value) => !value || /^https?:\/\//i.test(value) 
 export const merchantSchema = yup.object({
   businessName: yup.string().trim().required().max(200),
   email: yup.string().trim().required().email().max(100),
-  phone: yup.string().trim().required().max(20).matches(/^\+?[0-9 ()\-.]+$/).test('digits', '', (value) => /^\d{9,11}$/.test((value || '').replace(/\D/g, ''))),
+  phone: yup.string().trim().required().matches(/^0[0-9]{9}$/),
   taxCode: yup.string().trim().max(20), businessLicense: yup.string().trim().max(2000),
   address: yup.string().trim().required().max(500), city: yup.string().trim().required().max(100), district: yup.string().trim().max(100),
   latitude: yup.number().required().min(-90).max(90), longitude: yup.number().required().min(-180).max(180),
@@ -59,8 +59,12 @@ export function merchantPayload(values, original, imageUrls) {
 export const merchantSnapshot = (value) => JSON.stringify([value.version, merchantDefaults(value), value.status, value.imageUrls || [], [...(value.serviceAreaIds || [])].sort()])
 export const requestSnapshot = (value) => JSON.stringify([value.version, value.id, value.status, value.current, value.proposed, value.changedFields])
 export const profileStillCurrent = (current, value) => {
-  if (current.baseMerchantVersion && value.version) {
-    return current.baseMerchantVersion === value.version
+  const captured = current.openingScheduleSnapshotIncluded === true || current.openingSchedule != null
+  if (!captured && !current.baseMerchantVersion) {
+    return false
+  }
+  if (current.baseMerchantVersion && value.version && current.baseMerchantVersion !== value.version) {
+    return false
   }
   return ['businessName', 'address', 'phone', 'city', 'latitude', 'longitude', 'openingHours', 'openingSchedule', 'imageUrls', ...(current.documentsSnapshotIncluded ? ['taxCode', 'businessLicenseDocumentId'] : [])].every((key) => {
     if (current[key] == null && ['city', 'latitude', 'longitude'].includes(key)) {
@@ -68,8 +72,8 @@ export const profileStillCurrent = (current, value) => {
     }
     // Older snapshots did not capture the structured schedule. The server still
     // validates the merchant version and current profile atomically on approval.
-    if (key === 'openingSchedule' && current[key] == null) {
-      return true
+    if (key === 'openingSchedule') {
+      return !captured || equivalentSchedule(current[key], value[key])
     }
     if (key === 'openingHours') {
       return displayJsonText(current[key]) === displayJsonText(value[key])

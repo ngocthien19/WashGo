@@ -9,7 +9,7 @@ const response = (data) => ({ data: { succeeded: true, data } })
 
 it('sends only allowed customer fields and rejects an unverified creation response', async () => {
   authorizedAxios.post.mockResolvedValue(response(incident))
-  const payload = { orderId: 'order-one', type: 2, severity: 3, description: 'Lost shirt', imageUrls: ['/uploads/photo.png'] }
+  const payload = { orderId: 'order-one', itemValue: 250000, type: 2, severity: 3, description: 'Lost shirt', imageUrls: ['/uploads/photo.png'] }
   await customerIncidentApi.create({ ...payload, customerId: 'other', compensationAmount: 999, status: 2 })
   expect(authorizedAxios.post).toHaveBeenCalledWith('/incident', payload)
   authorizedAxios.post.mockResolvedValue(response({ ...incident, orderId: 'wrong-order' }))

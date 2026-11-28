@@ -36,7 +36,7 @@ export const accountSchema = editing => yup.object({
     if (!value && editing) {
       return ['Admin', 'Merchant'].includes(this.parent.role)
     }
-    return editing || ['Customer', 'Admin'].includes(this.parent.role) ? /^0\d{9}$/.test(value || '') : /^\+?[0-9 ()\-.]+$/.test(value || '') && /^\d{9,11}$/.test((value || '').replace(/\D/g, ''))
+    return /^0[0-9]{9}$/.test(value || '')
   }),
   openingSchedule: yup.mixed().when('role', { is: role => !editing && role === 'Merchant', then: () => scheduleSchema, otherwise: schema => schema.strip() }),
   address: yup.string().when('role', { is: role => !editing && role === 'Merchant', then: () => required.max(500, 'accounts.validation.length') }),

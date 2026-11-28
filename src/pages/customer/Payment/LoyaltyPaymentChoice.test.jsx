@@ -4,6 +4,7 @@ import { beforeEach, expect, it, vi } from 'vitest'
 import i18n from '~/i18n'
 import { customerLoyaltyApi } from '~/apis/customer/customerLoyaltyApi'
 import LoyaltyPaymentChoice from './LoyaltyPaymentChoice'
+import { formatCurrency } from '~/utils/format/formats'
 
 vi.mock('~/apis/customer/customerLoyaltyApi', () => ({ customerLoyaltyApi: { quote: vi.fn() } }))
 
@@ -33,10 +34,12 @@ it('starts off, applies the maximum automatically, and restores the server quote
   expect(toggle).toBeChecked()
   await waitFor(() => expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ dirty: false, loading: false, quote: expect.objectContaining({ pointsToRedeem: 1000, cashAmount: 49000 }) })))
   expect(screen.getByText('490', { exact: true })).toBeVisible()
+  expect(screen.getByText('Reward points used (1,000 points)').closest('div')).toHaveTextContent(`−${formatCurrency(1000)}`)
   toggle.focus()
   await user.keyboard(' ')
   await waitFor(() => expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ dirty: false, loading: false, quote: expect.objectContaining({ pointsToRedeem: 0, cashAmount: 50000 }) })))
   expect(toggle).not.toBeChecked()
+  expect(screen.getByText('Reward points used (0 points)').closest('div')).toHaveTextContent(formatCurrency(0))
 })
 
 it('keeps the switch off for an empty wallet and still shows the expected reward', async () => {
